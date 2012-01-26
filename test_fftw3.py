@@ -11,7 +11,7 @@ def timer_test_setup(fft_length = 2048, vectors = 256):
     
     fft_class = ComplexFFTW(a,b, flags=['FFTW_MEASURE'])
 
-    # We need to refill a with data as it get's clobbered by
+    # We need to refill a with data as it gets clobbered by
     # initialisation.
     a[:] = numpy.complex64(numpy.random.rand(vectors,fft_length)
             +1j*numpy.random.rand(vectors,fft_length))
