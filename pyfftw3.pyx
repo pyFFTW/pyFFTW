@@ -292,12 +292,6 @@ cpdef n_byte_align(array, n):
     If it is not, a new array is created and 
     the data copied in, but aligned on the
     n-byte boundary.
-    
-    This function is a bit broken in that it
-    necessarily requires n to be some multiple
-    of 4, due to numpy wanting to create a new
-    array during the reshaping when this isn't
-    true.
     '''
     
     if not isinstance(array, np.ndarray):
