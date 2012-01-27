@@ -1,4 +1,4 @@
-from fftw3 import ComplexFFTW
+from pyfftw3 import ComplexFFTW, n_byte_align, n_byte_align_empty
 import numpy
 
 import unittest
@@ -23,7 +23,7 @@ timer_setup = '''
 try:
     from __main__ import timer_test_setup
 except:
-    from test_fftw3 import timer_test_setup
+    from test_pyfftw3 import timer_test_setup
 
 fft_class,a,b= timer_test_setup()
 '''
@@ -32,7 +32,7 @@ def timer():
     N = 100
     t = Timer(stmt="fft_class.execute()", setup=timer_setup)
         
-    print 'One run: '+ ("%.2f" % (1000.0/N*t.timeit(N)))+' ms'
+    print ('One run: '+ ("%.2f" % (1000.0/N*t.timeit(N)))+' ms')
 
 def timer_with_array_update():
     from timeit import Timer
@@ -44,12 +44,13 @@ def timer_with_array_update():
             stmt="fft_class.update_arrays(a,b); fft_class.execute()", 
             setup=timer_setup)
         
-    print 'One run: '+ ("%.2f" % (1000.0/N*t.timeit(N)))+' ms'
+    print ('One run: '+ ("%.2f" % (1000.0/N*t.timeit(N)))+' ms')
 
-class ComplexFFTWTest(unittest.TestCase):
+class Complex64FFTWTest(unittest.TestCase):
 
     def setUp(self):
 
+        self.dtype = numpy.complex64
         return
 
     def tearDown(self):
@@ -64,7 +65,8 @@ class ComplexFFTWTest(unittest.TestCase):
         timer_with_array_update()
         self.assertTrue(True)
 
-    def run_validate_fft(self, a, b, axes, fft=None, ifft=None):
+    def run_validate_fft(self, a, b, axes, fft=None, ifft=None, 
+            force_unaligned_data=False):
         ''' Run a validation of the FFTW routines for the passed pair
         of arrays, a and b, and the axes argument.
 
@@ -72,20 +74,28 @@ class ComplexFFTWTest(unittest.TestCase):
         the same layout in memory).
 
         fft and ifft, if passed, should be instantiated FFTW objects.
+
+        If force_unaligned_data is True, the flag FFTW_UNALIGNED
+        will be passed to the fftw routines.
         '''
         a_orig = a.copy()
         foo = False
 
+        flags = ['FFTW_ESTIMATE']
+
+        if force_unaligned_data:
+            flags.append('FFTW_UNALIGNED')
+
         if fft == None:
             fft = ComplexFFTW(a,b,axes=axes,
-                    direction='FFTW_FORWARD',flags=['FFTW_ESTIMATE'])
+                    direction='FFTW_FORWARD',flags=flags)
         else:
             fft.update_arrays(a,b)
             foo = True
 
         if ifft == None:
             ifft = ComplexFFTW(b,a,axes=axes,
-                    direction='FFTW_BACKWARD',flags=['FFTW_ESTIMATE'])
+                    direction='FFTW_BACKWARD',flags=flags)
         else:
             ifft.update_arrays(b,a)
 
@@ -115,9 +125,9 @@ class ComplexFFTWTest(unittest.TestCase):
     def test_1d(self):
         shape = (2048,)
         axes=[0]
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
 
         self.run_validate_fft(a, b, axes)
@@ -125,9 +135,9 @@ class ComplexFFTWTest(unittest.TestCase):
     def test_multiple_1d(self):
         shape = (256, 2048)
         axes=[-1]
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
 
         self.run_validate_fft(a, b, axes)
@@ -135,9 +145,9 @@ class ComplexFFTWTest(unittest.TestCase):
     def test_2d(self):
         shape = (256, 2048)
         axes=[-2,-1]
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
 
         self.run_validate_fft(a, b, axes)
@@ -145,9 +155,9 @@ class ComplexFFTWTest(unittest.TestCase):
     def test_multiple_2d(self):
         shape = (15, 256, 2048)
         axes=[-2,-1]
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
 
         self.run_validate_fft(a, b, axes)
@@ -155,9 +165,9 @@ class ComplexFFTWTest(unittest.TestCase):
     def test_3d(self):
         shape = (15, 256, 2048)
         axes=[0, 1, 2]
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
 
         self.run_validate_fft(a, b, axes)
@@ -165,11 +175,11 @@ class ComplexFFTWTest(unittest.TestCase):
     def test_missized_fail(self):
         shape = (256, 2048)
         axes=[1, 2]
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
 
         shape = (257, 2048)
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
     
         self.assertRaises(ValueError, ComplexFFTW, *(a,b))
@@ -177,9 +187,9 @@ class ComplexFFTWTest(unittest.TestCase):
     def test_f_contiguous_1d(self):
         shape = (256, 2048)
         axes=[-1]
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape)).transpose()
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape)).transpose()
 
         self.run_validate_fft(a, b, axes)
@@ -187,9 +197,9 @@ class ComplexFFTWTest(unittest.TestCase):
     def test_non_contiguous_2d(self):
         shape = (256, 2048)
         axes=[-2,-1]
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
 
         # Some arbitrary and crazy slicing
@@ -199,7 +209,7 @@ class ComplexFFTWTest(unittest.TestCase):
 
         self.run_validate_fft(a_sliced, b_sliced, axes)
 
-    def test_non_complex64_fail(self):
+    def test_different_dtypes_fail(self):
         shape = (256, 2048)
         axes=[-2,-1]
         a = numpy.complex128(numpy.random.rand(*shape)
@@ -216,16 +226,16 @@ class ComplexFFTWTest(unittest.TestCase):
     def test_update_data(self):
         shape = (256, 2048)
         axes=[-2,-1]
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
 
         fft, ifft = self.run_validate_fft(a, b, axes)
 
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
 
         self.run_validate_fft(a, b, axes, fft=fft, ifft=ifft)
@@ -233,17 +243,17 @@ class ComplexFFTWTest(unittest.TestCase):
     def test_update_data_with_stride_error(self):
         shape = (256, 2048)
         axes=[-2,-1]
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
 
         fft, ifft = self.run_validate_fft(a, b, axes)
 
         shape = (258, 2050)
-        a_ = numpy.complex64(numpy.random.rand(*shape)
+        a_ = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))[2:,2:]
-        b_ = numpy.complex64(numpy.random.rand(*shape)
+        b_ = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))[2:,2:]
 
         self.assertRaises(ValueError, self.run_validate_fft, 
@@ -255,17 +265,17 @@ class ComplexFFTWTest(unittest.TestCase):
     def test_update_data_with_shape_error(self):
         shape = (256, 2048)
         axes=[-2,-1]
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
 
         fft, ifft = self.run_validate_fft(a, b, axes)
 
         shape = (250, 2048)
-        a_ = numpy.complex64(numpy.random.rand(*shape)
+        a_ = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
-        b_ = numpy.complex64(numpy.random.rand(*shape)
+        b_ = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
 
         self.assertRaises(ValueError, self.run_validate_fft, 
@@ -273,25 +283,98 @@ class ComplexFFTWTest(unittest.TestCase):
 
         self.assertRaises(ValueError, self.run_validate_fft, 
                 *(a_,b,axes), **{'fft':fft, 'ifft':ifft})
+    
+    def test_update_unaligned_data_with_FFTW_UNALIGNED(self):
+        shape = (256, 2048)
+        axes=[-2,-1]
+        a = self.dtype(numpy.random.rand(*shape)
+                +1j*numpy.random.rand(*shape))
+        b = self.dtype(numpy.random.rand(*shape)
+                +1j*numpy.random.rand(*shape))
+
+        a = n_byte_align(a, 16)
+        b = n_byte_align(b, 16)
+
+        fft, ifft = self.run_validate_fft(a, b, axes, 
+                force_unaligned_data=True)
+
+        # Offset by one from 16 byte aligned to guarantee it's not
+        # 16 byte aligned
+        a__ = n_byte_align_empty(
+                numpy.prod(shape)*a.itemsize+1, 16, dtype='int8')
+        
+        a_ = a__[1:].view(dtype=self.dtype).reshape(*shape)
+        a_[:] = a 
+        
+        b__ = n_byte_align_empty(
+                numpy.prod(shape)*b.itemsize+1, 16, dtype='int8')
+        
+        b_ = b__[1:].view(dtype=self.dtype).reshape(*shape)
+        b_[:] = b
+
+        self.run_validate_fft(a, b_, axes, fft=fft, ifft=ifft)
+        self.run_validate_fft(a_, b, axes, fft=fft, ifft=ifft)
+        self.run_validate_fft(a_, b_, axes, fft=fft, ifft=ifft)
+
+    def test_update_data_with_unaligned_original(self):
+        shape = (256, 2048)
+        axes=[-2,-1]
+        a = self.dtype(numpy.random.rand(*shape)
+                +1j*numpy.random.rand(*shape))
+        b = self.dtype(numpy.random.rand(*shape)
+                +1j*numpy.random.rand(*shape))
+
+        # Offset by one from 16 byte aligned to guarantee it's not
+        # 16 byte aligned
+        a__ = n_byte_align_empty(
+                numpy.prod(shape)*a.itemsize+1, 16, dtype='int8')
+        
+        a_ = a__[1:].view(dtype=self.dtype).reshape(*shape)
+        a_[:] = a
+        
+        b__ = n_byte_align_empty(
+                numpy.prod(shape)*b.itemsize+1, 16, dtype='int8')
+        
+        b_ = b__[1:].view(dtype=self.dtype).reshape(*shape)
+        b_[:] = b
+        
+        fft, ifft = self.run_validate_fft(a_, b_, axes, 
+                force_unaligned_data=True)
+        
+        self.run_validate_fft(a, b_, axes, fft=fft, ifft=ifft)
+        self.run_validate_fft(a_, b, axes, fft=fft, ifft=ifft)
+        self.run_validate_fft(a_, b_, axes, fft=fft, ifft=ifft)
+
 
     def test_update_data_with_alignment_error(self):
         shape = (256, 2048)
         axes=[-2,-1]
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
+
+        a = n_byte_align(a, 16)
+        b = n_byte_align(b, 16)
 
         fft, ifft = self.run_validate_fft(a, b, axes)
-
-        shape = (250, 2048)
-        a_ = numpy.complex64(numpy.random.rand(*shape)
-                +1j*numpy.random.rand(*shape))
-        b_ = numpy.complex64(numpy.random.rand(*shape)
-                +1j*numpy.random.rand(*shape))
-
+        
+        # Offset by one from 16 byte aligned to guarantee it's not
+        # 16 byte aligned
+        a__ = n_byte_align_empty(
+                numpy.prod(shape)*a.itemsize+1, 16, dtype='int8')
+        
+        a_ = a__[1:].view(dtype=self.dtype).reshape(*shape)
+        a_[:] = a 
+        
+        b__ = n_byte_align_empty(
+                numpy.prod(shape)*b.itemsize+1, 16, dtype='int8')
+        
+        b_ = b__[1:].view(dtype=self.dtype).reshape(*shape)
+        b_[:] = b
+     
         self.assertRaises(ValueError, self.run_validate_fft, 
-                *(a_,b_,axes), **{'fft':fft, 'ifft':ifft})
+                *(a,b_,axes), **{'fft':fft, 'ifft':ifft})
 
         self.assertRaises(ValueError, self.run_validate_fft, 
                 *(a_,b,axes), **{'fft':fft, 'ifft':ifft})
@@ -299,9 +382,9 @@ class ComplexFFTWTest(unittest.TestCase):
     def test_invalid_axes(self):
         shape = (256, 2048)
         axes=[-3]
-        a = numpy.complex64(numpy.random.rand(*shape)
+        a = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
-        b = numpy.complex64(numpy.random.rand(*shape)
+        b = self.dtype(numpy.random.rand(*shape)
                 +1j*numpy.random.rand(*shape))
 
         self.assertRaises(ValueError, ComplexFFTW, *(a,b,axes))
@@ -309,8 +392,58 @@ class ComplexFFTWTest(unittest.TestCase):
         axes=[10]
         self.assertRaises(ValueError, ComplexFFTW, *(a,b,axes))
 
+class Complex128FFTWTest(Complex64FFTWTest):
+    
+    def setUp(self):
+
+        self.dtype = numpy.complex128
+        return
+
+
+class NByteAlignTest(unittest.TestCase):
+
+    def setUp(self):
+
+        return
+
+    def tearDown(self):
+        
+        return
+
+    def test_n_byte_align_empty(self):
+        shape = (10,10)
+        # Test a few alignments and dtypes
+        for each in [(3, 'float64'),
+                (7, 'float64'),
+                (9, 'float32'),
+                (16, 'int64'),
+                (24, 'bool'),
+                (23, 'complex64'),
+                (63, 'complex128'),
+                (64, 'int8')]:
+
+            n = each[0]
+            b = n_byte_align_empty(shape, n, dtype=each[1])
+            self.assertTrue(b.ctypes.data%n == 0)
+            self.assertTrue(b.dtype == each[1])            
+
+    def test_n_byte_align(self):
+        shape = (10,10)
+        a = numpy.random.rand(*shape)
+        # Test a few alignments
+        for n in [3, 7, 9, 16, 24, 23, 63, 64]:
+            b = n_byte_align(a, n)
+            self.assertTrue(b.ctypes.data%n == 0)
+
+
+test_cases = (Complex64FFTWTest, NByteAlignTest)
 if __name__ == '__main__':
-    test_suite = unittest.TestLoader().loadTestsFromTestCase(
-            ComplexFFTWTest)
-    unittest.TextTestRunner(verbosity=2).run(test_suite)
+
+    suite = unittest.TestSuite()
+
+    for test_class in test_cases:
+        tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
+        suite.addTests(tests)
+    
+    unittest.TextTestRunner(verbosity=2).run(suite)
 

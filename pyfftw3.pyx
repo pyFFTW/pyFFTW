@@ -3,20 +3,17 @@ import numpy as np
 cimport numpy as np
 from libc.stdlib cimport malloc, free
 
-from fftw3 cimport _fftw_iodim, fftw_iodim, fftwf_plan
-cimport fftw3
+from pyfftw3 cimport _fftw_iodim, fftw_iodim, fftwf_plan
+cimport pyfftw3
 
-directions = {'FFTW_FORWARD': fftw3.FFTW_FORWARD,
-        'FFTW_BACKWARD': fftw3.FFTW_BACKWARD}
+directions = {'FFTW_FORWARD': pyfftw3.FFTW_FORWARD,
+        'FFTW_BACKWARD': pyfftw3.FFTW_BACKWARD}
 
-flag_dict = {'FFTW_MEASURE': fftw3.FFTW_MEASURE,
-        'FFTW_EXHAUSTIVE': fftw3.FFTW_EXHAUSTIVE,
-        'FFTW_PATIENT': fftw3.FFTW_PATIENT,
-        'FFTW_ESTIMATE': fftw3.FFTW_ESTIMATE,
-        'FFTW_UNALIGNED': fftw3.FFTW_UNALIGNED}
-
-class AlignmentError(Exception):
-    pass
+flag_dict = {'FFTW_MEASURE': pyfftw3.FFTW_MEASURE,
+        'FFTW_EXHAUSTIVE': pyfftw3.FFTW_EXHAUSTIVE,
+        'FFTW_PATIENT': pyfftw3.FFTW_PATIENT,
+        'FFTW_ESTIMATE': pyfftw3.FFTW_ESTIMATE,
+        'FFTW_UNALIGNED': pyfftw3.FFTW_UNALIGNED}
 
 cdef class ComplexFFTW:
     ''' Class for computing the complex N-Dimensional FFT 
@@ -55,7 +52,9 @@ cdef class ComplexFFTW:
 
         # If either of the arrays is not aligned on a 16-byte boundary,
         # we set the FFTW_UNALIGNED flag. This disables SIMD.
-        if input_array.ctypes.data%16 == 0 and \
+        if 'FFTW_UNALIGNED' in flags:
+            self.__simd_allowed = False
+        elif input_array.ctypes.data%16 == 0 and \
                 input_array.ctypes.data%16 == 0:
             self.__simd_allowed = True
         else:
@@ -121,7 +120,7 @@ cdef class ComplexFFTW:
             self.__howmany_dims[i]._os = self.__output_strides[_not_axes][i]
 
         # Finally, construct the plan
-        self.__plan = fftw3.fftwf_plan_guru_dft(
+        self.__plan = pyfftw3.fftwf_plan_guru_dft(
             self.__rank, <fftw_iodim *>self.__dims,
             self.__howmany_rank, <fftw_iodim *>self.__howmany_dims,
             <float complex *>self.__input_array.data,
@@ -192,7 +191,7 @@ cdef class ComplexFFTW:
 
     def __dealloc__(self):
 
-        fftw3.fftwf_destroy_plan(self.__plan)
+        pyfftw3.fftwf_destroy_plan(self.__plan)
 
         free(self.__dims)
         free(self.__howmany_dims)
@@ -215,7 +214,7 @@ cdef class ComplexFFTW:
             if not (new_input_array.ctypes.data%16 == 0 and \
                     new_input_array.ctypes.data%16 == 0):
                 
-                raise AlignmentError('The original arrays were 16-byte '+\
+                raise ValueError('The original arrays were 16-byte '+\
                         'aligned. It is necessary that the update arrays '+\
                         'are similarly aligned.')
 
@@ -255,7 +254,82 @@ cdef class ComplexFFTW:
     cpdef execute(self):
         ''' Execute the FFTW plan.
         '''
-        fftw3.fftwf_execute_dft(self.__plan,
+        pyfftw3.fftwf_execute_dft(self.__plan,
                 <float complex *>self.__input_array.data,
                 <float complex *>self.__output_array.data)
 
+
+cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
+    ''' Function at returns an empty numpy array
+    that is n-byte aligned.
+
+    The alignment is given by the second argument, n.
+    The rest of the arguments are as per numpy.empty.
+    '''
+    
+    itemsize = np.dtype(dtype).itemsize
+
+    # Allocate a new array that will contain the aligned data
+    _array_aligned = np.empty(\
+            np.prod(shape)*itemsize+n,\
+            dtype='int8')
+    
+    # We now need to know how to offset _array_aligned 
+    # so it is correctly aligned
+    _array_aligned_offset = (n-_array_aligned.ctypes.data)%n
+
+    array = np.frombuffer(\
+            _array_aligned[_array_aligned_offset:_array_aligned_offset-n].data,\
+            dtype=dtype).reshape(shape, order=order)
+    
+    return array
+
+cpdef n_byte_align(array, n):
+    ''' Function that takes a numpy array and 
+    checks it is aligned on an n-byte boundary, 
+    where n is a passed parameter. If it is, 
+    the array is returned without further ado. 
+    If it is not, a new array is created and 
+    the data copied in, but aligned on the
+    n-byte boundary.
+    
+    This function is a bit broken in that it
+    necessarily requires n to be some multiple
+    of 4, due to numpy wanting to create a new
+    array during the reshaping when this isn't
+    true.
+    '''
+    
+    if not isinstance(array, np.ndarray):
+        raise TypeError('n_byte_align requires a subclass of ndarray')
+    
+    # See if we're already n byte aligned. If so, do nothing.
+    offset = array.ctypes.data%n
+    
+    if offset is not 0:
+        # Allocate a new array that will contain the aligned data
+        _array_aligned = np.empty(\
+                np.prod(array.shape)*array.itemsize+n,\
+                dtype='int8')
+        
+        # We now need to know how to offset _array_aligned 
+        # so it is correctly aligned
+        _array_aligned_offset = (n-_array_aligned.ctypes.data)%n
+
+        #if _array_aligned_offset == n:
+        #    _array_aligned_offset = 0
+
+        # Copy the data in with the correct alignment.
+        # The frombuffer method was found to be the fastest
+        # in various tests using the timeit module. (see
+        # the blog post, 4/8/11)
+        np.frombuffer(
+                _array_aligned.data, dtype='int8')\
+                [_array_aligned_offset:_array_aligned_offset-n]\
+                = np.frombuffer(array.data, dtype='int8')[:]
+        
+        array = np.frombuffer(\
+                _array_aligned[_array_aligned_offset:_array_aligned_offset-n].data, \
+                dtype=array.dtype).reshape(array.shape).view(type=array.__class__)
+    
+    return array
