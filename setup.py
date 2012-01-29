@@ -3,7 +3,7 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 
 ext_modules = [Extension('pyfftw3', ['pyfftw3.pyx'], 
-    libraries=['fftw3f','m'])]
+    libraries=['fftw3', 'fftw3f','m'])]
 
 setup(
   name = 'pyFFTW',

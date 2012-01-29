@@ -436,7 +436,7 @@ class NByteAlignTest(unittest.TestCase):
             self.assertTrue(b.ctypes.data%n == 0)
 
 
-test_cases = (Complex64FFTWTest, NByteAlignTest)
+test_cases = (Complex64FFTWTest, Complex128FFTWTest, NByteAlignTest)
 if __name__ == '__main__':
 
     suite = unittest.TestSuite()

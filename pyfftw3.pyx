@@ -36,7 +36,7 @@ cdef void* _fftw_plan_guru_dft(
 
     return <void *>fftw_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
-            <float complex *>_in, <float complex *>_out,
+            <double complex *>_in, <double complex *>_out,
             sign, flags)
 
 # Complex single precision
@@ -51,6 +51,7 @@ cdef void* _fftwf_plan_guru_dft(
             <float complex *>_in, <float complex *>_out,
             sign, flags)
 
+
 #    Execute
 #    =======
 #
@@ -58,7 +59,7 @@ cdef void* _fftwf_plan_guru_dft(
 cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out):
 
     fftw_execute_dft(<fftw_plan>_plan, 
-            <float complex *>_in, <float complex *>_out)
+            <double complex *>_in, <double complex *>_out)
 
 # Single precision
 cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out):
@@ -80,6 +81,62 @@ cdef void _fftwf_destroy_plan(void *_plan):
 
     fftwf_destroy_plan(<fftwf_plan>_plan)
 
+# fftw_schemes is a dictionary with a mapping from keys to tuples 
+# that take the format:
+# (planner index, executor index, destroyer index, 
+#      input dtype, output dtype, array validator function)
+#
+# The indices refer to the relevant functions for each scheme,
+# the tables to which are defined below.
+#
+# array validator function is a callable that has the following
+# signature:
+# bool callable(in_array, out_array)
+# and checks that the arrays a valid pair. If it is set to None,
+# then the default check is applied, which confirms that the arrays
+# have the same shape.
+fftw_schemes = {
+        'complex_double': (0, 0, 0, 'complex128', 'complex128', None),
+        'complex_single': (1, 1, 1, 'complex64', 'complex64', None)}
+
+# Planner table (with the same number of elements as there are schemes).
+cdef fftw_generic_plan_guru planners[2]
+
+cdef fftw_generic_plan_guru * _build_planner_list():
+
+    planners[fftw_schemes['complex_double'][0]] = \
+            <fftw_generic_plan_guru>&_fftw_plan_guru_dft
+
+    planners[fftw_schemes['complex_single'][0]] = \
+            <fftw_generic_plan_guru>&_fftwf_plan_guru_dft
+
+    return planners
+
+# Executor table (of size the number of executors)
+cdef fftw_generic_execute executors[2]
+
+cdef fftw_generic_execute * _build_executor_list():
+
+    executors[fftw_schemes['complex_double'][1]] = \
+            <fftw_generic_execute>&_fftw_execute_dft
+
+    executors[fftw_schemes['complex_single'][1]] = \
+            <fftw_generic_execute>&_fftwf_execute_dft
+
+    return executors
+
+# Destroyer table (of size the number of destroyers)
+cdef fftw_generic_destroy_plan destroyers[2]
+
+cdef fftw_generic_destroy_plan * _build_destroyer_list():
+
+    destroyers[fftw_schemes['complex_double'][2]] = \
+            <fftw_generic_destroy_plan>&_fftw_destroy_plan
+
+    destroyers[fftw_schemes['complex_single'][2]] = \
+            <fftw_generic_destroy_plan>&_fftwf_destroy_plan
+
+    return destroyers
 
 # The External Interface
 # ======================
@@ -109,11 +166,15 @@ cdef class ComplexFFTW:
     cdef object __input_strides
     cdef object __output_strides
     cdef object __shape
+    cdef object __input_dtype
+    cdef object __output_dtype
 
     cdef int __rank
     cdef _fftw_iodim *__dims
     cdef int __howmany_rank
     cdef _fftw_iodim *__howmany_dims
+
+    cdef int bleh
 
     def __cinit__(self, input_array, output_array, axes=[-1],
             direction='FFTW_FORWARD', flags=['FFTW_MEASURE']):
@@ -122,16 +183,31 @@ cdef class ComplexFFTW:
         self.__plan = NULL
         self.__dims = NULL
         self.__howmany_dims = NULL
+
+        cdef bytes scheme = str('none')
+
+        for each_scheme in fftw_schemes:
+            if input_array.dtype == fftw_schemes[each_scheme][3] and \
+                    output_array.dtype == fftw_schemes[each_scheme][4]:
+                scheme = each_scheme
+                break
+
+        if (scheme == 'none' ):
+            raise ValueError('The output array and input array dtypes '+\
+                    'do not correspond to a valid fftw scheme.')
         
-        if not (output_array.shape == input_array.shape):
-            raise ValueError('The output array should be the same shape as '+\
-                    'the input array.')
+        if fftw_schemes[each_scheme][5] == None:
+            if not (output_array.shape == input_array.shape):
+                raise ValueError('The output array should be the same '+\
+                        'shape as the input array for the given array '+\
+                        'dtypes.')
+        else:
+            if not fftw_schemes[each_scheme][5](input_array, output_array):
+                raise ValueError('The input array and output array are '+\
+                        'invalid complementary shapes for their dtypes.')
 
-        if not input_array.dtype == 'complex64':
-            raise ValueError('The input array should be of type complex64')
-
-        if not output_array.dtype == 'complex64':
-            raise ValueError('The output array should be of type complex64')
+        self.__input_dtype = input_array.dtype
+        self.__output_dtype = output_array.dtype
 
         # If either of the arrays is not aligned on a 16-byte boundary,
         # we set the FFTW_UNALIGNED flag. This disables SIMD.
@@ -147,15 +223,14 @@ cdef class ComplexFFTW:
         self.__direction = directions[direction]
         self.__shape = np.array(input_array.shape)
         
-        self.__fftw_planner = \
-                <fftw_generic_plan_guru>&_fftwf_plan_guru_dft
-        
-        self.__fftw_destroy = \
-                <fftw_generic_destroy_plan>&_fftwf_destroy_plan
-        
-        self.__fftw_execute = \
-                <fftw_generic_execute>&_fftwf_execute_dft
+        cdef fftw_generic_plan_guru *planners = _build_planner_list()
+        cdef fftw_generic_destroy_plan *destroyers = _build_destroyer_list()
+        cdef fftw_generic_execute *executors = _build_executor_list()
 
+        self.__fftw_planner = planners[fftw_schemes[scheme][0]]
+        self.__fftw_execute = executors[fftw_schemes[scheme][1]]
+        self.__fftw_destroy = destroyers[fftw_schemes[scheme][2]]
+        
         self.__flags = 0 
         for each_flag in flags:
             self.__flags |= flag_dict[each_flag]
@@ -313,6 +388,14 @@ cdef class ComplexFFTW:
                 raise ValueError('The original arrays were 16-byte '+\
                         'aligned. It is necessary that the update arrays '+\
                         'are similarly aligned.')
+
+        if not new_input_array.dtype == self.__input_dtype:
+            raise ValueError('The new input array is not of the same '+\
+                    'dtype as was originally planned for.')
+
+        if not new_output_array.dtype == self.__output_dtype:
+            raise ValueError('The new output array is not of the same '+\
+                    'dtype as was originally planned for.')
 
         new_input_shape = np.array(new_input_array.shape)
         new_output_shape = np.array(new_output_array.shape)

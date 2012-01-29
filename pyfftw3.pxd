@@ -35,7 +35,7 @@ cdef extern from "fftw3.h":
     fftw_plan fftw_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
-            float complex *_in, float complex *_out,
+            double complex *_in, double complex *_out,
             int sign, unsigned flags)
     
     # Single precision complex planner
@@ -47,7 +47,7 @@ cdef extern from "fftw3.h":
     
     # Double precision new array execute
     void fftw_execute_dft(fftw_plan,
-          float complex *_in, float complex *_out)
+          double complex *_in, double complex *_out)
     
     # Single precision new array execute    
     void fftwf_execute_dft(fftwf_plan,
