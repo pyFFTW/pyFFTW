@@ -165,7 +165,8 @@ cdef class ComplexFFTW:
 
     cdef object __input_strides
     cdef object __output_strides
-    cdef object __shape
+    cdef object __input_shape
+    cdef object __output_shape
     cdef object __input_dtype
     cdef object __output_dtype
 
@@ -221,7 +222,8 @@ cdef class ComplexFFTW:
             self.__simd_allowed = False
 
         self.__direction = directions[direction]
-        self.__shape = np.array(input_array.shape)
+        self.__input_shape = np.array(input_array.shape)
+        self.__output_shape = np.array(output_array.shape)
         
         cdef fftw_generic_plan_guru *planners = _build_planner_list()
         cdef fftw_generic_destroy_plan *destroyers = _build_destroyer_list()
@@ -240,21 +242,18 @@ cdef class ComplexFFTW:
         
         _axes = np.array(axes)
         
-        in_shape = np.array(input_array.shape)
-        out_shape = np.array(output_array.shape)
-        
         # Set the negative entries to their actual index (use the size
         # of the shape array for this)
-        _axes[_axes<0] = _axes[_axes<0] + len(in_shape)
+        _axes[_axes<0] = _axes[_axes<0] + len(self.__input_shape)
 
-        if (_axes >= len(in_shape)).any() or (_axes < 0).any():
+        if (_axes >= len(self.__input_shape)).any() or (_axes < 0).any():
             raise ValueError('The axes list cannot contain invalid axes.')
 
         # We want to make sure that the axes list contains unique entries
         _axes = np.unique(_axes)
 
         # Now get the axes along which the FFT is *not* taken
-        _not_axes = np.setdiff1d(np.arange(0,len(in_shape)), _axes)
+        _not_axes = np.setdiff1d(np.arange(0,len(self.__input_shape)), _axes)
 
         self.__rank = len(_axes)
         self.__howmany_rank = len(_not_axes)
@@ -276,12 +275,12 @@ cdef class ComplexFFTW:
         # Fill in the stride and shape information
         cdef int i
         for i in range(0, self.__rank):
-            self.__dims[i]._n = in_shape[_axes][i]
+            self.__dims[i]._n = self.__input_shape[_axes][i]
             self.__dims[i]._is = self.__input_strides[_axes][i]
             self.__dims[i]._os = self.__output_strides[_axes][i]
 
         for i in range(0, self.__howmany_rank):
-            self.__howmany_dims[i]._n = in_shape[_not_axes][i]
+            self.__howmany_dims[i]._n = self.__input_shape[_not_axes][i]
             self.__howmany_dims[i]._is = self.__input_strides[_not_axes][i]
             self.__howmany_dims[i]._os = self.__output_strides[_not_axes][i]
 
@@ -292,6 +291,10 @@ cdef class ComplexFFTW:
             <void *>self.__input_array.data,
             <void *>self.__output_array.data,
             self.__direction, self.__flags)
+
+        if self.__plan == NULL:
+            raise ValueError('The data has an uncaught error that led '+\
+                    'to the planner returning NULL. This is a bug.')
 
     def __init__(self, input_array, output_array, axes=[-1], 
             direction='FFTW_FORWARD', flags=['FFTW_MEASURE']):
@@ -403,13 +406,13 @@ cdef class ComplexFFTW:
         new_output_strides = \
                 np.array(new_output_array.strides)/new_input_array.itemsize
 
-        if not (new_input_shape == new_output_shape).all():
-            raise ValueError('The output array should be the same shape as '+\
-                    'the input array.')
+        if not (new_input_shape == self.__input_shape).all():
+            raise ValueError('The new input array should be the same '+\
+                    'shape as the input array used to instantiate the object.')
 
-        if not (new_input_shape == self.__shape).all():
-            raise ValueError('The new arrays should be the same shape as '+\
-                    'the arrays used to instantiate the object.')
+        if not (new_output_shape == self.__output_shape).all():
+            raise ValueError('The new output array should be the same '+\
+                    'shape as the output array used to instantiate the object.')
 
         if not (new_input_strides == self.__input_strides).all():
             raise ValueError('The strides should be identical for the new '+\
