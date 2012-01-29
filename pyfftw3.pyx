@@ -240,7 +240,6 @@ cdef class ComplexFFTW:
         
         _axes = np.array(axes)
         
-        # in_shape = out_shape (or else an exception was raised)
         in_shape = np.array(input_array.shape)
         out_shape = np.array(output_array.shape)
         
