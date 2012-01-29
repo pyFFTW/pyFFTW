@@ -6,22 +6,100 @@ from libc.stdlib cimport malloc, free
 from pyfftw3 cimport _fftw_iodim, fftw_iodim, fftwf_plan
 cimport pyfftw3
 
-directions = {'FFTW_FORWARD': pyfftw3.FFTW_FORWARD,
-        'FFTW_BACKWARD': pyfftw3.FFTW_BACKWARD}
+directions = {'FFTW_FORWARD': FFTW_FORWARD,
+        'FFTW_BACKWARD': FFTW_BACKWARD}
 
-flag_dict = {'FFTW_MEASURE': pyfftw3.FFTW_MEASURE,
-        'FFTW_EXHAUSTIVE': pyfftw3.FFTW_EXHAUSTIVE,
-        'FFTW_PATIENT': pyfftw3.FFTW_PATIENT,
-        'FFTW_ESTIMATE': pyfftw3.FFTW_ESTIMATE,
-        'FFTW_UNALIGNED': pyfftw3.FFTW_UNALIGNED}
+flag_dict = {'FFTW_MEASURE': FFTW_MEASURE,
+        'FFTW_EXHAUSTIVE': FFTW_EXHAUSTIVE,
+        'FFTW_PATIENT': FFTW_PATIENT,
+        'FFTW_ESTIMATE': FFTW_ESTIMATE,
+        'FFTW_UNALIGNED': FFTW_UNALIGNED}
 
+# Function wrappers
+# =================
+# All of these have the same signature as the fftw_generic functions
+# defined in the .pxd file. The arguments and return values are
+# cast as required in order to call the actual fftw functions.
+# 
+# The wrapper function names are simply the fftw names prefixed
+# with a single underscore.
+
+#     Planners
+#     ========
+#
+# Complex double precision
+cdef void* _fftw_plan_guru_dft(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            void *_in, void *_out,
+            int sign, int flags):
+
+    return <void *>fftw_plan_guru_dft(rank, dims,
+            howmany_rank, howmany_dims,
+            <float complex *>_in, <float complex *>_out,
+            sign, flags)
+
+# Complex single precision
+cdef void* _fftwf_plan_guru_dft(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            void *_in, void *_out,
+            int sign, int flags):
+
+    return <void *>fftwf_plan_guru_dft(rank, dims,
+            howmany_rank, howmany_dims,
+            <float complex *>_in, <float complex *>_out,
+            sign, flags)
+
+#    Execute
+#    =======
+#
+# Double precision
+cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out):
+
+    fftw_execute_dft(<fftw_plan>_plan, 
+            <float complex *>_in, <float complex *>_out)
+
+# Single precision
+cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out):
+
+    fftwf_execute_dft(<fftwf_plan>_plan, 
+            <float complex *>_in, <float complex *>_out)
+
+
+#    Destroy
+#    =======
+#
+# Double precision
+cdef void _fftw_destroy_plan(void *_plan):
+
+    fftw_destroy_plan(<fftw_plan>_plan)
+
+# Single precision
+cdef void _fftwf_destroy_plan(void *_plan):
+
+    fftwf_destroy_plan(<fftwf_plan>_plan)
+
+
+# The External Interface
+# ======================
+#
 cdef class ComplexFFTW:
     ''' Class for computing the complex N-Dimensional FFT 
     of an array using FFTW, along arbitrary axes and with
     arbitrary data striding.
     '''
 
-    cdef fftwf_plan __plan
+    # Each of these function pointers simply
+    # points to a chosen fftw wrapper function
+    cdef fftw_generic_plan_guru __fftw_planner
+    cdef fftw_generic_execute __fftw_execute
+    cdef fftw_generic_destroy_plan __fftw_destroy
+
+    # The plan is typecast when it is created or used
+    # within the wrapper functions
+    cdef void *__plan
+
     cdef np.ndarray __input_array
     cdef np.ndarray __output_array
     cdef int __direction
@@ -39,6 +117,11 @@ cdef class ComplexFFTW:
 
     def __cinit__(self, input_array, output_array, axes=[-1],
             direction='FFTW_FORWARD', flags=['FFTW_MEASURE']):
+        
+        # Initialise the pointers that need to be freed
+        self.__plan = NULL
+        self.__dims = NULL
+        self.__howmany_dims = NULL
         
         if not (output_array.shape == input_array.shape):
             raise ValueError('The output array should be the same shape as '+\
@@ -63,6 +146,15 @@ cdef class ComplexFFTW:
 
         self.__direction = directions[direction]
         self.__shape = np.array(input_array.shape)
+        
+        self.__fftw_planner = \
+                <fftw_generic_plan_guru>&_fftwf_plan_guru_dft
+        
+        self.__fftw_destroy = \
+                <fftw_generic_destroy_plan>&_fftwf_destroy_plan
+        
+        self.__fftw_execute = \
+                <fftw_generic_execute>&_fftwf_execute_dft
 
         self.__flags = 0 
         for each_flag in flags:
@@ -120,11 +212,11 @@ cdef class ComplexFFTW:
             self.__howmany_dims[i]._os = self.__output_strides[_not_axes][i]
 
         # Finally, construct the plan
-        self.__plan = pyfftw3.fftwf_plan_guru_dft(
+        self.__plan = self.__fftw_planner(
             self.__rank, <fftw_iodim *>self.__dims,
             self.__howmany_rank, <fftw_iodim *>self.__howmany_dims,
-            <float complex *>self.__input_array.data,
-            <float complex *>self.__output_array.data,
+            <void *>self.__input_array.data,
+            <void *>self.__output_array.data,
             self.__direction, self.__flags)
 
     def __init__(self, input_array, output_array, axes=[-1], 
@@ -191,10 +283,14 @@ cdef class ComplexFFTW:
 
     def __dealloc__(self):
 
-        pyfftw3.fftwf_destroy_plan(self.__plan)
+        if not self.__plan == NULL:
+            self.__fftw_destroy(self.__plan)
 
-        free(self.__dims)
-        free(self.__howmany_dims)
+        if not self.__dims == NULL:
+            free(self.__dims)
+
+        if not self.__howmany_dims == NULL:
+            free(self.__howmany_dims)
 
     cpdef update_arrays(self, 
             new_input_array, new_output_array):
@@ -254,9 +350,9 @@ cdef class ComplexFFTW:
     cpdef execute(self):
         ''' Execute the FFTW plan.
         '''
-        pyfftw3.fftwf_execute_dft(self.__plan,
-                <float complex *>self.__input_array.data,
-                <float complex *>self.__output_array.data)
+        self.__fftw_execute(self.__plan,
+                <void *>self.__input_array.data,
+                <void *>self.__output_array.data)
 
 
 cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
