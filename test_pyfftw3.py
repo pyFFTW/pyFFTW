@@ -57,6 +57,9 @@ class Complex64FFTWTest(unittest.TestCase):
         
         return
 
+    def reference_fftn(self, a, axes):
+        return numpy.fft.fftn(a, axes=axes)
+
     def test_time(self):
         timer()
         self.assertTrue(True)
@@ -104,7 +107,7 @@ class Complex64FFTWTest(unittest.TestCase):
 
         # Test the forward FFT by comparing it to the result from numpy.fft
         fft.execute()
-        ref_b = numpy.fft.fftn(a, axes=axes)
+        ref_b = self.reference_fftn(a, axes=axes)
 
         # This is actually quite a poor relative error, but it still
         # sometimes fails. I assume that numpy.fft has different internals
@@ -399,6 +402,19 @@ class Complex128FFTWTest(Complex64FFTWTest):
         self.dtype = numpy.complex128
         return
 
+class ComplexLongDoubleFFTWTest(Complex64FFTWTest):
+    
+    def setUp(self):
+
+        self.dtype = numpy.clongdouble
+        return
+
+    def reference_fftn(self, a, axes):
+
+        # numpy.fft.fftn doesn't support complex256 type,
+        # so we need to compare to a lower precision type.
+        a = numpy.complex128(a)
+        return numpy.fft.fftn(a, axes=axes)
 
 class NByteAlignTest(unittest.TestCase):
 
@@ -436,7 +452,12 @@ class NByteAlignTest(unittest.TestCase):
             self.assertTrue(b.ctypes.data%n == 0)
 
 
-test_cases = (Complex64FFTWTest, Complex128FFTWTest, NByteAlignTest)
+test_cases = (
+        Complex64FFTWTest,
+        Complex128FFTWTest,
+        ComplexLongDoubleFFTWTest,
+        NByteAlignTest)
+
 if __name__ == '__main__':
 
     suite = unittest.TestSuite()

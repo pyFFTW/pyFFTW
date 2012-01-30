@@ -51,9 +51,19 @@ cdef void* _fftwf_plan_guru_dft(
             <float complex *>_in, <float complex *>_out,
             sign, flags)
 
+# Complex long double precision
+cdef void* _fftwl_plan_guru_dft(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            void *_in, void *_out,
+            int sign, int flags):
+
+    return <void *>fftwl_plan_guru_dft(rank, dims,
+            howmany_rank, howmany_dims,
+            <long double complex *>_in, <long double complex *>_out,
+            sign, flags)
 
 #    Execute
-#    =======
 #
 # Double precision
 cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out):
@@ -67,6 +77,11 @@ cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out):
     fftwf_execute_dft(<fftwf_plan>_plan, 
             <float complex *>_in, <float complex *>_out)
 
+# Long double precision
+cdef void _fftwl_execute_dft(void *_plan, void *_in, void *_out):
+
+    fftwl_execute_dft(<fftwl_plan>_plan, 
+            <long double complex *>_in, <long double complex *>_out)
 
 #    Destroy
 #    =======
@@ -80,6 +95,11 @@ cdef void _fftw_destroy_plan(void *_plan):
 cdef void _fftwf_destroy_plan(void *_plan):
 
     fftwf_destroy_plan(<fftwf_plan>_plan)
+
+# Long double precision
+cdef void _fftwl_destroy_plan(void *_plan):
+
+    fftwl_destroy_plan(<fftwl_plan>_plan)
 
 # fftw_schemes is a dictionary with a mapping from keys to tuples 
 # that take the format:
@@ -96,45 +116,55 @@ cdef void _fftwf_destroy_plan(void *_plan):
 # then the default check is applied, which confirms that the arrays
 # have the same shape.
 fftw_schemes = {
-        'complex_double': (0, 0, 0, 'complex128', 'complex128', None),
-        'complex_single': (1, 1, 1, 'complex64', 'complex64', None)}
+        'complex128': (0, 0, 0, 'complex128', 'complex128', None),
+        'complex64': (1, 1, 1, 'complex64', 'complex64', None),
+        'complex_longdouble': (2, 2, 2, 'clongdouble', 'clongdouble', None)}        
 
 # Planner table (with the same number of elements as there are schemes).
-cdef fftw_generic_plan_guru planners[2]
+cdef fftw_generic_plan_guru planners[3]
 
 cdef fftw_generic_plan_guru * _build_planner_list():
 
-    planners[fftw_schemes['complex_double'][0]] = \
+    planners[fftw_schemes['complex128'][0]] = \
             <fftw_generic_plan_guru>&_fftw_plan_guru_dft
 
-    planners[fftw_schemes['complex_single'][0]] = \
+    planners[fftw_schemes['complex64'][0]] = \
             <fftw_generic_plan_guru>&_fftwf_plan_guru_dft
+
+    planners[fftw_schemes['complex_longdouble'][0]] = \
+            <fftw_generic_plan_guru>&_fftwl_plan_guru_dft
 
     return planners
 
 # Executor table (of size the number of executors)
-cdef fftw_generic_execute executors[2]
+cdef fftw_generic_execute executors[3]
 
 cdef fftw_generic_execute * _build_executor_list():
 
-    executors[fftw_schemes['complex_double'][1]] = \
+    executors[fftw_schemes['complex128'][1]] = \
             <fftw_generic_execute>&_fftw_execute_dft
 
-    executors[fftw_schemes['complex_single'][1]] = \
+    executors[fftw_schemes['complex64'][1]] = \
             <fftw_generic_execute>&_fftwf_execute_dft
+
+    executors[fftw_schemes['complex_longdouble'][1]] = \
+            <fftw_generic_execute>&_fftwl_execute_dft
 
     return executors
 
 # Destroyer table (of size the number of destroyers)
-cdef fftw_generic_destroy_plan destroyers[2]
+cdef fftw_generic_destroy_plan destroyers[3]
 
 cdef fftw_generic_destroy_plan * _build_destroyer_list():
 
-    destroyers[fftw_schemes['complex_double'][2]] = \
+    destroyers[fftw_schemes['complex128'][2]] = \
             <fftw_generic_destroy_plan>&_fftw_destroy_plan
 
-    destroyers[fftw_schemes['complex_single'][2]] = \
+    destroyers[fftw_schemes['complex64'][2]] = \
             <fftw_generic_destroy_plan>&_fftwf_destroy_plan
+
+    destroyers[fftw_schemes['complex_longdouble'][2]] = \
+            <fftw_generic_destroy_plan>&_fftwl_destroy_plan
 
     return destroyers
 
@@ -146,7 +176,6 @@ cdef class ComplexFFTW:
     of an array using FFTW, along arbitrary axes and with
     arbitrary data striding.
     '''
-
     # Each of these function pointers simply
     # points to a chosen fftw wrapper function
     cdef fftw_generic_plan_guru __fftw_planner
@@ -174,8 +203,6 @@ cdef class ComplexFFTW:
     cdef _fftw_iodim *__dims
     cdef int __howmany_rank
     cdef _fftw_iodim *__howmany_dims
-
-    cdef int bleh
 
     def __cinit__(self, input_array, output_array, axes=[-1],
             direction='FFTW_FORWARD', flags=['FFTW_MEASURE']):

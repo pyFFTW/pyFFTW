@@ -1,6 +1,9 @@
 
 cimport numpy as np
 
+cdef extern from "quadmath.h":
+    pass
+
 cdef extern from "complex.h":
     pass
 
@@ -23,6 +26,12 @@ cdef extern from "fftw3.h":
 
     ctypedef fftwf_plan_struct *fftwf_plan
 
+    # Long double precision plans
+    ctypedef struct fftwl_plan_struct:
+        pass
+
+    ctypedef fftwl_plan_struct *fftwl_plan
+
     # The stride info structure. I think that strictly
     # speaking, this should be defined with a type suffix
     # on fftw (ie fftw, fftwf or fftwl), but since the
@@ -44,6 +53,13 @@ cdef extern from "fftw3.h":
             int howmany_rank, fftw_iodim *howmany_dims,
             float complex *_in, float complex *_out,
             int sign, unsigned flags)
+
+    # Single precision complex planner
+    fftwl_plan fftwl_plan_guru_dft(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            long double complex *_in, long double complex *_out,
+            int sign, unsigned flags)
     
     # Double precision new array execute
     void fftw_execute_dft(fftw_plan,
@@ -52,12 +68,19 @@ cdef extern from "fftw3.h":
     # Single precision new array execute    
     void fftwf_execute_dft(fftwf_plan,
           float complex *_in, float complex *_out)
+
+    # Long double precision new array execute    
+    void fftwl_execute_dft(fftwl_plan,
+          long double complex *_in, long double complex *_out)
     
     # Double precision plan destroyer
     void fftw_destroy_plan(fftw_plan)
 
     # Single precision plan destroyer
     void fftwf_destroy_plan(fftwf_plan)
+
+    # Long double precision plan destroyer
+    void fftwl_destroy_plan(fftwl_plan)
 
 # Define function pointers that can act as a placeholder
 # for whichever dtype is used (the problem being that fftw
