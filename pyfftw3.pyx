@@ -358,7 +358,9 @@ cdef class ComplexFFTW:
             direction='FFTW_FORWARD', flags=['FFTW_MEASURE']):
         '''
         ``input_array`` and ``output_array`` should be numpy arrays.
-
+        The contents of these arrays will be destroyed by the planning 
+        process during initialisation.
+        
         The currently supported schemes are as follows:
 
         +-----------------+------------------+----------------+
@@ -413,9 +415,6 @@ cdef class ComplexFFTW:
         the DFT is taken). For further information, see the 
         `FFTW documentation
         <http://www.fftw.org/fftw3_doc/What-FFTW-Really-Computes.html>`_.
-
-        The content of the arrays that are passed in will be 
-        destroyed by the planning process during initialisation.
 
         The FFTW library benefits greatly from the beginning of each
         DFT axes being aligned on a 16-byte boundary, which enables
