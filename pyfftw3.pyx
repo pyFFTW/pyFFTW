@@ -189,9 +189,23 @@ cdef fftw_generic_destroy_plan * _build_destroyer_list():
 # ======================
 #
 cdef class ComplexFFTW:
-    ''' Class for computing the complex N-Dimensional FFT 
-    of an array using FFTW, along arbitrary axes and with
-    arbitrary data striding.
+    '''
+    ComplexFFTW is a class for computing the complex N-Dimensional DFT or
+    inverse DFT of an array using the FFTW library. The interface is 
+    designed to be somewhat pythonic, with the correct transform being 
+    inferred from the dtypes of the passed arrays.
+
+    On instantiation, the dtypes of the input arrays are compared to the 
+    set of valid (and implemented) FFTW schemes. If a match is found,
+    the plan that corresponds to that scheme is created, operating on the
+    arrays that are passed in. If no scheme can be created, then 
+    ``ValueError`` is raised.
+
+    The actual FFT or iFFT is performed by calling the 
+    :ref:`execute()<ComplexFFTW_execute>` method.
+    
+    The arrays can be updated by calling the 
+    :ref:`update_arrays()<ComplexFFTW_update_arrays>` method.
     '''
     # Each of these function pointers simply
     # points to a chosen fftw wrapper function
@@ -343,40 +357,51 @@ cdef class ComplexFFTW:
     def __init__(self, input_array, output_array, axes=[-1], 
             direction='FFTW_FORWARD', flags=['FFTW_MEASURE']):
         '''
-        Instantiate and return a class representing a planned
-        FFTW operation.
+        ``input_array`` and ``output_array`` should be numpy arrays.
 
-        Run the FFT (or the iFFT) by calling the execute() method
-        (with no arguments) on the returned class.
+        The currently supported schemes are as follows:
 
-        `input_array' and `output_array' are assumed to be numpy
-        arrays, and it is checked that they are both of the
-        same shape (though they need not share the same alignment
-        or striding in memory). Once this object has been created,
-        the arrays can be changed by calling the
-        update_arrays(new_input_array=None, new_output_array=None)
-        method. See the documentation on that method for more
-        information.
+        +-----------------+------------------+----------------+
+        | ``input_array`` | ``output_array`` | Relative shape |
+        +=================+==================+================+
+        | ``complex64``   | ``complex64``    | Equal size     | 
+        +-----------------+------------------+----------------+
+        | ``complex128``  | ``complex128``   | Equal size     |
+        +-----------------+------------------+----------------+
+        | ``clongdouble`` | ``clongdouble``  | Equal size     |
+        +-----------------+------------------+----------------+
+        
+        ``clongdouble`` typically maps directly to ``complex256``
+        or ``complex192``, dependent on platform.
 
-        `axes' describes along which axes the FFT should be taken.
+        The actual arrangement in memory is arbitrary and the scheme
+        can be planned for any set of strides on either the input
+        or the output.
+
+        Equal size means the ``shape`` attribute of the arrays is
+        the same.
+
+        ``axes`` describes along which axes the DFT should be taken.
         This should be a valid list of axes. Repeated axes are 
         only transformed once. Invalid axes will raise an 
         exception. This argument is equivalent to the same
-        argument in numpy.fft.fftn.
+        argument in ``numpy.fft.fftn``.
 
-        `direction' should be a string and one of FFTW_FORWARD 
+        ``direction`` should be a string and one of FFTW_FORWARD 
         or FFTW_BACKWARD, which dictate whether to take the
-        FFT or the inverse FFT respectively (specifically, it
+        DFT or the inverse DFT respectively (specifically, it
         dictates the sign of the exponent in the DFT formulation).
 
-        `flags' is a list of strings and is a subset of the 
+        ``flags`` is a list of strings and is a subset of the 
         flags that FFTW allows for the planners. Specifically, 
         FFTW_ESTIMATE, FFTW_MEASURE, FFTW_PATIENT and 
         FFTW_EXHAUSTIVE are supported. These describe the 
         increasing amount of effort spent during the planning 
         stage to create the fastest possible transform. 
         Usually, FFTW_MEASURE is a good compromise and is the 
-        default. In addition FFTW_UNALIGNED is supported. 
+        default.
+        
+        In addition the FFTW_UNALIGNED flag is supported. 
         This tells FFTW not to assume anything about the 
         alignment of the data and disabling any SIMD capability 
         (see below).
@@ -385,20 +410,26 @@ cdef class ComplexFFTW:
         Notably, this is an unnormalized transform so should 
         be scaled as necessary (fft followed by ifft will scale 
         the input by N, the product of the dimensions along which
-        the FFT is taken).
+        the DFT is taken). For further information, see the 
+        `FFTW documentation
+        <http://www.fftw.org/fftw3_doc/What-FFTW-Really-Computes.html>`_.
 
         The content of the arrays that are passed in will be 
         destroyed by the planning process during initialisation.
 
         The FFTW library benefits greatly from the beginning of each
-        FFT axes being aligned on a 16-byte boundary, which enables
-        SIMD instructions. By default, if the data begins on a 16-
-        byte boundary, then FFTW will be allowed to try and enable
+        DFT axes being aligned on a 16-byte boundary, which enables
+        SIMD instructions. By default, if the data begins on a 16-byte 
+        boundary, then FFTW will be allowed to try and enable
         SIMD instructions. This means that all future changes to
         the data arrays will be checked for similar alignment. SIMD
         instructions can be explicitly disabled by setting the
         FFTW_UNALIGNED flags, to allow for updates with unaligned
         data.
+
+        :ref:`n_byte_align()<n_byte_align>` and 
+        :ref:`n_byte_align_empty()<n_byte_align_empty>` are two methods
+        included with this module for producing aligned arrays.
         '''
         pass
 
@@ -415,13 +446,19 @@ cdef class ComplexFFTW:
 
     cpdef update_arrays(self, 
             new_input_array, new_output_array):
-        ''' Update the arrays upon which the FFT is taken.
+        ''' 
+        Update the arrays upon which the DFT is taken.
 
-        The new arrays should be of the same dtype as the original, and
+        The new arrays should be of the same dtypes as the originals, the
+        same shapes as the originals and
         should have the same strides between axes. If the original
         data was aligned so as to allow SIMD instructions (by being 
         aligned on a 16-byte boundary), then the new array
         must also be aligned in the same way.
+
+        If all these conditions are not met, a ``ValueError`` will
+        be raised and the data will *not* be updated (though the 
+        object will still be in a sane state).
         
         Note that if the original array was not aligned on a 16-byte
         boundary, then SIMD is disabled and the alignment of the new
@@ -477,7 +514,8 @@ cdef class ComplexFFTW:
         self.__output_array = new_output_array
 
     cpdef execute(self):
-        ''' Execute the FFTW plan.
+        '''
+        Execute the planned operation.
         '''
         self.__fftw_execute(self.__plan,
                 <void *>self.__input_array.data,
@@ -485,7 +523,9 @@ cdef class ComplexFFTW:
 
 
 cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
-    ''' Function at returns an empty numpy array
+    '''n_byte_align_empty(shape, n, dtype='float64', order='C')
+
+    Function that returns an empty numpy array
     that is n-byte aligned.
 
     The alignment is given by the second argument, n.
@@ -510,7 +550,8 @@ cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
     return array
 
 cpdef n_byte_align(array, n):
-    ''' Function that takes a numpy array and 
+    ''' n_byte_align(array, n)
+    Function that takes a numpy array and 
     checks it is aligned on an n-byte boundary, 
     where n is a passed parameter. If it is, 
     the array is returned without further ado. 
