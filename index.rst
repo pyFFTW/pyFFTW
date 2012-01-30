@@ -50,10 +50,3 @@ Utility Functions
 
 .. autofunction:: pyfftw3.n_byte_align_empty
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-

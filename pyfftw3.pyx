@@ -527,8 +527,8 @@ cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
     Function that returns an empty numpy array
     that is n-byte aligned.
 
-    The alignment is given by the second argument, n.
-    The rest of the arguments are as per numpy.empty.
+    The alignment is given by the second argument, ``n``.
+    The rest of the arguments are as per ``numpy.empty``.
     '''
     
     itemsize = np.dtype(dtype).itemsize
@@ -552,7 +552,7 @@ cpdef n_byte_align(array, n):
     ''' n_byte_align(array, n)
     Function that takes a numpy array and 
     checks it is aligned on an n-byte boundary, 
-    where n is a passed parameter. If it is, 
+    where ``n`` is a passed parameter. If it is, 
     the array is returned without further ado. 
     If it is not, a new array is created and 
     the data copied in, but aligned on the
