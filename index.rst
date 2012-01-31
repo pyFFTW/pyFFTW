@@ -27,15 +27,15 @@ A comprehensive unittest suite is included with the source.
 ComplexFFTW Class
 -----------------
 
-.. autoclass:: pyfftw3.ComplexFFTW(input_array, output_array, axes=[-1], direction='FFTW_FORWARD', flags=['FFTW_MEASURE'])
+.. autoclass:: pyfftw.ComplexFFTW(input_array, output_array, axes=[-1], direction='FFTW_FORWARD', flags=['FFTW_MEASURE'])
 
    .. _ComplexFFTW_update_arrays:
 
-   .. automethod:: pyfftw3.ComplexFFTW.update_arrays(new_input_array, new_output_array)
+   .. automethod:: pyfftw.ComplexFFTW.update_arrays(new_input_array, new_output_array)
 
    .. _ComplexFFTW_execute:
 
-   .. automethod:: pyfftw3.ComplexFFTW.execute()
+   .. automethod:: pyfftw.ComplexFFTW.execute()
 
 .. _UtilityFunctions:
 
@@ -44,9 +44,9 @@ Utility Functions
 
 .. _n_byte_align:
 
-.. autofunction:: pyfftw3.n_byte_align
+.. autofunction:: pyfftw.n_byte_align
 
 .. _n_byte_align_empty:
 
-.. autofunction:: pyfftw3.n_byte_align_empty
+.. autofunction:: pyfftw.n_byte_align_empty
 

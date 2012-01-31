@@ -20,7 +20,7 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 
-ext_modules = [Extension('pyfftw3', ['pyfftw3.pyx'], 
+ext_modules = [Extension('pyfftw', ['pyfftw.pyx'], 
     libraries=['fftw3', 'fftw3f', 'fftw3l', 'm'])]
 
 description = ''

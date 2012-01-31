@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pyfftw3 import ComplexFFTW, n_byte_align, n_byte_align_empty
+from pyfftw import ComplexFFTW, n_byte_align, n_byte_align_empty
 import numpy
 
 import unittest
@@ -41,7 +41,7 @@ timer_setup = '''
 try:
     from __main__ import timer_test_setup
 except:
-    from test_pyfftw3 import timer_test_setup
+    from test_pyfftw import timer_test_setup
 
 fft_class,a,b= timer_test_setup()
 '''

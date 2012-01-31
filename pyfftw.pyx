@@ -20,8 +20,8 @@ import numpy as np
 cimport numpy as np
 from libc.stdlib cimport malloc, free
 
-from pyfftw3 cimport _fftw_iodim, fftw_iodim, fftwf_plan
-cimport pyfftw3
+from pyfftw cimport _fftw_iodim, fftw_iodim, fftwf_plan
+cimport pyfftw
 
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
         'FFTW_BACKWARD': FFTW_BACKWARD}
