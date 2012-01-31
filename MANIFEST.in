@@ -1,3 +1,4 @@
 include COPYING.txt
 include pyfftw.c
+include test_pyfftw.py
 recursive-include docs *.html *.css *.png *.js

@@ -39,7 +39,7 @@ A comprehensive unittest suite is included with the source.
 
 The documentation can be found 
 `here <http://hgomersall.github.com/pyFFTW/>`_, and the source
-is on `github <https://github.com/hgomersall/pyFFTW>`.
+is on `github <https://github.com/hgomersall/pyFFTW>`_.
 '''
 
 setup_args = {
@@ -48,6 +48,7 @@ setup_args = {
         'author': 'Henry Gomersall',
         'author_email': 'heng@kedevelopments.co.uk',
         'description': 'A pythonic wrapper around FFTW, presenting a unified interface for all the supported transforms.',
+        'url': 'http://hgomersall.github.com/pyFFTW/',
         'long_description': long_description,
         'classifiers': [
             'Programming Language :: Python',
