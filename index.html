@@ -1,0 +1,258 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to pyFFTW’s documentation! &mdash; pyFFTW v0.5.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.5.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyFFTW v0.5.0 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="#">pyFFTW v0.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-pyfftw-s-documentation">
+<h1>Welcome to pyFFTW&#8217;s documentation!<a class="headerlink" href="#welcome-to-pyfftw-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>pyFFTW is an attempt to produce a pythonic wrapper around
+<a class="reference external" href="http://www.fftw.org/">FFTW</a>. The ultimate aim is to present a unified
+interface for all the possible transforms that FFTW can perform.</p>
+<p>Currently, only the complex DFT is supported, though on arbitrary
+axes of abitrary shaped and strided arrays, which makes it almost
+feature equivalent to standard FFT functions of <tt class="docutils literal"><span class="pre">numpy.fft</span></tt> (indeed,
+it supports the <tt class="docutils literal"><span class="pre">clongdouble</span></tt> dtype which <tt class="docutils literal"><span class="pre">numpy.fft</span></tt> does not).
+It shouldn&#8217;t be too much work to extend it to other schemes such as
+the real DFT.</p>
+<p>A comprehensive unittest suite is included with the source.</p>
+<ul class="simple">
+<li><a class="reference internal" href="#complexfftw-class"><em>ComplexFFTW Class</em></a></li>
+<li><a class="reference internal" href="#utilityfunctions"><em>Utility Functions</em></a></li>
+</ul>
+<div class="section" id="complexfftw-class">
+<span id="id1"></span><h2>ComplexFFTW Class<a class="headerlink" href="#complexfftw-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pyfftw.ComplexFFTW">
+<em class="property">class </em><tt class="descclassname">pyfftw.</tt><tt class="descname">ComplexFFTW</tt><big>(</big><em>input_array, output_array, axes=[-1], direction='FFTW_FORWARD', flags=['FFTW_MEASURE']</em><big>)</big><a class="headerlink" href="#pyfftw.ComplexFFTW" title="Permalink to this definition">¶</a></dt>
+<dd><p>ComplexFFTW is a class for computing the complex N-Dimensional DFT or
+inverse DFT of an array using the FFTW library. The interface is 
+designed to be somewhat pythonic, with the correct transform being 
+inferred from the dtypes of the passed arrays.</p>
+<p>On instantiation, the dtypes of the input arrays are compared to the 
+set of valid (and implemented) FFTW schemes. If a match is found,
+the plan that corresponds to that scheme is created, operating on the
+arrays that are passed in. If no scheme can be created, then 
+<tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised.</p>
+<p>The actual FFT or iFFT is performed by calling the 
+<a class="reference internal" href="#complexfftw-execute"><em>execute()</em></a> method.</p>
+<p>The arrays can be updated by calling the 
+<a class="reference internal" href="#complexfftw-update-arrays"><em>update_arrays()</em></a> method.</p>
+<p><tt class="docutils literal"><span class="pre">input_array</span></tt> and <tt class="docutils literal"><span class="pre">output_array</span></tt> should be numpy arrays.
+The contents of these arrays will be destroyed by the planning 
+process during initialisation.</p>
+<p>The currently supported schemes are as follows:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="35%" />
+<col width="31%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head"><tt class="docutils literal"><span class="pre">input_array</span></tt></th>
+<th class="head"><tt class="docutils literal"><span class="pre">output_array</span></tt></th>
+<th class="head">Relative shape</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><tt class="docutils literal"><span class="pre">complex64</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">complex64</span></tt></td>
+<td>Equal size</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">complex128</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">complex128</span></tt></td>
+<td>Equal size</td>
+</tr>
+<tr><td><tt class="docutils literal"><span class="pre">clongdouble</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">clongdouble</span></tt></td>
+<td>Equal size</td>
+</tr>
+</tbody>
+</table>
+<p><tt class="docutils literal"><span class="pre">clongdouble</span></tt> typically maps directly to <tt class="docutils literal"><span class="pre">complex256</span></tt>
+or <tt class="docutils literal"><span class="pre">complex192</span></tt>, dependent on platform.</p>
+<p>The actual arrangement in memory is arbitrary and the scheme
+can be planned for any set of strides on either the input
+or the output.</p>
+<p>Equal size means the <tt class="docutils literal"><span class="pre">shape</span></tt> attribute of the arrays is
+the same.</p>
+<p><tt class="docutils literal"><span class="pre">axes</span></tt> describes along which axes the DFT should be taken.
+This should be a valid list of axes. Repeated axes are 
+only transformed once. Invalid axes will raise an 
+exception. This argument is equivalent to the same
+argument in <tt class="docutils literal"><span class="pre">numpy.fft.fftn</span></tt>.</p>
+<p><tt class="docutils literal"><span class="pre">direction</span></tt> should be a string and one of FFTW_FORWARD 
+or FFTW_BACKWARD, which dictate whether to take the
+DFT or the inverse DFT respectively (specifically, it
+dictates the sign of the exponent in the DFT formulation).</p>
+<p><tt class="docutils literal"><span class="pre">flags</span></tt> is a list of strings and is a subset of the 
+flags that FFTW allows for the planners. Specifically, 
+FFTW_ESTIMATE, FFTW_MEASURE, FFTW_PATIENT and 
+FFTW_EXHAUSTIVE are supported. These describe the 
+increasing amount of effort spent during the planning 
+stage to create the fastest possible transform. 
+Usually, FFTW_MEASURE is a good compromise and is the 
+default.</p>
+<p>In addition the FFTW_UNALIGNED flag is supported. 
+This tells FFTW not to assume anything about the 
+alignment of the data and disabling any SIMD capability 
+(see below).</p>
+<p>What is calculated is exactly what FFTW calculates. 
+Notably, this is an unnormalized transform so should 
+be scaled as necessary (fft followed by ifft will scale 
+the input by N, the product of the dimensions along which
+the DFT is taken). For further information, see the 
+<a class="reference external" href="http://www.fftw.org/fftw3_doc/What-FFTW-Really-Computes.html">FFTW documentation</a>.</p>
+<p>The FFTW library benefits greatly from the beginning of each
+DFT axes being aligned on a 16-byte boundary, which enables
+SIMD instructions. By default, if the data begins on a 16-byte 
+boundary, then FFTW will be allowed to try and enable
+SIMD instructions. This means that all future changes to
+the data arrays will be checked for similar alignment. SIMD
+instructions can be explicitly disabled by setting the
+FFTW_UNALIGNED flags, to allow for updates with unaligned
+data.</p>
+<p><a class="reference internal" href="#n-byte-align"><em>n_byte_align()</em></a> and 
+<a class="reference internal" href="#n-byte-align-empty"><em>n_byte_align_empty()</em></a> are two methods
+included with this module for producing aligned arrays.</p>
+<span class="target" id="complexfftw-update-arrays"></span><dl class="method">
+<dt id="pyfftw.ComplexFFTW.update_arrays">
+<tt class="descname">update_arrays</tt><big>(</big><em>new_input_array</em>, <em>new_output_array</em><big>)</big><a class="headerlink" href="#pyfftw.ComplexFFTW.update_arrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the arrays upon which the DFT is taken.</p>
+<p>The new arrays should be of the same dtypes as the originals, the
+same shapes as the originals and
+should have the same strides between axes. If the original
+data was aligned so as to allow SIMD instructions (by being 
+aligned on a 16-byte boundary), then the new array
+must also be aligned in the same way.</p>
+<p>If all these conditions are not met, a <tt class="docutils literal"><span class="pre">ValueError</span></tt> will
+be raised and the data will <em>not</em> be updated (though the 
+object will still be in a sane state).</p>
+<p>Note that if the original array was not aligned on a 16-byte
+boundary, then SIMD is disabled and the alignment of the new
+array can be arbitrary.</p>
+</dd></dl>
+
+<span class="target" id="complexfftw-execute"></span><dl class="method">
+<dt id="pyfftw.ComplexFFTW.execute">
+<tt class="descname">execute</tt><big>(</big><big>)</big><a class="headerlink" href="#pyfftw.ComplexFFTW.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the planned operation.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="utility-functions">
+<span id="utilityfunctions"></span><h2>Utility Functions<a class="headerlink" href="#utility-functions" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="n-byte-align"></span><dl class="function">
+<dt id="pyfftw.n_byte_align">
+<tt class="descclassname">pyfftw.</tt><tt class="descname">n_byte_align</tt><big>(</big><em>array</em>, <em>n</em><big>)</big><a class="headerlink" href="#pyfftw.n_byte_align" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that takes a numpy array and 
+checks it is aligned on an n-byte boundary, 
+where <tt class="docutils literal"><span class="pre">n</span></tt> is a passed parameter. If it is, 
+the array is returned without further ado. 
+If it is not, a new array is created and 
+the data copied in, but aligned on the
+n-byte boundary.</p>
+</dd></dl>
+
+<span class="target" id="n-byte-align-empty"></span><dl class="function">
+<dt id="pyfftw.n_byte_align_empty">
+<tt class="descclassname">pyfftw.</tt><tt class="descname">n_byte_align_empty</tt><big>(</big><em>shape</em>, <em>n</em>, <em>dtype='float64'</em>, <em>order='C'</em><big>)</big><a class="headerlink" href="#pyfftw.n_byte_align_empty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that returns an empty numpy array
+that is n-byte aligned.</p>
+<p>The alignment is given by the second argument, <tt class="docutils literal"><span class="pre">n</span></tt>.
+The rest of the arguments are as per <tt class="docutils literal"><span class="pre">numpy.empty</span></tt>.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to pyFFTW&#8217;s documentation!</a><ul>
+<li><a class="reference internal" href="#complexfftw-class">ComplexFFTW Class</a></li>
+<li><a class="reference internal" href="#utility-functions">Utility Functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="#">pyFFTW v0.5.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Henry Gomersall.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
