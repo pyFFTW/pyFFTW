@@ -42,6 +42,10 @@
             
   <div class="section" id="welcome-to-pyfftw-s-documentation">
 <h1>Welcome to pyFFTW&#8217;s documentation!<a class="headerlink" href="#welcome-to-pyfftw-s-documentation" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="#complexfftw-class"><em>ComplexFFTW Class</em></a></li>
+<li><a class="reference internal" href="#utilityfunctions"><em>Utility Functions</em></a></li>
+</ul>
 <p>pyFFTW is an attempt to produce a pythonic wrapper around
 <a class="reference external" href="http://www.fftw.org/">FFTW</a>. The ultimate aim is to present a unified
 interface for all the possible transforms that FFTW can perform.</p>
@@ -50,12 +54,33 @@ axes of abitrary shaped and strided arrays, which makes it almost
 feature equivalent to standard FFT functions of <tt class="docutils literal"><span class="pre">numpy.fft</span></tt> (indeed,
 it supports the <tt class="docutils literal"><span class="pre">clongdouble</span></tt> dtype which <tt class="docutils literal"><span class="pre">numpy.fft</span></tt> does not).
 It shouldn&#8217;t be too much work to extend it to other schemes such as
-the real DFT.</p>
+the real DFT. See the <tt class="docutils literal"><span class="pre">numpy.fft</span></tt> <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html">documentation</a>
+for more information on that module.</p>
 <p>A comprehensive unittest suite is included with the source.</p>
-<ul class="simple">
-<li><a class="reference internal" href="#complexfftw-class"><em>ComplexFFTW Class</em></a></li>
-<li><a class="reference internal" href="#utilityfunctions"><em>Utility Functions</em></a></li>
-</ul>
+<p>A quick (and very much non-comprehensive) usage example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyfftw</span><span class="o">,</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Create 3 16-byte aligned arays using the aligned array creation functions</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># They are cleared during the object creation, so there is no point filling them.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="mi">16</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Create the DFT and inverse DFT objects</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fft</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">ComplexFFTW</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ifft</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">ComplexFFTW</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s">&#39;FFTW_BACKWARD&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Fill a with data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span>
+<span class="go">[[ 1.+0.j  2.+0.j  3.+0.j  4.+0.j]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># perform the fft</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fft</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">b</span>
+<span class="go">[[ 10.+0.j  -2.+2.j  -2.+0.j  -2.-2.j]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># perform the inverse fft</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ifft</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">c</span><span class="o">/</span><span class="n">a</span><span class="o">.</span><span class="n">size</span>
+<span class="go">[[ 1.+0.j  2.+0.j  3.+0.j  4.+0.j]]</span>
+</pre></div>
+</div>
 <div class="section" id="complexfftw-class">
 <span id="id1"></span><h2>ComplexFFTW Class<a class="headerlink" href="#complexfftw-class" title="Permalink to this headline">¶</a></h2>
 <dl class="class">

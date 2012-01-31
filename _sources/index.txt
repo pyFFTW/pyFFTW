@@ -6,6 +6,9 @@
 Welcome to pyFFTW's documentation!
 ==================================
 
+* :ref:`ComplexFFTW Class <ComplexFFTW_class>`
+* :ref:`Utility Functions <UtilityFunctions>`
+
 pyFFTW is an attempt to produce a pythonic wrapper around 
 `FFTW <http://www.fftw.org/>`_. The ultimate aim is to present a unified
 interface for all the possible transforms that FFTW can perform.
@@ -15,12 +18,35 @@ axes of abitrary shaped and strided arrays, which makes it almost
 feature equivalent to standard FFT functions of ``numpy.fft`` (indeed, 
 it supports the ``clongdouble`` dtype which ``numpy.fft`` does not). 
 It shouldn't be too much work to extend it to other schemes such as 
-the real DFT.
+the real DFT. See the ``numpy.fft`` `documentation
+<http://docs.scipy.org/doc/numpy/reference/routines.fft.html>`_ 
+for more information on that module.
 
 A comprehensive unittest suite is included with the source.
 
-* :ref:`ComplexFFTW Class <ComplexFFTW_class>`
-* :ref:`Utility Functions <UtilityFunctions>`
+A quick (and very much non-comprehensive) usage example:
+
+    >>> import pyfftw, numpy
+    >>> # Create 3 16-byte aligned arays using the aligned array creation functions
+    >>> # They are cleared during the object creation, so there is no point filling them.
+    >>> a = pyfftw.n_byte_align_empty((1,4), 16, dtype=numpy.complex128) 
+    >>> b = pyfftw.n_byte_align_empty(a.shape, 16, dtype=a.dtype)
+    >>> c = pyfftw.n_byte_align_empty(a.shape, 16, dtype=a.dtype)
+    >>> # Create the DFT and inverse DFT objects
+    >>> fft = pyfftw.ComplexFFTW(a, b)
+    >>> ifft = pyfftw.ComplexFFTW(b, c, direction='FFTW_BACKWARD')
+    >>> # Fill a with data
+    >>> a[:] = [1, 2, 3, 4]
+    >>> print a
+    [[ 1.+0.j  2.+0.j  3.+0.j  4.+0.j]]
+    >>> # perform the fft
+    >>> fft.execute()
+    >>> print b
+    [[ 10.+0.j  -2.+2.j  -2.+0.j  -2.-2.j]]
+    >>> # perform the inverse fft
+    >>> ifft.execute()
+    >>> print c/a.size
+    [[ 1.+0.j  2.+0.j  3.+0.j  4.+0.j]]
 
 .. _ComplexFFTW_class:
 
