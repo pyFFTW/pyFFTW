@@ -1,5 +1,5 @@
 pyFFTW is an attempt to produce a pythonic wrapper around 
-`FFTW <http://www.fftw.org/>`_. The ultimate aim is to present a unified
+FFTW ( http://www.fftw.org/ ). The ultimate aim is to present a unified
 interface for all the possible transforms that FFTW can perform.
 
 Currently, only the complex DFT is supported, though on arbitrary
@@ -11,7 +11,6 @@ the real DFT.
 
 A comprehensive unittest suite is included with the source.
 
-The documentation can be found 
-`here <http://hgomersall.github.com/pyFFTW/>`_, and the source
-is on `github <https://github.com/hgomersall/pyFFTW>`.
+The documentation can be found at http://hgomersall.github.com/pyFFTW/ , and 
+the source is on github: https://github.com/hgomersall/pyFFTW .
 
