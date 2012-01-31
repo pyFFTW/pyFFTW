@@ -22,6 +22,10 @@ the real DFT. See the ``numpy.fft`` `documentation
 <http://docs.scipy.org/doc/numpy/reference/routines.fft.html>`_ 
 for more information on that module.
 
+The source can be found in `github <https://github.com/hgomersall/pyFFTW>`_ 
+and it's page in the python package index is 
+`here <http://pypi.python.org/pypi/pyFFTW/0.5.0>`_.
+
 A comprehensive unittest suite is included with the source.
 
 A quick (and very much non-comprehensive) usage example:
