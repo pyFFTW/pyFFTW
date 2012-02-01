@@ -13,3 +13,10 @@ A comprehensive unittest suite is included with the source.
 
 The documentation can be found at http://hgomersall.github.com/pyFFTW/ , the source is on github: https://github.com/hgomersall/pyFFTW and the python package index page is here: http://pypi.python.org/pypi/pyFFTW .
 
+If you want to build the code that is here, use the cython_setup script like:
+
+python ./cython_setup.py build_ext --inplace
+
+That will build the cython code into a .c file (and should compile that too).
+
+setup.py is designed for after the .c file has been created (as in the source distribution).
