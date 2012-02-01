@@ -11,6 +11,5 @@ the real DFT.
 
 A comprehensive unittest suite is included with the source.
 
-The documentation can be found at http://hgomersall.github.com/pyFFTW/ , and 
-the source is on github: https://github.com/hgomersall/pyFFTW .
+The documentation can be found at http://hgomersall.github.com/pyFFTW/ , the source is on github: https://github.com/hgomersall/pyFFTW and the python package index page is here: http://pypi.python.org/pypi/pyFFTW .
 

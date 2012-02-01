@@ -38,6 +38,7 @@ def timer_test_setup(fft_length = 2048, vectors = 256):
     return fft_class, a, b
 
 timer_setup = '''
+import numpy
 try:
     from __main__ import timer_test_setup
 except:
@@ -49,8 +50,14 @@ def timer():
     from timeit import Timer
     N = 100
     t = Timer(stmt="fft_class.execute()", setup=timer_setup)
-        
-    print ('One run: '+ ("%.2f" % (1000.0/N*t.timeit(N)))+' ms')
+    t_numpy_fft = Timer(stmt="numpy.fft.fft(a)", setup=timer_setup)
+    
+    t_numpy_fft = Timer(stmt="numpy.fft.fft(a)", setup=timer_setup)
+    
+    t_str = ("%.2f" % (1000.0/N*t.timeit(N)))+' ms'
+    t_numpy_str = ("%.2f" % (1000.0/N*t_numpy_fft.timeit(N)))+' ms'
+
+    print ('One run: '+ t_str + ' (versus ' + t_numpy_str + ' for numpy.fft)')
 
 def timer_with_array_update():
     from timeit import Timer
@@ -227,6 +234,21 @@ class Complex64FFTWTest(unittest.TestCase):
         a_sliced = a[12:200:3, 300:2041:9]
         # b needs to be the same size
         b_sliced = b[20:146:2, 100:1458:7]
+
+        self.run_validate_fft(a_sliced, b_sliced, axes)
+
+    def test_non_contiguous_2d_in_3d(self):
+        shape = (256, 4, 2048)
+        axes=[0,2]
+        a = self.dtype(numpy.random.rand(*shape)
+                +1j*numpy.random.rand(*shape))
+        b = self.dtype(numpy.random.rand(*shape)
+                +1j*numpy.random.rand(*shape))
+
+        # Some arbitrary and crazy slicing
+        a_sliced = a[12:200:3, :, 300:2041:9]
+        # b needs to be the same size
+        b_sliced = b[20:146:2, :, 100:1458:7]
 
         self.run_validate_fft(a_sliced, b_sliced, axes)
 
