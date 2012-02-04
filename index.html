@@ -108,28 +108,28 @@ process during initialisation.</p>
 <p>The currently supported schemes are as follows:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="33%" />
-<col width="35%" />
-<col width="31%" />
+<col width="21%" />
+<col width="23%" />
+<col width="56%" />
 </colgroup>
 <thead valign="bottom">
 <tr><th class="head"><tt class="docutils literal"><span class="pre">input_array</span></tt></th>
 <th class="head"><tt class="docutils literal"><span class="pre">output_array</span></tt></th>
-<th class="head">Relative shape</th>
+<th class="head">Requirements on array shapes</th>
 </tr>
 </thead>
 <tbody valign="top">
 <tr><td><tt class="docutils literal"><span class="pre">complex64</span></tt></td>
 <td><tt class="docutils literal"><span class="pre">complex64</span></tt></td>
-<td>Equal size</td>
+<td><tt class="docutils literal"><span class="pre">input_array.shape</span> <span class="pre">==</span> <span class="pre">output_array.shape</span></tt></td>
 </tr>
 <tr><td><tt class="docutils literal"><span class="pre">complex128</span></tt></td>
 <td><tt class="docutils literal"><span class="pre">complex128</span></tt></td>
-<td>Equal size</td>
+<td><tt class="docutils literal"><span class="pre">input_array.shape</span> <span class="pre">==</span> <span class="pre">output_array.shape</span></tt></td>
 </tr>
 <tr><td><tt class="docutils literal"><span class="pre">clongdouble</span></tt></td>
 <td><tt class="docutils literal"><span class="pre">clongdouble</span></tt></td>
-<td>Equal size</td>
+<td><tt class="docutils literal"><span class="pre">input_array.shape</span> <span class="pre">==</span> <span class="pre">output_array.shape</span></tt></td>
 </tr>
 </tbody>
 </table>
@@ -138,8 +138,6 @@ or <tt class="docutils literal"><span class="pre">complex192</span></tt>, depend
 <p>The actual arrangement in memory is arbitrary and the scheme
 can be planned for any set of strides on either the input
 or the output.</p>
-<p>Equal size means the <tt class="docutils literal"><span class="pre">shape</span></tt> attribute of the arrays is
-the same.</p>
 <p><tt class="docutils literal"><span class="pre">axes</span></tt> describes along which axes the DFT should be taken.
 This should be a valid list of axes. Repeated axes are 
 only transformed once. Invalid axes will raise an 
