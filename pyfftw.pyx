@@ -120,37 +120,49 @@ cdef void _fftwl_destroy_plan(void *_plan):
 
     fftwl_destroy_plan(<fftwl_plan>_plan)
 
-# fftw_schemes is a dictionary with a mapping from keys to tuples 
-# that take the format:
-# (planner index, executor index, destroyer index, 
-#      input dtype, output dtype, array validator function)
+# fftw_schemes is a dictionary with a mapping from a keys,
+# which are a tuple of the string representation of numpy
+# dtypes to a scheme name.
 #
-# The indices refer to the relevant functions for each scheme,
+# scheme_functions is a dictionary of functions, either 
+# an index to the array of functions in the case of 
+# 'planner', 'executor' and 'destroyer' or a callable
+# in the case of 'validator'
+#
+# The array indices refer to the relevant functions for each scheme,
 # the tables to which are defined below.
 #
-# array validator function is a callable that has the following
-# signature:
+# The 'validator' function is a callable for validating the arrays
+# that has the following signature:
 # bool callable(in_array, out_array)
-# and checks that the arrays a valid pair. If it is set to None,
+# and checks that the arrays are a valid pair. If it is set to None,
 # then the default check is applied, which confirms that the arrays
 # have the same shape.
 fftw_schemes = {
-        'complex128': (0, 0, 0, 'complex128', 'complex128', None),
-        'complex64': (1, 1, 1, 'complex64', 'complex64', None),
-        'complex_longdouble': (2, 2, 2, 'clongdouble', 'clongdouble', None)}        
+        (np.dtype('complex128'), np.dtype('complex128')): 'complex128',
+        (np.dtype('complex64'), np.dtype('complex64')): 'complex64',
+        (np.dtype('clongdouble'), np.dtype('clongdouble')): 'complex_longdouble'}
+
+scheme_functions = {
+    'complex128': {'planner': 0, 'executor':0, 
+        'destroyer':0, 'validator':None},
+    'complex64': {'planner':1, 'executor':1, 
+        'destroyer':1, 'validator':None},
+    'complex_longdouble': {'planner':2, 'executor':2, 
+        'destroyer':2, 'validator':None}}        
 
 # Planner table (with the same number of elements as there are schemes).
 cdef fftw_generic_plan_guru planners[3]
 
 cdef fftw_generic_plan_guru * _build_planner_list():
 
-    planners[fftw_schemes['complex128'][0]] = \
+    planners[scheme_functions['complex128']['planner']] = \
             <fftw_generic_plan_guru>&_fftw_plan_guru_dft
 
-    planners[fftw_schemes['complex64'][0]] = \
+    planners[scheme_functions['complex64']['planner']] = \
             <fftw_generic_plan_guru>&_fftwf_plan_guru_dft
 
-    planners[fftw_schemes['complex_longdouble'][0]] = \
+    planners[scheme_functions['complex_longdouble']['planner']] = \
             <fftw_generic_plan_guru>&_fftwl_plan_guru_dft
 
     return planners
@@ -160,13 +172,13 @@ cdef fftw_generic_execute executors[3]
 
 cdef fftw_generic_execute * _build_executor_list():
 
-    executors[fftw_schemes['complex128'][1]] = \
+    executors[scheme_functions['complex128']['executor']] = \
             <fftw_generic_execute>&_fftw_execute_dft
 
-    executors[fftw_schemes['complex64'][1]] = \
+    executors[scheme_functions['complex64']['executor']] = \
             <fftw_generic_execute>&_fftwf_execute_dft
 
-    executors[fftw_schemes['complex_longdouble'][1]] = \
+    executors[scheme_functions['complex_longdouble']['executor']] = \
             <fftw_generic_execute>&_fftwl_execute_dft
 
     return executors
@@ -176,13 +188,13 @@ cdef fftw_generic_destroy_plan destroyers[3]
 
 cdef fftw_generic_destroy_plan * _build_destroyer_list():
 
-    destroyers[fftw_schemes['complex128'][2]] = \
+    destroyers[scheme_functions['complex128']['destroyer']] = \
             <fftw_generic_destroy_plan>&_fftw_destroy_plan
 
-    destroyers[fftw_schemes['complex64'][2]] = \
+    destroyers[scheme_functions['complex64']['destroyer']] = \
             <fftw_generic_destroy_plan>&_fftwf_destroy_plan
 
-    destroyers[fftw_schemes['complex_longdouble'][2]] = \
+    destroyers[scheme_functions['complex_longdouble']['destroyer']] = \
             <fftw_generic_destroy_plan>&_fftwl_destroy_plan
 
     return destroyers
@@ -245,25 +257,22 @@ cdef class ComplexFFTW:
         self.__dims = NULL
         self.__howmany_dims = NULL
 
-        cdef bytes scheme = str('none')
-
-        for each_scheme in fftw_schemes:
-            if input_array.dtype == fftw_schemes[each_scheme][3] and \
-                    output_array.dtype == fftw_schemes[each_scheme][4]:
-                scheme = each_scheme
-                break
-
-        if (scheme == 'none' ):
+        try:
+            scheme = fftw_schemes[
+                    (input_array.dtype, output_array.dtype)]
+        except KeyError:
             raise ValueError('The output array and input array dtypes '+\
                     'do not correspond to a valid fftw scheme.')
-        
-        if fftw_schemes[each_scheme][5] == None:
+
+        functions = scheme_functions[scheme]
+
+        if functions['validator'] == None:
             if not (output_array.shape == input_array.shape):
                 raise ValueError('The output array should be the same '+\
                         'shape as the input array for the given array '+\
                         'dtypes.')
         else:
-            if not fftw_schemes[each_scheme][5](input_array, output_array):
+            if not functions['validator'](input_array, output_array):
                 raise ValueError('The input array and output array are '+\
                         'invalid complementary shapes for their dtypes.')
 
@@ -289,9 +298,9 @@ cdef class ComplexFFTW:
         cdef fftw_generic_destroy_plan *destroyers = _build_destroyer_list()
         cdef fftw_generic_execute *executors = _build_executor_list()
 
-        self.__fftw_planner = planners[fftw_schemes[scheme][0]]
-        self.__fftw_execute = executors[fftw_schemes[scheme][1]]
-        self.__fftw_destroy = destroyers[fftw_schemes[scheme][2]]
+        self.__fftw_planner = planners[functions['planner']]
+        self.__fftw_execute = executors[functions['executor']]
+        self.__fftw_destroy = destroyers[functions['destroyer']]
         
         self.__flags = 0 
         for each_flag in flags:
@@ -384,15 +393,15 @@ cdef class ComplexFFTW:
         
         The currently supported schemes are as follows:
 
-        +-----------------+------------------+----------------+
-        | ``input_array`` | ``output_array`` | Relative shape |
-        +=================+==================+================+
-        | ``complex64``   | ``complex64``    | Equal size     | 
-        +-----------------+------------------+----------------+
-        | ``complex128``  | ``complex128``   | Equal size     |
-        +-----------------+------------------+----------------+
-        | ``clongdouble`` | ``clongdouble``  | Equal size     |
-        +-----------------+------------------+----------------+
+        +-----------------+------------------+---------------------------------------------+
+        | ``input_array`` | ``output_array`` | Requirements on array shapes                |
+        +=================+==================+=============================================+
+        | ``complex64``   | ``complex64``    | ``input_array.shape == output_array.shape`` | 
+        +-----------------+------------------+---------------------------------------------+
+        | ``complex128``  | ``complex128``   | ``input_array.shape == output_array.shape`` |
+        +-----------------+------------------+---------------------------------------------+
+        | ``clongdouble`` | ``clongdouble``  | ``input_array.shape == output_array.shape`` |
+        +-----------------+------------------+---------------------------------------------+
         
         ``clongdouble`` typically maps directly to ``complex256``
         or ``complex192``, dependent on platform.
@@ -400,9 +409,6 @@ cdef class ComplexFFTW:
         The actual arrangement in memory is arbitrary and the scheme
         can be planned for any set of strides on either the input
         or the output.
-
-        Equal size means the ``shape`` attribute of the arrays is
-        the same.
 
         ``axes`` describes along which axes the DFT should be taken.
         This should be a valid list of axes. Repeated axes are 

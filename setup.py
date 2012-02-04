@@ -44,10 +44,10 @@ is on `github <https://github.com/hgomersall/pyFFTW>`_.
 
 setup_args = {
         'name': 'pyFFTW',
-        'version': '0.5.0',
+        'version': '0.5.1',
         'author': 'Henry Gomersall',
         'author_email': 'heng@kedevelopments.co.uk',
-        'description': 'A pythonic wrapper around FFTW, presenting a unified interface for all the supported transforms.',
+        'description': 'A pythonic wrapper around FFTW, the FFT library, presenting a unified interface for all the supported transforms.',
         'url': 'http://hgomersall.github.com/pyFFTW/',
         'long_description': long_description,
         'classifiers': [
