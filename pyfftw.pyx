@@ -19,9 +19,11 @@
 import numpy as np
 cimport numpy as np
 from libc.stdlib cimport malloc, free
+from libc cimport limits
 
 from pyfftw cimport _fftw_iodim, fftw_iodim, fftwf_plan
 cimport pyfftw
+
 
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
         'FFTW_BACKWARD': FFTW_BACKWARD}
@@ -330,8 +332,27 @@ cdef class ComplexFFTW:
         self.__output_strides = \
                 np.array(output_array.strides)/output_array.itemsize
 
-        # Fill in the stride and shape information
+        # Make sure that the arrays are not too big for fftw
         cdef int i
+        for i in range(0, len(self.__input_shape)):
+            if self.__input_shape[i] >= <Py_ssize_t> limits.INT_MAX:
+                raise ValueError('Dimensions of the input array must be ' +\
+                        'less than ', str(limits.INT_MAX))
+
+            if self.__input_strides[i] >= <Py_ssize_t> limits.INT_MAX:
+                raise ValueError('Strides of the input array must be ' +\
+                        'less than ', str(limits.INT_MAX))
+
+        for i in range(0, len(self.__output_shape)):
+            if self.__output_shape[i] >= <Py_ssize_t> limits.INT_MAX:
+                raise ValueError('Dimensions of the output array must be ' +\
+                        'less than ', str(limits.INT_MAX))
+
+            if self.__output_strides[i] >= <Py_ssize_t> limits.INT_MAX:
+                raise ValueError('Strides of the output array must be ' +\
+                        'less than ', str(limits.INT_MAX))
+        
+        # Fill in the stride and shape information
         for i in range(0, self.__rank):
             self.__dims[i]._n = self.__input_shape[_axes][i]
             self.__dims[i]._is = self.__input_strides[_axes][i]
@@ -346,8 +367,8 @@ cdef class ComplexFFTW:
         self.__plan = self.__fftw_planner(
             self.__rank, <fftw_iodim *>self.__dims,
             self.__howmany_rank, <fftw_iodim *>self.__howmany_dims,
-            <void *>self.__input_array.data,
-            <void *>self.__output_array.data,
+            <void *>np.PyArray_DATA(self.__input_array),
+            <void *>np.PyArray_DATA(self.__output_array),
             self.__direction, self.__flags)
 
         if self.__plan == NULL:
@@ -517,8 +538,8 @@ cdef class ComplexFFTW:
         Execute the planned operation.
         '''
         self.__fftw_execute(self.__plan,
-                <void *>self.__input_array.data,
-                <void *>self.__output_array.data)
+                <void *>np.PyArray_DATA(self.__input_array),
+                <void *>np.PyArray_DATA(self.__output_array))
 
 
 cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
