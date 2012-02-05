@@ -75,18 +75,84 @@ cdef extern from "fftw3.h":
             long double complex *_in, long double complex *_out,
             int sign, unsigned flags)
     
-    # Double precision new array execute
+    # Double precision real to complex planner
+    fftw_plan fftw_plan_guru_dft_r2c(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            double *_in, double complex *_out,
+            unsigned flags)
+    
+    # Single precision real to complex planner
+    fftwf_plan fftwf_plan_guru_dft_r2c(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            float *_in, float complex *_out,
+            unsigned flags)
+
+    # Single precision real to complex planner
+    fftwl_plan fftwl_plan_guru_dft_r2c(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            long double *_in, long double complex *_out,
+            unsigned flags)
+
+    # Double precision complex to real planner
+    fftw_plan fftw_plan_guru_dft_c2r(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            double complex *_in, double *_out,
+            unsigned flags)
+    
+    # Single precision complex to real planner
+    fftwf_plan fftwf_plan_guru_dft_c2r(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            float complex *_in, float *_out,
+            unsigned flags)
+
+    # Single precision complex to real planner
+    fftwl_plan fftwl_plan_guru_dft_c2r(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            long double complex *_in, long double *_out,
+            unsigned flags)
+
+    # Double precision complex new array execute
     void fftw_execute_dft(fftw_plan,
           double complex *_in, double complex *_out)
     
-    # Single precision new array execute    
+    # Single precision complex new array execute    
     void fftwf_execute_dft(fftwf_plan,
           float complex *_in, float complex *_out)
 
-    # Long double precision new array execute    
+    # Long double precision complex new array execute    
     void fftwl_execute_dft(fftwl_plan,
           long double complex *_in, long double complex *_out)
+   
+    # Double precision real to complex new array execute
+    void fftw_execute_dft_r2c(fftw_plan,
+          double *_in, double complex *_out)
     
+    # Single precision real to complex new array execute    
+    void fftwf_execute_dft_r2c(fftwf_plan,
+          float *_in, float complex *_out)
+
+    # Long double precision real to complex new array execute    
+    void fftwl_execute_dft_r2c(fftwl_plan,
+          long double *_in, long double complex *_out)
+
+    # Double precision complex to real new array execute
+    void fftw_execute_dft_c2r(fftw_plan,
+          double complex *_in, double *_out)
+    
+    # Single precision complex to real new array execute    
+    void fftwf_execute_dft_c2r(fftwf_plan,
+          float complex *_in, float *_out)
+
+    # Long double precision complex to real new array execute    
+    void fftwl_execute_dft_c2r(fftwl_plan,
+          long double complex *_in, long double *_out)
+
     # Double precision plan destroyer
     void fftw_destroy_plan(fftw_plan)
 

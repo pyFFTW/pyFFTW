@@ -82,28 +82,137 @@ cdef void* _fftwl_plan_guru_dft(
             <long double complex *>_in, <long double complex *>_out,
             sign, flags)
 
-#    Execute
+# real to complex double precision
+cdef void* _fftw_plan_guru_dft_r2c(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            void *_in, void *_out,
+            int sign, int flags):
+
+    return <void *>fftw_plan_guru_dft_r2c(rank, dims,
+            howmany_rank, howmany_dims,
+            <double *>_in, <double complex *>_out,
+            flags)
+
+# real to complex single precision
+cdef void* _fftwf_plan_guru_dft_r2c(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            void *_in, void *_out,
+            int sign, int flags):
+
+    return <void *>fftwf_plan_guru_dft_r2c(rank, dims,
+            howmany_rank, howmany_dims,
+            <float *>_in, <float complex *>_out,
+            flags)
+
+# real to complex long double precision
+cdef void* _fftwl_plan_guru_dft_r2c(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            void *_in, void *_out,
+            int sign, int flags):
+
+    return <void *>fftwl_plan_guru_dft_r2c(rank, dims,
+            howmany_rank, howmany_dims,
+            <long double *>_in, <long double complex *>_out,
+            flags)
+
+# complex to real double precision
+cdef void* _fftw_plan_guru_dft_c2r(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            void *_in, void *_out,
+            int sign, int flags):
+
+    return <void *>fftw_plan_guru_dft_c2r(rank, dims,
+            howmany_rank, howmany_dims,
+            <double complex *>_in, <double *>_out,
+            flags)
+
+# complex to real single precision
+cdef void* _fftwf_plan_guru_dft_c2r(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            void *_in, void *_out,
+            int sign, int flags):
+
+    return <void *>fftwf_plan_guru_dft_c2r(rank, dims,
+            howmany_rank, howmany_dims,
+            <float complex *>_in, <float *>_out,
+            flags)
+
+# complex to real long double precision
+cdef void* _fftwl_plan_guru_dft_c2r(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            void *_in, void *_out,
+            int sign, int flags):
+
+    return <void *>fftwl_plan_guru_dft_c2r(rank, dims,
+            howmany_rank, howmany_dims,
+            <long double complex *>_in, <long double *>_out,
+            flags)
+
+#    Executors
+#    =========
 #
-# Double precision
+# Complex double precision
 cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out):
 
     fftw_execute_dft(<fftw_plan>_plan, 
             <double complex *>_in, <double complex *>_out)
 
-# Single precision
+# Complex single precision
 cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out):
 
     fftwf_execute_dft(<fftwf_plan>_plan, 
             <float complex *>_in, <float complex *>_out)
 
-# Long double precision
+# Complex long double precision
 cdef void _fftwl_execute_dft(void *_plan, void *_in, void *_out):
 
     fftwl_execute_dft(<fftwl_plan>_plan, 
             <long double complex *>_in, <long double complex *>_out)
 
-#    Destroy
-#    =======
+# real to complex double precision
+cdef void _fftw_execute_dft_r2c(void *_plan, void *_in, void *_out):
+
+    fftw_execute_dft_r2c(<fftw_plan>_plan, 
+            <double *>_in, <double complex *>_out)
+
+# real to complex single precision
+cdef void _fftwf_execute_dft_r2c(void *_plan, void *_in, void *_out):
+
+    fftwf_execute_dft_r2c(<fftwf_plan>_plan, 
+            <float *>_in, <float complex *>_out)
+
+# real to complex long double precision
+cdef void _fftwl_execute_dft_r2c(void *_plan, void *_in, void *_out):
+
+    fftwl_execute_dft_r2c(<fftwl_plan>_plan, 
+            <long double *>_in, <long double complex *>_out)
+
+# complex to real double precision
+cdef void _fftw_execute_dft_c2r(void *_plan, void *_in, void *_out):
+
+    fftw_execute_dft_c2r(<fftw_plan>_plan, 
+            <double complex *>_in, <double *>_out)
+
+# complex to real single precision
+cdef void _fftwf_execute_dft_c2r(void *_plan, void *_in, void *_out):
+
+    fftwf_execute_dft_c2r(<fftwf_plan>_plan, 
+            <float complex *>_in, <float *>_out)
+
+# complex to real long double precision
+cdef void _fftwl_execute_dft_c2r(void *_plan, void *_in, void *_out):
+
+    fftwl_execute_dft_c2r(<fftwl_plan>_plan, 
+            <long double complex *>_in, <long double *>_out)
+
+#    Destroyers
+#    ==========
 #
 # Double precision
 cdef void _fftw_destroy_plan(void *_plan):
@@ -120,6 +229,97 @@ cdef void _fftwl_destroy_plan(void *_plan):
 
     fftwl_destroy_plan(<fftwl_plan>_plan)
 
+
+# Function lookup tables
+# ======================
+
+# Planner table (with the same number of elements as there are schemes).
+cdef fftw_generic_plan_guru planners[9]
+
+cdef fftw_generic_plan_guru * _build_planner_list():
+
+    planners[0] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft
+    planners[1] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft
+    planners[2] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft
+    planners[3] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft_r2c
+    planners[4] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft_r2c
+    planners[5] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft_r2c
+    planners[6] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft_c2r
+    planners[7] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft_c2r
+    planners[8] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft_c2r
+
+    return planners
+
+# Executor table (of size the number of executors)
+cdef fftw_generic_execute executors[9]
+
+cdef fftw_generic_execute * _build_executor_list():
+
+    executors[0] = <fftw_generic_execute>&_fftw_execute_dft
+    executors[1] = <fftw_generic_execute>&_fftwf_execute_dft
+    executors[2] = <fftw_generic_execute>&_fftwl_execute_dft
+    executors[3] = <fftw_generic_execute>&_fftw_execute_dft_r2c
+    executors[4] = <fftw_generic_execute>&_fftwf_execute_dft_r2c
+    executors[5] = <fftw_generic_execute>&_fftwl_execute_dft_r2c
+    executors[6] = <fftw_generic_execute>&_fftw_execute_dft_c2r
+    executors[7] = <fftw_generic_execute>&_fftwf_execute_dft_c2r
+    executors[8] = <fftw_generic_execute>&_fftwl_execute_dft_c2r
+
+    return executors
+
+# Destroyer table (of size the number of destroyers)
+cdef fftw_generic_destroy_plan destroyers[3]
+
+cdef fftw_generic_destroy_plan * _build_destroyer_list():
+
+    destroyers[0] = <fftw_generic_destroy_plan>&_fftw_destroy_plan
+    destroyers[1] = <fftw_generic_destroy_plan>&_fftwf_destroy_plan
+    destroyers[2] = <fftw_generic_destroy_plan>&_fftwl_destroy_plan
+
+    return destroyers
+
+
+# Validator functions
+# ===================
+def _validate_r2c_arrays(input_array, output_array, axes):
+    ''' Validates the input and output array correspond
+    to a valid real to complex transform.
+    '''
+    # The shape is only important over the axes that the 
+    # FFT is taken. This is what the following variables
+    # contain.
+    in_fft_shape = np.array(input_array.shape)[axes]
+    out_fft_shape = np.array(output_array.shape)[axes]
+    if np.alltrue(out_fft_shape[:-1] == in_fft_shape[:-1]) and \
+            np.alltrue(out_fft_shape[-1] == in_fft_shape[-1]//2 + 1):
+        return True
+    else:
+        return False
+
+def _validate_c2r_arrays(input_array, output_array, axes):
+    ''' Validates the input and output array correspond
+    to a valid real to complex transform.
+    '''
+    # The shape is only important over the axes that the 
+    # FFT is taken. This is what the following variables
+    # contain.
+    in_fft_shape = np.array(input_array.shape)[axes]
+    out_fft_shape = np.array(output_array.shape)[axes]
+
+    if np.alltrue(in_fft_shape[:-1] == out_fft_shape[:-1]) and \
+            np.alltrue(in_fft_shape[-1] == out_fft_shape[-1]//2 + 1):
+        return True
+    else:
+        return False
+
+# Shape lookup functions
+# ======================
+def _lookup_shape_r2c_arrays(input_array, output_array):
+    return np.array(input_array.shape)
+
+def _lookup_shape_c2r_arrays(input_array, output_array):
+    return np.array(output_array.shape)
+
 # fftw_schemes is a dictionary with a mapping from a keys,
 # which are a tuple of the string representation of numpy
 # dtypes to a scheme name.
@@ -130,74 +330,56 @@ cdef void _fftwl_destroy_plan(void *_plan):
 # in the case of 'validator'
 #
 # The array indices refer to the relevant functions for each scheme,
-# the tables to which are defined below.
+# the tables to which are defined above.
 #
 # The 'validator' function is a callable for validating the arrays
 # that has the following signature:
-# bool callable(in_array, out_array)
+# bool callable(in_array, out_array, axes)
 # and checks that the arrays are a valid pair. If it is set to None,
 # then the default check is applied, which confirms that the arrays
 # have the same shape.
+# 
+# The 'fft_shape_lookup' function is a callable for returning the
+# FFT shape - that is, an array that describes the length of the 
+# fft along each axis. It has the following signature:
+# fft_shape = fft_shape_lookup(in_array, out_array)
+
 fftw_schemes = {
-        (np.dtype('complex128'), np.dtype('complex128')): 'complex128',
-        (np.dtype('complex64'), np.dtype('complex64')): 'complex64',
-        (np.dtype('clongdouble'), np.dtype('clongdouble')): 'complex_longdouble'}
+        (np.dtype('complex128'), np.dtype('complex128')): 'c128',
+        (np.dtype('complex64'), np.dtype('complex64')): 'c64',
+        (np.dtype('clongdouble'), np.dtype('clongdouble')): 'cld',
+        (np.dtype('float64'), np.dtype('complex128')): 'r64_to_c128',
+        (np.dtype('float32'), np.dtype('complex64')): 'r32_to_c64',
+        (np.dtype('longdouble'), np.dtype('clongdouble')): 'rld_to_cld',
+        (np.dtype('complex128'), np.dtype('float64')): 'c128_to_r64',
+        (np.dtype('complex64'), np.dtype('float32')): 'c64_to_r32',
+        (np.dtype('clongdouble'), np.dtype('longdouble')): 'cld_to_rld'}
 
 scheme_functions = {
-    'complex128': {'planner': 0, 'executor':0, 
-        'destroyer':0, 'validator':None},
-    'complex64': {'planner':1, 'executor':1, 
-        'destroyer':1, 'validator':None},
-    'complex_longdouble': {'planner':2, 'executor':2, 
-        'destroyer':2, 'validator':None}}        
-
-# Planner table (with the same number of elements as there are schemes).
-cdef fftw_generic_plan_guru planners[3]
-
-cdef fftw_generic_plan_guru * _build_planner_list():
-
-    planners[scheme_functions['complex128']['planner']] = \
-            <fftw_generic_plan_guru>&_fftw_plan_guru_dft
-
-    planners[scheme_functions['complex64']['planner']] = \
-            <fftw_generic_plan_guru>&_fftwf_plan_guru_dft
-
-    planners[scheme_functions['complex_longdouble']['planner']] = \
-            <fftw_generic_plan_guru>&_fftwl_plan_guru_dft
-
-    return planners
-
-# Executor table (of size the number of executors)
-cdef fftw_generic_execute executors[3]
-
-cdef fftw_generic_execute * _build_executor_list():
-
-    executors[scheme_functions['complex128']['executor']] = \
-            <fftw_generic_execute>&_fftw_execute_dft
-
-    executors[scheme_functions['complex64']['executor']] = \
-            <fftw_generic_execute>&_fftwf_execute_dft
-
-    executors[scheme_functions['complex_longdouble']['executor']] = \
-            <fftw_generic_execute>&_fftwl_execute_dft
-
-    return executors
-
-# Destroyer table (of size the number of destroyers)
-cdef fftw_generic_destroy_plan destroyers[3]
-
-cdef fftw_generic_destroy_plan * _build_destroyer_list():
-
-    destroyers[scheme_functions['complex128']['destroyer']] = \
-            <fftw_generic_destroy_plan>&_fftw_destroy_plan
-
-    destroyers[scheme_functions['complex64']['destroyer']] = \
-            <fftw_generic_destroy_plan>&_fftwf_destroy_plan
-
-    destroyers[scheme_functions['complex_longdouble']['destroyer']] = \
-            <fftw_generic_destroy_plan>&_fftwl_destroy_plan
-
-    return destroyers
+    'c128': {'planner': 0, 'executor':0, 'destroyer':0,
+        'validator':None, 'fft_shape_lookup': None},
+    'c64': {'planner':1, 'executor':1, 'destroyer':1, 
+        'validator':None, 'fft_shape_lookup': None},
+    'cld': {'planner':2, 'executor':2, 'destroyer':2,
+        'validator':None, 'fft_shape_lookup': None},
+    'r64_to_c128': {'planner':3, 'executor':3, 'destroyer':0,
+        'validator':_validate_r2c_arrays, 
+        'fft_shape_lookup': _lookup_shape_r2c_arrays},
+    'r32_to_c64': {'planner':4, 'executor':4, 'destroyer':1,
+        'validator':_validate_r2c_arrays, 
+        'fft_shape_lookup': _lookup_shape_r2c_arrays},
+    'rld_to_cld': {'planner':5, 'executor':5, 'destroyer':2,
+        'validator':_validate_r2c_arrays, 
+        'fft_shape_lookup': _lookup_shape_r2c_arrays},
+    'c128_to_r64': {'planner':6, 'executor':6, 'destroyer':0, 
+        'validator':_validate_c2r_arrays, 
+        'fft_shape_lookup': _lookup_shape_c2r_arrays},
+    'c64_to_r32': {'planner':7, 'executor':7, 'destroyer':1, 
+        'validator':_validate_c2r_arrays, 
+        'fft_shape_lookup': _lookup_shape_c2r_arrays},
+    'cld_to_rld': {'planner':8, 'executor':8, 'destroyer':2,
+        'validator':_validate_c2r_arrays, 
+        'fft_shape_lookup': _lookup_shape_c2r_arrays}}
 
 # The External Interface
 # ======================
@@ -264,18 +446,6 @@ cdef class ComplexFFTW:
             raise ValueError('The output array and input array dtypes '+\
                     'do not correspond to a valid fftw scheme.')
 
-        functions = scheme_functions[scheme]
-
-        if functions['validator'] == None:
-            if not (output_array.shape == input_array.shape):
-                raise ValueError('The output array should be the same '+\
-                        'shape as the input array for the given array '+\
-                        'dtypes.')
-        else:
-            if not functions['validator'](input_array, output_array):
-                raise ValueError('The input array and output array are '+\
-                        'invalid complementary shapes for their dtypes.')
-
         self.__input_dtype = input_array.dtype
         self.__output_dtype = output_array.dtype
 
@@ -294,10 +464,12 @@ cdef class ComplexFFTW:
         self.__input_shape = np.array(input_array.shape)
         self.__output_shape = np.array(output_array.shape)
         
+        # Define the functions        
         cdef fftw_generic_plan_guru *planners = _build_planner_list()
         cdef fftw_generic_destroy_plan *destroyers = _build_destroyer_list()
         cdef fftw_generic_execute *executors = _build_executor_list()
-
+        
+        functions = scheme_functions[scheme]
         self.__fftw_planner = planners[functions['planner']]
         self.__fftw_execute = executors[functions['executor']]
         self.__fftw_destroy = destroyers[functions['destroyer']]
@@ -323,6 +495,17 @@ cdef class ComplexFFTW:
 
         # Now get the axes along which the FFT is *not* taken
         _not_axes = np.setdiff1d(np.arange(0,len(self.__input_shape)), _axes)
+        
+        # Now we can validate the array shapes
+        if functions['validator'] == None:
+            if not (output_array.shape == input_array.shape):
+                raise ValueError('The output array should be the same '+\
+                        'shape as the input array for the given array '+\
+                        'dtypes.')
+        else:
+            if not functions['validator'](input_array, output_array, _axes):
+                raise ValueError('The input array and output array are '+\
+                        'invalid complementary shapes for their dtypes.')
 
         self.__rank = len(_axes)
         self.__howmany_rank = len(_not_axes)
@@ -361,14 +544,20 @@ cdef class ComplexFFTW:
                 raise ValueError('Strides of the output array must be ' +\
                         'less than ', str(limits.INT_MAX))
         
+        fft_shape_lookup = functions['fft_shape_lookup']
+        if fft_shape_lookup == None:
+            fft_shape = self.__input_shape
+        else:
+            fft_shape = fft_shape_lookup(input_array, output_array)
+
         # Fill in the stride and shape information
         for i in range(0, self.__rank):
-            self.__dims[i]._n = self.__input_shape[_axes][i]
+            self.__dims[i]._n = fft_shape[_axes][i]
             self.__dims[i]._is = self.__input_strides[_axes][i]
             self.__dims[i]._os = self.__output_strides[_axes][i]
 
         for i in range(0, self.__howmany_rank):
-            self.__howmany_dims[i]._n = self.__input_shape[_not_axes][i]
+            self.__howmany_dims[i]._n = fft_shape[_not_axes][i]
             self.__howmany_dims[i]._is = self.__input_strides[_not_axes][i]
             self.__howmany_dims[i]._os = self.__output_strides[_not_axes][i]
 
@@ -511,7 +700,7 @@ cdef class ComplexFFTW:
         new_input_strides = \
                 np.array(new_input_array.strides)/new_input_array.itemsize
         new_output_strides = \
-                np.array(new_output_array.strides)/new_input_array.itemsize
+                np.array(new_output_array.strides)/new_output_array.itemsize
 
         if not (new_input_shape == self.__input_shape).all():
             raise ValueError('The new input array should be the same '+\
@@ -520,11 +709,11 @@ cdef class ComplexFFTW:
         if not (new_output_shape == self.__output_shape).all():
             raise ValueError('The new output array should be the same '+\
                     'shape as the output array used to instantiate the object.')
-
+        
         if not (new_input_strides == self.__input_strides).all():
             raise ValueError('The strides should be identical for the new '+\
                     'input array as for the old.')
-
+        
         if not (new_output_strides == self.__output_strides).all():
             raise ValueError('The strides should be identical for the new '+\
                     'output array as for the old.')

@@ -23,6 +23,8 @@ libraries = ['fftw3', 'fftw3f', 'fftw3l', 'm']
 ext_modules = [Extension('pyfftw', ['pyfftw.c'], 
     libraries=libraries)]
 
+version = '0.5.1'
+
 long_description = '''
 pyFFTW is an attempt to produce a pythonic wrapper around 
 `FFTW <http://www.fftw.org/>`_. The ultimate aim is to present a unified
@@ -44,7 +46,7 @@ is on `github <https://github.com/hgomersall/pyFFTW>`_.
 
 setup_args = {
         'name': 'pyFFTW',
-        'version': '0.5.1',
+        'version': version,
         'author': 'Henry Gomersall',
         'author_email': 'heng@kedevelopments.co.uk',
         'description': 'A pythonic wrapper around FFTW, the FFT library, presenting a unified interface for all the supported transforms.',
