@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to pyFFTW’s documentation! &mdash; pyFFTW v0.5.1 documentation</title>
+    <title>Welcome to pyFFTW’s documentation! &mdash; pyFFTW v0.6.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.5.1',
+        VERSION:     '0.6.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="pyFFTW v0.5.1 documentation" href="#" /> 
+    <link rel="top" title="pyFFTW v0.6.0 documentation" href="#" /> 
   </head>
   <body>
     <div class="related">
@@ -31,7 +31,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="#">pyFFTW v0.5.1 documentation</a> &raquo;</li> 
+        <li><a href="#">pyFFTW v0.6.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -43,18 +43,17 @@
   <div class="section" id="welcome-to-pyfftw-s-documentation">
 <h1>Welcome to pyFFTW&#8217;s documentation!<a class="headerlink" href="#welcome-to-pyfftw-s-documentation" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><a class="reference internal" href="#complexfftw-class"><em>ComplexFFTW Class</em></a></li>
+<li><a class="reference internal" href="#fftw-class"><em>FFTW Class</em></a></li>
 <li><a class="reference internal" href="#utilityfunctions"><em>Utility Functions</em></a></li>
 </ul>
 <p>pyFFTW is an attempt to produce a pythonic wrapper around
 <a class="reference external" href="http://www.fftw.org/">FFTW</a>. The ultimate aim is to present a unified
 interface for all the possible transforms that FFTW can perform.</p>
-<p>Currently, only the complex DFT is supported, though on arbitrary
+<p>Both the complex DFT and the real DFT are supported, as well as on arbitrary
 axes of abitrary shaped and strided arrays, which makes it almost
-feature equivalent to standard FFT functions of <tt class="docutils literal"><span class="pre">numpy.fft</span></tt> (indeed,
-it supports the <tt class="docutils literal"><span class="pre">clongdouble</span></tt> dtype which <tt class="docutils literal"><span class="pre">numpy.fft</span></tt> does not).
-It shouldn&#8217;t be too much work to extend it to other schemes such as
-the real DFT. See the <tt class="docutils literal"><span class="pre">numpy.fft</span></tt> <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html">documentation</a>
+feature equivalent to standard and real FFT functions of <tt class="docutils literal"><span class="pre">numpy.fft</span></tt>
+(indeed, it supports the <tt class="docutils literal"><span class="pre">clongdouble</span></tt> dtype which <tt class="docutils literal"><span class="pre">numpy.fft</span></tt> does not).
+See the <tt class="docutils literal"><span class="pre">numpy.fft</span></tt> <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html">documentation</a>
 for more information on that module.</p>
 <p>The source can be found in <a class="reference external" href="https://github.com/hgomersall/pyFFTW">github</a>
 and it&#8217;s page in the python package index is
@@ -68,8 +67,8 @@ and it&#8217;s page in the python package index is
 <span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">a</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># Create the DFT and inverse DFT objects</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fft</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">ComplexFFTW</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ifft</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">ComplexFFTW</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s">&#39;FFTW_BACKWARD&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fft</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ifft</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s">&#39;FFTW_BACKWARD&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># Fill a with data</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">a</span>
@@ -84,12 +83,14 @@ and it&#8217;s page in the python package index is
 <span class="go">[[ 1.+0.j  2.+0.j  3.+0.j  4.+0.j]]</span>
 </pre></div>
 </div>
-<div class="section" id="complexfftw-class">
-<span id="id1"></span><h2>ComplexFFTW Class<a class="headerlink" href="#complexfftw-class" title="Permalink to this headline">¶</a></h2>
+<p><strong>Note that what was previously the ComplexFFTW class is now just called
+FFTW. Simply renaming the class should be sufficient to migrate</strong></p>
+<div class="section" id="fftw-class">
+<span id="id1"></span><h2>FFTW Class<a class="headerlink" href="#fftw-class" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="pyfftw.ComplexFFTW">
-<em class="property">class </em><tt class="descclassname">pyfftw.</tt><tt class="descname">ComplexFFTW</tt><big>(</big><em>input_array, output_array, axes=[-1], direction='FFTW_FORWARD', flags=['FFTW_MEASURE']</em><big>)</big><a class="headerlink" href="#pyfftw.ComplexFFTW" title="Permalink to this definition">¶</a></dt>
-<dd><p>ComplexFFTW is a class for computing the complex N-Dimensional DFT or
+<dt id="pyfftw.FFTW">
+<em class="property">class </em><tt class="descclassname">pyfftw.</tt><tt class="descname">FFTW</tt><big>(</big><em>input_array, output_array, axes=[-1], direction='FFTW_FORWARD', flags=['FFTW_MEASURE']</em><big>)</big><a class="headerlink" href="#pyfftw.FFTW" title="Permalink to this definition">¶</a></dt>
+<dd><p>FFTW is a class for computing the complex N-Dimensional DFT or
 inverse DFT of an array using the FFTW library. The interface is 
 designed to be somewhat pythonic, with the correct transform being 
 inferred from the dtypes of the passed arrays.</p>
@@ -99,45 +100,13 @@ the plan that corresponds to that scheme is created, operating on the
 arrays that are passed in. If no scheme can be created, then 
 <tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised.</p>
 <p>The actual FFT or iFFT is performed by calling the 
-<a class="reference internal" href="#complexfftw-execute"><em>execute()</em></a> method.</p>
+<a class="reference internal" href="#fftw-execute"><em>execute()</em></a> method.</p>
 <p>The arrays can be updated by calling the 
-<a class="reference internal" href="#complexfftw-update-arrays"><em>update_arrays()</em></a> method.</p>
+<a class="reference internal" href="#fftw-update-arrays"><em>update_arrays()</em></a> method.</p>
 <p><tt class="docutils literal"><span class="pre">input_array</span></tt> and <tt class="docutils literal"><span class="pre">output_array</span></tt> should be numpy arrays.
 The contents of these arrays will be destroyed by the planning 
-process during initialisation.</p>
-<p>The currently supported schemes are as follows:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="21%" />
-<col width="23%" />
-<col width="56%" />
-</colgroup>
-<thead valign="bottom">
-<tr><th class="head"><tt class="docutils literal"><span class="pre">input_array</span></tt></th>
-<th class="head"><tt class="docutils literal"><span class="pre">output_array</span></tt></th>
-<th class="head">Requirements on array shapes</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr><td><tt class="docutils literal"><span class="pre">complex64</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">complex64</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">input_array.shape</span> <span class="pre">==</span> <span class="pre">output_array.shape</span></tt></td>
-</tr>
-<tr><td><tt class="docutils literal"><span class="pre">complex128</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">complex128</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">input_array.shape</span> <span class="pre">==</span> <span class="pre">output_array.shape</span></tt></td>
-</tr>
-<tr><td><tt class="docutils literal"><span class="pre">clongdouble</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">clongdouble</span></tt></td>
-<td><tt class="docutils literal"><span class="pre">input_array.shape</span> <span class="pre">==</span> <span class="pre">output_array.shape</span></tt></td>
-</tr>
-</tbody>
-</table>
-<p><tt class="docutils literal"><span class="pre">clongdouble</span></tt> typically maps directly to <tt class="docutils literal"><span class="pre">complex256</span></tt>
-or <tt class="docutils literal"><span class="pre">complex192</span></tt>, dependent on platform.</p>
-<p>The actual arrangement in memory is arbitrary and the scheme
-can be planned for any set of strides on either the input
-or the output.</p>
+process during initialisation. Information on supported 
+dtypes for the arrays is given below.</p>
 <p><tt class="docutils literal"><span class="pre">axes</span></tt> describes along which axes the DFT should be taken.
 This should be a valid list of axes. Repeated axes are 
 only transformed once. Invalid axes will raise an 
@@ -145,8 +114,13 @@ exception. This argument is equivalent to the same
 argument in <tt class="docutils literal"><span class="pre">numpy.fft.fftn</span></tt>.</p>
 <p><tt class="docutils literal"><span class="pre">direction</span></tt> should be a string and one of FFTW_FORWARD 
 or FFTW_BACKWARD, which dictate whether to take the
-DFT or the inverse DFT respectively (specifically, it
-dictates the sign of the exponent in the DFT formulation).</p>
+DFT (forwards) or the inverse DFT (backwards) respectively 
+(specifically, it dictates the sign of the exponent in the 
+DFT formulation).</p>
+<p>Note that only the Complex schemes allow a free choice
+for <tt class="docutils literal"><span class="pre">direction</span></tt>. The direction <em>must</em> agree with the 
+the table below if a Real scheme is used, otherwise a 
+<tt class="docutils literal"><span class="pre">ValueError</span></tt> is raised.</p>
 <p><tt class="docutils literal"><span class="pre">flags</span></tt> is a list of strings and is a subset of the 
 flags that FFTW allows for the planners. Specifically, 
 FFTW_ESTIMATE, FFTW_MEASURE, FFTW_PATIENT and 
@@ -159,6 +133,103 @@ default.</p>
 This tells FFTW not to assume anything about the 
 alignment of the data and disabling any SIMD capability 
 (see below).</p>
+<p>The currently supported schemes are as follows:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="31%" />
+<col width="32%" />
+<col width="15%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Type</th>
+<th class="head"><tt class="docutils literal"><span class="pre">input_array.dtype</span></tt></th>
+<th class="head"><tt class="docutils literal"><span class="pre">output_array.dtype</span></tt></th>
+<th class="head">Direction</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>Complex</td>
+<td><tt class="docutils literal"><span class="pre">complex64</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">complex64</span></tt></td>
+<td>Both</td>
+</tr>
+<tr><td>Complex</td>
+<td><tt class="docutils literal"><span class="pre">complex128</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">complex128</span></tt></td>
+<td>Both</td>
+</tr>
+<tr><td>Complex</td>
+<td><tt class="docutils literal"><span class="pre">clongdouble</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">clongdouble</span></tt></td>
+<td>Both</td>
+</tr>
+<tr><td>Real</td>
+<td><tt class="docutils literal"><span class="pre">float32</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">complex64</span></tt></td>
+<td>Forwards</td>
+</tr>
+<tr><td>Real</td>
+<td><tt class="docutils literal"><span class="pre">float64</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">complex128</span></tt></td>
+<td>Forwards</td>
+</tr>
+<tr><td>Real</td>
+<td><tt class="docutils literal"><span class="pre">longdouble</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">clongdouble</span></tt></td>
+<td>Forwards</td>
+</tr>
+<tr><td>Real<sup>1</sup></td>
+<td><tt class="docutils literal"><span class="pre">complex64</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">float32</span></tt></td>
+<td>Backwards</td>
+</tr>
+<tr><td>Real<sup>1</sup></td>
+<td><tt class="docutils literal"><span class="pre">complex128</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">float64</span></tt></td>
+<td>Backwards</td>
+</tr>
+<tr><td>Real<sup>1</sup></td>
+<td><tt class="docutils literal"><span class="pre">clongdouble</span></tt></td>
+<td><tt class="docutils literal"><span class="pre">longdouble</span></tt></td>
+<td>Backwards</td>
+</tr>
+</tbody>
+</table>
+<p><sup>1</sup>  Note that the Backwards Real transform will destroy the 
+input array. This is inherent to FFTW and the only general 
+work-around for this is to copy the array prior to performing the 
+transform.</p>
+<p><tt class="docutils literal"><span class="pre">clongdouble</span></tt> typically maps directly to <tt class="docutils literal"><span class="pre">complex256</span></tt>
+or <tt class="docutils literal"><span class="pre">complex192</span></tt>, and <tt class="docutils literal"><span class="pre">longdouble</span></tt> to <tt class="docutils literal"><span class="pre">float128</span></tt> or <tt class="docutils literal"><span class="pre">float96</span></tt>, 
+dependent on platform.</p>
+<p>The relative shapes of the arrays should be as follows:</p>
+<ul class="simple">
+<li>For a Complex transform, <tt class="docutils literal"><span class="pre">output_array.shape</span> <span class="pre">==</span> <span class="pre">input_array.shape</span></tt></li>
+<li>For a Real transform in the Forwards direction, both the following 
+should be true:<ul>
+<li><tt class="docutils literal"><span class="pre">output_array.shape[axes][-1]</span> <span class="pre">==</span> <span class="pre">input_array.shape[axes][-1]//2</span> <span class="pre">+</span> <span class="pre">1</span></tt></li>
+<li>All the other axes should be equal in length.</li>
+</ul>
+</li>
+<li>For a Real transform in the Backwards direction, both the following 
+should be true:<ul>
+<li><tt class="docutils literal"><span class="pre">input_array.shape[axes][-1]</span> <span class="pre">==</span> <span class="pre">output_array.shape[axes][-1]//2</span> <span class="pre">+</span> <span class="pre">1</span></tt></li>
+<li>All the other axes should be equal in length.</li>
+</ul>
+</li>
+</ul>
+<p>In the above expressions for the Real transform, the <tt class="docutils literal"><span class="pre">axes</span></tt> 
+arguments denotes the the unique set of axes on which we are taking
+the FFT, in the order passed. It is the last of these axes that 
+is subject to the special case shown.</p>
+<p>The shapes for the real transforms corresponds to those
+stipulated by the FFTW library. Further information can be
+found in the FFTW documentation on the <a class="reference external" href="http://www.fftw.org/fftw3_doc/Guru-Real_002ddata-DFTs.html">real DFT</a>.</p>
+<p>The actual arrangement in memory is arbitrary and the scheme
+can be planned for any set of strides on either the input
+or the output. The user should not have to worry about this
+and any valid numpy array should work just fine.</p>
 <p>What is calculated is exactly what FFTW calculates. 
 Notably, this is an unnormalized transform so should 
 be scaled as necessary (fft followed by ifft will scale 
@@ -177,9 +248,9 @@ data.</p>
 <p><a class="reference internal" href="#n-byte-align"><em>n_byte_align()</em></a> and 
 <a class="reference internal" href="#n-byte-align-empty"><em>n_byte_align_empty()</em></a> are two methods
 included with this module for producing aligned arrays.</p>
-<span class="target" id="complexfftw-update-arrays"></span><dl class="method">
-<dt id="pyfftw.ComplexFFTW.update_arrays">
-<tt class="descname">update_arrays</tt><big>(</big><em>new_input_array</em>, <em>new_output_array</em><big>)</big><a class="headerlink" href="#pyfftw.ComplexFFTW.update_arrays" title="Permalink to this definition">¶</a></dt>
+<span class="target" id="fftw-update-arrays"></span><dl class="method">
+<dt id="pyfftw.FFTW.update_arrays">
+<tt class="descname">update_arrays</tt><big>(</big><em>new_input_array</em>, <em>new_output_array</em><big>)</big><a class="headerlink" href="#pyfftw.FFTW.update_arrays" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update the arrays upon which the DFT is taken.</p>
 <p>The new arrays should be of the same dtypes as the originals, the
 same shapes as the originals and
@@ -195,9 +266,9 @@ boundary, then SIMD is disabled and the alignment of the new
 array can be arbitrary.</p>
 </dd></dl>
 
-<span class="target" id="complexfftw-execute"></span><dl class="method">
-<dt id="pyfftw.ComplexFFTW.execute">
-<tt class="descname">execute</tt><big>(</big><big>)</big><a class="headerlink" href="#pyfftw.ComplexFFTW.execute" title="Permalink to this definition">¶</a></dt>
+<span class="target" id="fftw-execute"></span><dl class="method">
+<dt id="pyfftw.FFTW.execute">
+<tt class="descname">execute</tt><big>(</big><big>)</big><a class="headerlink" href="#pyfftw.FFTW.execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the planned operation.</p>
 </dd></dl>
 
@@ -239,7 +310,7 @@ The rest of the arguments are as per <tt class="docutils literal"><span class="p
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Welcome to pyFFTW&#8217;s documentation!</a><ul>
-<li><a class="reference internal" href="#complexfftw-class">ComplexFFTW Class</a></li>
+<li><a class="reference internal" href="#fftw-class">FFTW Class</a></li>
 <li><a class="reference internal" href="#utility-functions">Utility Functions</a></li>
 </ul>
 </li>
@@ -273,7 +344,7 @@ The rest of the arguments are as per <tt class="docutils literal"><span class="p
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="#">pyFFTW v0.5.1 documentation</a> &raquo;</li> 
+        <li><a href="#">pyFFTW v0.6.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
