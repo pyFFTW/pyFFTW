@@ -281,33 +281,53 @@ cdef fftw_generic_destroy_plan * _build_destroyer_list():
 
 # Validator functions
 # ===================
-def _validate_r2c_arrays(input_array, output_array, axes):
-    ''' Validates the input and output array correspond
-    to a valid real to complex transform.
+def _validate_r2c_arrays(input_array, output_array, axes, not_axes):
+    ''' Validates the input and output array to check for
+    a valid real to complex transform.
     '''
-    # The shape is only important over the axes that the 
-    # FFT is taken. This is what the following variables
-    # contain.
+
+    # We firstly need to confirm that the dimenions of the arrays
+    # are the same
+    if not (input_array.ndim == output_array.ndim):
+        return False
+
+    # The critical axis is the last of those over which the 
+    # FFT is taken. The following shape variables contain
+    # the shapes of the FFT and shapes of the other axes.
     in_fft_shape = np.array(input_array.shape)[axes]
     out_fft_shape = np.array(output_array.shape)[axes]
+
+    in_not_fft_shape = np.array(input_array.shape)[not_axes]
+    out_not_fft_shape = np.array(output_array.shape)[not_axes]
+
     if np.alltrue(out_fft_shape[:-1] == in_fft_shape[:-1]) and \
-            np.alltrue(out_fft_shape[-1] == in_fft_shape[-1]//2 + 1):
+            np.alltrue(out_fft_shape[-1] == in_fft_shape[-1]//2 + 1) and \
+            np.alltrue(in_not_fft_shape == out_not_fft_shape):
         return True
     else:
         return False
 
-def _validate_c2r_arrays(input_array, output_array, axes):
-    ''' Validates the input and output array correspond
-    to a valid real to complex transform.
+def _validate_c2r_arrays(input_array, output_array, axes, not_axes):
+    ''' Validates the input and output array to check for
+    a valid real to complex transform.
     '''
-    # The shape is only important over the axes that the 
-    # FFT is taken. This is what the following variables
-    # contain.
+    # We firstly need to confirm that the dimenions of the arrays
+    # are the same
+    if not (input_array.ndim == output_array.ndim):
+        return False
+
+    # The critical axis is the last of those over which the 
+    # FFT is taken. The following shape variables contain
+    # the shapes of the FFT and shapes of the other axes.
     in_fft_shape = np.array(input_array.shape)[axes]
     out_fft_shape = np.array(output_array.shape)[axes]
 
+    in_not_fft_shape = np.array(input_array.shape)[not_axes]
+    out_not_fft_shape = np.array(output_array.shape)[not_axes]
+
     if np.alltrue(in_fft_shape[:-1] == out_fft_shape[:-1]) and \
-            np.alltrue(in_fft_shape[-1] == out_fft_shape[-1]//2 + 1):
+            np.alltrue(in_fft_shape[-1] == out_fft_shape[-1]//2 + 1) and \
+            np.alltrue(in_not_fft_shape == out_not_fft_shape):
         return True
     else:
         return False
@@ -355,6 +375,17 @@ fftw_schemes = {
         (np.dtype('complex64'), np.dtype('float32')): 'c64_to_r32',
         (np.dtype('clongdouble'), np.dtype('longdouble')): 'cld_to_rld'}
 
+scheme_directions = {
+        'c128': ['FFTW_FORWARD', 'FFTW_BACKWARD'],
+        'c64': ['FFTW_FORWARD', 'FFTW_BACKWARD'],
+        'cld': ['FFTW_FORWARD', 'FFTW_BACKWARD'],
+        'r64_to_c128': ['FFTW_FORWARD'],
+        'r32_to_c64': ['FFTW_FORWARD'],
+        'rld_to_cld': ['FFTW_FORWARD'],
+        'c128_to_r64': ['FFTW_BACKWARD'],
+        'c64_to_r32': ['FFTW_BACKWARD'],
+        'cld_to_rld': ['FFTW_BACKWARD']}
+
 scheme_functions = {
     'c128': {'planner': 0, 'executor':0, 'destroyer':0,
         'validator':None, 'fft_shape_lookup': None},
@@ -384,9 +415,9 @@ scheme_functions = {
 # The External Interface
 # ======================
 #
-cdef class ComplexFFTW:
+cdef class FFTW:
     '''
-    ComplexFFTW is a class for computing the complex N-Dimensional DFT or
+    FFTW is a class for computing the complex N-Dimensional DFT or
     inverse DFT of an array using the FFTW library. The interface is 
     designed to be somewhat pythonic, with the correct transform being 
     inferred from the dtypes of the passed arrays.
@@ -398,10 +429,10 @@ cdef class ComplexFFTW:
     ``ValueError`` is raised.
 
     The actual FFT or iFFT is performed by calling the 
-    :ref:`execute()<ComplexFFTW_execute>` method.
+    :ref:`execute()<FFTW_execute>` method.
     
     The arrays can be updated by calling the 
-    :ref:`update_arrays()<ComplexFFTW_update_arrays>` method.
+    :ref:`update_arrays()<FFTW_update_arrays>` method.
     '''
     # Each of these function pointers simply
     # points to a chosen fftw wrapper function
@@ -460,6 +491,10 @@ cdef class ComplexFFTW:
             flags.append('FFTW_UNALIGNED')
             self.__simd_allowed = False
 
+        if not direction in scheme_directions[scheme]:
+            raise ValueError('The direction is not valid for the scheme. '\
+                    'Try setting it explicitly if it is not already.')
+
         self.__direction = directions[direction]
         self.__input_shape = np.array(input_array.shape)
         self.__output_shape = np.array(output_array.shape)
@@ -503,7 +538,8 @@ cdef class ComplexFFTW:
                         'shape as the input array for the given array '+\
                         'dtypes.')
         else:
-            if not functions['validator'](input_array, output_array, _axes):
+            if not functions['validator'](input_array, output_array,
+                    _axes, _not_axes):
                 raise ValueError('The input array and output array are '+\
                         'invalid complementary shapes for their dtypes.')
 
@@ -578,27 +614,9 @@ cdef class ComplexFFTW:
         '''
         ``input_array`` and ``output_array`` should be numpy arrays.
         The contents of these arrays will be destroyed by the planning 
-        process during initialisation.
+        process during initialisation. Information on supported 
+        dtypes for the arrays is given below.
         
-        The currently supported schemes are as follows:
-
-        +-----------------+------------------+---------------------------------------------+
-        | ``input_array`` | ``output_array`` | Requirements on array shapes                |
-        +=================+==================+=============================================+
-        | ``complex64``   | ``complex64``    | ``input_array.shape == output_array.shape`` | 
-        +-----------------+------------------+---------------------------------------------+
-        | ``complex128``  | ``complex128``   | ``input_array.shape == output_array.shape`` |
-        +-----------------+------------------+---------------------------------------------+
-        | ``clongdouble`` | ``clongdouble``  | ``input_array.shape == output_array.shape`` |
-        +-----------------+------------------+---------------------------------------------+
-        
-        ``clongdouble`` typically maps directly to ``complex256``
-        or ``complex192``, dependent on platform.
-
-        The actual arrangement in memory is arbitrary and the scheme
-        can be planned for any set of strides on either the input
-        or the output.
-
         ``axes`` describes along which axes the DFT should be taken.
         This should be a valid list of axes. Repeated axes are 
         only transformed once. Invalid axes will raise an 
@@ -607,8 +625,14 @@ cdef class ComplexFFTW:
 
         ``direction`` should be a string and one of FFTW_FORWARD 
         or FFTW_BACKWARD, which dictate whether to take the
-        DFT or the inverse DFT respectively (specifically, it
-        dictates the sign of the exponent in the DFT formulation).
+        DFT (forwards) or the inverse DFT (backwards) respectively 
+        (specifically, it dictates the sign of the exponent in the 
+        DFT formulation).
+
+        Note that only the Complex schemes allow a free choice
+        for ``direction``. The direction *must* agree with the 
+        the table below if a Real scheme is used, otherwise a 
+        ``ValueError`` is raised.
 
         ``flags`` is a list of strings and is a subset of the 
         flags that FFTW allows for the planners. Specifically, 
@@ -623,6 +647,69 @@ cdef class ComplexFFTW:
         This tells FFTW not to assume anything about the 
         alignment of the data and disabling any SIMD capability 
         (see below).
+
+        The currently supported schemes are as follows:
+
+        +----------------+-----------------------+------------------------+-----------+
+        | Type           | ``input_array.dtype`` | ``output_array.dtype`` | Direction |
+        +================+=======================+========================+===========+
+        | Complex        | ``complex64``         | ``complex64``          | Both      |
+        +----------------+-----------------------+------------------------+-----------+
+        | Complex        | ``complex128``        | ``complex128``         | Both      |
+        +----------------+-----------------------+------------------------+-----------+
+        | Complex        | ``clongdouble``       | ``clongdouble``        | Both      |
+        +----------------+-----------------------+------------------------+-----------+
+        | Real           | ``float32``           | ``complex64``          | Forwards  |
+        +----------------+-----------------------+------------------------+-----------+
+        | Real           | ``float64``           | ``complex128``         | Forwards  |
+        +----------------+-----------------------+------------------------+-----------+
+        | Real           | ``longdouble``        | ``clongdouble``        | Forwards  |
+        +----------------+-----------------------+------------------------+-----------+
+        | Real\ :sup:`1` | ``complex64``         | ``float32``            | Backwards |
+        +----------------+-----------------------+------------------------+-----------+
+        | Real\ :sup:`1` | ``complex128``        | ``float64``            | Backwards |
+        +----------------+-----------------------+------------------------+-----------+
+        | Real\ :sup:`1` | ``clongdouble``       | ``longdouble``         | Backwards |
+        +----------------+-----------------------+------------------------+-----------+
+
+        \ :sup:`1`  Note that the Backwards Real transform will destroy the 
+        input array. This is inherent to FFTW and the only general 
+        work-around for this is to copy the array prior to performing the 
+        transform.
+
+        ``clongdouble`` typically maps directly to ``complex256``
+        or ``complex192``, and ``longdouble`` to ``float128`` or ``float96``, 
+        dependent on platform.
+
+        The relative shapes of the arrays should be as follows:
+
+        * For a Complex transform, ``output_array.shape == input_array.shape``
+        * For a Real transform in the Forwards direction, both the following 
+          should be true:
+
+          * ``output_array.shape[axes][-1] == input_array.shape[axes][-1]//2 + 1``
+          * All the other axes should be equal in length.
+
+        * For a Real transform in the Backwards direction, both the following 
+          should be true:
+
+          * ``input_array.shape[axes][-1] == output_array.shape[axes][-1]//2 + 1``
+          * All the other axes should be equal in length.
+
+        In the above expressions for the Real transform, the ``axes`` 
+        arguments denotes the the unique set of axes on which we are taking
+        the FFT, in the order passed. It is the last of these axes that 
+        is subject to the special case shown.
+
+        The shapes for the real transforms corresponds to those
+        stipulated by the FFTW library. Further information can be
+        found in the FFTW documentation on the `real DFT
+        <http://www.fftw.org/fftw3_doc/Guru-Real_002ddata-DFTs.html>`_.
+
+        The actual arrangement in memory is arbitrary and the scheme
+        can be planned for any set of strides on either the input
+        or the output. The user should not have to worry about this
+        and any valid numpy array should work just fine.
 
         What is calculated is exactly what FFTW calculates. 
         Notably, this is an unnormalized transform so should 
