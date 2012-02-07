@@ -22,17 +22,17 @@ import numpy
 import unittest
 
 def timer_test_setup(fft_length = 2048, vectors = 256):
-    a = numpy.complex64(numpy.random.rand(vectors,fft_length)
-            +1j*numpy.random.rand(vectors,fft_length))
-    b = numpy.complex64(numpy.random.rand(vectors,fft_length)
-            +1j*numpy.random.rand(vectors,fft_length))
+    a = numpy.complex64(numpy.random.randn(vectors,fft_length)
+            +1j*numpy.random.randn(vectors,fft_length))
+    b = numpy.complex64(numpy.random.randn(vectors,fft_length)
+            +1j*numpy.random.randn(vectors,fft_length))
     
     fft_class = FFTW(a,b, flags=['FFTW_MEASURE'])
 
     # We need to refill a with data as it gets clobbered by
     # initialisation.
-    a[:] = numpy.complex64(numpy.random.rand(vectors,fft_length)
-            +1j*numpy.random.rand(vectors,fft_length))
+    a[:] = numpy.complex64(numpy.random.randn(vectors,fft_length)
+            +1j*numpy.random.randn(vectors,fft_length))
 
 
     return fft_class, a, b
@@ -85,11 +85,11 @@ class Complex64FFTWTest(unittest.TestCase):
         return
 
     def create_test_arrays(self, input_shape, output_shape):
-        a = self.input_dtype(numpy.random.rand(*input_shape)
-                +1j*numpy.random.rand(*input_shape))
+        a = self.input_dtype(numpy.random.randn(*input_shape)
+                +1j*numpy.random.randn(*input_shape))
 
-        b = self.output_dtype(numpy.random.rand(*output_shape)
-                +1j*numpy.random.rand(*output_shape))
+        b = self.output_dtype(numpy.random.randn(*output_shape)
+                +1j*numpy.random.randn(*output_shape))
 
         return a, b
 
@@ -524,10 +524,10 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
                 '3d': (15, 256, 1025)}
 
     def create_test_arrays(self, input_shape, output_shape):
-        a = self.input_dtype(numpy.random.rand(*input_shape))
+        a = self.input_dtype(numpy.random.randn(*input_shape))
 
-        b = self.output_dtype(numpy.random.rand(*output_shape)
-                +1j*numpy.random.rand(*output_shape))
+        b = self.output_dtype(numpy.random.randn(*output_shape)
+                +1j*numpy.random.randn(*output_shape))
 
         return a, b
     
@@ -615,10 +615,10 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
     def create_test_arrays(self, input_shape, output_shape):
 
-        a = self.input_dtype(numpy.random.rand(*input_shape)
-                +1j*numpy.random.rand(*input_shape))
+        a = self.input_dtype(numpy.random.randn(*input_shape)
+                +1j*numpy.random.randn(*input_shape))
         
-        b = self.output_dtype(numpy.random.rand(*output_shape))
+        b = self.output_dtype(numpy.random.randn(*output_shape))
         
         # We fill a by doing the forward FFT from b.
         # This means that the relevant bits that should be purely
@@ -626,7 +626,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         # This is easier than writing a complicate system to work it out.
         try:
             fft = FFTW(b,a,direction='FFTW_FORWARD')
-            b[:] = self.output_dtype(numpy.random.rand(*output_shape))
+            b[:] = self.output_dtype(numpy.random.randn(*output_shape))
             
             fft.execute()
             
@@ -638,7 +638,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
             # so we can return what we want.
             pass
 
-        b = self.output_dtype(numpy.random.rand(*output_shape))
+        b = self.output_dtype(numpy.random.randn(*output_shape))
 
         return a, b
 
@@ -798,7 +798,7 @@ class NByteAlignTest(unittest.TestCase):
 
     def test_n_byte_align(self):
         shape = (10,10)
-        a = numpy.random.rand(*shape)
+        a = numpy.random.randn(*shape)
         # Test a few alignments
         for n in [3, 7, 9, 16, 24, 23, 63, 64]:
             b = n_byte_align(a, n)
