@@ -233,7 +233,7 @@ cdef void _fftwl_destroy_plan(void *_plan):
 # Function lookup tables
 # ======================
 
-# Planner table (with the same number of elements as there are schemes).
+# Planner table (of side the number of planners).
 cdef fftw_generic_plan_guru planners[9]
 
 cdef fftw_generic_plan_guru * _build_planner_list():
@@ -362,7 +362,11 @@ def _lookup_shape_c2r_arrays(input_array, output_array):
 # The 'fft_shape_lookup' function is a callable for returning the
 # FFT shape - that is, an array that describes the length of the 
 # fft along each axis. It has the following signature:
-# fft_shape = fft_shape_lookup(in_array, out_array)
+# fft_shape = fft_shape_lookup(in_array, out_array) 
+# (note that this does not correspond to the lengths of the FFT that is 
+# actually taken, it's the lengths of the FFT that *could* be taken
+# along each axis. It's necessary because the real FFT has a length
+# that is different to the length of the input array).
 
 fftw_schemes = {
         (np.dtype('complex128'), np.dtype('complex128')): 'c128',
