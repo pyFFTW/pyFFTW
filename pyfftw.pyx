@@ -309,7 +309,7 @@ def _validate_r2c_arrays(input_array, output_array, axes, not_axes):
 
 def _validate_c2r_arrays(input_array, output_array, axes, not_axes):
     ''' Validates the input and output array to check for
-    a valid real to complex transform.
+    a valid complex to real transform.
     '''
     # We firstly need to confirm that the dimenions of the arrays
     # are the same
