@@ -18,10 +18,13 @@
 
 from distutils.core import setup
 from distutils.extension import Extension
+import os
 
 libraries = ['fftw3', 'fftw3f', 'fftw3l', 'm']
-ext_modules = [Extension('pyfftw', ['pyfftw.c'], 
-    libraries=libraries)]
+ext_modules = [
+        Extension('pyfftw.pyfftw',
+            sources=[os.path.join('pyfftw', 'pyfftw.c')],
+            libraries=libraries)]
 
 version = '0.6.0'
 
@@ -64,6 +67,7 @@ setup_args = {
             'Topic :: Scientific/Engineering :: Mathematics',
             'Topic :: Multimedia :: Sound/Audio :: Analysis',
             ],
+        'packages':['pyfftw'],
         'ext_modules': ext_modules,
   }
 

@@ -20,9 +20,14 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 from setup import setup_args, libraries
+import os
 
-ext_modules = [Extension('pyfftw', ['pyfftw.pyx'], 
-    libraries=libraries)]
+ext_modules = [
+        Extension(
+            'pyfftw.pyfftw',
+            sources = [os.path.join('pyfftw', 'pyfftw.pyx')], 
+            include_dirs = ['pyfftw'],
+            libraries=libraries)]
 
 setup_args['cmdclass'] = {'build_ext': build_ext}
 setup_args['ext_modules'] = ext_modules

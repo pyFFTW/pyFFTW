@@ -173,7 +173,7 @@ class Complex64FFTWTest(unittest.TestCase):
         ifft.execute()
         # The scaling is the product of the lengths of the fft along
         # the axes along which the fft is taken.
-        scaling = numpy.prod(numpy.array(a.shape)[axes])
+        scaling = numpy.prod(numpy.array(a.shape)[list(axes)])
 
         self.assertTrue(numpy.allclose(a/scaling, a_orig, rtol=1e-2, atol=1e-3))
         return fft, ifft
@@ -182,7 +182,7 @@ class Complex64FFTWTest(unittest.TestCase):
         in_shape = self.input_shapes['1d']
         out_shape = self.output_shapes['1d']
 
-        axes=[0]
+        axes=(0,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.run_validate_fft(a, b, axes)
@@ -191,16 +191,27 @@ class Complex64FFTWTest(unittest.TestCase):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-1]
+        axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.run_validate_fft(a, b, axes)
+
+    def test_default_args(self):
+        in_shape = self.input_shapes['2d']
+        out_shape = self.output_shapes['2d']
+        
+        a, b = self.create_test_arrays(in_shape, out_shape)
+        
+        fft = FFTW(a,b)
+        fft.execute()
+        ref_b = self.reference_fftn(a, axes=(-1,))
+        self.assertTrue(numpy.allclose(b, ref_b, rtol=1e-2, atol=1e-3))
 
     def test_2d(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-2,-1]
+        axes=(-2,-1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.run_validate_fft(a, b, axes, create_array_copies=False)
@@ -209,7 +220,7 @@ class Complex64FFTWTest(unittest.TestCase):
         in_shape = self.input_shapes['3d']
         out_shape = self.output_shapes['3d']
         
-        axes=[-2,-1]
+        axes=(-2,-1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.run_validate_fft(a, b, axes, create_array_copies=False)
@@ -218,7 +229,7 @@ class Complex64FFTWTest(unittest.TestCase):
         in_shape = self.input_shapes['3d']
         out_shape = self.output_shapes['3d']
         
-        axes=[0, 1, 2]
+        axes=(0, 1, 2)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.run_validate_fft(a, b, axes, create_array_copies=False)
@@ -229,7 +240,7 @@ class Complex64FFTWTest(unittest.TestCase):
 
         out_shape = (_out_shape[0]+1, _out_shape[1])
         
-        axes = [0,1]
+        axes=(0,1)
         a, b = self.create_test_arrays(in_shape, out_shape)
     
         self.assertRaises(ValueError, FFTW, *(a,b, axes))
@@ -239,7 +250,7 @@ class Complex64FFTWTest(unittest.TestCase):
         _out_shape = self.output_shapes['3d']
         out_shape = (_out_shape[0], _out_shape[1]+1, _out_shape[2])
         
-        axes=[0, 2]
+        axes=(0, 2)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.assertRaises(ValueError, FFTW, *(a,b, axes))
@@ -249,7 +260,7 @@ class Complex64FFTWTest(unittest.TestCase):
         _out_shape = self.output_shapes['2d']        
         out_shape = (2, _out_shape[0], _out_shape[1])
         
-        axes=[1, 2]
+        axes=(1, 2)
         a, b = self.create_test_arrays(in_shape, out_shape)
     
         self.assertRaises(ValueError, FFTW, *(a,b))
@@ -259,20 +270,20 @@ class Complex64FFTWTest(unittest.TestCase):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[0]
+        axes=(0,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Taking the transpose just makes the array F contiguous
         a = a.transpose()
         b = b.transpose()
 
-        self.run_validate_fft(a, b, axes)
+        self.run_validate_fft(a, b, axes, create_array_copies=False)
 
     def test_non_contiguous_2d(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-2,-1]
+        axes=(-2,-1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Some arbitrary and crazy slicing
@@ -280,12 +291,12 @@ class Complex64FFTWTest(unittest.TestCase):
         # b needs to be the same size
         b_sliced = b[20:146:2, 100:1458:7]
 
-        self.run_validate_fft(a_sliced, b_sliced, axes)
+        self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
     def test_non_contiguous_2d_in_3d(self):
         in_shape = (256, 4, 2048)
         out_shape = in_shape
-        axes=[0,2]
+        axes=(0,2)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Some arbitrary and crazy slicing
@@ -293,13 +304,13 @@ class Complex64FFTWTest(unittest.TestCase):
         # b needs to be the same size
         b_sliced = b[20:146:2, :, 100:1458:7]
 
-        self.run_validate_fft(a_sliced, b_sliced, axes)
+        self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
     def test_different_dtypes_fail(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-2,-1]
+        axes=(-2,-1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         a_ = numpy.complex64(a)
@@ -314,7 +325,7 @@ class Complex64FFTWTest(unittest.TestCase):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-2,-1]
+        axes=(-2,-1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         fft, ifft = self.run_validate_fft(a, b, axes)
@@ -327,7 +338,7 @@ class Complex64FFTWTest(unittest.TestCase):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-2,-1]
+        axes=(-2,-1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         fft, ifft = self.run_validate_fft(a, b, axes, 
@@ -353,7 +364,7 @@ class Complex64FFTWTest(unittest.TestCase):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-2,-1]
+        axes=(-2,-1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         fft, ifft = self.run_validate_fft(a, b, axes)
@@ -375,7 +386,7 @@ class Complex64FFTWTest(unittest.TestCase):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-2,-1]
+        axes=(-2,-1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         a = n_byte_align(a, 16)
@@ -408,7 +419,7 @@ class Complex64FFTWTest(unittest.TestCase):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-2,-1]
+        axes=(-2,-1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Offset by one from 16 byte aligned to guarantee it's not
@@ -437,7 +448,7 @@ class Complex64FFTWTest(unittest.TestCase):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-2,-1]
+        axes=(-2,-1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         a = n_byte_align(a, 16)
@@ -473,12 +484,12 @@ class Complex64FFTWTest(unittest.TestCase):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-3]
+        axes=(-3,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.assertRaises(ValueError, FFTW, *(a,b,axes))
 
-        axes=[10]
+        axes=(10,)
         self.assertRaises(ValueError, FFTW, *(a,b,axes))
 
 class Complex128FFTWTest(Complex64FFTWTest):
@@ -539,7 +550,7 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-1]
+        axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.assertRaises(ValueError, FFTW, *(a,b),
@@ -549,7 +560,7 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-2,-1]
+        axes=(-2,-1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Some arbitrary and crazy slicing
@@ -557,12 +568,12 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
         # b needs to be compatible
         b_sliced = b[20:146:2, 100:786:7]
 
-        self.run_validate_fft(a_sliced, b_sliced, axes)
+        self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
     def test_non_contiguous_2d_in_3d(self):
         in_shape = (256, 4, 2048)
         out_shape = in_shape
-        axes=[0,2]
+        axes=(0,2)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Some arbitrary and crazy slicing
@@ -570,7 +581,7 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
         # b needs to be compatible
         b_sliced = b[20:146:2, :, 100:786:7]
 
-        self.run_validate_fft(a_sliced, b_sliced, axes)
+        self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
 class RealForwardSingleFFTWTest(RealForwardDoubleFFTWTest):
     
@@ -613,7 +624,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
                 '2d': (256, 2048),
                 '3d': (15, 256, 2048)}
 
-    def create_test_arrays(self, input_shape, output_shape):
+    def create_test_arrays(self, input_shape, output_shape, axes=None):
 
         a = self.input_dtype(numpy.random.randn(*input_shape)
                 +1j*numpy.random.randn(*input_shape))
@@ -625,7 +636,11 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         # real will be (for example the zero freq component). 
         # This is easier than writing a complicate system to work it out.
         try:
-            fft = FFTW(b,a,direction='FFTW_FORWARD')
+            if axes == None:
+                fft = FFTW(b,a,direction='FFTW_FORWARD')
+            else:
+                fft = FFTW(b,a,direction='FFTW_FORWARD', axes=axes)
+
             b[:] = self.output_dtype(numpy.random.randn(*output_shape))
             
             fft.execute()
@@ -692,7 +707,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
         # The scaling is the product of the lengths of the fft along
         # the axes along which the fft is taken.
-        scaling = numpy.prod(numpy.array(b.shape)[axes])
+        scaling = numpy.prod(numpy.array(b.shape)[list(axes)])
 
         # This is actually quite a poor relative error, but it still
         # sometimes fails. I assume that numpy.fft has different internals
@@ -714,17 +729,27 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-1]
+        axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.assertRaises(ValueError, FFTW, *(a,b),
                 **{'direction':'FFTW_FORWARD'})
 
+    def test_default_args(self):
+        in_shape = self.input_shapes['2d']
+        out_shape = self.output_shapes['2d']
+        
+        a, b = self.create_test_arrays(in_shape, out_shape)
+        
+        # default args should fail for backwards transforms
+        # (as the default is FFTW_FORWARD)
+        self.assertRaises(ValueError, FFTW, *(a,b))
+
     def test_non_contiguous_2d(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
         
-        axes=[-2,-1]
+        axes=(-2,-1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Some arbitrary and crazy slicing
@@ -732,21 +757,28 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         # b needs to be compatible
         b_sliced = b[12:200:3, 300:2041:9]
 
-        self.run_validate_fft(a_sliced, b_sliced, axes)
+        self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
-    @unittest.skip('numpy.ifft.irfftn cannot cope with this test.')
     def test_non_contiguous_2d_in_3d(self):
-        in_shape = (256, 4, 2048)
-        out_shape = in_shape
-        axes=[0,2]
+        in_shape = (256, 4, 1025)
+        out_shape = (256, 4, 2048)
+        axes=(0,2)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Some arbitrary and crazy slicing
         a_sliced = a[20:146:2, :, 100:786:7]
         # b needs to be compatible
         b_sliced = b[12:200:3, :, 300:2041:9]
+        
+        # The data doesn't work, so we need to generate it for the 
+        # correct size
+        a_, b_ = self.create_test_arrays(a_sliced.shape, b_sliced.shape, axes=axes)
 
-        self.run_validate_fft(a_sliced, b_sliced, axes)
+        # And then copy it into the non contiguous array
+        a_sliced[:] = a_
+        b_sliced[:] = b_
+        
+        self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
 class RealBackwardSingleFFTWTest(RealBackwardDoubleFFTWTest):
     
@@ -827,4 +859,3 @@ if __name__ == '__main__':
         suite.addTests(tests)
     
     unittest.TextTestRunner(verbosity=2).run(suite)
-

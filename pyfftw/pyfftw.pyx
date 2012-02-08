@@ -466,13 +466,15 @@ cdef class FFTW:
     cdef int __howmany_rank
     cdef _fftw_iodim *__howmany_dims
 
-    def __cinit__(self, input_array, output_array, axes=[-1],
-            direction='FFTW_FORWARD', flags=['FFTW_MEASURE']):
+    def __cinit__(self, input_array, output_array, axes=(-1),
+            direction='FFTW_FORWARD', flags=('FFTW_MEASURE')):
         
         # Initialise the pointers that need to be freed
         self.__plan = NULL
         self.__dims = NULL
         self.__howmany_dims = NULL
+
+        flags = list(flags)
 
         try:
             scheme = fftw_schemes[
