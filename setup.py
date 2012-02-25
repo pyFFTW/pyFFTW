@@ -18,15 +18,29 @@
 
 from distutils.core import setup
 from distutils.extension import Extension
+from distutils.util import get_platform
+
 import os
+import numpy
 
 libraries = ['fftw3', 'fftw3f', 'fftw3l', 'm']
-ext_modules = [
-        Extension('pyfftw.pyfftw',
-            sources=[os.path.join('pyfftw', 'pyfftw.c')],
-            libraries=libraries)]
 
-version = '0.6.0'
+include_dirs = [numpy.get_include()]
+library_dirs = []
+package_data = {}
+
+if get_platform() is 'win32':
+    include_dirs.append('fftw')
+    library_dirs.append(os.path.join(os.getcwd(),'fftw'))
+    package_data['pyfftw'] = \
+            ['pyfftw3.dll', 'pyfftw3l.dll', 'pyfftw3f.dll']
+
+ext_modules = [Extension('pyfftw.pyfftw',
+    sources=[os.path.join('pyfftw', 'pyfftw.c')],
+    libraries=libraries,
+    library_dirs=library_dirs)]
+
+version = '0.6.1'
 
 long_description = '''
 pyFFTW is an attempt to produce a pythonic wrapper around 
@@ -40,7 +54,15 @@ feature equivalent to standard and real FFT functions of ``numpy.fft``
 
 A comprehensive unittest suite is included with the source.
 
-To build from source, the FFTW library must be installed already.
+To build for windows from source, download the fftw dlls from here: 
+http://www.fftw.org/install/windows.html and place them in the pyfftw 
+directory, renaming them to libfftw3.dll, libfftw3l.dll and libfftw3f.dll
+(it should be obvious which files to rename which).
+
+Under linux, to build from source, the FFTW library must be installed already.
+This should probably work for OSX, though I've not tried it.
+
+Numpy is a dependency for both.
 
 The documentation can be found 
 `here <http://hgomersall.github.com/pyFFTW/>`_, and the source
@@ -69,6 +91,8 @@ setup_args = {
             ],
         'packages':['pyfftw'],
         'ext_modules': ext_modules,
+        'include_dirs': include_dirs,
+        'package_data': package_data,
   }
 
 if __name__ == '__main__':

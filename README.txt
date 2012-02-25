@@ -9,7 +9,15 @@ feature equivalent to standard and real FFT functions of ``numpy.fft``
 
 A comprehensive unittest suite is included with the source.
 
-To build from source, the FFTW library must be installed already.
+To build for windows from source, download the fftw dlls from here:
+http://www.fftw.org/install/windows.html and place them in the pyfftw
+directory, renaming them to libfftw3.dll, libfftw3l.dll and libfftw3f.dll (it
+should be obvious which files to rename which).
+
+Under linux, to build from source, the FFTW library must be installed already.
+This should probably work for OSX, though I've not tried it.
+
+Numpy is a dependency for both.
 
 The documentation can be found at http://hgomersall.github.com/pyFFTW/ , the source is on github: https://github.com/hgomersall/pyFFTW and the python package index page is here: http://pypi.python.org/pypi/pyFFTW .
 
