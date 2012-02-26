@@ -10,10 +10,11 @@ feature equivalent to standard and real FFT functions of ``numpy.fft``
 A comprehensive unittest suite can be found with the source on the github 
 repository.
 
-To build for windows from source, download the fftw dlls from here:
+To build for windows from source, download the fftw dlls for your system
+and the header file from here (they're in a zip file):
 http://www.fftw.org/install/windows.html and place them in the pyfftw
-directory, renaming them to libfftw3.dll, libfftw3l.dll and libfftw3f.dll (it
-should be obvious which files to rename which).
+directory. The files are libfftw3-3.dll, libfftw3l-3.dll, libfftw3f-3.dll 
+and libfftw3.h.
 
 Under linux, to build from source, the FFTW library must be installed already.
 This should probably work for OSX, though I've not tried it.
