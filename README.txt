@@ -7,7 +7,8 @@ axes of abitrary shaped and strided arrays, which makes it almost
 feature equivalent to standard and real FFT functions of ``numpy.fft`` 
 (indeed, it supports the ``clongdouble`` dtype which ``numpy.fft`` does not).
 
-A comprehensive unittest suite is included with the source.
+A comprehensive unittest suite can be found with the source on the github 
+repository.
 
 To build for windows from source, download the fftw dlls from here:
 http://www.fftw.org/install/windows.html and place them in the pyfftw

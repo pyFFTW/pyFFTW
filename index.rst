@@ -25,7 +25,7 @@ The source can be found in `github <https://github.com/hgomersall/pyFFTW>`_
 and it's page in the python package index is 
 `here <http://pypi.python.org/pypi/pyFFTW>`_.
 
-A comprehensive unittest suite is included with the source.
+A comprehensive unittest suite is included with the source on the repository.
 
 A quick (and very much non-comprehensive) usage example:
 
