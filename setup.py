@@ -23,17 +23,20 @@ from distutils.util import get_platform
 import os
 import numpy
 
-libraries = ['fftw3', 'fftw3f', 'fftw3l', 'm']
 
 include_dirs = [numpy.get_include()]
 library_dirs = []
 package_data = {}
 
-if get_platform() is 'win32':
-    include_dirs.append('fftw')
-    library_dirs.append(os.path.join(os.getcwd(),'fftw'))
+if get_platform() == 'win32':
+    libraries = ['fftw3-3', 'fftw3f-3', 'fftw3l-3', 'm']
+    include_dirs.append('pyfftw')
+    library_dirs.append(os.path.join(os.getcwd(),'pyfftw'))
     package_data['pyfftw'] = \
-            ['pyfftw3.dll', 'pyfftw3l.dll', 'pyfftw3f.dll']
+            ['libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
+else:
+    libraries = ['fftw3', 'fftw3f', 'fftw3l', 'm']
+
 
 ext_modules = [Extension('pyfftw.pyfftw',
     sources=[os.path.join('pyfftw', 'pyfftw.c')],
