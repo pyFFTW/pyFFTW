@@ -59,7 +59,7 @@ FFTW. Simply renaming the class should be sufficient to migrate**
 FFTW Class
 -----------------
 
-.. autoclass:: pyfftw.FFTW(input_array, output_array, axes=[-1], direction='FFTW_FORWARD', flags=['FFTW_MEASURE'])
+.. autoclass:: pyfftw.FFTW(input_array, output_array, axes=(-1,), direction='FFTW_FORWARD', flags=('FFTW_MEASURE',))
 
    .. _FFTW_update_arrays:
 
