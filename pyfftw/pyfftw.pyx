@@ -265,24 +265,6 @@ cdef void _fftwl_plan_with_nthreads(int n):
 
     fftwl_plan_with_nthreads(n)
 
-#    Cleanup threads
-#    ============
-#
-# Double precision
-cdef void _fftw_cleanup_threads():
-
-    fftw_cleanup_threads()
-
-# Single precision
-cdef void _fftwf_cleanup_threads():
-
-    fftwf_cleanup_threads()
-
-# Long double precision
-cdef void _fftwl_cleanup_threads():
-
-    fftwl_cleanup_threads()
-
 # Function lookup tables
 # ======================
 
@@ -499,6 +481,17 @@ _build_destroyer_list()
 _build_executor_list()
 _build_init_threads_list()
 _build_nthreads_plan_setters_list()
+
+# Set the cleanup routine
+import atexit
+@atexit.register
+def cleanup():
+    fftw_cleanup()
+    fftwf_cleanup()
+    fftwl_cleanup()
+    fftw_cleanup_threads()
+    fftwf_cleanup_threads()
+    fftwl_cleanup_threads()
 
 # The External Interface
 # ======================

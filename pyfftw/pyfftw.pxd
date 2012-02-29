@@ -166,16 +166,21 @@ cdef extern from "fftw3.h":
     # Double precision
     void fftw_init_threads()
     void fftw_plan_with_nthreads(int n)
-    void fftw_cleanup_threads()
 
     # Single precision
     void fftwf_init_threads()
     void fftwf_plan_with_nthreads(int n)
-    void fftwf_cleanup_threads()
 
     # Long double precision
     void fftwl_init_threads()
     void fftwl_plan_with_nthreads(int n)
+
+    # cleanup routines
+    void fftw_cleanup()
+    void fftwf_cleanup()
+    void fftwl_cleanup()
+    void fftw_cleanup_threads()
+    void fftwf_cleanup_threads()
     void fftwl_cleanup_threads()
 
 # Define function pointers that can act as a placeholder
@@ -195,8 +200,6 @@ ctypedef void (*fftw_generic_destroy_plan)(void *_plan)
 ctypedef void (*fftw_generic_init_threads)()
 
 ctypedef void (*fftw_generic_plan_with_nthreads)(int n)
-
-ctypedef void (*fftw_generic_cleanup_threads)()
 
 # Direction enum
 cdef enum:
