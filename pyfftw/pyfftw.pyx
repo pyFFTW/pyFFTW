@@ -158,55 +158,55 @@ cdef void* _fftwl_plan_guru_dft_c2r(
 #    =========
 #
 # Complex double precision
-cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out):
+cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out) nogil:
 
     fftw_execute_dft(<fftw_plan>_plan, 
             <double complex *>_in, <double complex *>_out)
 
 # Complex single precision
-cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out):
+cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out) nogil:
 
     fftwf_execute_dft(<fftwf_plan>_plan, 
             <float complex *>_in, <float complex *>_out)
 
 # Complex long double precision
-cdef void _fftwl_execute_dft(void *_plan, void *_in, void *_out):
+cdef void _fftwl_execute_dft(void *_plan, void *_in, void *_out) nogil:
 
     fftwl_execute_dft(<fftwl_plan>_plan, 
             <long double complex *>_in, <long double complex *>_out)
 
 # real to complex double precision
-cdef void _fftw_execute_dft_r2c(void *_plan, void *_in, void *_out):
+cdef void _fftw_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
 
     fftw_execute_dft_r2c(<fftw_plan>_plan, 
             <double *>_in, <double complex *>_out)
 
 # real to complex single precision
-cdef void _fftwf_execute_dft_r2c(void *_plan, void *_in, void *_out):
+cdef void _fftwf_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
 
     fftwf_execute_dft_r2c(<fftwf_plan>_plan, 
             <float *>_in, <float complex *>_out)
 
 # real to complex long double precision
-cdef void _fftwl_execute_dft_r2c(void *_plan, void *_in, void *_out):
+cdef void _fftwl_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
 
     fftwl_execute_dft_r2c(<fftwl_plan>_plan, 
             <long double *>_in, <long double complex *>_out)
 
 # complex to real double precision
-cdef void _fftw_execute_dft_c2r(void *_plan, void *_in, void *_out):
+cdef void _fftw_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
 
     fftw_execute_dft_c2r(<fftw_plan>_plan, 
             <double complex *>_in, <double *>_out)
 
 # complex to real single precision
-cdef void _fftwf_execute_dft_c2r(void *_plan, void *_in, void *_out):
+cdef void _fftwf_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
 
     fftwf_execute_dft_c2r(<fftwf_plan>_plan, 
             <float complex *>_in, <float *>_out)
 
 # complex to real long double precision
-cdef void _fftwl_execute_dft_c2r(void *_plan, void *_in, void *_out):
+cdef void _fftwl_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
 
     fftwl_execute_dft_c2r(<fftwl_plan>_plan, 
             <long double complex *>_in, <long double *>_out)
@@ -229,6 +229,59 @@ cdef void _fftwl_destroy_plan(void *_plan):
 
     fftwl_destroy_plan(<fftwl_plan>_plan)
 
+#    Init threads
+#    ============
+#
+# Double precision
+cdef void _fftw_init_threads():
+
+    fftw_init_threads()
+
+# Single precision
+cdef void _fftwf_init_threads():
+
+    fftwf_init_threads()
+
+# Long double precision
+cdef void _fftwl_init_threads():
+
+    fftwl_init_threads()
+
+#    Plan with n threads
+#    ===================
+#
+# Double precision
+cdef void _fftw_plan_with_nthreads(int n):
+
+    fftw_plan_with_nthreads(n)
+
+# Single precision
+cdef void _fftwf_plan_with_nthreads(int n):
+
+    fftwf_plan_with_nthreads(n)
+
+# Long double precision
+cdef void _fftwl_plan_with_nthreads(int n):
+
+    fftwl_plan_with_nthreads(n)
+
+#    Cleanup threads
+#    ============
+#
+# Double precision
+cdef void _fftw_cleanup_threads():
+
+    fftw_cleanup_threads()
+
+# Single precision
+cdef void _fftwf_cleanup_threads():
+
+    fftwf_cleanup_threads()
+
+# Long double precision
+cdef void _fftwl_cleanup_threads():
+
+    fftwl_cleanup_threads()
 
 # Function lookup tables
 # ======================
@@ -277,6 +330,43 @@ cdef fftw_generic_destroy_plan * _build_destroyer_list():
     destroyers[2] = <fftw_generic_destroy_plan>&_fftwl_destroy_plan
 
     return destroyers
+
+
+# Threads init table
+cdef fftw_generic_init_threads thread_initializers[3]
+
+cdef fftw_generic_init_threads * _build_init_threads_list():
+    thread_initializers[0] = <fftw_generic_init_threads>&_fftw_init_threads
+    thread_initializers[1] = <fftw_generic_init_threads>&_fftwf_init_threads
+    thread_initializers[2] = <fftw_generic_init_threads>&_fftwl_init_threads
+
+    return thread_initializers
+
+# nthreads plan setters table
+cdef fftw_generic_plan_with_nthreads nthreads_plan_setters[3]
+
+cdef fftw_generic_plan_with_nthreads * _build_nthreads_plan_setters_list():
+    nthreads_plan_setters[0] = \
+            <fftw_generic_plan_with_nthreads>&_fftw_plan_with_nthreads
+    nthreads_plan_setters[1] = \
+            <fftw_generic_plan_with_nthreads>&_fftwf_plan_with_nthreads
+    nthreads_plan_setters[2] = \
+            <fftw_generic_plan_with_nthreads>&_fftwl_plan_with_nthreads
+
+    return nthreads_plan_setters
+
+# Thread cleanup table
+cdef fftw_generic_cleanup_threads thread_cleanups[3]
+
+cdef fftw_generic_cleanup_threads * _build_thread_cleanups_list():
+    thread_cleanups[0] = \
+            <fftw_generic_cleanup_threads>&_fftw_cleanup_threads
+    thread_cleanups[1] = \
+            <fftw_generic_cleanup_threads>&_fftwf_cleanup_threads
+    thread_cleanups[2] = \
+            <fftw_generic_cleanup_threads>&_fftwl_cleanup_threads
+
+    return thread_cleanups
 
 
 # Validator functions
@@ -392,27 +482,36 @@ scheme_directions = {
 
 scheme_functions = {
     'c128': {'planner': 0, 'executor':0, 'destroyer':0,
+        't_init': 0, 't_plan': 0, 't_cleanup': 0,
         'validator':None, 'fft_shape_lookup': None},
-    'c64': {'planner':1, 'executor':1, 'destroyer':1, 
+    'c64': {'planner':1, 'executor':1, 'destroyer':1,
+        't_init': 1, 't_plan': 1, 't_cleanup': 1,        
         'validator':None, 'fft_shape_lookup': None},
     'cld': {'planner':2, 'executor':2, 'destroyer':2,
+        't_init': 2, 't_plan': 2, 't_cleanup': 2,
         'validator':None, 'fft_shape_lookup': None},
     'r64_to_c128': {'planner':3, 'executor':3, 'destroyer':0,
+        't_init': 0, 't_plan': 0, 't_cleanup': 0,
         'validator':_validate_r2c_arrays, 
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     'r32_to_c64': {'planner':4, 'executor':4, 'destroyer':1,
+        't_init': 1, 't_plan': 1, 't_cleanup': 1,
         'validator':_validate_r2c_arrays, 
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     'rld_to_cld': {'planner':5, 'executor':5, 'destroyer':2,
+        't_init': 2, 't_plan': 2, 't_cleanup': 2,
         'validator':_validate_r2c_arrays, 
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     'c128_to_r64': {'planner':6, 'executor':6, 'destroyer':0, 
+        't_init': 0, 't_plan': 0, 't_cleanup': 0,
         'validator':_validate_c2r_arrays, 
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
     'c64_to_r32': {'planner':7, 'executor':7, 'destroyer':1, 
+        't_init': 1, 't_plan': 1, 't_cleanup': 1,
         'validator':_validate_c2r_arrays, 
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
     'cld_to_rld': {'planner':8, 'executor':8, 'destroyer':2,
+        't_init': 2, 't_plan': 2, 't_cleanup': 2,
         'validator':_validate_c2r_arrays, 
         'fft_shape_lookup': _lookup_shape_c2r_arrays}}
 
@@ -443,6 +542,10 @@ cdef class FFTW:
     cdef fftw_generic_plan_guru __fftw_planner
     cdef fftw_generic_execute __fftw_execute
     cdef fftw_generic_destroy_plan __fftw_destroy
+    cdef fftw_generic_init_threads __thread_initializer
+    cdef fftw_generic_plan_with_nthreads __nthreads_plan_setter
+    cdef fftw_generic_cleanup_threads __thread_cleanup
+
 
     # The plan is typecast when it is created or used
     # within the wrapper functions
@@ -453,6 +556,7 @@ cdef class FFTW:
     cdef int __direction
     cdef int __flags
     cdef bint __simd_allowed
+    cdef bint __use_threads
 
     cdef object __input_strides
     cdef object __output_strides
@@ -467,7 +571,8 @@ cdef class FFTW:
     cdef _fftw_iodim *__howmany_dims
 
     def __cinit__(self, input_array, output_array, axes=(-1,),
-            direction='FFTW_FORWARD', flags=('FFTW_MEASURE',)):
+            direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
+            unsigned int threads=1):
         
         # Initialise the pointers that need to be freed
         self.__plan = NULL
@@ -509,11 +614,23 @@ cdef class FFTW:
         cdef fftw_generic_plan_guru *planners = _build_planner_list()
         cdef fftw_generic_destroy_plan *destroyers = _build_destroyer_list()
         cdef fftw_generic_execute *executors = _build_executor_list()
+
+        cdef fftw_generic_init_threads *thread_initializers = \
+                _build_init_threads_list()
+        cdef fftw_generic_plan_with_nthreads *nthreads_plan_setters = \
+                _build_nthreads_plan_setters_list()
         
         functions = scheme_functions[scheme]
         self.__fftw_planner = planners[functions['planner']]
         self.__fftw_execute = executors[functions['executor']]
         self.__fftw_destroy = destroyers[functions['destroyer']]
+
+        self.__thread_initializer = \
+                thread_initializers[functions['t_init']]
+        self.__nthreads_plan_setter = \
+                nthreads_plan_setters[functions['t_plan']]
+        self.__thread_cleanup = \
+                thread_cleanups[functions['t_cleanup']]
         
         self.__flags = 0 
         for each_flag in flags:
@@ -603,6 +720,17 @@ cdef class FFTW:
             self.__howmany_dims[i]._is = self.__input_strides[_not_axes][i]
             self.__howmany_dims[i]._os = self.__output_strides[_not_axes][i]
 
+        ## Point at which FFTW calls are made
+        ## (and none should be made before this)
+        if threads > 1:
+            self.__use_threads = True
+            self.__thread_initializer()
+            self.__nthreads_plan_setter(threads)
+        else:
+            self.__use_threads = False
+            self.__thread_initializer()            
+            self.__nthreads_plan_setter(1)
+
         # Finally, construct the plan
         self.__plan = self.__fftw_planner(
             self.__rank, <fftw_iodim *>self.__dims,
@@ -616,7 +744,8 @@ cdef class FFTW:
                     'to the planner returning NULL. This is a bug.')
 
     def __init__(self, input_array, output_array, axes=[-1], 
-            direction='FFTW_FORWARD', flags=['FFTW_MEASURE']):
+            direction='FFTW_FORWARD', flags=['FFTW_MEASURE'], 
+            int threads=1):
         '''
         ``input_array`` and ``output_array`` should be numpy arrays.
         The contents of these arrays will be destroyed by the planning 
@@ -653,6 +782,11 @@ cdef class FFTW:
         This tells FFTW not to assume anything about the 
         alignment of the data and disabling any SIMD capability 
         (see below).
+
+        ``threads`` tells the wrapper how many threads to use
+        when invoking FFTW, with a default of 1. If the number
+        of threads is greater than 1, then the GIL is released
+        by necessity.
 
         The currently supported schemes are as follows:
 
@@ -825,9 +959,19 @@ cdef class FFTW:
         '''
         Execute the planned operation.
         '''
-        self.__fftw_execute(self.__plan,
-                <void *>np.PyArray_DATA(self.__input_array),
-                <void *>np.PyArray_DATA(self.__output_array))
+        cdef void *input_pointer = \
+                <void *>np.PyArray_DATA(self.__input_array)
+        cdef void *output_pointer = \
+                <void *>np.PyArray_DATA(self.__output_array)
+        
+        cdef void *plan = self.__plan
+        cdef fftw_generic_execute fftw_execute = self.__fftw_execute
+        
+        if self.__use_threads:
+            with nogil:
+                fftw_execute(plan, input_pointer, output_pointer)
+        else:
+            fftw_execute(self.__plan, input_pointer, output_pointer)
 
 
 cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):

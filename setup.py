@@ -35,7 +35,8 @@ if get_platform() == 'win32':
     package_data['pyfftw'] = \
             ['libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
 else:
-    libraries = ['fftw3', 'fftw3f', 'fftw3l', 'm']
+    libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads', 
+            'fftw3f_threads', 'fftw3l_threads', 'm']
 
 
 ext_modules = [Extension('pyfftw.pyfftw',

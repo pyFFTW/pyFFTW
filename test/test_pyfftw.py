@@ -72,11 +72,14 @@ def timer_with_array_update():
         
     print ('One run: '+ ("%.2f" % (1000.0/N*t.timeit(N)))+' ms')
 
-class Complex64FFTWTest(unittest.TestCase):
+class FFTWBaseTest(unittest.TestCase):
+    
+    def reference_fftn(self, a, axes):
+        return numpy.fft.fftn(a, axes=axes)
 
     def __init__(self, *args, **kwargs):
 
-        super(Complex64FFTWTest, self).__init__(*args, **kwargs)
+        super(FFTWBaseTest, self).__init__(*args, **kwargs)
         self.make_shapes()
 
     def setUp(self):
@@ -85,15 +88,6 @@ class Complex64FFTWTest(unittest.TestCase):
         self.output_dtype = numpy.complex64
         self.np_fft_comparison = numpy.fft.fft
         return
-
-    def create_test_arrays(self, input_shape, output_shape):
-        a = self.input_dtype(numpy.random.randn(*input_shape)
-                +1j*numpy.random.randn(*input_shape))
-
-        b = self.output_dtype(numpy.random.randn(*output_shape)
-                +1j*numpy.random.randn(*output_shape))
-
-        return a, b
 
     def tearDown(self):
         
@@ -110,10 +104,17 @@ class Complex64FFTWTest(unittest.TestCase):
                 '2d': (256, 2048),
                 '3d': (15, 256, 2048)}
 
-    def reference_fftn(self, a, axes):
-        return numpy.fft.fftn(a, axes=axes)
+    def create_test_arrays(self, input_shape, output_shape):
+        a = self.input_dtype(numpy.random.randn(*input_shape)
+                +1j*numpy.random.randn(*input_shape))
 
-    def timer_routine(self, pyfftw_callable, numpy_fft_callable):
+        b = self.output_dtype(numpy.random.randn(*output_shape)
+                +1j*numpy.random.randn(*output_shape))
+
+        return a, b
+
+    def timer_routine(self, pyfftw_callable, numpy_fft_callable,
+            comparison_string='numpy.fft'):
 
         N = 100
 
@@ -124,8 +125,76 @@ class Complex64FFTWTest(unittest.TestCase):
         t_numpy_str = ("%.2f" % (1000.0/N*t_numpy_fft.timeit(N)))+' ms'
 
         print ('One run: '+ t_str + \
-                ' (versus ' + t_numpy_str + ' for numpy.fft)')
-    
+                ' (versus ' + t_numpy_str + ' for ' + comparison_string + \
+                ')')
+
+
+    def run_validate_fft(self, a, b, axes, fft=None, ifft=None, 
+            force_unaligned_data=False, create_array_copies=True, 
+            threads=1):
+        ''' Run a validation of the FFTW routines for the passed pair
+        of arrays, a and b, and the axes argument.
+
+        a and b are assumed to be the same shape (but not necessarily
+        the same layout in memory).
+
+        fft and ifft, if passed, should be instantiated FFTW objects.
+
+        If force_unaligned_data is True, the flag FFTW_UNALIGNED
+        will be passed to the fftw routines.
+
+        The threads argument runs the validation with multiple threads.
+        '''
+
+        if create_array_copies:
+            # Don't corrupt the original mutable arrays
+            a = a.copy()
+            b = b.copy()
+
+        a_orig = a.copy()
+
+        flags = ['FFTW_ESTIMATE']
+
+        if force_unaligned_data:
+            flags.append('FFTW_UNALIGNED')
+        
+        if fft == None:
+            fft = FFTW(a,b,axes=axes, direction='FFTW_FORWARD',
+                    flags=flags, threads=threads)
+        else:
+            fft.update_arrays(a,b)
+
+        if ifft == None:
+            ifft = FFTW(b, a, axes=axes, direction='FFTW_BACKWARD',
+                    flags=flags, threads=threads)
+        else:
+            ifft.update_arrays(b,a)
+
+
+        a[:] = a_orig
+
+        # Test the forward FFT by comparing it to the result from numpy.fft
+        fft.execute()
+        ref_b = self.reference_fftn(a, axes=axes)
+
+        # This is actually quite a poor relative error, but it still
+        # sometimes fails. I assume that numpy.fft has different internals
+        # to fftw.
+        self.assertTrue(numpy.allclose(b, ref_b, rtol=1e-2, atol=1e-3))
+        
+        # Test the inverse FFT by comparing the result to the starting
+        # value (which is scaled as per FFTW being unnormalised).
+        ifft.execute()
+        # The scaling is the product of the lengths of the fft along
+        # the axes along which the fft is taken.
+        scaling = numpy.prod(numpy.array(a.shape)[list(axes)])
+
+        self.assertTrue(numpy.allclose(a/scaling, a_orig, rtol=1e-2, atol=1e-3))
+        return fft, ifft
+
+
+class Complex64FFTWTest(FFTWBaseTest):
+
     def test_time(self):
         
         in_shape = self.input_shapes['2d']
@@ -157,66 +226,6 @@ class Complex64FFTWTest(unittest.TestCase):
                 lambda: self.np_fft_comparison(a))
 
         self.assertTrue(True)
-
-    def run_validate_fft(self, a, b, axes, fft=None, ifft=None, 
-            force_unaligned_data=False, create_array_copies=True):
-        ''' Run a validation of the FFTW routines for the passed pair
-        of arrays, a and b, and the axes argument.
-
-        a and b are assumed to be the same shape (but not necessarily
-        the same layout in memory).
-
-        fft and ifft, if passed, should be instantiated FFTW objects.
-
-        If force_unaligned_data is True, the flag FFTW_UNALIGNED
-        will be passed to the fftw routines.
-        '''
-
-        if create_array_copies:
-            # Don't corrupt the original mutable arrays
-            a = a.copy()
-            b = b.copy()
-
-        a_orig = a.copy()
-
-        flags = ['FFTW_ESTIMATE']
-
-        if force_unaligned_data:
-            flags.append('FFTW_UNALIGNED')
-        
-        if fft == None:
-            fft = FFTW(a,b,axes=axes,
-                    direction='FFTW_FORWARD',flags=flags)
-        else:
-            fft.update_arrays(a,b)
-
-        if ifft == None:
-            ifft = FFTW(b,a,axes=axes,
-                    direction='FFTW_BACKWARD',flags=flags)
-        else:
-            ifft.update_arrays(b,a)
-
-
-        a[:] = a_orig
-
-        # Test the forward FFT by comparing it to the result from numpy.fft
-        fft.execute()
-        ref_b = self.reference_fftn(a, axes=axes)
-
-        # This is actually quite a poor relative error, but it still
-        # sometimes fails. I assume that numpy.fft has different internals
-        # to fftw.
-        self.assertTrue(numpy.allclose(b, ref_b, rtol=1e-2, atol=1e-3))
-        
-        # Test the inverse FFT by comparing the result to the starting
-        # value (which is scaled as per FFTW being unnormalised).
-        ifft.execute()
-        # The scaling is the product of the lengths of the fft along
-        # the axes along which the fft is taken.
-        scaling = numpy.prod(numpy.array(a.shape)[list(axes)])
-
-        self.assertTrue(numpy.allclose(a/scaling, a_orig, rtol=1e-2, atol=1e-3))
-        return fft, ifft
 
     def test_1d(self):
         in_shape = self.input_shapes['1d']
@@ -720,7 +729,8 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         return a, b
 
     def run_validate_fft(self, a, b, axes, fft=None, ifft=None, 
-            force_unaligned_data=False, create_array_copies=True):
+            force_unaligned_data=False, create_array_copies=True,
+            threads=1):
         ''' *** EVERYTHING IS FLIPPED AROUND BECAUSE WE ARE
         VALIDATING AN INVERSE FFT ***
         
@@ -748,14 +758,14 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
             flags.append('FFTW_UNALIGNED')
 
         if ifft == None:
-            ifft = FFTW(a,b,axes=axes,
-                    direction='FFTW_BACKWARD',flags=flags)
+            ifft = FFTW(a, b, axes=axes, direction='FFTW_BACKWARD',
+                    flags=flags, threads=threads)
         else:
             ifft.update_arrays(a,b)
 
         if fft == None:
-            fft = FFTW(b,a,axes=axes,
-                    direction='FFTW_FORWARD',flags=flags)
+            fft = FFTW(b, a, axes=axes, direction='FFTW_FORWARD',
+                    flags=flags, threads=threads)
         else:
             fft.update_arrays(b,a)
 
@@ -930,6 +940,60 @@ class NByteAlignTest(unittest.TestCase):
             b = n_byte_align(a, n)
             self.assertTrue(b.ctypes.data%n == 0)
 
+class Complex64MultiThreadedTest(FFTWBaseTest):
+    
+    def run_multithreaded_test(self, threads):
+        in_shape = self.input_shapes['2d'];
+        out_shape = self.output_shapes['2d']
+        
+        axes=(-1,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        fft, ifft = self.run_validate_fft(a, b, axes, threads=threads)
+
+        fft_, ifft_ = self.run_validate_fft(a, b, axes, threads=1)
+
+        self.timer_routine(fft.execute, fft_.execute, 
+                comparison_string='singled threaded')
+        self.assertTrue(True)
+
+
+    def test_2_threads(self):
+        self.run_multithreaded_test(2)
+
+    def test_4_threads(self):
+        self.run_multithreaded_test(4)
+
+    def test_7_threads(self):
+        self.run_multithreaded_test(7)        
+
+    def test_25_threads(self):
+        self.run_multithreaded_test(25)        
+
+class Complex128MultiThreadedTest(Complex64MultiThreadedTest):
+    
+    def setUp(self):
+
+        self.input_dtype = numpy.complex128
+        self.output_dtype = numpy.complex128
+        self.np_fft_comparison = numpy.fft.fft        
+        return
+
+class ComplexLongDoubleMultiThreadedTest(Complex64MultiThreadedTest):
+    
+    def setUp(self):
+
+        self.input_dtype = numpy.clongdouble
+        self.output_dtype = numpy.clongdouble
+        self.np_fft_comparison = self.reference_fftn       
+        return
+
+    def reference_fftn(self, a, axes):
+
+        # numpy.fft.fftn doesn't support complex256 type,
+        # so we need to compare to a lower precision type.
+        a = numpy.complex128(a)
+        return numpy.fft.fftn(a, axes=axes)
 
 test_cases = (
         Complex64FFTWTest,
@@ -942,7 +1006,9 @@ test_cases = (
         RealBackwardSingleFFTWTest,
         RealBackwardLongDoubleFFTWTest,
         NByteAlignTest,
-        )
+        Complex64MultiThreadedTest,
+        Complex128MultiThreadedTest,
+        ComplexLongDoubleMultiThreadedTest,)
 
 if __name__ == '__main__':
 

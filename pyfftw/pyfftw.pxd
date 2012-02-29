@@ -119,39 +119,39 @@ cdef extern from "fftw3.h":
 
     # Double precision complex new array execute
     void fftw_execute_dft(fftw_plan,
-          double complex *_in, double complex *_out)
+          double complex *_in, double complex *_out) nogil
     
     # Single precision complex new array execute    
     void fftwf_execute_dft(fftwf_plan,
-          float complex *_in, float complex *_out)
+          float complex *_in, float complex *_out) nogil
 
     # Long double precision complex new array execute    
     void fftwl_execute_dft(fftwl_plan,
-          long double complex *_in, long double complex *_out)
+          long double complex *_in, long double complex *_out) nogil
    
     # Double precision real to complex new array execute
     void fftw_execute_dft_r2c(fftw_plan,
-          double *_in, double complex *_out)
+          double *_in, double complex *_out) nogil
     
     # Single precision real to complex new array execute    
     void fftwf_execute_dft_r2c(fftwf_plan,
-          float *_in, float complex *_out)
+          float *_in, float complex *_out) nogil
 
     # Long double precision real to complex new array execute    
     void fftwl_execute_dft_r2c(fftwl_plan,
-          long double *_in, long double complex *_out)
+          long double *_in, long double complex *_out) nogil
 
     # Double precision complex to real new array execute
     void fftw_execute_dft_c2r(fftw_plan,
-          double complex *_in, double *_out)
+          double complex *_in, double *_out) nogil
     
     # Single precision complex to real new array execute    
     void fftwf_execute_dft_c2r(fftwf_plan,
-          float complex *_in, float *_out)
+          float complex *_in, float *_out) nogil
 
     # Long double precision complex to real new array execute    
     void fftwl_execute_dft_c2r(fftwl_plan,
-          long double complex *_in, long double *_out)
+          long double complex *_in, long double *_out) nogil
 
     # Double precision plan destroyer
     void fftw_destroy_plan(fftw_plan)
@@ -161,6 +161,22 @@ cdef extern from "fftw3.h":
 
     # Long double precision plan destroyer
     void fftwl_destroy_plan(fftwl_plan)
+
+    # Threading routines
+    # Double precision
+    void fftw_init_threads()
+    void fftw_plan_with_nthreads(int n)
+    void fftw_cleanup_threads()
+
+    # Single precision
+    void fftwf_init_threads()
+    void fftwf_plan_with_nthreads(int n)
+    void fftwf_cleanup_threads()
+
+    # Long double precision
+    void fftwl_init_threads()
+    void fftwl_plan_with_nthreads(int n)
+    void fftwl_cleanup_threads()
 
 # Define function pointers that can act as a placeholder
 # for whichever dtype is used (the problem being that fftw
@@ -172,9 +188,15 @@ ctypedef void * (*fftw_generic_plan_guru)(
         void *_in, void *_out,
         int sign, int flags)
 
-ctypedef void (*fftw_generic_execute)(void *_plan, void *_in, void *_out)
+ctypedef void (*fftw_generic_execute)(void *_plan, void *_in, void *_out) nogil
 
 ctypedef void (*fftw_generic_destroy_plan)(void *_plan)
+
+ctypedef void (*fftw_generic_init_threads)()
+
+ctypedef void (*fftw_generic_plan_with_nthreads)(int n)
+
+ctypedef void (*fftw_generic_cleanup_threads)()
 
 # Direction enum
 cdef enum:
