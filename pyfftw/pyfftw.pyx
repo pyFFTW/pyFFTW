@@ -301,8 +301,6 @@ cdef fftw_generic_plan_guru * _build_planner_list():
     planners[7] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft_c2r
     planners[8] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft_c2r
 
-    return planners
-
 # Executor table (of size the number of executors)
 cdef fftw_generic_execute executors[9]
 
@@ -318,8 +316,6 @@ cdef fftw_generic_execute * _build_executor_list():
     executors[7] = <fftw_generic_execute>&_fftwf_execute_dft_c2r
     executors[8] = <fftw_generic_execute>&_fftwl_execute_dft_c2r
 
-    return executors
-
 # Destroyer table (of size the number of destroyers)
 cdef fftw_generic_destroy_plan destroyers[3]
 
@@ -329,8 +325,6 @@ cdef fftw_generic_destroy_plan * _build_destroyer_list():
     destroyers[1] = <fftw_generic_destroy_plan>&_fftwf_destroy_plan
     destroyers[2] = <fftw_generic_destroy_plan>&_fftwl_destroy_plan
 
-    return destroyers
-
 
 # Threads init table
 cdef fftw_generic_init_threads thread_initializers[3]
@@ -339,8 +333,6 @@ cdef fftw_generic_init_threads * _build_init_threads_list():
     thread_initializers[0] = <fftw_generic_init_threads>&_fftw_init_threads
     thread_initializers[1] = <fftw_generic_init_threads>&_fftwf_init_threads
     thread_initializers[2] = <fftw_generic_init_threads>&_fftwl_init_threads
-
-    return thread_initializers
 
 # nthreads plan setters table
 cdef fftw_generic_plan_with_nthreads nthreads_plan_setters[3]
@@ -352,22 +344,6 @@ cdef fftw_generic_plan_with_nthreads * _build_nthreads_plan_setters_list():
             <fftw_generic_plan_with_nthreads>&_fftwf_plan_with_nthreads
     nthreads_plan_setters[2] = \
             <fftw_generic_plan_with_nthreads>&_fftwl_plan_with_nthreads
-
-    return nthreads_plan_setters
-
-# Thread cleanup table
-cdef fftw_generic_cleanup_threads thread_cleanups[3]
-
-cdef fftw_generic_cleanup_threads * _build_thread_cleanups_list():
-    thread_cleanups[0] = \
-            <fftw_generic_cleanup_threads>&_fftw_cleanup_threads
-    thread_cleanups[1] = \
-            <fftw_generic_cleanup_threads>&_fftwf_cleanup_threads
-    thread_cleanups[2] = \
-            <fftw_generic_cleanup_threads>&_fftwl_cleanup_threads
-
-    return thread_cleanups
-
 
 # Validator functions
 # ===================
@@ -482,38 +458,47 @@ scheme_directions = {
 
 scheme_functions = {
     'c128': {'planner': 0, 'executor':0, 'destroyer':0,
-        't_init': 0, 't_plan': 0, 't_cleanup': 0,
+        't_init': 0, 't_plan': 0,
         'validator':None, 'fft_shape_lookup': None},
     'c64': {'planner':1, 'executor':1, 'destroyer':1,
-        't_init': 1, 't_plan': 1, 't_cleanup': 1,        
+        't_init': 1, 't_plan': 1,        
         'validator':None, 'fft_shape_lookup': None},
     'cld': {'planner':2, 'executor':2, 'destroyer':2,
-        't_init': 2, 't_plan': 2, 't_cleanup': 2,
+        't_init': 2, 't_plan': 2,
         'validator':None, 'fft_shape_lookup': None},
     'r64_to_c128': {'planner':3, 'executor':3, 'destroyer':0,
-        't_init': 0, 't_plan': 0, 't_cleanup': 0,
+        't_init': 0, 't_plan': 0,
         'validator':_validate_r2c_arrays, 
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     'r32_to_c64': {'planner':4, 'executor':4, 'destroyer':1,
-        't_init': 1, 't_plan': 1, 't_cleanup': 1,
+        't_init': 1, 't_plan': 1,
         'validator':_validate_r2c_arrays, 
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     'rld_to_cld': {'planner':5, 'executor':5, 'destroyer':2,
-        't_init': 2, 't_plan': 2, 't_cleanup': 2,
+        't_init': 2, 't_plan': 2,
         'validator':_validate_r2c_arrays, 
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     'c128_to_r64': {'planner':6, 'executor':6, 'destroyer':0, 
-        't_init': 0, 't_plan': 0, 't_cleanup': 0,
+        't_init': 0, 't_plan': 0,
         'validator':_validate_c2r_arrays, 
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
     'c64_to_r32': {'planner':7, 'executor':7, 'destroyer':1, 
-        't_init': 1, 't_plan': 1, 't_cleanup': 1,
+        't_init': 1, 't_plan': 1,
         'validator':_validate_c2r_arrays, 
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
     'cld_to_rld': {'planner':8, 'executor':8, 'destroyer':2,
-        't_init': 2, 't_plan': 2, 't_cleanup': 2,
+        't_init': 2, 't_plan': 2,
         'validator':_validate_c2r_arrays, 
         'fft_shape_lookup': _lookup_shape_c2r_arrays}}
+
+# Initialize the module
+
+# Define the functions        
+_build_planner_list()
+_build_destroyer_list()
+_build_executor_list()
+_build_init_threads_list()
+_build_nthreads_plan_setters_list()
 
 # The External Interface
 # ======================
@@ -544,7 +529,6 @@ cdef class FFTW:
     cdef fftw_generic_destroy_plan __fftw_destroy
     cdef fftw_generic_init_threads __thread_initializer
     cdef fftw_generic_plan_with_nthreads __nthreads_plan_setter
-    cdef fftw_generic_cleanup_threads __thread_cleanup
 
 
     # The plan is typecast when it is created or used
@@ -610,16 +594,6 @@ cdef class FFTW:
         self.__input_shape = np.array(input_array.shape)
         self.__output_shape = np.array(output_array.shape)
         
-        # Define the functions        
-        cdef fftw_generic_plan_guru *planners = _build_planner_list()
-        cdef fftw_generic_destroy_plan *destroyers = _build_destroyer_list()
-        cdef fftw_generic_execute *executors = _build_executor_list()
-
-        cdef fftw_generic_init_threads *thread_initializers = \
-                _build_init_threads_list()
-        cdef fftw_generic_plan_with_nthreads *nthreads_plan_setters = \
-                _build_nthreads_plan_setters_list()
-        
         functions = scheme_functions[scheme]
         self.__fftw_planner = planners[functions['planner']]
         self.__fftw_execute = executors[functions['executor']]
@@ -629,8 +603,6 @@ cdef class FFTW:
                 thread_initializers[functions['t_init']]
         self.__nthreads_plan_setter = \
                 nthreads_plan_setters[functions['t_plan']]
-        self.__thread_cleanup = \
-                thread_cleanups[functions['t_cleanup']]
         
         self.__flags = 0 
         for each_flag in flags:

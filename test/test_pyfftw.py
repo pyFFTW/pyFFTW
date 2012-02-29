@@ -22,56 +22,6 @@ from timeit import Timer
 
 import unittest
 
-def timer_test_setup(fft_length = 2048, vectors = 256):
-    a = numpy.complex64(numpy.random.randn(vectors,fft_length)
-            +1j*numpy.random.randn(vectors,fft_length))
-    b = numpy.complex64(numpy.random.randn(vectors,fft_length)
-            +1j*numpy.random.randn(vectors,fft_length))
-    
-    fft_class = FFTW(a,b, flags=['FFTW_MEASURE'])
-
-    # We need to refill a with data as it gets clobbered by
-    # initialisation.
-    a[:] = numpy.complex64(numpy.random.randn(vectors,fft_length)
-            +1j*numpy.random.randn(vectors,fft_length))
-
-
-    return fft_class, a, b
-
-timer_setup = '''
-import numpy
-try:
-    from __main__ import timer_test_setup
-except:
-    from test_pyfftw import timer_test_setup
-
-fft_class,a,b= timer_test_setup()
-'''
-def timer():
-    from timeit import Timer
-    N = 100
-    t = Timer(stmt="fft_class.execute()", setup=timer_setup)
-    t_numpy_fft = Timer(stmt="numpy.fft.fft(a)", setup=timer_setup)
-    
-    t_numpy_fft = Timer(stmt="numpy.fft.fft(a)", setup=timer_setup)
-    
-    t_str = ("%.2f" % (1000.0/N*t.timeit(N)))+' ms'
-    t_numpy_str = ("%.2f" % (1000.0/N*t_numpy_fft.timeit(N)))+' ms'
-
-    print ('One run: '+ t_str + ' (versus ' + t_numpy_str + ' for numpy.fft)')
-
-def timer_with_array_update():
-    from timeit import Timer
-    N = 100
-    # We can update the arrays with the original arrays. We're
-    # really just trying to test the code path, which should be
-    # fixed regardless of the array size.
-    t = Timer(
-            stmt="fft_class.update_arrays(a,b); fft_class.execute()", 
-            setup=timer_setup)
-        
-    print ('One run: '+ ("%.2f" % (1000.0/N*t.timeit(N)))+' ms')
-
 class FFTWBaseTest(unittest.TestCase):
     
     def reference_fftn(self, a, axes):
