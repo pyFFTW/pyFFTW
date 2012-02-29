@@ -1,6 +1,6 @@
-pyFFTW is an attempt to produce a pythonic wrapper around 
-FFTW ( http://www.fftw.org/ ). The ultimate aim is to present a unified
-interface for all the possible transforms that FFTW can perform.
+pyFFTW is a pythonic wrapper around FFTW ( http://www.fftw.org/ ), the
+speedy FFT library.  The ultimate aim is to present a unified interface for all
+the possible transforms that FFTW can perform.
 
 Both the complex DFT and the real DFT are supported, as well as on arbitrary
 axes of abitrary shaped and strided arrays, which makes it almost
