@@ -44,17 +44,19 @@ ext_modules = [Extension('pyfftw.pyfftw',
     libraries=libraries,
     library_dirs=library_dirs)]
 
-version = '0.6.1'
+version = '0.7.0'
 
 long_description = '''
-pyFFTW is an attempt to produce a pythonic wrapper around 
-`FFTW <http://www.fftw.org/>`_. The ultimate aim is to present a unified
-interface for all the possible transforms that FFTW can perform.
+pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_. 
+The ultimate aim is to present a unified interface for all the possible
+transforms that FFTW can perform.
 
 Both the complex DFT and the real DFT are supported, as well as arbitrary
 axes of abitrary shaped and strided arrays, which makes it almost
 feature equivalent to standard and real FFT functions of ``numpy.fft`` 
-(indeed, it supports the ``clongdouble`` dtype which ``numpy.fft`` does not). 
+(indeed, it supports the ``clongdouble`` dtype which ``numpy.fft`` does not).
+
+Operating FFTW in multithreaded mode is supported.
 
 A comprehensive unittest suite can be found with the source on the github 
 repository.

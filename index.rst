@@ -25,6 +25,8 @@ The source can be found in `github <https://github.com/hgomersall/pyFFTW>`_
 and it's page in the python package index is 
 `here <http://pypi.python.org/pypi/pyFFTW>`_.
 
+Operating FFTW in multithreaded mode is supported.
+
 A comprehensive unittest suite is included with the source on the repository.
 
 A quick (and very much non-comprehensive) usage example:
@@ -59,7 +61,7 @@ FFTW. Simply renaming the class should be sufficient to migrate**
 FFTW Class
 -----------------
 
-.. autoclass:: pyfftw.FFTW(input_array, output_array, axes=(-1,), direction='FFTW_FORWARD', flags=('FFTW_MEASURE',))
+.. autoclass:: pyfftw.FFTW(input_array, output_array, axes=(-1,), direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), threads=1)
 
    .. _FFTW_update_arrays:
 
