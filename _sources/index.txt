@@ -9,9 +9,9 @@ Welcome to pyFFTW's documentation!
 * :ref:`FFTW Class <FFTW_class>`
 * :ref:`Utility Functions <UtilityFunctions>`
 
-pyFFTW is an attempt to produce a pythonic wrapper around 
-`FFTW <http://www.fftw.org/>`_. The ultimate aim is to present a unified
-interface for all the possible transforms that FFTW can perform.
+pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
+speedy FFT library.  The ultimate aim is to present a unified interface for all
+the possible transforms that FFTW can perform.
 
 Both the complex DFT and the real DFT are supported, as well as on arbitrary
 axes of abitrary shaped and strided arrays, which makes it almost
@@ -24,6 +24,8 @@ for more information on that module.
 The source can be found in `github <https://github.com/hgomersall/pyFFTW>`_ 
 and it's page in the python package index is 
 `here <http://pypi.python.org/pypi/pyFFTW>`_.
+
+Operating FFTW in multithreaded mode is supported.
 
 A comprehensive unittest suite is included with the source on the repository.
 
@@ -59,7 +61,7 @@ FFTW. Simply renaming the class should be sufficient to migrate**
 FFTW Class
 -----------------
 
-.. autoclass:: pyfftw.FFTW(input_array, output_array, axes=(-1,), direction='FFTW_FORWARD', flags=('FFTW_MEASURE',))
+.. autoclass:: pyfftw.FFTW(input_array, output_array, axes=(-1,), direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), threads=1)
 
    .. _FFTW_update_arrays:
 

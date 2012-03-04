@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to pyFFTW’s documentation! &mdash; pyFFTW v0.6.1 documentation</title>
+    <title>Welcome to pyFFTW’s documentation! &mdash; pyFFTW v0.7.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.6.1',
+        VERSION:     '0.7.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="pyFFTW v0.6.1 documentation" href="#" /> 
+    <link rel="top" title="pyFFTW v0.7.0 documentation" href="#" /> 
   </head>
   <body>
     <div class="related">
@@ -31,7 +31,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="#">pyFFTW v0.6.1 documentation</a> &raquo;</li> 
+        <li><a href="#">pyFFTW v0.7.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -46,9 +46,9 @@
 <li><a class="reference internal" href="#fftw-class"><em>FFTW Class</em></a></li>
 <li><a class="reference internal" href="#utilityfunctions"><em>Utility Functions</em></a></li>
 </ul>
-<p>pyFFTW is an attempt to produce a pythonic wrapper around
-<a class="reference external" href="http://www.fftw.org/">FFTW</a>. The ultimate aim is to present a unified
-interface for all the possible transforms that FFTW can perform.</p>
+<p>pyFFTW is a pythonic wrapper around <a class="reference external" href="http://www.fftw.org/">FFTW</a>, the
+speedy FFT library.  The ultimate aim is to present a unified interface for all
+the possible transforms that FFTW can perform.</p>
 <p>Both the complex DFT and the real DFT are supported, as well as on arbitrary
 axes of abitrary shaped and strided arrays, which makes it almost
 feature equivalent to standard and real FFT functions of <tt class="docutils literal"><span class="pre">numpy.fft</span></tt>
@@ -58,6 +58,7 @@ for more information on that module.</p>
 <p>The source can be found in <a class="reference external" href="https://github.com/hgomersall/pyFFTW">github</a>
 and it&#8217;s page in the python package index is
 <a class="reference external" href="http://pypi.python.org/pypi/pyFFTW">here</a>.</p>
+<p>Operating FFTW in multithreaded mode is supported.</p>
 <p>A comprehensive unittest suite is included with the source on the repository.</p>
 <p>A quick (and very much non-comprehensive) usage example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyfftw</span><span class="o">,</span> <span class="nn">numpy</span>
@@ -89,7 +90,7 @@ FFTW. Simply renaming the class should be sufficient to migrate</strong></p>
 <span id="id1"></span><h2>FFTW Class<a class="headerlink" href="#fftw-class" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="pyfftw.FFTW">
-<em class="property">class </em><tt class="descclassname">pyfftw.</tt><tt class="descname">FFTW</tt><big>(</big><em>input_array</em>, <em>output_array</em>, <em>axes=(-1</em>, <em>)</em>, <em>direction='FFTW_FORWARD'</em>, <em>flags=('FFTW_MEASURE'</em>, <em>)</em><big>)</big><a class="headerlink" href="#pyfftw.FFTW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pyfftw.</tt><tt class="descname">FFTW</tt><big>(</big><em>input_array</em>, <em>output_array</em>, <em>axes=(-1</em>, <em>)</em>, <em>direction='FFTW_FORWARD'</em>, <em>flags=('FFTW_MEASURE'</em>, <em>)</em>, <em>threads=1</em><big>)</big><a class="headerlink" href="#pyfftw.FFTW" title="Permalink to this definition">¶</a></dt>
 <dd><p>FFTW is a class for computing the complex N-Dimensional DFT or
 inverse DFT of an array using the FFTW library. The interface is 
 designed to be somewhat pythonic, with the correct transform being 
@@ -133,6 +134,10 @@ default.</p>
 This tells FFTW not to assume anything about the 
 alignment of the data and disabling any SIMD capability 
 (see below).</p>
+<p><tt class="docutils literal"><span class="pre">threads</span></tt> tells the wrapper how many threads to use
+when invoking FFTW, with a default of 1. If the number
+of threads is greater than 1, then the GIL is released
+by necessity.</p>
 <p>The currently supported schemes are as follows:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -344,7 +349,7 @@ The rest of the arguments are as per <tt class="docutils literal"><span class="p
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="#">pyFFTW v0.6.1 documentation</a> &raquo;</li> 
+        <li><a href="#">pyFFTW v0.7.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
