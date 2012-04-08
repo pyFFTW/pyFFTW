@@ -21,23 +21,28 @@ from pyfftw import (
         export_wisdom, import_wisdom, forget_wisdom)
 
 import numpy
+import cPickle
 
 import unittest
 
 class FFTWWisdomTest(unittest.TestCase):
     
-    def test_export(self):
-
-        forget_wisdom()
-
-        before_wisdom = export_wisdom()
-
+    def generate_wisdom(self):
         for each_dtype in (numpy.complex128, numpy.complex64, 
                 numpy.clongdouble):
 
             a = n_byte_align_empty((1,1024), 16, each_dtype)
             b = n_byte_align_empty(a.shape, 16, dtype=a.dtype)
             fft = FFTW(a,b)
+
+
+    def test_export(self):
+
+        forget_wisdom()
+
+        before_wisdom = export_wisdom()
+
+        self.generate_wisdom()
 
         after_wisdom = export_wisdom()
 
@@ -48,12 +53,7 @@ class FFTWWisdomTest(unittest.TestCase):
 
         forget_wisdom()
 
-        for each_dtype in (numpy.complex128, numpy.complex64, 
-                numpy.clongdouble):
-
-            a = n_byte_align_empty((1,1024), 16, each_dtype)
-            b = n_byte_align_empty(a.shape, 16, dtype=a.dtype)
-            fft = FFTW(a,b)
+        self.generate_wisdom()
 
         after_wisdom = export_wisdom()
 
