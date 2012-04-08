@@ -938,6 +938,164 @@ cdef class FFTW:
         else:
             fftw_execute(self.__plan, input_pointer, output_pointer)
 
+def export_wisdom():
+    ''' export_wisdom()
+
+    Return the FFTW wisdom as a tuple of strings.
+
+    The first string in the tuple is the string for the double
+    precision wisdom. The second string in the tuple is the string 
+    for the single precision wisdom. The third string in the tuple 
+    is the string for the long douple precision wisdom.
+
+    The tuple that is returned from this function can be used as the
+    argument to :ref:`import_wisdom()<import_wisdom>`.
+    '''
+
+    cdef bytes py_wisdom
+    cdef bytes py_wisdomf
+    cdef bytes py_wisdoml
+
+    cdef char* c_wisdom = fftw_export_wisdom_to_string()
+    cdef char* c_wisdomf = fftwf_export_wisdom_to_string()
+    cdef char* c_wisdoml = fftwl_export_wisdom_to_string()
+    
+    try:
+        py_wisdom = c_wisdom
+        py_wisdomf = c_wisdomf
+        py_wisdoml = c_wisdoml
+
+    finally:
+        free(c_wisdom)
+        free(c_wisdomf)
+        free(c_wisdoml)        
+
+    return (py_wisdom, py_wisdomf, py_wisdoml)
+
+def import_wisdom(wisdom):
+    '''import_wisdom(wisdom)
+
+    Function that imports wisdom from the passed tuple
+    of strings.
+
+    The first string in the tuple is the string for the double
+    precision wisdom. The second string in the tuple is the string 
+    for the single precision wisdom. The third string in the tuple 
+    is the string for the long douple precision wisdom.
+
+    The tuple that is returned from :ref:`export_wisdom()<export_wisdom>`
+    can be used as the argument to this function.
+
+    This function returns a tuple of boolean values indicating
+    the success of loading each of the wisdom types (double, float 
+    and long double, in that order).
+    '''
+
+    cdef char* c_wisdom = wisdom[0]
+    cdef char* c_wisdomf = wisdom[1]
+    cdef char* c_wisdoml = wisdom[2]
+
+    cdef bint success = fftw_import_wisdom_from_string(c_wisdom)
+    cdef bint successf = fftwf_import_wisdom_from_string(c_wisdomf)
+    cdef bint successl = fftwl_import_wisdom_from_string(c_wisdoml)
+
+    return (success, successf, successl)
+
+#def export_wisdom_to_files(
+#        double_wisdom_file=None,
+#        single_wisdom_file=None, 
+#        long_double_wisdom_file=None):
+#    '''export_wisdom_to_file(double_wisdom_file=None, single_wisdom_file=None, long_double_wisdom_file=None)
+#
+#    Export the wisdom to the passed files.
+#
+#    The double precision wisdom is written to double_wisdom_file. 
+#    The single precision wisdom is written to single_wisdom_file.
+#    The long double precision wisdom is written to 
+#    long_double_wisdom_file.
+#
+#    If any of the arguments are None, then nothing is done for that
+#    file.
+#
+#    This function returns a tuple of boolean values indicating
+#    the success of storing each of the wisdom types (double, float 
+#    and long double, in that order).
+#    '''
+#    cdef bint success = True
+#    cdef bint successf = True
+#    cdef bint successl = True
+#
+#    cdef char *_double_wisdom_file
+#    cdef char *_single_wisdom_file
+#    cdef char *_long_double_wisdom_file
+#
+#
+#    if double_wisdom_file is not None:
+#        _double_wisdom_file = double_wisdom_file
+#        success = fftw_export_wisdom_to_filename(_double_wisdom_file)
+#
+#    if single_wisdom_file is not None:
+#        _single_wisdom_file = single_wisdom_file
+#        successf = fftwf_export_wisdom_to_filename(_single_wisdom_file)
+#
+#    if long_double_wisdom_file is not None:
+#        _long_double_wisdom_file = long_double_wisdom_file
+#        successl = fftwl_export_wisdom_to_filename(
+#                _long_double_wisdom_file)
+#
+#    return (success, successf, successl)
+#
+#def import_wisdom_to_files(
+#        double_wisdom_file=None,
+#        single_wisdom_file=None, 
+#        long_double_wisdom_file=None):
+#    '''import_wisdom_to_file(double_wisdom_file=None, single_wisdom_file=None, long_double_wisdom_file=None)
+#
+#    import the wisdom to the passed files.
+#
+#    The double precision wisdom is imported from double_wisdom_file. 
+#    The single precision wisdom is imported from single_wisdom_file.
+#    The long double precision wisdom is imported from 
+#    long_double_wisdom_file.
+#
+#    If any of the arguments are None, then nothing is done for that
+#    file.
+#
+#    This function returns a tuple of boolean values indicating
+#    the success of loading each of the wisdom types (double, float 
+#    and long double, in that order).
+#    '''
+#    cdef bint success = True
+#    cdef bint successf = True
+#    cdef bint successl = True
+#
+#    cdef char *_double_wisdom_file
+#    cdef char *_single_wisdom_file
+#    cdef char *_long_double_wisdom_file
+#
+#    if double_wisdom_file is not None:
+#        _double_wisdom_file = double_wisdom_file
+#        success = fftw_import_wisdom_from_filename(_double_wisdom_file)
+#
+#    if single_wisdom_file is not None:
+#        _single_wisdom_file = single_wisdom_file
+#        successf = fftwf_import_wisdom_from_filename(_single_wisdom_file)
+#
+#    if long_double_wisdom_file is not None:
+#        _long_double_wisdom_file = long_double_wisdom_file
+#        successl = fftwl_import_wisdom_from_filename(
+#                _long_double_wisdom_file)
+#
+#    return (success, successf, successl)
+
+def forget_wisdom():
+    '''forget_wisdom()
+
+    Forget all the accumulated wisdom.
+    '''
+    fftw_forget_wisdom()
+    fftwf_forget_wisdom()
+    fftwl_forget_wisdom()
 
 cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
     '''n_byte_align_empty(shape, n, dtype='float64', order='C')

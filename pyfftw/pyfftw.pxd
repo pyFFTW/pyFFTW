@@ -183,6 +183,27 @@ cdef extern from "fftw3.h":
     void fftwf_cleanup_threads()
     void fftwl_cleanup_threads()
 
+    # wisdom functions
+    char *fftw_export_wisdom_to_string()
+    char *fftwf_export_wisdom_to_string()    
+    char *fftwl_export_wisdom_to_string()
+
+    int fftw_import_wisdom_from_string(char *input_string)
+    int fftwf_import_wisdom_from_string(char *input_string)
+    int fftwl_import_wisdom_from_string(char *input_string)
+
+    #int fftw_export_wisdom_to_filename(char *filename)
+    #int fftwf_export_wisdom_to_filename(char *filename)
+    #int fftwl_export_wisdom_to_filename(char *filename)
+    #
+    #int fftw_import_wisdom_from_filename(char *filename)
+    #int fftwf_import_wisdom_from_filename(char *filename)
+    #int fftwl_import_wisdom_from_filename(char *filename)
+
+    void fftw_forget_wisdom()
+    void fftwf_forget_wisdom()
+    void fftwl_forget_wisdom()
+
 # Define function pointers that can act as a placeholder
 # for whichever dtype is used (the problem being that fftw
 # has different function names and signatures for all the 
