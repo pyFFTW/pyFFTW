@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to pyFFTW’s documentation! &mdash; pyFFTW v0.7.0 documentation</title>
+    <title>Welcome to pyFFTW’s documentation! &mdash; pyFFTW v0.8.0 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.7.0',
+        VERSION:     '0.8.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="pyFFTW v0.7.0 documentation" href="#" /> 
+    <link rel="top" title="pyFFTW v0.8.0 documentation" href="#" /> 
   </head>
   <body>
     <div class="related">
@@ -31,7 +31,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="#">pyFFTW v0.7.0 documentation</a> &raquo;</li> 
+        <li><a href="#">pyFFTW v0.8.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -44,6 +44,7 @@
 <h1>Welcome to pyFFTW&#8217;s documentation!<a class="headerlink" href="#welcome-to-pyfftw-s-documentation" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><a class="reference internal" href="#fftw-class"><em>FFTW Class</em></a></li>
+<li><a class="reference internal" href="#wisdomfunctions"><em>Wisdom Functions</em></a></li>
 <li><a class="reference internal" href="#utilityfunctions"><em>Utility Functions</em></a></li>
 </ul>
 <p>pyFFTW is a pythonic wrapper around <a class="reference external" href="http://www.fftw.org/">FFTW</a>, the
@@ -280,6 +281,46 @@ array can be arbitrary.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="wisdom-functions">
+<span id="wisdomfunctions"></span><h2>Wisdom Functions<a class="headerlink" href="#wisdom-functions" title="Permalink to this headline">¶</a></h2>
+<p>Functions for dealing with FFTW&#8217;s ability to export and restore plans,
+referred to as <em>wisdom</em>. For further information, refer to the <a class="reference external" href="http://www.fftw.org/fftw3_doc/Words-of-Wisdom_002dSaving-Plans.html#Words-of-Wisdom_002dSaving-Plans">FFTW
+wisdom documentation</a>.</p>
+<span class="target" id="export-wisdom"></span><dl class="function">
+<dt id="pyfftw.export_wisdom">
+<tt class="descclassname">pyfftw.</tt><tt class="descname">export_wisdom</tt><big>(</big><big>)</big><a class="headerlink" href="#pyfftw.export_wisdom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the FFTW wisdom as a tuple of strings.</p>
+<p>The first string in the tuple is the string for the double
+precision wisdom. The second string in the tuple is the string 
+for the single precision wisdom. The third string in the tuple 
+is the string for the long douple precision wisdom.</p>
+<p>The tuple that is returned from this function can be used as the
+argument to <a class="reference internal" href="#import-wisdom"><em>import_wisdom()</em></a>.</p>
+</dd></dl>
+
+<span class="target" id="import-wisdom"></span><dl class="function">
+<dt id="pyfftw.import_wisdom">
+<tt class="descclassname">pyfftw.</tt><tt class="descname">import_wisdom</tt><big>(</big><em>wisdom</em><big>)</big><a class="headerlink" href="#pyfftw.import_wisdom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that imports wisdom from the passed tuple
+of strings.</p>
+<p>The first string in the tuple is the string for the double
+precision wisdom. The second string in the tuple is the string 
+for the single precision wisdom. The third string in the tuple 
+is the string for the long douple precision wisdom.</p>
+<p>The tuple that is returned from <a class="reference internal" href="#export-wisdom"><em>export_wisdom()</em></a>
+can be used as the argument to this function.</p>
+<p>This function returns a tuple of boolean values indicating
+the success of loading each of the wisdom types (double, float 
+and long double, in that order).</p>
+</dd></dl>
+
+<span class="target" id="forget-wisdom"></span><dl class="function">
+<dt id="pyfftw.forget_wisdom">
+<tt class="descclassname">pyfftw.</tt><tt class="descname">forget_wisdom</tt><big>(</big><big>)</big><a class="headerlink" href="#pyfftw.forget_wisdom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forget all the accumulated wisdom.</p>
+</dd></dl>
+
+</div>
 <div class="section" id="utility-functions">
 <span id="utilityfunctions"></span><h2>Utility Functions<a class="headerlink" href="#utility-functions" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="n-byte-align"></span><dl class="function">
@@ -316,6 +357,7 @@ The rest of the arguments are as per <tt class="docutils literal"><span class="p
   <ul>
 <li><a class="reference internal" href="#">Welcome to pyFFTW&#8217;s documentation!</a><ul>
 <li><a class="reference internal" href="#fftw-class">FFTW Class</a></li>
+<li><a class="reference internal" href="#wisdom-functions">Wisdom Functions</a></li>
 <li><a class="reference internal" href="#utility-functions">Utility Functions</a></li>
 </ul>
 </li>
@@ -349,7 +391,7 @@ The rest of the arguments are as per <tt class="docutils literal"><span class="p
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="#">pyFFTW v0.7.0 documentation</a> &raquo;</li> 
+        <li><a href="#">pyFFTW v0.8.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

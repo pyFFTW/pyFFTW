@@ -7,6 +7,7 @@ Welcome to pyFFTW's documentation!
 ==================================
 
 * :ref:`FFTW Class <FFTW_class>`
+* :ref:`Wisdom Functions <WisdomFunctions>`  
 * :ref:`Utility Functions <UtilityFunctions>`
 
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
@@ -70,6 +71,28 @@ FFTW Class
    .. _FFTW_execute:
 
    .. automethod:: pyfftw.FFTW.execute()
+
+.. _WisdomFunctions:
+
+Wisdom Functions
+----------------
+
+Functions for dealing with FFTW's ability to export and restore plans, 
+referred to as *wisdom*. For further information, refer to the `FFTW 
+wisdom documentation <http://www.fftw.org/fftw3_doc/Words-of-Wisdom_002dSaving-Plans.html#Words-of-Wisdom_002dSaving-Plans>`_.
+
+.. _export_wisdom:
+
+.. autofunction:: pyfftw.export_wisdom
+
+.. _import_wisdom:
+
+.. autofunction:: pyfftw.import_wisdom
+
+.. _forget_wisdom:
+
+.. autofunction:: pyfftw.forget_wisdom
+
 
 .. _UtilityFunctions:
 
