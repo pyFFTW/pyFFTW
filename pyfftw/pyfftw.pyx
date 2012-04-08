@@ -946,7 +946,7 @@ def export_wisdom():
     The first string in the tuple is the string for the double
     precision wisdom. The second string in the tuple is the string 
     for the single precision wisdom. The third string in the tuple 
-    is the string for the long douple precision wisdom.
+    is the string for the long double precision wisdom.
 
     The tuple that is returned from this function can be used as the
     argument to :ref:`import_wisdom()<import_wisdom>`.
@@ -981,7 +981,7 @@ def import_wisdom(wisdom):
     The first string in the tuple is the string for the double
     precision wisdom. The second string in the tuple is the string 
     for the single precision wisdom. The third string in the tuple 
-    is the string for the long douple precision wisdom.
+    is the string for the long double precision wisdom.
 
     The tuple that is returned from :ref:`export_wisdom()<export_wisdom>`
     can be used as the argument to this function.
