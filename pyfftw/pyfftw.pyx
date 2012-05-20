@@ -990,10 +990,6 @@ def export_wisdom():
     cdef bytes py_wisdomf
     cdef bytes py_wisdoml
 
-    #cdef char* c_wisdom = fftw_export_wisdom_to_string()
-    #cdef char* c_wisdomf = fftwf_export_wisdom_to_string()
-    #cdef char* c_wisdoml = fftwl_export_wisdom_to_string()
-
     cdef int counter = 0
     cdef int counterf = 0
     cdef int counterl = 0

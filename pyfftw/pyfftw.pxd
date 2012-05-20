@@ -184,10 +184,6 @@ cdef extern from "fftw3.h":
     void fftwl_cleanup_threads()
 
     # wisdom functions
-    char *fftw_export_wisdom_to_string()
-    char *fftwf_export_wisdom_to_string()    
-    char *fftwl_export_wisdom_to_string()
-
     void fftw_export_wisdom(void (*write_char)(char c, void *), void *data)
     void fftwf_export_wisdom(void (*write_char)(char c, void *), void *data)
     void fftwl_export_wisdom(void (*write_char)(char c, void *), void *data)
