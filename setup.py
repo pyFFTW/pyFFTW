@@ -44,7 +44,7 @@ ext_modules = [Extension('pyfftw.pyfftw',
     libraries=libraries,
     library_dirs=library_dirs)]
 
-version = '0.8.1'
+version = '0.8.0'
 
 long_description = '''
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
