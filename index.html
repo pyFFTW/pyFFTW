@@ -7,13 +7,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to pyFFTW’s documentation! &mdash; pyFFTW v0.8.0 documentation</title>
+    <title>Welcome to pyFFTW’s documentation! &mdash; pyFFTW v0.8.1 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.8.0',
+        VERSION:     '0.8.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -22,7 +22,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="pyFFTW v0.8.0 documentation" href="#" /> 
+    <link rel="top" title="pyFFTW v0.8.1 documentation" href="#" /> 
   </head>
   <body>
     <div class="related">
@@ -31,7 +31,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="#">pyFFTW v0.8.0 documentation</a> &raquo;</li> 
+        <li><a href="#">pyFFTW v0.8.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -113,7 +113,12 @@ dtypes for the arrays is given below.</p>
 This should be a valid list of axes. Repeated axes are 
 only transformed once. Invalid axes will raise an 
 exception. This argument is equivalent to the same
-argument in <tt class="docutils literal"><span class="pre">numpy.fft.fftn</span></tt>.</p>
+argument in <tt class="docutils literal"><span class="pre">numpy.fft.fftn</span></tt>, except for the fact that
+the behaviour of repeated axes is different (<cite>numpy.fft</cite>
+will happily take the fft of the same axis if it is repeated
+in the <cite>axes</cite> argument). Rudimentary testing has suggested
+this is down to FFTW and so unlikely to be fixed in these
+wrappers.</p>
 <p><tt class="docutils literal"><span class="pre">direction</span></tt> should be a string and one of FFTW_FORWARD 
 or FFTW_BACKWARD, which dictate whether to take the
 DFT (forwards) or the inverse DFT (backwards) respectively 
@@ -293,7 +298,7 @@ wisdom documentation</a>.</p>
 <p>The first string in the tuple is the string for the double
 precision wisdom. The second string in the tuple is the string 
 for the single precision wisdom. The third string in the tuple 
-is the string for the long douple precision wisdom.</p>
+is the string for the long double precision wisdom.</p>
 <p>The tuple that is returned from this function can be used as the
 argument to <a class="reference internal" href="#import-wisdom"><em>import_wisdom()</em></a>.</p>
 </dd></dl>
@@ -306,7 +311,7 @@ of strings.</p>
 <p>The first string in the tuple is the string for the double
 precision wisdom. The second string in the tuple is the string 
 for the single precision wisdom. The third string in the tuple 
-is the string for the long douple precision wisdom.</p>
+is the string for the long double precision wisdom.</p>
 <p>The tuple that is returned from <a class="reference internal" href="#export-wisdom"><em>export_wisdom()</em></a>
 can be used as the argument to this function.</p>
 <p>This function returns a tuple of boolean values indicating
@@ -391,7 +396,7 @@ The rest of the arguments are as per <tt class="docutils literal"><span class="p
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="#">pyFFTW v0.8.0 documentation</a> &raquo;</li> 
+        <li><a href="#">pyFFTW v0.8.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
