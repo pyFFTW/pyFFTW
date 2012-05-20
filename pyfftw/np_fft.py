@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 # Skeleton file to fill in the numpy like fft functions
+from collections import Counter
 
 def fft(a, n=None, axis=-1):
+
     pass
 
 def ifft(a, n=None, axis=-1):
@@ -15,7 +17,10 @@ def ifft2(a, s=None, axes=(-1,-2)):
     pass
 
 def fftn(a, s=None, axes=None):
-    pass
+    if not len(set(axes)) == len(axes):
+        # FIXME do something to create lists of the repeated vals.
+        repeated_axes = Counter(axes).values()
+
 
 def ifftn(a, s=None, axes=None):
     pass

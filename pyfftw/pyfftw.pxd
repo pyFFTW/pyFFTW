@@ -188,6 +188,10 @@ cdef extern from "fftw3.h":
     char *fftwf_export_wisdom_to_string()    
     char *fftwl_export_wisdom_to_string()
 
+    void fftw_export_wisdom(void (*write_char)(char c, void *), void *data)
+    void fftwf_export_wisdom(void (*write_char)(char c, void *), void *data)
+    void fftwl_export_wisdom(void (*write_char)(char c, void *), void *data)
+
     int fftw_import_wisdom_from_string(char *input_string)
     int fftwf_import_wisdom_from_string(char *input_string)
     int fftwl_import_wisdom_from_string(char *input_string)

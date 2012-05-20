@@ -19,6 +19,7 @@
 import numpy as np
 cimport numpy as np
 from libc.stdlib cimport malloc, free
+from libc.stdint cimport intptr_t
 from libc cimport limits
 
 from pyfftw cimport _fftw_iodim, fftw_iodim, fftwf_plan
@@ -320,12 +321,12 @@ cdef fftw_generic_init_threads * _build_init_threads_list():
 cdef fftw_generic_plan_with_nthreads nthreads_plan_setters[3]
 
 cdef fftw_generic_plan_with_nthreads * _build_nthreads_plan_setters_list():
-    nthreads_plan_setters[0] = \
-            <fftw_generic_plan_with_nthreads>&_fftw_plan_with_nthreads
-    nthreads_plan_setters[1] = \
-            <fftw_generic_plan_with_nthreads>&_fftwf_plan_with_nthreads
-    nthreads_plan_setters[2] = \
-            <fftw_generic_plan_with_nthreads>&_fftwl_plan_with_nthreads
+    nthreads_plan_setters[0] = (
+            <fftw_generic_plan_with_nthreads>&_fftw_plan_with_nthreads)
+    nthreads_plan_setters[1] = (
+            <fftw_generic_plan_with_nthreads>&_fftwf_plan_with_nthreads)
+    nthreads_plan_setters[2] = (
+            <fftw_generic_plan_with_nthreads>&_fftwl_plan_with_nthreads)
 
 # Validator functions
 # ===================
@@ -348,9 +349,9 @@ def _validate_r2c_arrays(input_array, output_array, axes, not_axes):
     in_not_fft_shape = np.array(input_array.shape)[not_axes]
     out_not_fft_shape = np.array(output_array.shape)[not_axes]
 
-    if np.alltrue(out_fft_shape[:-1] == in_fft_shape[:-1]) and \
-            np.alltrue(out_fft_shape[-1] == in_fft_shape[-1]//2 + 1) and \
-            np.alltrue(in_not_fft_shape == out_not_fft_shape):
+    if (np.alltrue(out_fft_shape[:-1] == in_fft_shape[:-1]) and 
+            np.alltrue(out_fft_shape[-1] == in_fft_shape[-1]//2 + 1) and 
+            np.alltrue(in_not_fft_shape == out_not_fft_shape)):
         return True
     else:
         return False
@@ -373,9 +374,9 @@ def _validate_c2r_arrays(input_array, output_array, axes, not_axes):
     in_not_fft_shape = np.array(input_array.shape)[not_axes]
     out_not_fft_shape = np.array(output_array.shape)[not_axes]
 
-    if np.alltrue(in_fft_shape[:-1] == out_fft_shape[:-1]) and \
-            np.alltrue(in_fft_shape[-1] == out_fft_shape[-1]//2 + 1) and \
-            np.alltrue(in_not_fft_shape == out_not_fft_shape):
+    if (np.alltrue(in_fft_shape[:-1] == out_fft_shape[:-1]) and 
+            np.alltrue(in_fft_shape[-1] == out_fft_shape[-1]//2 + 1) and 
+            np.alltrue(in_not_fft_shape == out_not_fft_shape)):
         return True
     else:
         return False
@@ -562,7 +563,7 @@ cdef class FFTW:
             scheme = fftw_schemes[
                     (input_array.dtype, output_array.dtype)]
         except KeyError:
-            raise ValueError('The output array and input array dtypes '+\
+            raise ValueError('The output array and input array dtypes '+
                     'do not correspond to a valid fftw scheme.')
 
         self.__input_dtype = input_array.dtype
@@ -572,15 +573,15 @@ cdef class FFTW:
         # we set the FFTW_UNALIGNED flag. This disables SIMD.
         if 'FFTW_UNALIGNED' in flags:
             self.__simd_allowed = False
-        elif input_array.ctypes.data%16 == 0 and \
-                input_array.ctypes.data%16 == 0:
+        elif (input_array.ctypes.data%16 == 0 and 
+                input_array.ctypes.data%16 == 0):
             self.__simd_allowed = True
         else:
             flags.append('FFTW_UNALIGNED')
             self.__simd_allowed = False
 
         if not direction in scheme_directions[scheme]:
-            raise ValueError('The direction is not valid for the scheme. '\
+            raise ValueError('The direction is not valid for the scheme. '
                     'Try setting it explicitly if it is not already.')
 
         self.__direction = directions[direction]
@@ -592,10 +593,10 @@ cdef class FFTW:
         self.__fftw_execute = executors[functions['executor']]
         self.__fftw_destroy = destroyers[functions['destroyer']]
 
-        self.__thread_initializer = \
-                thread_initializers[functions['t_init']]
-        self.__nthreads_plan_setter = \
-                nthreads_plan_setters[functions['t_plan']]
+        self.__thread_initializer = (
+                thread_initializers[functions['t_init']])
+        self.__nthreads_plan_setter = (
+                nthreads_plan_setters[functions['t_plan']])
         
         self.__flags = 0 
         for each_flag in flags:
@@ -622,13 +623,13 @@ cdef class FFTW:
         # Now we can validate the array shapes
         if functions['validator'] == None:
             if not (output_array.shape == input_array.shape):
-                raise ValueError('The output array should be the same '+\
-                        'shape as the input array for the given array '+\
+                raise ValueError('The output array should be the same '+
+                        'shape as the input array for the given array '+
                         'dtypes.')
         else:
             if not functions['validator'](input_array, output_array,
                     _axes, _not_axes):
-                raise ValueError('The input array and output array are '+\
+                raise ValueError('The input array and output array are '+
                         'invalid complementary shapes for their dtypes.')
 
         self.__rank = len(_axes)
@@ -641,31 +642,34 @@ cdef class FFTW:
         self.__howmany_dims = <_fftw_iodim *>malloc(
                 self.__howmany_rank * sizeof(_fftw_iodim))
 
+        if self.__dims == NULL or self.__howmany_dims == NULL:
+            raise MemoryError
+
         # Find the strides for all the axes of both arrays in terms of the 
         # number of elements (as opposed to the number of bytes).
-        self.__input_strides = \
-                np.array(input_array.strides)/input_array.itemsize
-        self.__output_strides = \
-                np.array(output_array.strides)/output_array.itemsize
+        self.__input_strides = (
+                np.array(input_array.strides)/input_array.itemsize)
+        self.__output_strides = (
+                np.array(output_array.strides)/output_array.itemsize)
 
         # Make sure that the arrays are not too big for fftw
         cdef int i
         for i in range(0, len(self.__input_shape)):
             if self.__input_shape[i] >= <Py_ssize_t> limits.INT_MAX:
-                raise ValueError('Dimensions of the input array must be ' +\
+                raise ValueError('Dimensions of the input array must be ' +
                         'less than ', str(limits.INT_MAX))
 
             if self.__input_strides[i] >= <Py_ssize_t> limits.INT_MAX:
-                raise ValueError('Strides of the input array must be ' +\
+                raise ValueError('Strides of the input array must be ' +
                         'less than ', str(limits.INT_MAX))
 
         for i in range(0, len(self.__output_shape)):
             if self.__output_shape[i] >= <Py_ssize_t> limits.INT_MAX:
-                raise ValueError('Dimensions of the output array must be ' +\
+                raise ValueError('Dimensions of the output array must be ' +
                         'less than ', str(limits.INT_MAX))
 
             if self.__output_strides[i] >= <Py_ssize_t> limits.INT_MAX:
-                raise ValueError('Strides of the output array must be ' +\
+                raise ValueError('Strides of the output array must be ' +
                         'less than ', str(limits.INT_MAX))
         
         fft_shape_lookup = functions['fft_shape_lookup']
@@ -705,7 +709,7 @@ cdef class FFTW:
             self.__direction, self.__flags)
 
         if self.__plan == NULL:
-            raise ValueError('The data has an uncaught error that led '+\
+            raise ValueError('The data has an uncaught error that led '+
                     'to the planner returning NULL. This is a bug.')
 
     def __init__(self, input_array, output_array, axes=[-1], 
@@ -721,7 +725,12 @@ cdef class FFTW:
         This should be a valid list of axes. Repeated axes are 
         only transformed once. Invalid axes will raise an 
         exception. This argument is equivalent to the same
-        argument in ``numpy.fft.fftn``.
+        argument in ``numpy.fft.fftn``, except for the fact that
+        the behaviour of repeated axes is different (`numpy.fft`
+        will happily take the fft of the same axis if it is repeated
+        in the `axes` argument). Rudimentary testing has suggested
+        this is down to FFTW and so unlikely to be fixed in these
+        wrappers.
 
         ``direction`` should be a string and one of FFTW_FORWARD 
         or FFTW_BACKWARD, which dictate whether to take the
@@ -872,19 +881,19 @@ cdef class FFTW:
         array can be arbitrary.
         '''
         if self.__simd_allowed:
-            if not (new_input_array.ctypes.data%16 == 0 and \
+            if not (new_input_array.ctypes.data%16 == 0 and 
                     new_input_array.ctypes.data%16 == 0):
                 
-                raise ValueError('The original arrays were 16-byte '+\
-                        'aligned. It is necessary that the update arrays '+\
+                raise ValueError('The original arrays were 16-byte '+
+                        'aligned. It is necessary that the update arrays '+
                         'are similarly aligned.')
 
         if not new_input_array.dtype == self.__input_dtype:
-            raise ValueError('The new input array is not of the same '+\
+            raise ValueError('The new input array is not of the same '+
                     'dtype as was originally planned for.')
 
         if not new_output_array.dtype == self.__output_dtype:
-            raise ValueError('The new output array is not of the same '+\
+            raise ValueError('The new output array is not of the same '+
                     'dtype as was originally planned for.')
 
         new_input_shape = np.array(new_input_array.shape)
@@ -895,19 +904,19 @@ cdef class FFTW:
                 np.array(new_output_array.strides)/new_output_array.itemsize
 
         if not (new_input_shape == self.__input_shape).all():
-            raise ValueError('The new input array should be the same '+\
+            raise ValueError('The new input array should be the same '+
                     'shape as the input array used to instantiate the object.')
 
         if not (new_output_shape == self.__output_shape).all():
-            raise ValueError('The new output array should be the same '+\
+            raise ValueError('The new output array should be the same '+
                     'shape as the output array used to instantiate the object.')
         
         if not (new_input_strides == self.__input_strides).all():
-            raise ValueError('The strides should be identical for the new '+\
+            raise ValueError('The strides should be identical for the new '+
                     'input array as for the old.')
         
         if not (new_output_strides == self.__output_strides).all():
-            raise ValueError('The strides should be identical for the new '+\
+            raise ValueError('The strides should be identical for the new '+
                     'output array as for the old.')
 
         self._update_arrays(new_input_array, new_output_array)
@@ -924,10 +933,10 @@ cdef class FFTW:
         '''
         Execute the planned operation.
         '''
-        cdef void *input_pointer = \
-                <void *>np.PyArray_DATA(self.__input_array)
-        cdef void *output_pointer = \
-                <void *>np.PyArray_DATA(self.__output_array)
+        cdef void *input_pointer = (
+                <void *>np.PyArray_DATA(self.__input_array))
+        cdef void *output_pointer = (
+                <void *>np.PyArray_DATA(self.__output_array))
         
         cdef void *plan = self.__plan
         cdef fftw_generic_execute fftw_execute = self.__fftw_execute
@@ -937,6 +946,31 @@ cdef class FFTW:
                 fftw_execute(plan, input_pointer, output_pointer)
         else:
             fftw_execute(self.__plan, input_pointer, output_pointer)
+
+cdef void count_char(char c, void *counter_ptr):
+    ''' On every call, increment the derefenced counter_ptr.
+    '''
+    (<int *>counter_ptr)[0] += 1
+
+
+cdef void write_char_to_string(char c, void *string_location_ptr):
+    ''' Write the passed character c to the memory location
+    pointed to by the contents of string_location_ptr (i.e. a pointer
+    to a pointer), then increment the contents of string_location_ptr 
+    (i.e. move to the next byte in memory).
+
+    In other words, for every character that is passed, we write that
+    to a string that is referenced by the dereferenced value of 
+    string_location_ptr.
+
+    If the derefenced value of string_location points to an
+    unallocated piece of memory, a segfault will likely occur.
+    '''
+    cdef char *write_location = <char *>((<intptr_t *>string_location_ptr)[0])
+    write_location[0] = c
+
+    (<intptr_t *>string_location_ptr)[0] += 1
+
 
 def export_wisdom():
     ''' export_wisdom()
@@ -956,10 +990,39 @@ def export_wisdom():
     cdef bytes py_wisdomf
     cdef bytes py_wisdoml
 
-    cdef char* c_wisdom = fftw_export_wisdom_to_string()
-    cdef char* c_wisdomf = fftwf_export_wisdom_to_string()
-    cdef char* c_wisdoml = fftwl_export_wisdom_to_string()
-    
+    #cdef char* c_wisdom = fftw_export_wisdom_to_string()
+    #cdef char* c_wisdomf = fftwf_export_wisdom_to_string()
+    #cdef char* c_wisdoml = fftwl_export_wisdom_to_string()
+
+    cdef int counter = 0
+    cdef int counterf = 0
+    cdef int counterl = 0
+
+    fftw_export_wisdom(&count_char, <void *>&counter)
+    fftwf_export_wisdom(&count_char, <void *>&counterf)
+    fftwl_export_wisdom(&count_char, <void *>&counterl)
+
+    cdef char* c_wisdom = <char *>malloc(sizeof(char)*(counter + 1))
+    cdef char* c_wisdomf = <char *>malloc(sizeof(char)*(counterf + 1))
+    cdef char* c_wisdoml = <char *>malloc(sizeof(char)*(counterl + 1))
+
+    if c_wisdom == NULL or c_wisdomf == NULL or c_wisdoml == NULL:
+        raise MemoryError
+
+    # Set the pointers to the string pointers
+    cdef intptr_t c_wisdom_ptr = <intptr_t>c_wisdom
+    cdef intptr_t c_wisdomf_ptr = <intptr_t>c_wisdomf
+    cdef intptr_t c_wisdoml_ptr = <intptr_t>c_wisdoml
+
+    fftw_export_wisdom(&write_char_to_string, <void *>&c_wisdom_ptr)
+    fftwf_export_wisdom(&write_char_to_string, <void *>&c_wisdomf_ptr)
+    fftwl_export_wisdom(&write_char_to_string, <void *>&c_wisdoml_ptr)
+
+    # Write the last byte as the null byte
+    c_wisdom[counter] = 0
+    c_wisdomf[counterf] = 0
+    c_wisdoml[counterl] = 0
+
     try:
         py_wisdom = c_wisdom
         py_wisdomf = c_wisdomf
@@ -968,7 +1031,7 @@ def export_wisdom():
     finally:
         free(c_wisdom)
         free(c_wisdomf)
-        free(c_wisdoml)        
+        free(c_wisdoml)
 
     return (py_wisdom, py_wisdomf, py_wisdoml)
 
@@ -1110,16 +1173,16 @@ cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
     itemsize = np.dtype(dtype).itemsize
 
     # Allocate a new array that will contain the aligned data
-    _array_aligned = np.empty(\
-            np.prod(shape)*itemsize+n,\
+    _array_aligned = np.empty(
+            np.prod(shape)*itemsize+n,
             dtype='int8')
     
     # We now need to know how to offset _array_aligned 
     # so it is correctly aligned
     _array_aligned_offset = (n-_array_aligned.ctypes.data)%n
 
-    array = np.frombuffer(\
-            _array_aligned[_array_aligned_offset:_array_aligned_offset-n].data,\
+    array = np.frombuffer(
+            _array_aligned[_array_aligned_offset:_array_aligned_offset-n].data,
             dtype=dtype).reshape(shape, order=order)
     
     return array
@@ -1143,8 +1206,8 @@ cpdef n_byte_align(array, n):
     
     if offset is not 0:
         # Allocate a new array that will contain the aligned data
-        _array_aligned = np.empty(\
-                np.prod(array.shape)*array.itemsize+n,\
+        _array_aligned = np.empty(
+                np.prod(array.shape)*array.itemsize+n,
                 dtype='int8')
         
         # We now need to know how to offset _array_aligned 
@@ -1158,13 +1221,12 @@ cpdef n_byte_align(array, n):
         # The frombuffer method was found to be the fastest
         # in various tests using the timeit module. (see
         # the blog post, 4/8/11)
-        np.frombuffer(
-                _array_aligned.data, dtype='int8')\
+        np.frombuffer(_array_aligned.data, dtype='int8')\
                 [_array_aligned_offset:_array_aligned_offset-n]\
                 = np.frombuffer(array.data, dtype='int8')[:]
         
-        array = np.frombuffer(\
-                _array_aligned[_array_aligned_offset:_array_aligned_offset-n].data, \
+        array = np.frombuffer(
+                _array_aligned[_array_aligned_offset:_array_aligned_offset-n].data, 
                 dtype=array.dtype).reshape(array.shape).view(type=array.__class__)
     
     return array
