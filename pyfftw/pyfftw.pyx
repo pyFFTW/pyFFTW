@@ -230,23 +230,6 @@ cdef void _fftwl_destroy_plan(void *_plan):
 
     fftwl_destroy_plan(<fftwl_plan>_plan)
 
-#    Init threads
-#    ============
-#
-# Double precision
-cdef void _fftw_init_threads():
-
-    fftw_init_threads()
-
-# Single precision
-cdef void _fftwf_init_threads():
-
-    fftwf_init_threads()
-
-# Long double precision
-cdef void _fftwl_init_threads():
-
-    fftwl_init_threads()
 
 #    Plan with n threads
 #    ===================
@@ -308,14 +291,6 @@ cdef fftw_generic_destroy_plan * _build_destroyer_list():
     destroyers[1] = <fftw_generic_destroy_plan>&_fftwf_destroy_plan
     destroyers[2] = <fftw_generic_destroy_plan>&_fftwl_destroy_plan
 
-
-# Threads init table
-cdef fftw_generic_init_threads thread_initializers[3]
-
-cdef fftw_generic_init_threads * _build_init_threads_list():
-    thread_initializers[0] = <fftw_generic_init_threads>&_fftw_init_threads
-    thread_initializers[1] = <fftw_generic_init_threads>&_fftwf_init_threads
-    thread_initializers[2] = <fftw_generic_init_threads>&_fftwl_init_threads
 
 # nthreads plan setters table
 cdef fftw_generic_plan_with_nthreads nthreads_plan_setters[3]
@@ -441,36 +416,36 @@ scheme_directions = {
 
 scheme_functions = {
     'c128': {'planner': 0, 'executor':0, 'destroyer':0,
-        't_init': 0, 't_plan': 0,
+        't_plan': 0,
         'validator':None, 'fft_shape_lookup': None},
     'c64': {'planner':1, 'executor':1, 'destroyer':1,
-        't_init': 1, 't_plan': 1,        
+        't_plan': 1,        
         'validator':None, 'fft_shape_lookup': None},
     'cld': {'planner':2, 'executor':2, 'destroyer':2,
-        't_init': 2, 't_plan': 2,
+        't_plan': 2,
         'validator':None, 'fft_shape_lookup': None},
     'r64_to_c128': {'planner':3, 'executor':3, 'destroyer':0,
-        't_init': 0, 't_plan': 0,
+        't_plan': 0,
         'validator':_validate_r2c_arrays, 
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     'r32_to_c64': {'planner':4, 'executor':4, 'destroyer':1,
-        't_init': 1, 't_plan': 1,
+        't_plan': 1,
         'validator':_validate_r2c_arrays, 
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     'rld_to_cld': {'planner':5, 'executor':5, 'destroyer':2,
-        't_init': 2, 't_plan': 2,
+        't_plan': 2,
         'validator':_validate_r2c_arrays, 
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     'c128_to_r64': {'planner':6, 'executor':6, 'destroyer':0, 
-        't_init': 0, 't_plan': 0,
+        't_plan': 0,
         'validator':_validate_c2r_arrays, 
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
     'c64_to_r32': {'planner':7, 'executor':7, 'destroyer':1, 
-        't_init': 1, 't_plan': 1,
+        't_plan': 1,
         'validator':_validate_c2r_arrays, 
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
     'cld_to_rld': {'planner':8, 'executor':8, 'destroyer':2,
-        't_init': 2, 't_plan': 2,
+        't_plan': 2,
         'validator':_validate_c2r_arrays, 
         'fft_shape_lookup': _lookup_shape_c2r_arrays}}
 
@@ -480,8 +455,11 @@ scheme_functions = {
 _build_planner_list()
 _build_destroyer_list()
 _build_executor_list()
-_build_init_threads_list()
 _build_nthreads_plan_setters_list()
+
+fftw_init_threads()
+fftwf_init_threads()
+fftwl_init_threads()
 
 # Set the cleanup routine
 import atexit
@@ -521,7 +499,6 @@ cdef class FFTW:
     cdef fftw_generic_plan_guru __fftw_planner
     cdef fftw_generic_execute __fftw_execute
     cdef fftw_generic_destroy_plan __fftw_destroy
-    cdef fftw_generic_init_threads __thread_initializer
     cdef fftw_generic_plan_with_nthreads __nthreads_plan_setter
 
 
@@ -593,8 +570,6 @@ cdef class FFTW:
         self.__fftw_execute = executors[functions['executor']]
         self.__fftw_destroy = destroyers[functions['destroyer']]
 
-        self.__thread_initializer = (
-                thread_initializers[functions['t_init']])
         self.__nthreads_plan_setter = (
                 nthreads_plan_setters[functions['t_plan']])
         
@@ -693,11 +668,9 @@ cdef class FFTW:
         ## (and none should be made before this)
         if threads > 1:
             self.__use_threads = True
-            self.__thread_initializer()
             self.__nthreads_plan_setter(threads)
         else:
             self.__use_threads = False
-            self.__thread_initializer()            
             self.__nthreads_plan_setter(1)
 
         # Finally, construct the plan
