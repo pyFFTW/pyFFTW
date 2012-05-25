@@ -1141,10 +1141,19 @@ cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
     
     itemsize = np.dtype(dtype).itemsize
 
+    # Apparently there is an issue with numpy.prod wrapping around on 32-bits
+    # on Windows 64-bit. This shouldn't happen, but the following code 
+    # alleviates the problem.
+    if not isinstance(shape, int):
+        array_length = 1
+        for each_dimension in shape:
+            array_length *= each_dimension
+    
+    else:
+        array_length = shape
+
     # Allocate a new array that will contain the aligned data
-    _array_aligned = np.empty(
-            np.prod(shape)*itemsize+n,
-            dtype='int8')
+    _array_aligned = np.empty(array_length*itemsize+n, dtype='int8')
     
     # We now need to know how to offset _array_aligned 
     # so it is correctly aligned
@@ -1174,28 +1183,11 @@ cpdef n_byte_align(array, n):
     offset = array.ctypes.data%n
     
     if offset is not 0:
-        # Allocate a new array that will contain the aligned data
-        _array_aligned = np.empty(
-                np.prod(array.shape)*array.itemsize+n,
-                dtype='int8')
-        
-        # We now need to know how to offset _array_aligned 
-        # so it is correctly aligned
-        _array_aligned_offset = (n-_array_aligned.ctypes.data)%n
 
-        #if _array_aligned_offset == n:
-        #    _array_aligned_offset = 0
+        _array_aligned = n_byte_align_empty(array.shape, n, array.dtype)
 
-        # Copy the data in with the correct alignment.
-        # The frombuffer method was found to be the fastest
-        # in various tests using the timeit module. (see
-        # the blog post, 4/8/11)
-        np.frombuffer(_array_aligned.data, dtype='int8')\
-                [_array_aligned_offset:_array_aligned_offset-n]\
-                = np.frombuffer(array.data, dtype='int8')[:]
-        
-        array = np.frombuffer(
-                _array_aligned[_array_aligned_offset:_array_aligned_offset-n].data, 
-                dtype=array.dtype).reshape(array.shape).view(type=array.__class__)
+        _array_aligned[:] = array
+
+        array = _array_aligned.view(type=array.__class__)
     
     return array

@@ -57,6 +57,50 @@ class NByteAlignTest(unittest.TestCase):
             b = n_byte_align(a, n)
             self.assertTrue(b.ctypes.data%n == 0)
 
+    def test_integer_shape(self):
+        shape = 100
+        a = numpy.random.randn(shape)
+        # Test a few alignments
+        for n in [3, 7, 9, 16, 24, 23, 63, 64]:
+            b = n_byte_align(a, n)
+            self.assertTrue(b.ctypes.data%n == 0)
+
+    def test_n_byte_align_consistent_data(self):
+        shape = (10,10)
+        a = numpy.int16(numpy.random.randn(*shape)*16000)
+        b = numpy.float128(numpy.random.randn(*shape))
+        c = numpy.int8(numpy.random.randn(*shape)*255)
+
+        # Test a few alignments
+        for n in [3, 7, 9, 16, 24, 23, 63, 64]:
+            d = n_byte_align(a, n)
+            self.assertTrue(numpy.array_equal(a, d))
+
+            d = n_byte_align(b, n)
+            self.assertTrue(numpy.array_equal(b, d))
+
+            d = n_byte_align(c, n)
+            self.assertTrue(numpy.array_equal(c, d))
+
+    def test_n_byte_align_different_dtypes(self):
+        shape = (10,10)
+        a = numpy.int16(numpy.random.randn(*shape)*16000)
+        b = numpy.float128(numpy.random.randn(*shape))
+        c = numpy.int8(numpy.random.randn(*shape)*255)
+        # Test a few alignments
+        for n in [3, 7, 9, 16, 24, 23, 63, 64]:
+            d = n_byte_align(a, n)
+            self.assertTrue(d.ctypes.data%n == 0)
+            self.assertTrue(d.__class__ == a.__class__)
+
+            d = n_byte_align(b, n)
+            self.assertTrue(d.ctypes.data%n == 0)
+            self.assertTrue(d.__class__ == b.__class__)
+
+            d = n_byte_align(c, n)
+            self.assertTrue(d.ctypes.data%n == 0)
+            self.assertTrue(d.__class__ == c.__class__)
+
 test_cases = (
         NByteAlignTest,)
 
