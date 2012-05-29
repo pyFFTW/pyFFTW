@@ -1,4 +1,4 @@
-pyFFTW is a pythonic wrapper around FFTW ( http://www.fftw.org/ ), the
+pyFFTW is a pythonic wrapper around FFTW 3 ( http://www.fftw.org/ ), the
 speedy FFT library.  The ultimate aim is to present a unified interface for all the possible transforms that FFTW can perform.
 
 Both the complex DFT and the real DFT are supported, as well as on arbitrary
@@ -15,11 +15,11 @@ repository or with the source distribution on PyPI.
 
 The documentation can be found at http://hgomersall.github.com/pyFFTW/ , the source is on github: https://github.com/hgomersall/pyFFTW and the python package index page is here: http://pypi.python.org/pypi/pyFFTW .
 
-Dependencies
+Dependencies (i.e. what it was designed for)
 ============
-- Numpy
-- FFTW
-- Cython (though the source release on PyPI loses this dependency)
+- Numpy 1.6
+- FFTW 3.2 or higher (lower versions *may* work)
+- Cython 0.15 or higher (though the source release on PyPI loses this dependency)
 
 (install these as much as possible with your preferred package manager).
 
