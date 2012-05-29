@@ -64,6 +64,10 @@ FFTW Class
 
 .. autoclass:: pyfftw.FFTW(input_array, output_array, axes=(-1,), direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), threads=1)
 
+   .. _FFTW___call__:
+
+   .. automethod:: pyfftw.FFTW.__call__(input_array=None, output_array=None)
+
    .. _FFTW_update_arrays:
 
    .. automethod:: pyfftw.FFTW.update_arrays(new_input_array, new_output_array)

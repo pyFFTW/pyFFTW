@@ -493,6 +493,11 @@ cdef class FFTW:
     
     The arrays can be updated by calling the 
     :ref:`update_arrays()<FFTW_update_arrays>` method.
+
+    The created instance of the class is itself callable, and can perform the
+    execution of the FFT, both with or without array updates, returning the
+    result of the FFT. See the documentation on the
+    :ref:`__call__()<FFTW___call__>` method for more information.
     '''
     # Each of these function pointers simply
     # points to a chosen fftw wrapper function
@@ -833,6 +838,44 @@ cdef class FFTW:
         if not self.__howmany_dims == NULL:
             free(self.__howmany_dims)
 
+    def __call__(self, input_array=None, output_array=None):
+        '''Calling the class instance (optionally) updates the arrays, then
+        calls :ref:`execute()<FFTW_execute>`, returning the output array.
+        
+        When `input_array` or `output_array` are left or set to `None`,
+        this method is equivalent to calling the :ref:`execute()<FFTW_execute>`
+        method on the class.
+
+        When either or both `input_array` or `output_array` are something other
+        than None, then this method is equivalent to calling
+        :ref:`update_arrays()<FFTW_update_arrays>` with the arguments passed in,
+        followed by a call to :ref:`execute()<FFTW_execute>`.
+
+        A single `None` argument means that that array not updated.
+
+        All the usual requirements mandated by 
+        :ref:`update_arrays()<FFTW_update_arrays>` on the array updates are
+        enforced.
+
+        The result of the FFT is returned. This is the same array that is used
+        internally and will be overwritten again on subsequent calls.
+        '''
+
+        if input_array is not None or output_array is not None:
+
+            if input_array is None:
+                input_array = self.__input_array
+
+            if output_array is None:
+                output_array = self.__output_array
+
+            self.update_arrays(input_array, output_array)
+
+        self.execute()
+
+        return self.__output_array
+
+
     cpdef update_arrays(self, 
             new_input_array, new_output_array):
         ''' 
@@ -853,6 +896,14 @@ cdef class FFTW:
         boundary, then SIMD is disabled and the alignment of the new
         array can be arbitrary.
         '''
+        if not isinstance(new_input_array, np.ndarray):
+            raise ValueError('The new input array needs to be an instance '+
+                    'of numpy.ndarray')
+
+        if not isinstance(new_output_array, np.ndarray):
+            raise ValueError('The new output array needs to be an instance '+
+                    'of numpy.ndarray')
+
         if self.__simd_allowed:
             if not (new_input_array.ctypes.data%16 == 0 and 
                     new_input_array.ctypes.data%16 == 0):
@@ -871,24 +922,24 @@ cdef class FFTW:
 
         new_input_shape = np.array(new_input_array.shape)
         new_output_shape = np.array(new_output_array.shape)
-        new_input_strides = \
-                np.array(new_input_array.strides)/new_input_array.itemsize
-        new_output_strides = \
-                np.array(new_output_array.strides)/new_output_array.itemsize
+        new_input_strides = np.array(
+                new_input_array.strides)/new_input_array.itemsize
+        new_output_strides = np.array(
+                new_output_array.strides)/new_output_array.itemsize
 
-        if not (new_input_shape == self.__input_shape).all():
+        if not np.all(new_input_shape == self.__input_shape):
             raise ValueError('The new input array should be the same '+
                     'shape as the input array used to instantiate the object.')
 
-        if not (new_output_shape == self.__output_shape).all():
+        if not np.all(new_output_shape == self.__output_shape):
             raise ValueError('The new output array should be the same '+
                     'shape as the output array used to instantiate the object.')
         
-        if not (new_input_strides == self.__input_strides).all():
+        if not np.all(new_input_strides == self.__input_strides):
             raise ValueError('The strides should be identical for the new '+
                     'input array as for the old.')
         
-        if not (new_output_strides == self.__output_strides).all():
+        if not np.all(new_output_strides == self.__output_strides):
             raise ValueError('The strides should be identical for the new '+
                     'output array as for the old.')
 

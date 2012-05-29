@@ -213,6 +213,24 @@ class Complex64FFTWTest(FFTWBaseTest):
         a, b = self.create_test_arrays(in_shape, out_shape)
         
         self.run_validate_fft(a, b, axes, fft=fft, ifft=ifft)
+    
+    def test_update_data_with_not_ndarray_error(self):
+        in_shape = self.input_shapes['2d']
+        out_shape = self.output_shapes['2d']
+        
+        axes=(-2,-1)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        fft, ifft = self.run_validate_fft(a, b, axes, 
+                create_array_copies=False)
+
+        self.assertRaises(ValueError, fft.update_arrays, 
+                *(a,10),
+                **{})
+
+        self.assertRaises(ValueError, fft.update_arrays, 
+                *(10,b),
+                **{})
 
     def test_update_data_with_stride_error(self):
         in_shape = self.input_shapes['2d']
