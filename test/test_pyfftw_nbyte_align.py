@@ -68,7 +68,7 @@ class NByteAlignTest(unittest.TestCase):
     def test_n_byte_align_consistent_data(self):
         shape = (10,10)
         a = numpy.int16(numpy.random.randn(*shape)*16000)
-        b = numpy.float128(numpy.random.randn(*shape))
+        b = numpy.float64(numpy.random.randn(*shape))
         c = numpy.int8(numpy.random.randn(*shape)*255)
 
         # Test a few alignments
@@ -85,7 +85,7 @@ class NByteAlignTest(unittest.TestCase):
     def test_n_byte_align_different_dtypes(self):
         shape = (10,10)
         a = numpy.int16(numpy.random.randn(*shape)*16000)
-        b = numpy.float128(numpy.random.randn(*shape))
+        b = numpy.float64(numpy.random.randn(*shape))
         c = numpy.int8(numpy.random.randn(*shape)*255)
         # Test a few alignments
         for n in [3, 7, 9, 16, 24, 23, 63, 64]:
