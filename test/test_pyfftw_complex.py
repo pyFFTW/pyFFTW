@@ -114,6 +114,17 @@ class Complex64FFTWTest(FFTWBaseTest):
 
         self.run_validate_fft(a, b, axes, create_array_copies=False)
 
+    def test_zero_length_fft_axis_fail(self):
+        
+        in_shape = (1024, 0)
+        out_shape = in_shape
+
+        axes = (-1,)
+
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        self.assertRaises(ValueError, self.run_validate_fft, *(a,b, axes))
+
     def test_missized_fail(self):
         in_shape = self.input_shapes['2d']
         _out_shape = self.output_shapes['2d']

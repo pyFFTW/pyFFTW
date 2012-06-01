@@ -599,6 +599,10 @@ cdef class FFTW:
 
         # Now get the axes along which the FFT is *not* taken
         _not_axes = np.setdiff1d(np.arange(0,len(self.__input_shape)), _axes)
+
+        if 0 in set(self.__input_shape[_axes]):
+            raise ValueError('The input array should have no zero length'
+                    'axes over which the FFT is to be taken')
         
         # Now we can validate the array shapes
         if functions['validator'] == None:
@@ -687,7 +691,7 @@ cdef class FFTW:
             self.__direction, self.__flags)
 
         if self.__plan == NULL:
-            raise ValueError('The data has an uncaught error that led '+
+            raise RuntimeError('The data has an uncaught error that led '+
                     'to the planner returning NULL. This is a bug.')
 
     def __init__(self, input_array, output_array, axes=[-1], 
