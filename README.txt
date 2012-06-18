@@ -30,7 +30,7 @@ We recommend _not_ building from github, but using the release on
 the python package index with tools such as easy_install or pip:
 pip install pyfftw 
 or
-each_install pyfftw
+easy_install pyfftw
 
 Success has been reported on building on Linux, 32-bit Windows and Mac OSX.
 It doesn't mean it won't work anywhere else, just we don't have any information
