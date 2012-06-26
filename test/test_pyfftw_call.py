@@ -129,6 +129,43 @@ class FFTWCallTest(unittest.TestCase):
 
         self.assertTrue(numpy.alltrue(returned_output_array == output_array))
     
+    def test_call_with_different_input_dtype(self):
+        '''Test the class call with an array with a different input dtype
+        '''
+        input_array = numpy.complex64(
+                numpy.random.randn(*self.input_array.shape) 
+                + 1j*numpy.random.randn(*self.input_array.shape))
+
+        output_array = self.fft(input_array.copy()).copy()
+
+        _input_array = numpy.asarray(input_array,
+                dtype=self.input_array.dtype)
+
+        self.fft.update_arrays(_input_array, self.output_array)
+        self.fft.execute()
+
+        self.assertTrue(numpy.alltrue(output_array == self.output_array))
+
+    def test_call_with_different_output_dtype(self):
+        '''Test the class call with an array with a different output dtype
+        '''
+        output_array = numpy.complex64(
+                numpy.random.randn(*self.output_array.shape) 
+                + 1j*numpy.random.randn(*self.output_array.shape))
+
+        returned_output_array = self.fft(
+                output_array=output_array.copy()).copy()
+
+        _output_array = numpy.asarray(output_array, 
+                dtype=self.output_array.dtype)
+
+        self.fft.update_arrays(self.input_array, _output_array)
+        self.fft.execute()
+
+        self.assertTrue(
+                numpy.alltrue(returned_output_array == _output_array))
+
+
     def test_call_with_invalid_update(self):
         '''Test the class call with an invalid update.
         '''

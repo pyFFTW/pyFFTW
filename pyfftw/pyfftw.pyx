@@ -496,8 +496,9 @@ cdef class FFTW:
 
     The created instance of the class is itself callable, and can perform the
     execution of the FFT, both with or without array updates, returning the
-    result of the FFT. See the documentation on the
-    :ref:`__call__()<FFTW___call__>` method for more information.
+    result of the FFT. Calling an instance of this class with an array update 
+    will also coerce that array to be the correct dtype. See the documentation 
+    on the :ref:`__call__()<FFTW___call__>` method for more information.
     '''
     # Each of these function pointers simply
     # points to a chosen fftw wrapper function
@@ -851,15 +852,25 @@ cdef class FFTW:
         method on the class.
 
         When either or both `input_array` or `output_array` are something other
-        than None, then this method is equivalent to calling
-        :ref:`update_arrays()<FFTW_update_arrays>` with the arguments passed in,
-        followed by a call to :ref:`execute()<FFTW_execute>`.
+        than None, then the passed in array is coerced to be the same dtype as
+        the arrays used when the class was instantiated. The byte-alignment
+        of the passed in arrays is also made consistent with the expected
+        byte-alignment. This may, but not necessarily, require a copy to be
+        made.
+        
+        The coerced arrays are then passed as arguments to
+        :ref:`update_arrays()<FFTW_update_arrays>`, after which
+        :ref:`execute()<FFTW_execute>` is called.
+        
+        Note that it is possible to pass some data structure that can be
+        converted to an array, such as a list, so long as it fits the data
+        requirements of the class instance, such as array shape.
+
+        Other than the dtype and the alignment of the passed in arrays, the rest 
+        of the requirements on the arrays mandated by 
+        :ref:`update_arrays()<FFTW_update_arrays>` are enforced.
 
         A single `None` argument means that that array not updated.
-
-        All the usual requirements mandated by 
-        :ref:`update_arrays()<FFTW_update_arrays>` on the array updates are
-        enforced.
 
         The result of the FFT is returned. This is the same array that is used
         internally and will be overwritten again on subsequent calls.
@@ -872,6 +883,12 @@ cdef class FFTW:
 
             if output_array is None:
                 output_array = self.__output_array
+
+            input_array = np.asanyarray(input_array, 
+                    dtype=self.__input_array.dtype)
+
+            output_array = np.asanyarray(output_array, 
+                    dtype=self.__output_array.dtype)
 
             self.update_arrays(input_array, output_array)
 
