@@ -974,6 +974,18 @@ cdef class FFTW:
         self.__input_array = new_input_array
         self.__output_array = new_output_array
 
+    def get_input_array(self):
+        '''Return the input array that is associated with the FFTW 
+        instance.
+        '''
+        return self.__input_array
+
+    def get_output_array(self):
+        '''Return the output array that is associated with the FFTW
+        instance.
+        '''
+        return self.__output_array
+
     cpdef execute(self):
         '''
         Execute the planned operation.
