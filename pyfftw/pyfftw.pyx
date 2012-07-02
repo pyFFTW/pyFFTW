@@ -587,7 +587,7 @@ cdef class FFTW:
         self.__output_array = output_array
         
         _axes = np.array(axes)
-        
+
         # Set the negative entries to their actual index (use the size
         # of the shape array for this)
         _axes[_axes<0] = _axes[_axes<0] + len(self.__input_shape)
@@ -596,7 +596,12 @@ cdef class FFTW:
             raise ValueError('The axes list cannot contain invalid axes.')
 
         # We want to make sure that the axes list contains unique entries
-        _axes = np.unique(_axes)
+        scratch, indices = np.unique(_axes, return_index=True)
+        
+        # Unfortunately, np.unique also sorts the elements, so we need to
+        # undo this
+        indices.sort()
+        _axes = _axes[indices]
 
         # Now get the axes along which the FFT is *not* taken
         _not_axes = np.setdiff1d(np.arange(0,len(self.__input_shape)), _axes)
@@ -604,7 +609,7 @@ cdef class FFTW:
         if 0 in set(self.__input_shape[_axes]):
             raise ValueError('The input array should have no zero length'
                     'axes over which the FFT is to be taken')
-        
+
         # Now we can validate the array shapes
         if functions['validator'] == None:
             if not (output_array.shape == input_array.shape):

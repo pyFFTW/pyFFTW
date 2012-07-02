@@ -54,7 +54,7 @@ class FFTWBaseTest(unittest.TestCase):
                 '2d': (256, 2048),
                 '3d': (15, 256, 2048)}
 
-    def create_test_arrays(self, input_shape, output_shape):
+    def create_test_arrays(self, input_shape, output_shape, axes=None):
         a = self.input_dtype(numpy.random.randn(*input_shape)
                 +1j*numpy.random.randn(*input_shape))
 

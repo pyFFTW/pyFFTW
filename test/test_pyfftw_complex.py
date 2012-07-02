@@ -156,6 +156,18 @@ class Complex64FFTWTest(FFTWBaseTest):
     
         self.assertRaises(ValueError, FFTW, *(a,b))
 
+    def test_non_monotonic_increasing_axes(self):
+        '''Test the case where the axes arg does not monotonically increase.
+        '''
+        axes=(1, 0)
+
+        # We still need the shapes to work!
+        in_shape = numpy.asarray(self.input_shapes['2d'])[list(axes)]
+        out_shape = numpy.asarray(self.output_shapes['2d'])[list(axes)]
+        
+        a, b = self.create_test_arrays(in_shape, out_shape, axes=axes)
+
+        self.run_validate_fft(a, b, axes, create_array_copies=False)
 
     def test_f_contiguous_1d(self):
         in_shape = self.input_shapes['2d']

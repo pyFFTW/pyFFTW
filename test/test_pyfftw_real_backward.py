@@ -222,6 +222,12 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         
         self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
+    @unittest.skipIf(numpy.version.version <= '1.6.1',
+            'numpy.fft <= 1.6.1 has a bug that causes this test to fail.')
+    def test_non_monotonic_increasing_axes(self):
+        super(RealBackwardDoubleFFTWTest, 
+                self).test_non_monotonic_increasing_axes()
+
 class RealBackwardSingleFFTWTest(RealBackwardDoubleFFTWTest):
     
     def setUp(self):

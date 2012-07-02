@@ -44,7 +44,7 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
                 '2d': (256, 1025),
                 '3d': (15, 256, 1025)}
 
-    def create_test_arrays(self, input_shape, output_shape):
+    def create_test_arrays(self, input_shape, output_shape, axes=None):
         a = self.input_dtype(numpy.random.randn(*input_shape))
 
         b = self.output_dtype(numpy.random.randn(*output_shape)
