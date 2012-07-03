@@ -37,6 +37,8 @@ class FFTWBaseTest(unittest.TestCase):
         self.input_dtype = numpy.complex64
         self.output_dtype = numpy.complex64
         self.np_fft_comparison = numpy.fft.fft
+
+        self.direction = 'FFTW_FORWARD'
         return
 
     def tearDown(self):

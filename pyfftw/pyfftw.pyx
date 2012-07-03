@@ -542,11 +542,22 @@ cdef class FFTW:
 
         flags = list(flags)
 
+        if not isinstance(input_array, np.ndarray):
+            raise ValueError('Invalid input array: '
+                    'The input array needs to be an instance '
+                    'of numpy.ndarray')
+
+        if not isinstance(output_array, np.ndarray):
+            raise ValueError('Invalid output array: '
+                    'The output array needs to be an instance '
+                    'of numpy.ndarray')
+
         try:
             scheme = fftw_schemes[
                     (input_array.dtype, output_array.dtype)]
         except KeyError:
-            raise ValueError('The output array and input array dtypes '+
+            raise ValueError('Invalid scheme: '
+                    'The output array and input array dtypes '
                     'do not correspond to a valid fftw scheme.')
 
         self.__input_dtype = input_array.dtype
@@ -564,7 +575,8 @@ cdef class FFTW:
             self.__simd_allowed = False
 
         if not direction in scheme_directions[scheme]:
-            raise ValueError('The direction is not valid for the scheme. '
+            raise ValueError('Invalid direction: '
+                    'The direction is not valid for the scheme. '
                     'Try setting it explicitly if it is not already.')
 
         self.__direction = directions[direction]
@@ -593,7 +605,8 @@ cdef class FFTW:
         _axes[_axes<0] = _axes[_axes<0] + len(self.__input_shape)
 
         if (_axes >= len(self.__input_shape)).any() or (_axes < 0).any():
-            raise ValueError('The axes list cannot contain invalid axes.')
+            raise ValueError('Invalid axes: '
+                    'The axes list cannot contain invalid axes.')
 
         # We want to make sure that the axes list contains unique entries
         scratch, indices = np.unique(_axes, return_index=True)
@@ -607,20 +620,22 @@ cdef class FFTW:
         _not_axes = np.setdiff1d(np.arange(0,len(self.__input_shape)), _axes)
 
         if 0 in set(self.__input_shape[_axes]):
-            raise ValueError('The input array should have no zero length'
+            raise ValueError('Zero length array: '
+                    'The input array should have no zero length'
                     'axes over which the FFT is to be taken')
 
         # Now we can validate the array shapes
         if functions['validator'] == None:
             if not (output_array.shape == input_array.shape):
-                raise ValueError('The output array should be the same '+
-                        'shape as the input array for the given array '+
-                        'dtypes.')
+                raise ValueError('Invalid shapes: '
+                        'The output array should be the same shape as the '
+                        'input array for the given array dtypes.')
         else:
             if not functions['validator'](input_array, output_array,
                     _axes, _not_axes):
-                raise ValueError('The input array and output array are '+
-                        'invalid complementary shapes for their dtypes.')
+                raise ValueError('Invalid shapes: '
+                        'The input array and output array are invalid '
+                        'complementary shapes for their dtypes.')
 
         self.__rank = len(_axes)
         self.__howmany_rank = len(_not_axes)
@@ -633,6 +648,7 @@ cdef class FFTW:
                 self.__howmany_rank * sizeof(_fftw_iodim))
 
         if self.__dims == NULL or self.__howmany_dims == NULL:
+            # Not much else to do than raise an exception
             raise MemoryError
 
         # Find the strides for all the axes of both arrays in terms of the 
@@ -643,6 +659,8 @@ cdef class FFTW:
                 np.array(output_array.strides)/output_array.itemsize)
 
         # Make sure that the arrays are not too big for fftw
+        # This is hard to test, so we cross our fingers and hope for the 
+        # best (any suggestions, please get in touch).
         cdef int i
         for i in range(0, len(self.__input_shape)):
             if self.__input_shape[i] >= <Py_ssize_t> limits.INT_MAX:
@@ -661,7 +679,7 @@ cdef class FFTW:
             if self.__output_strides[i] >= <Py_ssize_t> limits.INT_MAX:
                 raise ValueError('Strides of the output array must be ' +
                         'less than ', str(limits.INT_MAX))
-        
+
         fft_shape_lookup = functions['fft_shape_lookup']
         if fft_shape_lookup == None:
             fft_shape = self.__input_shape
@@ -861,7 +879,7 @@ cdef class FFTW:
         the arrays used when the class was instantiated. The byte-alignment
         of the passed in arrays is also made consistent with the expected
         byte-alignment. This may, but not necessarily, require a copy to be
-        made.
+        made. FIXME - NOT YET DONE.
         
         The coerced arrays are then passed as arguments to
         :ref:`update_arrays()<FFTW_update_arrays>`, after which
@@ -923,27 +941,36 @@ cdef class FFTW:
         array can be arbitrary.
         '''
         if not isinstance(new_input_array, np.ndarray):
-            raise ValueError('The new input array needs to be an instance '+
+            raise ValueError('Invalid input array: '
+                    'The new input array needs to be an instance '
                     'of numpy.ndarray')
 
         if not isinstance(new_output_array, np.ndarray):
-            raise ValueError('The new output array needs to be an instance '+
+            raise ValueError('Invalid output array '
+                    'The new output array needs to be an instance '
                     'of numpy.ndarray')
 
         if self.__simd_allowed:
-            if not (new_input_array.ctypes.data%16 == 0 and 
-                    new_input_array.ctypes.data%16 == 0):
-                
-                raise ValueError('The original arrays were 16-byte '+
-                        'aligned. It is necessary that the update arrays '+
-                        'are similarly aligned.')
+            if not (new_input_array.ctypes.data%16 == 0):
+                raise ValueError('Invalid input alignment: '
+                        'The original arrays were 16-byte aligned. It is '
+                        'necessary that the update input array is similarly '
+                        'aligned.')
+
+            if not (new_output_array.ctypes.data%16 == 0):
+                raise ValueError('Invalid output alignment: '
+                        'The original arrays were 16-byte aligned. It is '
+                        'necessary that the update output array is similarly '
+                        'aligned.')
 
         if not new_input_array.dtype == self.__input_dtype:
-            raise ValueError('The new input array is not of the same '+
+            raise ValueError('Invalid input dtype: '
+                    'The new input array is not of the same '
                     'dtype as was originally planned for.')
 
         if not new_output_array.dtype == self.__output_dtype:
-            raise ValueError('The new output array is not of the same '+
+            raise ValueError('Invalid output dtype: '
+                    'The new output array is not of the same '
                     'dtype as was originally planned for.')
 
         new_input_shape = np.array(new_input_array.shape)
@@ -954,19 +981,23 @@ cdef class FFTW:
                 new_output_array.strides)/new_output_array.itemsize
 
         if not np.all(new_input_shape == self.__input_shape):
-            raise ValueError('The new input array should be the same '+
-                    'shape as the input array used to instantiate the object.')
+            raise ValueError('Invalid input shape: '
+                    'The new input array should be the same shape as '
+                    'the input array used to instantiate the object.')
 
         if not np.all(new_output_shape == self.__output_shape):
-            raise ValueError('The new output array should be the same '+
-                    'shape as the output array used to instantiate the object.')
+            raise ValueError('Invalid output shape: '
+                    'The new output array should be the same shape as '
+                    'the output array used to instantiate the object.')
         
         if not np.all(new_input_strides == self.__input_strides):
-            raise ValueError('The strides should be identical for the new '+
+            raise ValueError('Invalid input striding: '
+                    'The strides should be identical for the new '
                     'input array as for the old.')
         
         if not np.all(new_output_strides == self.__output_strides):
-            raise ValueError('The strides should be identical for the new '+
+            raise ValueError('Invalid output striding: '
+                    'The strides should be identical for the new '
                     'output array as for the old.')
 
         self._update_arrays(new_input_array, new_output_array)

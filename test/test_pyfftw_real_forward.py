@@ -31,7 +31,8 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
         self.input_dtype = numpy.float64
         self.output_dtype = numpy.complex128 
         self.np_fft_comparison = numpy.fft.rfft
-        return  
+
+        self.direction = 'FFTW_FORWARD'
     
     def make_shapes(self):
         self.input_shapes = {
@@ -63,8 +64,8 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        self.assertRaises(ValueError, FFTW, *(a,b),
-                **{'direction':'FFTW_BACKWARD'})
+        with self.assertRaisesRegexp(ValueError, 'Invalid direction'):
+            FFTW(a, b, direction='FFTW_BACKWARD')
 
     def test_non_contiguous_2d(self):
         in_shape = self.input_shapes['2d']
@@ -100,7 +101,8 @@ class RealForwardSingleFFTWTest(RealForwardDoubleFFTWTest):
         self.input_dtype = numpy.float32
         self.output_dtype = numpy.complex64
         self.np_fft_comparison = numpy.fft.rfft        
-        return 
+        
+        self.direction = 'FFTW_FORWARD'
 
 class RealForwardLongDoubleFFTWTest(RealForwardDoubleFFTWTest):
     
@@ -109,7 +111,8 @@ class RealForwardLongDoubleFFTWTest(RealForwardDoubleFFTWTest):
         self.input_dtype = numpy.longdouble
         self.output_dtype = numpy.clongdouble 
         self.np_fft_comparison = numpy.fft.rfft
-        return
+
+        self.direction = 'FFTW_FORWARD'
 
     @unittest.skip('numpy.fft has issues with this dtype.')
     def test_time(self):

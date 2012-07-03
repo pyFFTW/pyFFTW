@@ -30,8 +30,9 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
         self.input_dtype = numpy.complex128
         self.output_dtype = numpy.float64
-        self.np_fft_comparison = numpy.fft.irfft       
-        return  
+        self.np_fft_comparison = numpy.fft.irfft
+
+        self.direction = 'FFTW_BACKWARD'
     
     def make_shapes(self):
 
@@ -172,8 +173,8 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        self.assertRaises(ValueError, FFTW, *(a,b),
-                **{'direction':'FFTW_FORWARD'})
+        with self.assertRaisesRegexp(ValueError, 'Invalid direction'):
+            FFTW(a, b, direction='FFTW_FORWARD')
 
     def test_default_args(self):
         in_shape = self.input_shapes['2d']
@@ -183,7 +184,8 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         
         # default args should fail for backwards transforms
         # (as the default is FFTW_FORWARD)
-        self.assertRaises(ValueError, FFTW, *(a,b))
+        with self.assertRaisesRegexp(ValueError, 'Invalid direction'):
+            FFTW(a, b)
 
     def test_non_contiguous_2d(self):
         in_shape = self.input_shapes['2d']
@@ -236,7 +238,7 @@ class RealBackwardSingleFFTWTest(RealBackwardDoubleFFTWTest):
         self.output_dtype = numpy.float32 
         self.np_fft_comparison = numpy.fft.irfft
 
-        return 
+        self.direction = 'FFTW_BACKWARD'        
 
 class RealBackwardLongDoubleFFTWTest(RealBackwardDoubleFFTWTest):
     
@@ -244,8 +246,9 @@ class RealBackwardLongDoubleFFTWTest(RealBackwardDoubleFFTWTest):
 
         self.input_dtype = numpy.clongdouble
         self.output_dtype = numpy.longdouble 
-        self.np_fft_comparison = numpy.fft.irfft        
-        return
+        self.np_fft_comparison = numpy.fft.irfft
+
+        self.direction = 'FFTW_BACKWARD'        
 
     def reference_fftn(self, a, axes):
 

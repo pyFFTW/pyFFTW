@@ -123,7 +123,8 @@ class Complex64FFTWTest(FFTWBaseTest):
 
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        self.assertRaises(ValueError, self.run_validate_fft, *(a,b, axes))
+        self.assertRaisesRegexp(ValueError, 'Zero length array',
+                self.run_validate_fft, *(a,b, axes))
 
     def test_missized_fail(self):
         in_shape = self.input_shapes['2d']
@@ -134,7 +135,8 @@ class Complex64FFTWTest(FFTWBaseTest):
         axes=(0,1)
         a, b = self.create_test_arrays(in_shape, out_shape)
     
-        self.assertRaises(ValueError, FFTW, *(a,b, axes))
+        with self.assertRaisesRegexp(ValueError, 'Invalid shapes'):
+                FFTW(a, b, axes, direction=self.direction)
     
     def test_missized_nonfft_axes_fail(self):
         in_shape = self.input_shapes['3d']
@@ -144,7 +146,8 @@ class Complex64FFTWTest(FFTWBaseTest):
         axes=(0, 2)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        self.assertRaises(ValueError, FFTW, *(a,b, axes))
+        with self.assertRaisesRegexp(ValueError, 'Invalid shapes'):
+                FFTW(a, b, direction=self.direction)
 
     def test_extra_dimension_fail(self):
         in_shape = self.input_shapes['2d']
@@ -154,7 +157,8 @@ class Complex64FFTWTest(FFTWBaseTest):
         axes=(1, 2)
         a, b = self.create_test_arrays(in_shape, out_shape)
     
-        self.assertRaises(ValueError, FFTW, *(a,b))
+        with self.assertRaisesRegexp(ValueError, 'Invalid shapes'):
+                FFTW(a, b, direction=self.direction)
 
     def test_non_monotonic_increasing_axes(self):
         '''Test the case where the axes arg does not monotonically increase.
@@ -218,11 +222,13 @@ class Complex64FFTWTest(FFTWBaseTest):
 
         a_ = numpy.complex64(a)
         b_ = numpy.complex128(b)
-        self.assertRaises(ValueError, FFTW, *(a_,b_))
+        self.assertRaisesRegexp(ValueError, 'Invalid scheme',
+                FFTW, *(a_,b_))
 
         a_ = numpy.complex128(a)
         b_ = numpy.complex64(b)
-        self.assertRaises(ValueError, FFTW, *(a_,b_))
+        self.assertRaisesRegexp(ValueError, 'Invalid scheme',
+                FFTW, *(a_,b_))
 
     def test_update_data(self):
         in_shape = self.input_shapes['2d']
@@ -237,6 +243,18 @@ class Complex64FFTWTest(FFTWBaseTest):
         
         self.run_validate_fft(a, b, axes, fft=fft, ifft=ifft)
     
+    def test_with_not_ndarray_error(self):
+        in_shape = self.input_shapes['2d']
+        out_shape = self.output_shapes['2d']
+        
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        self.assertRaisesRegexp(ValueError, 'Invalid output array',
+                FFTW, *(a,10))
+
+        self.assertRaisesRegexp(ValueError, 'Invalid input array',
+                FFTW, *(10,b))
+
     def test_update_data_with_not_ndarray_error(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -247,13 +265,11 @@ class Complex64FFTWTest(FFTWBaseTest):
         fft, ifft = self.run_validate_fft(a, b, axes, 
                 create_array_copies=False)
 
-        self.assertRaises(ValueError, fft.update_arrays, 
-                *(a,10),
-                **{})
+        self.assertRaisesRegexp(ValueError, 'Invalid output array',
+                fft.update_arrays, *(a,10))
 
-        self.assertRaises(ValueError, fft.update_arrays, 
-                *(10,b),
-                **{})
+        self.assertRaisesRegexp(ValueError, 'Invalid input array',
+                fft.update_arrays, *(10,b))
 
     def test_update_data_with_stride_error(self):
         in_shape = self.input_shapes['2d']
@@ -265,21 +281,22 @@ class Complex64FFTWTest(FFTWBaseTest):
         fft, ifft = self.run_validate_fft(a, b, axes, 
                 create_array_copies=False)
 
-        in_shape = (in_shape[0]+2, in_shape[1]+2)
-        out_shape = (out_shape[0]+2, out_shape[1]+2)
+        # We offset by 16 to make sure the byte alignment is still correct.
+        in_shape = (in_shape[0]+16, in_shape[1]+16)
+        out_shape = (out_shape[0]+16, out_shape[1]+16)
 
         a_, b_ = self.create_test_arrays(in_shape, out_shape)
 
-        a_ = a_[2:,2:]
-        b_ = b_[2:,2:]
+        a_ = a_[16:,16:]
+        b_ = b_[16:,16:]
 
-        self.assertRaises(ValueError, self.run_validate_fft, 
-                *(a_,b,axes),
-                **{'fft':fft, 'ifft':ifft, 'create_array_copies':False})
+        with self.assertRaisesRegexp(ValueError, 'Invalid input striding'):
+            self.run_validate_fft(a_, b, axes, 
+                    fft=fft, ifft=ifft, create_array_copies=False)
 
-        self.assertRaises(ValueError, self.run_validate_fft, 
-                *(a,b_,axes),
-                **{'fft':fft, 'ifft':ifft, 'create_array_copies':False})
+        with self.assertRaisesRegexp(ValueError, 'Invalid output striding'):
+            self.run_validate_fft(a, b_, axes, 
+                    fft=fft, ifft=ifft, create_array_copies=False)
 
     def test_update_data_with_shape_error(self):
         in_shape = self.input_shapes['2d']
@@ -295,14 +312,14 @@ class Complex64FFTWTest(FFTWBaseTest):
 
         a_, b_ = self.create_test_arrays(in_shape, out_shape)
 
-        self.assertRaises(ValueError, self.run_validate_fft, 
-                *(a_,b_,axes),
-                **{'fft':fft, 'ifft':ifft, 'create_array_copies':False})
+        with self.assertRaisesRegexp(ValueError, 'Invalid input shape'):
+            self.run_validate_fft(a_, b, axes, 
+                    fft=fft, ifft=ifft, create_array_copies=False)
 
-        self.assertRaises(ValueError, self.run_validate_fft, 
-                *(a_,b,axes), 
-                **{'fft':fft, 'ifft':ifft, 'create_array_copies':False})
-    
+        with self.assertRaisesRegexp(ValueError, 'Invalid output shape'):
+            self.run_validate_fft(a, b_, axes, 
+                    fft=fft, ifft=ifft, create_array_copies=False)
+
     def test_update_unaligned_data_with_FFTW_UNALIGNED(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -393,13 +410,13 @@ class Complex64FFTWTest(FFTWBaseTest):
         b_ = b__[1:].view(dtype=self.output_dtype).reshape(*out_shape)
         b_[:] = b
      
-        self.assertRaises(ValueError, self.run_validate_fft, 
-                *(a,b_,axes), 
-                **{'fft':fft, 'ifft':ifft, 'create_array_copies':False})
+        with self.assertRaisesRegexp(ValueError, 'Invalid output alignment'):
+            self.run_validate_fft(a, b_, axes, fft=fft, ifft=ifft, 
+                    create_array_copies=False)
 
-        self.assertRaises(ValueError, self.run_validate_fft, 
-                *(a_,b,axes), 
-                **{'fft':fft, 'ifft':ifft, 'create_array_copies':False})
+        with self.assertRaisesRegexp(ValueError, 'Invalid input alignment'):
+            self.run_validate_fft(a_, b, axes, fft=fft, ifft=ifft, 
+                    create_array_copies=False)
 
     def test_invalid_axes(self):
         in_shape = self.input_shapes['2d']
@@ -408,10 +425,12 @@ class Complex64FFTWTest(FFTWBaseTest):
         axes=(-3,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        self.assertRaises(ValueError, FFTW, *(a,b,axes))
+        with self.assertRaisesRegexp(ValueError, 'Invalid axes'):
+                FFTW(a, b, axes, direction=self.direction)
 
         axes=(10,)
-        self.assertRaises(ValueError, FFTW, *(a,b,axes))
+        with self.assertRaisesRegexp(ValueError, 'Invalid axes'):
+                FFTW(a, b, axes, direction=self.direction)
 
 class Complex128FFTWTest(Complex64FFTWTest):
     
@@ -419,7 +438,9 @@ class Complex128FFTWTest(Complex64FFTWTest):
 
         self.input_dtype = numpy.complex128
         self.output_dtype = numpy.complex128
-        self.np_fft_comparison = numpy.fft.fft        
+        self.np_fft_comparison = numpy.fft.fft
+
+        self.direction = 'FFTW_FORWARD'
         return
 
 class ComplexLongDoubleFFTWTest(Complex64FFTWTest):
@@ -428,7 +449,9 @@ class ComplexLongDoubleFFTWTest(Complex64FFTWTest):
 
         self.input_dtype = numpy.clongdouble
         self.output_dtype = numpy.clongdouble
-        self.np_fft_comparison = self.reference_fftn       
+        self.np_fft_comparison = self.reference_fftn
+
+        self.direction = 'FFTW_FORWARD'        
         return
 
     def reference_fftn(self, a, axes):
