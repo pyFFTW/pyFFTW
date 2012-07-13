@@ -22,10 +22,6 @@ from libc.stdlib cimport malloc, free
 from libc.stdint cimport intptr_t
 from libc cimport limits
 
-from pyfftw cimport _fftw_iodim, fftw_iodim, fftwf_plan
-cimport pyfftw
-
-
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
         'FFTW_BACKWARD': FFTW_BACKWARD}
 
@@ -567,8 +563,8 @@ cdef class FFTW:
         # we set the FFTW_UNALIGNED flag. This disables SIMD.
         if 'FFTW_UNALIGNED' in flags:
             self.__simd_allowed = False
-        elif (input_array.ctypes.data%16 == 0 and 
-                input_array.ctypes.data%16 == 0):
+        elif (<intptr_t>np.PyArray_DATA(input_array)%16 == 0 and 
+                <intptr_t>np.PyArray_DATA(input_array)%16 == 0):
             self.__simd_allowed = True
         else:
             flags.append('FFTW_UNALIGNED')
@@ -770,6 +766,8 @@ cdef class FFTW:
 
         The currently supported schemes are as follows:
 
+        .. _scheme_table:
+
         +----------------+-----------------------+------------------------+-----------+
         | Type           | ``input_array.dtype`` | ``output_array.dtype`` | Direction |
         +================+=======================+========================+===========+
@@ -874,14 +872,26 @@ cdef class FFTW:
         this method is equivalent to calling the :ref:`execute()<FFTW_execute>`
         method on the class.
 
-        When either or both `input_array` or `output_array` are something other
-        than None, then the passed in array is coerced to be the same dtype as
-        the arrays used when the class was instantiated. The byte-alignment
-        of the passed in arrays is also made consistent with the expected
-        byte-alignment. This may, but not necessarily, require a copy to be
-        made. FIXME - NOT YET DONE.
+        When `input_array` is something other than None, then the passed in
+        array is coerced to be the same dtype as the input array used when the
+        class was instantiated. The byte-alignment of the passed in array is
+        also made consistent with the expected byte-alignment. This may, but
+        not necessarily, require a copy to be made. If it is necessary to
+        create a copy of the array, the copy will only be created if the 
+        expected striding is consistent with a simple row-major contiguous
+        array, otherwise a ValueError will be raised.
+
+        As noted in the :ref:`scheme table<scheme_table>`, if the FFTW 
+        instance describes a backwards real transform, the contents of the
+        input array will be destroyed. It is up to the calling function to
+        make a copy if it is necessary to maintain the input array.
+
+        `output_array` is always untouched. If the dtype, the alignment
+        or the striding is incorrect for the FFTW object, then a ValueError is
+        raised.
         
-        The coerced arrays are then passed as arguments to
+        The coerced input array and the output array (as appropriate) are 
+        then passed as arguments to
         :ref:`update_arrays()<FFTW_update_arrays>`, after which
         :ref:`execute()<FFTW_execute>` is called.
         
@@ -889,14 +899,17 @@ cdef class FFTW:
         converted to an array, such as a list, so long as it fits the data
         requirements of the class instance, such as array shape.
 
-        Other than the dtype and the alignment of the passed in arrays, the rest 
-        of the requirements on the arrays mandated by 
+        Other than the dtype and the alignment of the passed in arrays, the 
+        rest of the requirements on the arrays mandated by
         :ref:`update_arrays()<FFTW_update_arrays>` are enforced.
 
-        A single `None` argument means that that array not updated.
+        A `None` argument to either keyword means that that array is not 
+        updated.
 
         The result of the FFT is returned. This is the same array that is used
-        internally and will be overwritten again on subsequent calls.
+        internally and will be overwritten again on subsequent calls. If you
+        need the data to persist longer than a subsequent call, you should
+        copy the returned array.
         '''
 
         if input_array is not None or output_array is not None:
@@ -907,11 +920,32 @@ cdef class FFTW:
             if output_array is None:
                 output_array = self.__output_array
 
-            input_array = np.asanyarray(input_array, 
-                    dtype=self.__input_array.dtype)
+            if not isinstance(input_array, np.ndarray):
+                copy_needed = True
+            elif (not input_array.dtype == self.__input_dtype):
+                copy_needed = True
+            elif (self.__simd_allowed and
+                    not (<intptr_t>np.PyArray_DATA(input_array)%16 == 0)):
+                copy_needed = True
+            else:
+                copy_needed = False
 
-            output_array = np.asanyarray(output_array, 
-                    dtype=self.__output_array.dtype)
+            if copy_needed:
+
+                if not self.__input_array.flags['C_CONTIGUOUS']:
+                    raise ValueError('Invalid internal striding: '
+                            'The input array is an invalid format for '
+                            'the FFTW instance, and it cannot be coerced '
+                            'to the correct format because the internal '
+                            'array is not row-major contiguous.')
+
+                if self.__simd_allowed:
+                    input_array = n_byte_align(np.asanyarray(input_array),
+                            16, dtype=self.__input_array.dtype)
+
+                else:
+                    input_array = np.asanyarray(input_array, 
+                            dtype=self.__input_array.dtype)
 
             self.update_arrays(input_array, output_array)
 
@@ -951,13 +985,13 @@ cdef class FFTW:
                     'of numpy.ndarray')
 
         if self.__simd_allowed:
-            if not (new_input_array.ctypes.data%16 == 0):
+            if not (<intptr_t>np.PyArray_DATA(new_input_array)%16 == 0):
                 raise ValueError('Invalid input alignment: '
                         'The original arrays were 16-byte aligned. It is '
                         'necessary that the update input array is similarly '
                         'aligned.')
 
-            if not (new_output_array.ctypes.data%16 == 0):
+            if not (<intptr_t>np.PyArray_DATA(new_output_array)%16 == 0):
                 raise ValueError('Invalid output alignment: '
                         'The original arrays were 16-byte aligned. It is '
                         'necessary that the update output array is similarly '
@@ -975,10 +1009,13 @@ cdef class FFTW:
 
         new_input_shape = np.array(new_input_array.shape)
         new_output_shape = np.array(new_output_array.shape)
-        new_input_strides = np.array(
-                new_input_array.strides)/new_input_array.itemsize
-        new_output_strides = np.array(
-                new_output_array.strides)/new_output_array.itemsize
+        new_input_strides = tuple(
+                [stride/new_input_array.itemsize 
+                    for stride in new_input_array.strides])
+        
+        new_output_strides = tuple(
+                [stride/new_output_array.itemsize 
+                    for stride in new_output_array.strides])
 
         if not np.all(new_input_shape == self.__input_shape):
             raise ValueError('Invalid input shape: '
@@ -1277,7 +1314,7 @@ cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
     
     # We now need to know how to offset _array_aligned 
     # so it is correctly aligned
-    _array_aligned_offset = (n-_array_aligned.ctypes.data)%n
+    _array_aligned_offset = (n-<intptr_t>np.PyArray_DATA(_array_aligned))%n
 
     array = np.frombuffer(
             _array_aligned[_array_aligned_offset:_array_aligned_offset-n].data,
@@ -1285,26 +1322,34 @@ cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
     
     return array
 
-cpdef n_byte_align(array, n):
-    ''' n_byte_align(array, n)
-    Function that takes a numpy array and 
-    checks it is aligned on an n-byte boundary, 
-    where ``n`` is a passed parameter. If it is, 
-    the array is returned without further ado. 
-    If it is not, a new array is created and 
-    the data copied in, but aligned on the
-    n-byte boundary.
+cpdef n_byte_align(array, n, dtype=None):
+    ''' n_byte_align(array, n, dtype=None)
+    Function that takes a numpy array and checks it is aligned on an n-byte
+    boundary, where ``n`` is a passed parameter. If it is, the array is
+    returned without further ado.  If it is not, a new array is created and
+    the data copied in, but aligned on the n-byte boundary.
+
+    dtype is an optional argument that forces the resultant array to be of
+    that dtype.
     '''
     
     if not isinstance(array, np.ndarray):
         raise TypeError('n_byte_align requires a subclass of ndarray')
+
+    if dtype is not None:
+        if not array.dtype == dtype:
+            update_dtype = True
+    
+    else:
+        dtype = array.dtype
+        update_dtype = False
     
     # See if we're already n byte aligned. If so, do nothing.
-    offset = array.ctypes.data%n
-    
-    if offset is not 0:
+    offset = <intptr_t>np.PyArray_DATA(array) %n
 
-        _array_aligned = n_byte_align_empty(array.shape, n, array.dtype)
+    if offset is not 0 or update_dtype:
+
+        _array_aligned = n_byte_align_empty(array.shape, n, dtype)
 
         _array_aligned[:] = array
 

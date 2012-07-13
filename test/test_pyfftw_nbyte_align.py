@@ -101,6 +101,26 @@ class NByteAlignTest(unittest.TestCase):
             self.assertTrue(d.ctypes.data%n == 0)
             self.assertTrue(d.__class__ == c.__class__)
 
+    def test_n_byte_align_set_dtype(self):
+        shape = (10,10)
+        a = numpy.int16(numpy.random.randn(*shape)*16000)
+        b = numpy.float64(numpy.random.randn(*shape))
+        c = numpy.int8(numpy.random.randn(*shape)*255)
+        # Test a few alignments
+        for n in [3, 7, 9, 16, 24, 23, 63, 64]:
+            d = n_byte_align(a, n, dtype='float32')
+            self.assertTrue(d.ctypes.data%n == 0)
+            self.assertTrue(d.dtype == 'float32')
+
+            d = n_byte_align(b, n, dtype='float32')
+            self.assertTrue(d.ctypes.data%n == 0)
+            self.assertTrue(d.dtype == 'float32')
+
+            d = n_byte_align(c, n, dtype='float64')
+            self.assertTrue(d.ctypes.data%n == 0)
+            self.assertTrue(d.dtype == 'float64')
+
+
 test_cases = (
         NByteAlignTest,)
 
