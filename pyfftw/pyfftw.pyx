@@ -576,8 +576,8 @@ cdef class FFTW:
                     'Try setting it explicitly if it is not already.')
 
         self.__direction = directions[direction]
-        self.__input_shape = np.array(input_array.shape)
-        self.__output_shape = np.array(output_array.shape)
+        self.__input_shape = input_array.shape
+        self.__output_shape = output_array.shape
         
         functions = scheme_functions[scheme]
         self.__fftw_planner = planners[functions['planner']]
@@ -615,7 +615,7 @@ cdef class FFTW:
         # Now get the axes along which the FFT is *not* taken
         _not_axes = np.setdiff1d(np.arange(0,len(self.__input_shape)), _axes)
 
-        if 0 in set(self.__input_shape[_axes]):
+        if 0 in set(np.array(self.__input_shape)[_axes]):
             raise ValueError('Zero length array: '
                     'The input array should have no zero length'
                     'axes over which the FFT is to be taken')
@@ -649,10 +649,10 @@ cdef class FFTW:
 
         # Find the strides for all the axes of both arrays in terms of the 
         # number of elements (as opposed to the number of bytes).
-        self.__input_strides = (
-                np.array(input_array.strides)/input_array.itemsize)
-        self.__output_strides = (
-                np.array(output_array.strides)/output_array.itemsize)
+        self.__input_strides = tuple([stride/input_array.itemsize 
+            for stride in input_array.strides])
+        self.__output_strides = tuple([stride/output_array.itemsize 
+            for stride in output_array.strides])
 
         # Make sure that the arrays are not too big for fftw
         # This is hard to test, so we cross our fingers and hope for the 
@@ -678,20 +678,22 @@ cdef class FFTW:
 
         fft_shape_lookup = functions['fft_shape_lookup']
         if fft_shape_lookup == None:
-            fft_shape = self.__input_shape
+            fft_shape = np.array(self.__input_shape)
         else:
             fft_shape = fft_shape_lookup(input_array, output_array)
 
         # Fill in the stride and shape information
+        input_strides_array = np.array(self.__input_strides)
+        output_strides_array = np.array(self.__output_strides)
         for i in range(0, self.__rank):
             self.__dims[i]._n = fft_shape[_axes][i]
-            self.__dims[i]._is = self.__input_strides[_axes][i]
-            self.__dims[i]._os = self.__output_strides[_axes][i]
+            self.__dims[i]._is = input_strides_array[_axes][i]
+            self.__dims[i]._os = output_strides_array[_axes][i]
 
         for i in range(0, self.__howmany_rank):
             self.__howmany_dims[i]._n = fft_shape[_not_axes][i]
-            self.__howmany_dims[i]._is = self.__input_strides[_not_axes][i]
-            self.__howmany_dims[i]._os = self.__output_strides[_not_axes][i]
+            self.__howmany_dims[i]._is = input_strides_array[_not_axes][i]
+            self.__howmany_dims[i]._os = output_strides_array[_not_axes][i]
 
         ## Point at which FFTW calls are made
         ## (and none should be made before this)
@@ -1007,8 +1009,8 @@ cdef class FFTW:
                     'The new output array is not of the same '
                     'dtype as was originally planned for.')
 
-        new_input_shape = np.array(new_input_array.shape)
-        new_output_shape = np.array(new_output_array.shape)
+        new_input_shape = new_input_array.shape
+        new_output_shape = new_output_array.shape
         new_input_strides = tuple(
                 [stride/new_input_array.itemsize 
                     for stride in new_input_array.strides])
@@ -1017,22 +1019,22 @@ cdef class FFTW:
                 [stride/new_output_array.itemsize 
                     for stride in new_output_array.strides])
 
-        if not np.all(new_input_shape == self.__input_shape):
+        if not new_input_shape == self.__input_shape:
             raise ValueError('Invalid input shape: '
                     'The new input array should be the same shape as '
                     'the input array used to instantiate the object.')
 
-        if not np.all(new_output_shape == self.__output_shape):
+        if not new_output_shape == self.__output_shape:
             raise ValueError('Invalid output shape: '
                     'The new output array should be the same shape as '
                     'the output array used to instantiate the object.')
         
-        if not np.all(new_input_strides == self.__input_strides):
+        if not new_input_strides == self.__input_strides:
             raise ValueError('Invalid input striding: '
                     'The strides should be identical for the new '
                     'input array as for the old.')
         
-        if not np.all(new_output_strides == self.__output_strides):
+        if not new_output_strides == self.__output_strides:
             raise ValueError('Invalid output striding: '
                     'The strides should be identical for the new '
                     'output array as for the old.')
