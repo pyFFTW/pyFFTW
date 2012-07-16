@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cimport numpy as np
+from libc.stdint cimport int64_t
 
 cdef extern from "complex.h":
     pass
@@ -221,6 +222,10 @@ ctypedef void (*fftw_generic_destroy_plan)(void *_plan)
 ctypedef void (*fftw_generic_init_threads)()
 
 ctypedef void (*fftw_generic_plan_with_nthreads)(int n)
+
+ctypedef bint (*validator)(np.ndarray input_array, 
+        np.ndarray output_array, int64_t *axes, int64_t *not_axes, 
+        int64_t axes_length)
 
 # Direction enum
 cdef enum:

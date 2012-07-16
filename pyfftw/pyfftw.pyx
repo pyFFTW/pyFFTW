@@ -18,8 +18,8 @@
 
 import numpy as np
 cimport numpy as np
-from libc.stdlib cimport malloc, free
-from libc.stdint cimport intptr_t
+from libc.stdlib cimport calloc, malloc, free
+from libc.stdint cimport intptr_t, int64_t
 from libc cimport limits
 
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
@@ -299,66 +299,83 @@ cdef fftw_generic_plan_with_nthreads * _build_nthreads_plan_setters_list():
     nthreads_plan_setters[2] = (
             <fftw_generic_plan_with_nthreads>&_fftwl_plan_with_nthreads)
 
+# Data validators table
+cdef validator validators[2]
+
+cdef validator * _build_validators_list():
+    validators[0] = &_validate_r2c_arrays
+    validators[1] = &_validate_c2r_arrays
+
 # Validator functions
 # ===================
-def _validate_r2c_arrays(input_array, output_array, axes, not_axes):
+cdef bint _validate_r2c_arrays(np.ndarray input_array, 
+        np.ndarray output_array, int64_t *axes, int64_t *not_axes, 
+        int64_t axes_length):
     ''' Validates the input and output array to check for
     a valid real to complex transform.
     '''
-
     # We firstly need to confirm that the dimenions of the arrays
     # are the same
     if not (input_array.ndim == output_array.ndim):
         return False
 
+    in_shape = input_array.shape
+    out_shape = output_array.shape
+
+    for n in range(axes_length - 1):
+        if not out_shape[axes[n]] == in_shape[axes[n]]:
+            return False
+    
     # The critical axis is the last of those over which the 
-    # FFT is taken. The following shape variables contain
-    # the shapes of the FFT and shapes of the other axes.
-    in_fft_shape = np.array(input_array.shape)[axes]
-    out_fft_shape = np.array(output_array.shape)[axes]
-
-    in_not_fft_shape = np.array(input_array.shape)[not_axes]
-    out_not_fft_shape = np.array(output_array.shape)[not_axes]
-
-    if (np.alltrue(out_fft_shape[:-1] == in_fft_shape[:-1]) and 
-            np.alltrue(out_fft_shape[-1] == in_fft_shape[-1]//2 + 1) and 
-            np.alltrue(in_not_fft_shape == out_not_fft_shape)):
-        return True
-    else:
+    # FFT is taken.
+    if not out_shape[axes[axes_length-1]] == in_shape[axes[axes_length-1]]//2 + 1:
         return False
 
-def _validate_c2r_arrays(input_array, output_array, axes, not_axes):
+    for n in range(input_array.ndim - axes_length):
+        if not out_shape[not_axes[n]] == in_shape[not_axes[n]]:
+            return False
+
+    return True
+
+
+cdef bint _validate_c2r_arrays(np.ndarray input_array, 
+        np.ndarray output_array, int64_t *axes, int64_t *not_axes, 
+        int64_t axes_length):
     ''' Validates the input and output array to check for
     a valid complex to real transform.
     '''
+
     # We firstly need to confirm that the dimenions of the arrays
     # are the same
     if not (input_array.ndim == output_array.ndim):
         return False
 
+    in_shape = input_array.shape
+    out_shape = output_array.shape
+
+    for n in range(axes_length - 1):
+        if not in_shape[axes[n]] == out_shape[axes[n]]:
+            return False
+    
     # The critical axis is the last of those over which the 
-    # FFT is taken. The following shape variables contain
-    # the shapes of the FFT and shapes of the other axes.
-    in_fft_shape = np.array(input_array.shape)[axes]
-    out_fft_shape = np.array(output_array.shape)[axes]
-
-    in_not_fft_shape = np.array(input_array.shape)[not_axes]
-    out_not_fft_shape = np.array(output_array.shape)[not_axes]
-
-    if (np.alltrue(in_fft_shape[:-1] == out_fft_shape[:-1]) and 
-            np.alltrue(in_fft_shape[-1] == out_fft_shape[-1]//2 + 1) and 
-            np.alltrue(in_not_fft_shape == out_not_fft_shape)):
-        return True
-    else:
+    # FFT is taken.
+    if not in_shape[axes[axes_length-1]] == out_shape[axes[axes_length-1]]//2 + 1:
         return False
+
+    for n in range(input_array.ndim - axes_length):
+        if not in_shape[not_axes[n]] == out_shape[not_axes[n]]:
+            return False
+
+    return True
+
 
 # Shape lookup functions
 # ======================
 def _lookup_shape_r2c_arrays(input_array, output_array):
-    return np.array(input_array.shape)
+    return input_array.shape
 
 def _lookup_shape_c2r_arrays(input_array, output_array):
-    return np.array(output_array.shape)
+    return output_array.shape
 
 # fftw_schemes is a dictionary with a mapping from a keys,
 # which are a tuple of the string representation of numpy
@@ -374,7 +391,7 @@ def _lookup_shape_c2r_arrays(input_array, output_array):
 #
 # The 'validator' function is a callable for validating the arrays
 # that has the following signature:
-# bool callable(in_array, out_array, axes)
+# bool callable(ndarray in_array, ndarray out_array, axes, not_axes)
 # and checks that the arrays are a valid pair. If it is set to None,
 # then the default check is applied, which confirms that the arrays
 # have the same shape.
@@ -422,27 +439,27 @@ scheme_functions = {
         'validator':None, 'fft_shape_lookup': None},
     'r64_to_c128': {'planner':3, 'executor':3, 'destroyer':0,
         't_plan': 0,
-        'validator':_validate_r2c_arrays, 
+        'validator': 0, 
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     'r32_to_c64': {'planner':4, 'executor':4, 'destroyer':1,
         't_plan': 1,
-        'validator':_validate_r2c_arrays, 
+        'validator': 0, 
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     'rld_to_cld': {'planner':5, 'executor':5, 'destroyer':2,
         't_plan': 2,
-        'validator':_validate_r2c_arrays, 
+        'validator': 0, 
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     'c128_to_r64': {'planner':6, 'executor':6, 'destroyer':0, 
         't_plan': 0,
-        'validator':_validate_c2r_arrays, 
+        'validator': 1, 
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
     'c64_to_r32': {'planner':7, 'executor':7, 'destroyer':1, 
         't_plan': 1,
-        'validator':_validate_c2r_arrays, 
+        'validator': 1, 
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
     'cld_to_rld': {'planner':8, 'executor':8, 'destroyer':2,
         't_plan': 2,
-        'validator':_validate_c2r_arrays, 
+        'validator': 1, 
         'fft_shape_lookup': _lookup_shape_c2r_arrays}}
 
 # Initialize the module
@@ -452,6 +469,7 @@ _build_planner_list()
 _build_destroyer_list()
 _build_executor_list()
 _build_nthreads_plan_setters_list()
+_build_validators_list()
 
 fftw_init_threads()
 fftwf_init_threads()
@@ -467,6 +485,71 @@ def cleanup():
     fftw_cleanup_threads()
     fftwf_cleanup_threads()
     fftwl_cleanup_threads()
+
+# Helper functions
+cdef void make_axes_unique(int64_t *axes, int64_t axes_length, 
+        int64_t **unique_axes, int64_t **not_axes, int64_t dimensions, 
+        int64_t *unique_axes_length):
+    ''' Takes an array of axes and makes that array unique, returning
+    the unique array in unique_axes. It also creates and fills another 
+    array, not_axes, with those axes that are not included in unique_axes.
+
+    unique_axes_length is updated with the length of unique_axes.
+
+    dimensions is the number of dimensions to which the axes array
+    might refer.
+
+    It is the responsibility of the caller to free unique_axes and not_axes.
+    '''
+
+    cdef int64_t unique_axes_count = 0
+    cdef int64_t holding_offset = 0
+
+    cdef int64_t *axes_holding = (
+            <int64_t *>calloc(dimensions, sizeof(int64_t)))
+    cdef int64_t *axes_holding_offset = (
+            <int64_t *>calloc(dimensions, sizeof(int64_t)))
+
+    for n in range(dimensions):
+        axes_holding[n] = -1
+
+    # Iterate over all the axes and store each index if it hasn't already
+    # been stored (this keeps one and only one and the first index to axes
+    # i.e. storing the unique set of entries).
+    #
+    # axes_holding_offset holds the shift due to repeated axes
+    for n in range(axes_length):
+        if axes_holding[axes[n]] == -1:
+            axes_holding[axes[n]] = n
+            axes_holding_offset[axes[n]] = holding_offset
+            unique_axes_count += 1
+        else:
+            holding_offset += 1
+
+    unique_axes[0] = <int64_t *>malloc(
+            unique_axes_count * sizeof(int64_t))
+
+    not_axes[0] = <int64_t *>malloc(
+            (dimensions - unique_axes_count) * sizeof(int64_t))
+
+    # Now we need to write back the unique axes to a tmp axes
+    cdef int64_t not_axes_count = 0
+
+    for n in range(dimensions):
+        if axes_holding[n] != -1:
+            unique_axes[0][axes_holding[n] - axes_holding_offset[n]] = (
+                    axes[axes_holding[n]])
+
+        else:
+            not_axes[0][not_axes_count] = n
+            not_axes_count += 1
+
+    free(axes_holding)
+    free(axes_holding_offset)
+
+    unique_axes_length[0] = unique_axes_count
+
+    return
 
 # The External Interface
 # ======================
@@ -503,7 +586,6 @@ cdef class FFTW:
     cdef fftw_generic_destroy_plan __fftw_destroy
     cdef fftw_generic_plan_with_nthreads __nthreads_plan_setter
 
-
     # The plan is typecast when it is created or used
     # within the wrapper functions
     cdef void *__plan
@@ -527,6 +609,10 @@ cdef class FFTW:
     cdef int __howmany_rank
     cdef _fftw_iodim *__howmany_dims
 
+    cdef int64_t *__axes
+    cdef int64_t *__not_axes
+
+
     def __cinit__(self, input_array, output_array, axes=(-1,),
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
             unsigned int threads=1):
@@ -535,6 +621,9 @@ cdef class FFTW:
         self.__plan = NULL
         self.__dims = NULL
         self.__howmany_dims = NULL
+
+        self.__axes = NULL
+        self.__not_axes = NULL
 
         flags = list(flags)
 
@@ -593,48 +682,59 @@ cdef class FFTW:
 
         self.__input_array = input_array
         self.__output_array = output_array
-        
-        _axes = np.array(axes)
+
+        self.__axes = <int64_t *>malloc(len(axes)*sizeof(int64_t))
+        for n in range(len(axes)):
+            self.__axes[n] = axes[n]
 
         # Set the negative entries to their actual index (use the size
         # of the shape array for this)
-        _axes[_axes<0] = _axes[_axes<0] + len(self.__input_shape)
+        cdef int64_t array_dimension = len(self.__input_shape)
 
-        if (_axes >= len(self.__input_shape)).any() or (_axes < 0).any():
-            raise ValueError('Invalid axes: '
+        for n in range(len(axes)):
+            if self.__axes[n] < 0:
+                self.__axes[n] = self.__axes[n] + array_dimension
+
+            if self.__axes[n] >= array_dimension or self.__axes[n] < 0:
+                raise ValueError('Invalid axes: '
                     'The axes list cannot contain invalid axes.')
 
-        # We want to make sure that the axes list contains unique entries
-        scratch, indices = np.unique(_axes, return_index=True)
+        cdef int64_t unique_axes_length
+        cdef int64_t *unique_axes
+        cdef int64_t *not_axes
         
-        # Unfortunately, np.unique also sorts the elements, so we need to
-        # undo this
-        indices.sort()
-        _axes = _axes[indices]
+        make_axes_unique(self.__axes, len(axes), &unique_axes,
+                &not_axes, array_dimension, &unique_axes_length)
 
-        # Now get the axes along which the FFT is *not* taken
-        _not_axes = np.setdiff1d(np.arange(0,len(self.__input_shape)), _axes)
+        # and assign axes and not_axes to the filled arrays
+        free(self.__axes)
+        self.__axes = unique_axes
+        self.__not_axes = not_axes
 
-        if 0 in set(np.array(self.__input_shape)[_axes]):
-            raise ValueError('Zero length array: '
+        for n in range(unique_axes_length):
+            if self.__input_shape[self.__axes[n]] == 0:
+                raise ValueError('Zero length array: '
                     'The input array should have no zero length'
                     'axes over which the FFT is to be taken')
 
         # Now we can validate the array shapes
+        cdef validator _validator
+
         if functions['validator'] == None:
             if not (output_array.shape == input_array.shape):
                 raise ValueError('Invalid shapes: '
                         'The output array should be the same shape as the '
                         'input array for the given array dtypes.')
         else:
-            if not functions['validator'](input_array, output_array,
-                    _axes, _not_axes):
+            _validator = validators[functions['validator']]
+            if not _validator(input_array, output_array, 
+                    self.__axes, self.__not_axes, unique_axes_length):
                 raise ValueError('Invalid shapes: '
                         'The input array and output array are invalid '
                         'complementary shapes for their dtypes.')
 
-        self.__rank = len(_axes)
-        self.__howmany_rank = len(_not_axes)
+        self.__rank = unique_axes_length
+        self.__howmany_rank = self.__input_array.ndim - unique_axes_length
 
         # Set up the arrays of structs for holding the stride shape 
         # information
@@ -678,22 +778,22 @@ cdef class FFTW:
 
         fft_shape_lookup = functions['fft_shape_lookup']
         if fft_shape_lookup == None:
-            fft_shape = np.array(self.__input_shape)
+            fft_shape = self.__input_shape
         else:
             fft_shape = fft_shape_lookup(input_array, output_array)
 
         # Fill in the stride and shape information
-        input_strides_array = np.array(self.__input_strides)
-        output_strides_array = np.array(self.__output_strides)
+        input_strides_array = self.__input_strides
+        output_strides_array = self.__output_strides
         for i in range(0, self.__rank):
-            self.__dims[i]._n = fft_shape[_axes][i]
-            self.__dims[i]._is = input_strides_array[_axes][i]
-            self.__dims[i]._os = output_strides_array[_axes][i]
+            self.__dims[i]._n = fft_shape[self.__axes[i]]
+            self.__dims[i]._is = input_strides_array[self.__axes[i]]
+            self.__dims[i]._os = output_strides_array[self.__axes[i]]
 
         for i in range(0, self.__howmany_rank):
-            self.__howmany_dims[i]._n = fft_shape[_not_axes][i]
-            self.__howmany_dims[i]._is = input_strides_array[_not_axes][i]
-            self.__howmany_dims[i]._os = output_strides_array[_not_axes][i]
+            self.__howmany_dims[i]._n = fft_shape[self.__not_axes[i]]
+            self.__howmany_dims[i]._is = input_strides_array[self.__not_axes[i]]
+            self.__howmany_dims[i]._os = output_strides_array[self.__not_axes[i]]
 
         ## Point at which FFTW calls are made
         ## (and none should be made before this)
@@ -856,6 +956,12 @@ cdef class FFTW:
         pass
 
     def __dealloc__(self):
+
+        if not self.__axes == NULL:
+            free(self.__axes)
+
+        if not self.__not_axes == NULL:
+            free(self.__not_axes)
 
         if not self.__plan == NULL:
             self.__fftw_destroy(self.__plan)
