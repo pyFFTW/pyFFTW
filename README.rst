@@ -58,12 +58,12 @@ To build in place::
   python cython_setup.py build_ext --inplace
 
 That cythons the python extension and builds it into a shared library
-which is placed in pyfftw/. The directory can then be treated as a python
+which is placed in `pyfftw/`. The directory can then be treated as a python
 package.
 
-After you've run cython_setup.py, you then have a normal C extension in 
-the pyfftw directory. Further building can be done with the setup.py script
-(as is usually the case).
+After you've run `cython_setup.py`, you then have a normal C extension in 
+the `pyfftw` directory. Further building can be done with the `setup.py` 
+script (as is usually the case).
 
 For more ways of building and installing, see the 
 `distutils documentation <http://docs.python.org/distutils/builtdist.html>`_
@@ -91,8 +91,8 @@ should allow it to work:
 1. When you have a cythoned .c file, comment out ``#include "stdint.h"`` 
    and ``#include "complex.h"``.
 
-2. remove ``'m'`` from the libraries line inside the win32 if block 
-   in ``setup.py``.
+2. remove ``'m'`` from the libraries line inside the 
+   ``get_platform() == 'win32'`` `if` block in ``setup.py``.
 
 3. If you're building for 64-bit windows, Change ``get_platform() == 'win32'`` 
    to ``get_platform() == 'win-amd64'``
