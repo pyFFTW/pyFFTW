@@ -1,7 +1,7 @@
 PyFFTW
 ======
 
-pyFFTW is a pythonic wrapper around FFTW 3 ( http://www.fftw.org/ ), the
+pyFFTW is a pythonic wrapper around `FFTW 3 <http://www.fftw.org/>`_, the
 speedy FFT library.  The ultimate aim is to present a unified interface for all the possible transforms that FFTW can perform.
 
 Both the complex DFT and the real DFT are supported, as well as on arbitrary
@@ -16,7 +16,10 @@ Operating FFTW in multithreaded mode is supported.
 A comprehensive unittest suite can be found with the source on the github 
 repository or with the source distribution on PyPI.
 
-The documentation can be found at http://hgomersall.github.com/pyFFTW/ , the source is on github: https://github.com/hgomersall/pyFFTW and the python package index page is here: http://pypi.python.org/pypi/pyFFTW .
+The documentation can be found on 
+`github pages <http://hgomersall.github.com/pyFFTW>`_, the source is 
+on `github <https://github.com/hgomersall/pyFFTW>`_ and the python package 
+index page is `here <http://pypi.python.org/pypi/pyFFTW>`_.
 
 Dependencies (i.e. what it was designed for)
 --------------------------------------------
@@ -33,11 +36,11 @@ Installation
 We recommend *not* building from github, but using the release on 
 the python package index with tools such as easy_install or pip::
 
-pip install pyfftw
+  pip install pyfftw
 
 or::
 
-easy_install pyfftw
+  easy_install pyfftw
 
 Success has been reported on building on Linux, 32-bit Windows and Mac OSX.
 It doesn't mean it won't work anywhere else, just we don't have any information
@@ -52,7 +55,7 @@ Building
 
 To build in place::
 
-python cython_setup.py build_ext --inplace
+  python cython_setup.py build_ext --inplace
 
 That cythons the python extension and builds it into a shared library
 which is placed in pyfftw/. The directory can then be treated as a python
@@ -62,8 +65,8 @@ After you've run cython_setup.py, you then have a normal C extension in
 the pyfftw directory. Further building can be done with the setup.py script
 (as is usually the case).
 
-For more ways of building and installing, see the distutils documentation:
-http://docs.python.org/distutils/builtdist.html
+For more ways of building and installing, see the 
+`distutils documentation <http://docs.python.org/distutils/builtdist.html>`_
 
 Platform specific build info
 ----------------------------
@@ -72,8 +75,8 @@ Windows
 ~~~~~~~
 
 To build for windows from source, download the fftw dlls for your system
-and the header file from here (they're in a zip file):
-http://www.fftw.org/install/windows.html and place them in the pyfftw
+and the header file from `here <http://www.fftw.org/install/windows.html>`_ 
+(they're in a zip file) and place them in the pyfftw
 directory. The files are ``libfftw3-3.dll``, ``libfftw3l-3.dll``, 
 ``libfftw3f-3.dll`` and ``libfftw3.h``.
 
@@ -97,6 +100,5 @@ should allow it to work:
 Mac OSX
 ~~~~~~~
 
-It has been suggested that FFTW should be installed from macports: 
-http://www.macports.org/
+It has been suggested that FFTW should be installed from `macports <http://www.macports.org/>`_.
 
