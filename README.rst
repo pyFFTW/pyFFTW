@@ -92,7 +92,7 @@ should allow it to work:
    and ``#include "complex.h"``.
 
 2. remove ``'m'`` from the libraries line inside the 
-   ``get_platform() == 'win32'`` `if` block in ``setup.py``.
+   ``get_platform() == 'win32'`` ``if`` block in ``setup.py``.
 
 3. If you're building for 64-bit windows, Change ``get_platform() == 'win32'`` 
    to ``get_platform() == 'win-amd64'``
