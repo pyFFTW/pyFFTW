@@ -21,7 +21,7 @@ The documentation can be found on
 on `github <https://github.com/hgomersall/pyFFTW>`_ and the python package 
 index page is `here <http://pypi.python.org/pypi/pyFFTW>`_.
 
-Dependencies (i.e. what it was designed for)
+Requirements (i.e. what it was designed for)
 --------------------------------------------
 - Numpy 1.6
 - FFTW 3.2 or higher (lower versions *may* work)
@@ -58,11 +58,11 @@ To build in place::
   python cython_setup.py build_ext --inplace
 
 That cythons the python extension and builds it into a shared library
-which is placed in `pyfftw/`. The directory can then be treated as a python
+which is placed in ``pyfftw/``. The directory can then be treated as a python
 package.
 
-After you've run `cython_setup.py`, you then have a normal C extension in 
-the `pyfftw` directory. Further building can be done with the `setup.py` 
+After you've run ``cython_setup.py``, you then have a normal C extension in 
+the ``pyfftw`` directory. Further building can be done with the ``setup.py`` 
 script (as is usually the case).
 
 For more ways of building and installing, see the 
@@ -92,7 +92,7 @@ should allow it to work:
    and ``#include "complex.h"``.
 
 2. remove ``'m'`` from the libraries line inside the 
-   ``get_platform() == 'win32'`` ``if`` block in ``setup.py``.
+   ``if get_platform() == 'win32'`` block in ``setup.py``.
 
 3. If you're building for 64-bit windows, Change ``get_platform() == 'win32'`` 
    to ``get_platform() == 'win-amd64'``

@@ -328,7 +328,8 @@ cdef bint _validate_r2c_arrays(np.ndarray input_array,
     
     # The critical axis is the last of those over which the 
     # FFT is taken.
-    if not out_shape[axes[axes_length-1]] == in_shape[axes[axes_length-1]]//2 + 1:
+    if not (out_shape[axes[axes_length-1]]
+            == in_shape[axes[axes_length-1]]//2 + 1):
         return False
 
     for n in range(input_array.ndim - axes_length):
@@ -359,7 +360,8 @@ cdef bint _validate_c2r_arrays(np.ndarray input_array,
     
     # The critical axis is the last of those over which the 
     # FFT is taken.
-    if not in_shape[axes[axes_length-1]] == out_shape[axes[axes_length-1]]//2 + 1:
+    if not (in_shape[axes[axes_length-1]] 
+            == out_shape[axes[axes_length-1]]//2 + 1):
         return False
 
     for n in range(input_array.ndim - axes_length):
