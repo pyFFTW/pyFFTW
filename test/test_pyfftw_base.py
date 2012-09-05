@@ -140,6 +140,9 @@ class FFTWBaseTest(unittest.TestCase):
         # The scaling is the product of the lengths of the fft along
         # the axes along which the fft is taken.
         scaling = numpy.prod(numpy.array(a.shape)[list(axes)])
+        
+        self.assertEqual(ifft.N, scaling)
+        self.assertEqual(fft.N, scaling)
 
         self.assertTrue(numpy.allclose(a/scaling, a_orig, rtol=1e-2, atol=1e-3))
         return fft, ifft

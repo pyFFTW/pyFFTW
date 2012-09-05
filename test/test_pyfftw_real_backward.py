@@ -131,6 +131,8 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         # The scaling is the product of the lengths of the fft along
         # the axes along which the fft is taken.
         scaling = numpy.prod(numpy.array(b.shape)[list(axes)])
+        self.assertEqual(ifft.N, scaling)
+        self.assertEqual(fft.N, scaling)
 
         # This is actually quite a poor relative error, but it still
         # sometimes fails. I assume that numpy.fft has different internals

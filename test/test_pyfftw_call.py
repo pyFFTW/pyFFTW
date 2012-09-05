@@ -277,6 +277,45 @@ class FFTWCallTest(unittest.TestCase):
 
         self.assertTrue(numpy.alltrue(output_array == self.output_array))
 
+    def test_call_with_normalisation_on(self):
+        _input_array = n_byte_align_empty((256, 512), 16,
+                dtype='complex128')
+
+        ifft = FFTW(self.output_array, _input_array, 
+                direction='FFTW_BACKWARD')
+
+        self.fft(normalise_idft=True) # Shouldn't make any difference
+        ifft(normalise_idft=True)
+
+        self.assertTrue(numpy.allclose(self.input_array, _input_array))
+
+    def test_call_with_normalisation_off(self):
+        _input_array = n_byte_align_empty((256, 512), 16,
+                dtype='complex128')
+
+        ifft = FFTW(self.output_array, _input_array, 
+                direction='FFTW_BACKWARD')
+
+        self.fft(normalise_idft=True) # Shouldn't make any difference
+        ifft(normalise_idft=False)
+
+        _input_array /= ifft.N
+
+        self.assertTrue(numpy.allclose(self.input_array, _input_array))
+
+    def test_call_with_normalisation_default(self):
+        _input_array = n_byte_align_empty((256, 512), 16,
+                dtype='complex128')
+
+        ifft = FFTW(self.output_array, _input_array, 
+                direction='FFTW_BACKWARD')
+
+        self.fft()
+        ifft()
+
+        # Scaling is performed by default
+        self.assertTrue(numpy.allclose(self.input_array, _input_array))
+
         
 test_cases = (
         FFTWCallTest,)

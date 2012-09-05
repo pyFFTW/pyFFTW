@@ -577,9 +577,13 @@ cdef class FFTW:
 
     The created instance of the class is itself callable, and can perform the
     execution of the FFT, both with or without array updates, returning the
-    result of the FFT. Calling an instance of this class with an array update 
-    will also coerce that array to be the correct dtype. See the documentation 
-    on the :ref:`__call__()<FFTW___call__>` method for more information.
+    result of the FFT. Unlike calling the :ref:`execute()<FFTW_execute>`
+    method, calling the class instance will also optionally normalise the
+    output as necessary. Additionally, calling with an input array update 
+    will also coerce that array to be the correct dtype. 
+    
+    See the documentation on the :ref:`__call__()<FFTW___call__>` method 
+    for more information.
     '''
     # Each of these function pointers simply
     # points to a chosen fftw wrapper function
@@ -606,6 +610,8 @@ cdef class FFTW:
     cdef object __input_dtype
     cdef object __output_dtype
 
+    cdef float __normalisation_scaling
+
     cdef int __rank
     cdef _fftw_iodim *__dims
     cdef int __howmany_rank
@@ -614,6 +620,15 @@ cdef class FFTW:
     cdef int64_t *__axes
     cdef int64_t *__not_axes
 
+    cdef int __N
+    def __get_N(self):
+        '''The sum of the lengths of the DFT over all DFT axes.
+        1/N is the normalisation constant. For any input array A, 
+        and for any set of axes, 1/N * ifft(fft(A)) = A
+        '''
+        return self.__N
+
+    N = property(__get_N)
 
     def __cinit__(self, input_array, output_array, axes=(-1,),
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
@@ -713,11 +728,20 @@ cdef class FFTW:
         self.__axes = unique_axes
         self.__not_axes = not_axes
 
+        total_N = 1
         for n in range(unique_axes_length):
             if self.__input_shape[self.__axes[n]] == 0:
                 raise ValueError('Zero length array: '
                     'The input array should have no zero length'
                     'axes over which the FFT is to be taken')
+
+            if self.__direction == FFTW_FORWARD:
+                total_N *= self.__input_shape[self.__axes[n]]
+            else:
+                total_N *= self.__output_shape[self.__axes[n]]
+
+        self.__N = total_N
+        self.__normalisation_scaling = 1/float(self.N)
 
         # Now we can validate the array shapes
         cdef validator _validator
@@ -974,13 +998,21 @@ cdef class FFTW:
         if not self.__howmany_dims == NULL:
             free(self.__howmany_dims)
 
-    def __call__(self, input_array=None, output_array=None):
+    def __call__(self, input_array=None, output_array=None, 
+            normalise_idft=True):
         '''Calling the class instance (optionally) updates the arrays, then
         calls :ref:`execute()<FFTW_execute>`, returning the output array.
+
+        If `normalise_idft` is `True` (the default), then the output from an
+        inverse DFT (i.e. when the direction flag is `'FFTW_BACKWARD'`) is
+        scaled by 1/N, where N is the sum of lengths of input array on which
+        the FFT is taken. If the direction is `'FFTW_FORWARD'`, this flag 
+        makes no difference to the output array.
         
-        When `input_array` or `output_array` are left or set to `None`,
+        When `input_array` or `output_array` are not assigned or set to `None`,
         this method is equivalent to calling the :ref:`execute()<FFTW_execute>`
-        method on the class.
+        method on the class (with normalisation depending on the value of
+        normalise_idft).
 
         When `input_array` is something other than None, then the passed in
         array is coerced to be the same dtype as the input array used when the
@@ -1060,6 +1092,9 @@ cdef class FFTW:
             self.update_arrays(input_array, output_array)
 
         self.execute()
+
+        if self.__direction == FFTW_BACKWARD and normalise_idft:
+            self.__output_array *= self.__normalisation_scaling
 
         return self.__output_array
 
