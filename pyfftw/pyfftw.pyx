@@ -622,7 +622,7 @@ cdef class FFTW:
 
     cdef int __N
     def __get_N(self):
-        '''The sum of the lengths of the DFT over all DFT axes.
+        '''The product of the lengths of the DFT over all DFT axes.
         1/N is the normalisation constant. For any input array A, 
         and for any set of axes, 1/N * ifft(fft(A)) = A
         '''
@@ -1005,9 +1005,9 @@ cdef class FFTW:
 
         If `normalise_idft` is `True` (the default), then the output from an
         inverse DFT (i.e. when the direction flag is `'FFTW_BACKWARD'`) is
-        scaled by 1/N, where N is the sum of lengths of input array on which
-        the FFT is taken. If the direction is `'FFTW_FORWARD'`, this flag 
-        makes no difference to the output array.
+        scaled by 1/N, where N is the product of the lengths of input array 
+        on which the FFT is taken. If the direction is `'FFTW_FORWARD'`, 
+        this flag makes no difference to the output array.
         
         When `input_array` or `output_array` are not assigned or set to `None`,
         this method is equivalent to calling the :ref:`execute()<FFTW_execute>`
