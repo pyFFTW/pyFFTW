@@ -27,8 +27,8 @@ include_dirs.append('pyfftw')
 ext_modules = [
         Extension(
             'pyfftw.pyfftw',
-            sources = [os.path.join('pyfftw', 'pyfftw.pyx')], 
-            include_dirs = ['pyfftw'],
+            sources=[os.path.join('pyfftw', 'pyfftw.pyx')], 
+            include_dirs=include_dirs,
             libraries=libraries,
             library_dirs=library_dirs)]
 
