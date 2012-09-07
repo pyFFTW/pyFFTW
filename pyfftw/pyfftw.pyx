@@ -1003,18 +1003,18 @@ cdef class FFTW:
         '''Calling the class instance (optionally) updates the arrays, then
         calls :ref:`execute()<FFTW_execute>`, returning the output array.
 
-        If `normalise_idft` is `True` (the default), then the output from an
-        inverse DFT (i.e. when the direction flag is `'FFTW_BACKWARD'`) is
+        If ``normalise_idft`` is ``True`` (the default), then the output from an
+        inverse DFT (i.e. when the direction flag is ``'FFTW_BACKWARD'``) is
         scaled by 1/N, where N is the product of the lengths of input array 
-        on which the FFT is taken. If the direction is `'FFTW_FORWARD'`, 
+        on which the FFT is taken. If the direction is ``'FFTW_FORWARD'``, 
         this flag makes no difference to the output array.
         
-        When `input_array` or `output_array` are not assigned or set to `None`,
-        this method is equivalent to calling the :ref:`execute()<FFTW_execute>`
-        method on the class (with normalisation depending on the value of
-        normalise_idft).
+        When ``input_array`` or ``output_array`` are not assigned or set to 
+        ``None``, this method is equivalent to calling the 
+        :ref:`execute()<FFTW_execute>` method on the class (with 
+        normalisation depending on the value of normalise_idft).
 
-        When `input_array` is something other than None, then the passed in
+        When ``input_array`` is something other than None, then the passed in
         array is coerced to be the same dtype as the input array used when the
         class was instantiated. The byte-alignment of the passed in array is
         also made consistent with the expected byte-alignment. This may, but
@@ -1028,7 +1028,7 @@ cdef class FFTW:
         input array will be destroyed. It is up to the calling function to
         make a copy if it is necessary to maintain the input array.
 
-        `output_array` is always untouched. If the dtype, the alignment
+        ``output_array`` is always untouched. If the dtype, the alignment
         or the striding is incorrect for the FFTW object, then a ValueError is
         raised.
         
@@ -1045,7 +1045,7 @@ cdef class FFTW:
         rest of the requirements on the arrays mandated by
         :ref:`update_arrays()<FFTW_update_arrays>` are enforced.
 
-        A `None` argument to either keyword means that that array is not 
+        A ``None`` argument to either keyword means that that array is not 
         updated.
 
         The result of the FFT is returned. This is the same array that is used
