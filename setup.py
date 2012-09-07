@@ -42,7 +42,8 @@ else:
 ext_modules = [Extension('pyfftw.pyfftw',
     sources=[os.path.join('pyfftw', 'pyfftw.c')],
     libraries=libraries,
-    library_dirs=library_dirs, include_dirs=include_dirs)]
+    library_dirs=library_dirs,
+    include_dirs=include_dirs)]
 
 version = '0.8.2'
 

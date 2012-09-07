@@ -19,8 +19,10 @@
 from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
-from setup import setup_args, libraries, library_dirs
+from setup import setup_args, libraries, library_dirs, include_dirs
 import os
+
+include_dirs.append('pyfftw')
 
 ext_modules = [
         Extension(
