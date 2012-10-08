@@ -19,7 +19,7 @@ from pyfftw import (
 import unittest
 import numpy
 
-class FFTWAdditionalFuncs(unittest.TestCase):
+class FFTWAdditionalFuncsTest(unittest.TestCase):
    
     def setUp(self):
 
