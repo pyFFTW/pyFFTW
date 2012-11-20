@@ -1,0 +1,8 @@
+*.pyc
+*.so
+*.c
+*.swp
+build
+dist
+_static
+MANIFEST
