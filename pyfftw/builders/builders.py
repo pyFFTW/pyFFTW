@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-import pyfftw
-import numpy
-
 '''A set of builder functions that return FFTW objects. The interface
 to create these objects is mostly the same as `numpy.fft
 <http://docs.scipy.org/doc/numpy/reference/routines.fft.html>`_, only
@@ -86,6 +83,9 @@ following additional keyword arguments:
     shape of the passed-in array, or the dtypes are incompatible with the
     FFT routine.
 '''
+
+import pyfftw
+import numpy
 
 __all__ = ['fft','ifft', 'rfft', 'irfft', 'rfftn',
            'irfftn', 'rfft2', 'irfft2', 'fft2', 'ifft2', 'fftn', 'ifftn']

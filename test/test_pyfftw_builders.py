@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfftw import builders, n_byte_align_empty, n_byte_align, FFTW
-from pyfftw.builders import _FFTWWrapper
+import pyfftw.builders.builders as _builders
 
 import unittest
 import numpy
@@ -234,7 +234,8 @@ class BuildersTestFFT(unittest.TestCase):
                 FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
                         test_shape, dtype, s, kwargs)
 
-                self.assertTrue(type(FFTW_object) == _FFTWWrapper)
+                self.assertTrue(
+                        type(FFTW_object) == _builders._FFTWWrapper)
 
     def test_smaller_s(self):
         dtype_tuple = io_dtypes[functions[self.func]]
@@ -250,7 +251,8 @@ class BuildersTestFFT(unittest.TestCase):
                 FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
                         test_shape, dtype, s, kwargs)
 
-                self.assertTrue(type(FFTW_object) == _FFTWWrapper)                
+                self.assertTrue(
+                        type(FFTW_object) == _builders._FFTWWrapper)                
 
     def test_s_subset(self):
         pass
@@ -258,7 +260,7 @@ class BuildersTestFFT(unittest.TestCase):
     def test_flags(self):
         pass
 
-    def test_auto_align_input_(self):
+    def test_auto_align_input(self):
         pass
 
     def test_n_threads(self):
@@ -321,7 +323,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         self.internal_array = n_byte_align_empty((256, 256), 16, 
                 dtype='complex128')
 
-        self.fft = builders._FFTWWrapper(self.internal_array, 
+        self.fft = _builders._FFTWWrapper(self.internal_array, 
                 self.output_array,
                 input_array_slicer=self.input_array_slicer,
                 FFTW_array_slicer=self.FFTW_array_slicer)
@@ -512,7 +514,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
                 numpy.random.randn(*internal_array_shape) 
                 + 1j*numpy.random.randn(*internal_array_shape), 16)
 
-        fft =  builders._FFTWWrapper(internal_array, self.output_array,
+        fft =  _builders._FFTWWrapper(internal_array, self.output_array,
                 input_array_slicer=self.input_array_slicer,
                 FFTW_array_slicer=self.FFTW_array_slicer)
         
@@ -549,7 +551,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         _input_array = n_byte_align_empty(self.internal_array.shape, 16,
                 dtype='complex128')
         
-        ifft = builders._FFTWWrapper(self.output_array, _input_array, 
+        ifft = _builders._FFTWWrapper(self.output_array, _input_array, 
                 direction='FFTW_BACKWARD',
                 input_array_slicer=slice(None),
                 FFTW_array_slicer=slice(None))
@@ -566,7 +568,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         _input_array = n_byte_align_empty(self.internal_array.shape, 16,
                 dtype='complex128')
 
-        ifft = builders._FFTWWrapper(self.output_array, _input_array, 
+        ifft = _builders._FFTWWrapper(self.output_array, _input_array, 
                 direction='FFTW_BACKWARD',
                 input_array_slicer=slice(None),
                 FFTW_array_slicer=slice(None))
@@ -584,7 +586,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         _input_array = n_byte_align_empty(self.internal_array.shape, 16,
                 dtype='complex128')
 
-        ifft = builders._FFTWWrapper(self.output_array, _input_array, 
+        ifft = _builders._FFTWWrapper(self.output_array, _input_array, 
                 direction='FFTW_BACKWARD',
                 input_array_slicer=slice(None),
                 FFTW_array_slicer=slice(None))
@@ -615,7 +617,7 @@ class BuildersTestUtilities(unittest.TestCase):
 
         for _input, _output in zip(inputs, outputs):
             self.assertEqual(
-                    builders._setup_input_slicers(*_input),
+                    _builders._setup_input_slicers(*_input),
                     _output)
 
 
@@ -666,7 +668,7 @@ class BuildersTestUtilities(unittest.TestCase):
             a = numpy.empty(shape)
 
             self.assertEqual(
-                    builders._compute_array_shapes(a, s, axes, inverse, real),
+                    _builders._compute_array_shapes(a, s, axes, inverse, real),
                     output)
 
     def test_compute_array_shapes_invalid_axes(self):
@@ -679,7 +681,7 @@ class BuildersTestUtilities(unittest.TestCase):
 
             args = (a, s, each_axes, False, False)
             self.assertRaisesRegexp(IndexError, 'Invalid axes', 
-                    builders._compute_array_shapes, *args)
+                    _builders._compute_array_shapes, *args)
 
     def _call_cook_nd_args(self, arg_tuple):
         a = numpy.zeros(arg_tuple[0])
@@ -689,7 +691,7 @@ class BuildersTestUtilities(unittest.TestCase):
             if arg is not None:
                 arg_dict[arg_name] = arg
 
-        return builders._cook_nd_args(**arg_dict)
+        return _builders._cook_nd_args(**arg_dict)
 
     def test_cook_nd_args_normal(self):
         # inputs are (a.shape, s, axes, invreal)
