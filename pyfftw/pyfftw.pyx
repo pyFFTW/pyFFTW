@@ -604,7 +604,9 @@ cdef class FFTW:
     cdef bint __use_threads
 
     cdef object __input_strides
+    cdef object __input_byte_strides
     cdef object __output_strides
+    cdef object __output_byte_strides
     cdef object __input_shape
     cdef object __output_shape
     cdef object __input_dtype
@@ -622,7 +624,8 @@ cdef class FFTW:
 
     cdef int __N
     def __get_N(self):
-        '''The product of the lengths of the DFT over all DFT axes.
+        '''
+        The product of the lengths of the DFT over all DFT axes.
         1/N is the normalisation constant. For any input array A, 
         and for any set of axes, 1/N * ifft(fft(A)) = A
         '''
@@ -630,9 +633,14 @@ cdef class FFTW:
 
     N = property(__get_N)
 
+    def __get_flags(self):
+        '''
+        Return the FFT flags used to create the object as a tuple
+        '''
+
     def __cinit__(self, input_array, output_array, axes=(-1,),
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
-            unsigned int threads=1):
+            unsigned int threads=1, *args, **kwargs):
         
         # Initialise the pointers that need to be freed
         self.__plan = NULL
@@ -713,7 +721,7 @@ cdef class FFTW:
                 self.__axes[n] = self.__axes[n] + array_dimension
 
             if self.__axes[n] >= array_dimension or self.__axes[n] < 0:
-                raise ValueError('Invalid axes: '
+                raise IndexError('Invalid axes: '
                     'The axes list cannot contain invalid axes.')
 
         cdef int64_t unique_axes_length
@@ -775,8 +783,10 @@ cdef class FFTW:
 
         # Find the strides for all the axes of both arrays in terms of the 
         # number of elements (as opposed to the number of bytes).
+        self.__input_byte_strides = input_array.strides        
         self.__input_strides = tuple([stride/input_array.itemsize 
             for stride in input_array.strides])
+        self.__output_byte_strides = output_array.strides
         self.__output_strides = tuple([stride/output_array.itemsize 
             for stride in output_array.strides])
 
@@ -853,7 +863,7 @@ cdef class FFTW:
         
         ``axes`` describes along which axes the DFT should be taken.
         This should be a valid list of axes. Repeated axes are 
-        only transformed once. Invalid axes will raise an 
+        only transformed once. Invalid axes will raise an ``IndexError`` 
         exception. This argument is equivalent to the same
         argument in ``numpy.fft.fftn``, except for the fact that
         the behaviour of repeated axes is different (`numpy.fft`
@@ -873,6 +883,7 @@ cdef class FFTW:
         the table below if a Real scheme is used, otherwise a 
         ``ValueError`` is raised.
 
+        .. _flags:
         ``flags`` is a list of strings and is a subset of the 
         flags that FFTW allows for the planners. Specifically, 
         FFTW_ESTIMATE, FFTW_MEASURE, FFTW_PATIENT and 
@@ -1000,42 +1011,41 @@ cdef class FFTW:
 
     def __call__(self, input_array=None, output_array=None, 
             normalise_idft=True):
-        '''Calling the class instance (optionally) updates the arrays, then
+        '''
+        Calling the class instance (optionally) updates the arrays, then
         calls :ref:`execute()<FFTW_execute>`, returning the output array.
 
-        If ``normalise_idft`` is ``True`` (the default), then the output from an
-        inverse DFT (i.e. when the direction flag is ``'FFTW_BACKWARD'``) is
-        scaled by 1/N, where N is the product of the lengths of input array 
-        on which the FFT is taken. If the direction is ``'FFTW_FORWARD'``, 
-        this flag makes no difference to the output array.
-        
-        When ``input_array`` or ``output_array`` are not assigned or set to 
-        ``None``, this method is equivalent to calling the 
-        :ref:`execute()<FFTW_execute>` method on the class (with 
-        normalisation depending on the value of normalise_idft).
+        It has some built-in helpers to make life simpler for the calling
+        functions (as distinct from manually updating the arrays and
+        calling ``execute()``).
 
+        If ``normalise_idft`` is ``True`` (the default), then the output from 
+        an inverse DFT (i.e. when the direction flag is ``'FFTW_BACKWARD'``) is
+        scaled by 1/N, where N is the product of the lengths of input array on
+        which the FFT is taken. If the direction is ``'FFTW_FORWARD'``, this
+        flag makes no difference to the output array.
+        
         When ``input_array`` is something other than None, then the passed in
         array is coerced to be the same dtype as the input array used when the
-        class was instantiated. The byte-alignment of the passed in array is
-        also made consistent with the expected byte-alignment. This may, but
-        not necessarily, require a copy to be made. If it is necessary to
-        create a copy of the array, the copy will only be created if the 
-        expected striding is consistent with a simple row-major contiguous
-        array, otherwise a ValueError will be raised.
+        class was instantiated, the byte-alignment of the passed in array is
+        made consistent with the expected byte-alignment and the striding is 
+        made consistent with the expected striding. All this may, but not 
+        necessarily, require a copy to be made.
 
         As noted in the :ref:`scheme table<scheme_table>`, if the FFTW 
         instance describes a backwards real transform, the contents of the
         input array will be destroyed. It is up to the calling function to
         make a copy if it is necessary to maintain the input array.
 
-        ``output_array`` is always untouched. If the dtype, the alignment
-        or the striding is incorrect for the FFTW object, then a ValueError is
-        raised.
+        ``output_array`` is always used as-is if possible. If the dtype, the 
+        alignment or the striding is incorrect for the FFTW object, then a
+        ``ValueError`` is raised.
         
         The coerced input array and the output array (as appropriate) are 
         then passed as arguments to
         :ref:`update_arrays()<FFTW_update_arrays>`, after which
-        :ref:`execute()<FFTW_execute>` is called.
+        :ref:`execute()<FFTW_execute>` is called, and then normalisation
+        is applied to the output array if that is desired.
         
         Note that it is possible to pass some data structure that can be
         converted to an array, such as a list, so long as it fits the data
@@ -1066,6 +1076,8 @@ cdef class FFTW:
                 copy_needed = True
             elif (not input_array.dtype == self.__input_dtype):
                 copy_needed = True
+            elif (not input_array.strides == self.__input_byte_strides):
+                copy_needed = True
             elif (self.__simd_allowed and
                     not (<intptr_t>np.PyArray_DATA(input_array)%16 == 0)):
                 copy_needed = True
@@ -1074,22 +1086,23 @@ cdef class FFTW:
 
             if copy_needed:
 
-                if not self.__input_array.flags['C_CONTIGUOUS']:
-                    raise ValueError('Invalid internal striding: '
-                            'The input array is an invalid format for '
-                            'the FFTW instance, and it cannot be coerced '
-                            'to the correct format because the internal '
-                            'array is not row-major contiguous.')
+                input_array = np.asanyarray(input_array)
+                if not input_array.shape == self.__input_shape:
+                    raise ValueError('Invalid input shape: '
+                            'The new input array should be the same shape '
+                            'as the input array used to instantiate the '
+                            'object.')
+                
+                self.__input_array[:] = input_array
+                
+                if output_array is not None:
+                    # No point wasting time if no update is necessary
+                    # (which the copy above may have avoided)
+                    input_array = self.__input_array
+                    self.update_arrays(input_array, output_array)
 
-                if self.__simd_allowed:
-                    input_array = n_byte_align(np.asanyarray(input_array),
-                            16, dtype=self.__input_array.dtype)
-
-                else:
-                    input_array = np.asanyarray(input_array, 
-                            dtype=self.__input_array.dtype)
-
-            self.update_arrays(input_array, output_array)
+            else:
+                self.update_arrays(input_array, output_array)
 
         self.execute()
 
@@ -1097,7 +1110,6 @@ cdef class FFTW:
             self.__output_array *= self.__normalisation_scaling
 
         return self.__output_array
-
 
     cpdef update_arrays(self, 
             new_input_array, new_output_array):
@@ -1154,13 +1166,9 @@ cdef class FFTW:
 
         new_input_shape = new_input_array.shape
         new_output_shape = new_output_array.shape
-        new_input_strides = tuple(
-                [stride/new_input_array.itemsize 
-                    for stride in new_input_array.strides])
-        
-        new_output_strides = tuple(
-                [stride/new_output_array.itemsize 
-                    for stride in new_output_array.strides])
+
+        new_input_strides = new_input_array.strides
+        new_output_strides = new_output_array.strides
 
         if not new_input_shape == self.__input_shape:
             raise ValueError('Invalid input shape: '
@@ -1172,12 +1180,12 @@ cdef class FFTW:
                     'The new output array should be the same shape as '
                     'the output array used to instantiate the object.')
         
-        if not new_input_strides == self.__input_strides:
+        if not new_input_strides == self.__input_byte_strides:
             raise ValueError('Invalid input striding: '
                     'The strides should be identical for the new '
                     'input array as for the old.')
         
-        if not new_output_strides == self.__output_strides:
+        if not new_output_strides == self.__output_byte_strides:
             raise ValueError('Invalid output striding: '
                     'The strides should be identical for the new '
                     'output array as for the old.')
@@ -1193,13 +1201,15 @@ cdef class FFTW:
         self.__output_array = new_output_array
 
     def get_input_array(self):
-        '''Return the input array that is associated with the FFTW 
+        '''
+        Return the input array that is associated with the FFTW 
         instance.
         '''
         return self.__input_array
 
     def get_output_array(self):
-        '''Return the output array that is associated with the FFTW
+        '''
+        Return the output array that is associated with the FFTW
         instance.
         '''
         return self.__output_array

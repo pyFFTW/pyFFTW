@@ -362,11 +362,11 @@ class Complex64FFTW1DTest(object):
         axes=(-3,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        with self.assertRaisesRegexp(ValueError, 'Invalid axes'):
+        with self.assertRaisesRegexp(IndexError, 'Invalid axes'):
                 FFTW(a, b, axes, direction=self.direction)
 
         axes=(10,)
-        with self.assertRaisesRegexp(ValueError, 'Invalid axes'):
+        with self.assertRaisesRegexp(IndexError, 'Invalid axes'):
                 FFTW(a, b, axes, direction=self.direction)
 
 

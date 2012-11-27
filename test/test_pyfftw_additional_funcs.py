@@ -46,7 +46,7 @@ class FFTWAdditionalFuncsTest(unittest.TestCase):
         self.assertIs(self.output_array, self.fft.get_output_array())
 
 test_cases = (
-        FFTWAdditionalFuncs,)
+        FFTWAdditionalFuncsTest,)
 
 if __name__ == '__main__':
 

@@ -207,35 +207,52 @@ class FFTWCallTest(unittest.TestCase):
         self.assertTrue(numpy.alltrue(output_array == self.output_array))
     
     
-    def test_call_with_invalid_input_striding(self):
-        '''Test the class call with an invalid strided input update.
+    def test_call_with_invalid_output_striding(self):
+        '''Test the class call with an invalid strided output update.
         '''
         # Add an extra dimension to bugger up the striding
-        new_shape = self.input_array.shape + (2,)
-        input_array = n_byte_align(numpy.random.randn(*new_shape) 
+        new_shape = self.output_array.shape + (2,)
+        output_array = n_byte_align(numpy.random.randn(*new_shape) 
                 + 1j*numpy.random.randn(*new_shape), 16)
 
-        self.assertRaisesRegexp(ValueError, 'Invalid input striding',
-                self.fft, *(input_array[:,:,1],))
+        self.assertRaisesRegexp(ValueError, 'Invalid output striding',
+                self.fft, **{'output_array': output_array[:,:,1]})
 
-    def test_call_with_invalid_internal_striding(self):
-        '''Test the input update with non C contiguous internal input array.
+    def test_call_with_different_striding(self):
+        '''Test the input update with different strides to internal array.
         '''
         shape = self.input_array.shape + (2,)
 
         input_array = n_byte_align(numpy.random.randn(*shape) 
                 + 1j*numpy.random.randn(*shape), 16)
 
-        fft = FFTW(input_array[:, :, 1], self.output_array)
+        fft = FFTW(input_array[:,:,0], self.output_array)
+        
+        test_output_array = fft().copy()
 
-        # set up a new array with an incorrect dtype to try to force
-        # a copy.
-        new_input_array = n_byte_align(numpy.complex64(
-            numpy.random.randn(*shape) 
-            + 1j*numpy.random.randn(*shape)), 16)
+        new_input_array = n_byte_align(
+                input_array[:, :, 0].copy(), 16)
 
-        self.assertRaisesRegexp(ValueError, 'Invalid internal striding',
-                fft, *(new_input_array[:,:,1],))
+        new_output = fft(new_input_array).copy()
+
+        # Test the test!
+        self.assertTrue(new_input_array.strides != input_array[:,:,0].strides)
+
+        self.assertTrue(numpy.alltrue(test_output_array == new_output))
+
+    def test_call_with_copy_with_missized_array_error(self):
+        '''Force an input copy with a missized array.
+        '''
+        shape = list(self.input_array.shape + (2,))
+        shape[0] += 1
+
+        input_array = n_byte_align(numpy.random.randn(*shape) 
+                + 1j*numpy.random.randn(*shape), 16)
+
+        fft = FFTW(self.input_array, self.output_array)
+        
+        self.assertRaisesRegexp(ValueError, 'Invalid input shape',
+                self.fft, **{'input_array': input_array[:,:,0]})
 
     def test_call_with_unaligned(self):
         '''Test the class call with a keyword input update.
