@@ -17,12 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfftw import builders, n_byte_align_empty, n_byte_align, FFTW
-import pyfftw.builders.builders as _builders
+from pyfftw.builders import utils
 
 import unittest
 import numpy
 from numpy import fft as np_fft
 import inspect
+import warnings
+warnings.filterwarnings('always')
 
 complex_dtypes = (numpy.complex64, numpy.complex128, numpy.clongdouble)
 real_dtypes = (numpy.float32, numpy.float64, numpy.longdouble)
@@ -39,31 +41,6 @@ io_dtypes = {
     'complex': (complex_dtypes, make_complex_data),
     'r2c': (real_dtypes, make_real_data),
     'c2r': (complex_dtypes, make_complex_data)}
-
-one_d_shapes = (
-        ((100,), {}),
-        ((128, 64), {'axis': 0}),
-        ((128, 32), {'axis': -1}),
-        ((59, 100), {}),
-        ((32, 32, 4), {'axis': 1}),
-        ((64, 128, 16), {}),
-        )
-
-two_d_shapes = (
-        ((128, 64), {'axes': None}),
-        ((128, 32), {'axes': None}),
-        ((128, 32, 4), {'axes': (0, 2)}),
-        ((59, 100), {'axes': (-2, -1)}),
-        ((64, 128, 16), {'axes': (0, 2)}),
-        ((4, 6, 8, 4), {'axes': (0, 3)}),
-        )
-
-n_d_shapes = (
-        ((128, 32, 4), {'axes': None}),
-        ((64, 128, 16), {'axes': (0, 1, 2)}),
-        ((4, 6, 8, 4), {'axes': (0, 3, 1)}),
-        ((4, 6, 8, 4), {'axes': (0, 3, 1, 2)}),
-        )
 
 functions = {
         'fft': 'complex',
@@ -83,7 +60,23 @@ functions = {
 class BuildersTestFFT(unittest.TestCase):
 
     func = 'fft'
-    test_shapes = one_d_shapes
+    test_shapes = (
+            ((100,), {}),
+            ((128, 64), {'axis': 0}),
+            ((128, 32), {'axis': -1}),
+            ((59, 100), {}),
+            ((32, 32, 4), {'axis': 1}),
+            ((64, 128, 16), {}),
+            )
+
+    # invalid_s_shapes is:
+    # (size, invalid_args, error_type, error_string)
+    invalid_args = (
+            ((100,), ((100, 200),), TypeError, ''),
+            ((100, 200), ((100, 200),), TypeError, ''),
+            ((100,), (100, (-2, -1)), TypeError, ''),
+            ((100,), (100, -20), IndexError, ''))
+
     realinv = False
 
     @property
@@ -103,20 +96,33 @@ class BuildersTestFFT(unittest.TestCase):
             s, kwargs):
 
         input_array = array_type(test_shape, dtype)
-
-        FFTW_object = getattr(builders, self.func)(
-                input_array.copy(), s, **kwargs)
-
-        output_array = FFTW_object(input_array.copy())
-
+        
         if input_array.dtype == 'clongdouble':
-            input_array = numpy.complex128(input_array)
+            np_input_array = numpy.complex128(input_array)
 
         elif input_array.dtype == 'longdouble':
-            input_array = numpy.float64(input_array)
+            np_input_array = numpy.float64(input_array)
 
-        test_out_array = getattr(np_fft, self.func)(
-                input_array.copy(), s, **kwargs)
+        else:
+            np_input_array = input_array
+
+        with warnings.catch_warnings(record=True) as w:
+            # We catch the warnings so as to pick up on when
+            # a complex array is turned into a real array
+
+            FFTW_object = getattr(builders, self.func)(
+                    input_array.copy(), s, **kwargs)
+
+            output_array = FFTW_object(input_array.copy())
+
+            test_out_array = getattr(np_fft, self.func)(
+                    np_input_array.copy(), s, **kwargs)
+
+            if (functions[self.func] == 'r2c'):
+                if numpy.iscomplexobj(input_array):
+                    # Make sure a warning is raised
+                    self.assertIs(
+                            w[-1].category, numpy.ComplexWarning)
         
         self.assertTrue(
                 numpy.allclose(output_array, test_out_array, 
@@ -204,11 +210,18 @@ class BuildersTestFFT(unittest.TestCase):
 
                 self.assertTrue(type(FFTW_object) == FFTW)
 
-    def test_fail_on_invalid_s(self):
-        pass
+    def test_fail_on_invalid_s_or_axes(self):
+        dtype_tuple = io_dtypes[functions[self.func]]
+        
+        for dtype in dtype_tuple[0]:
 
-    def test_fail_on_invalid_axes(self):
-        pass
+            for test_shape, args, exception, e_str in self.invalid_args:
+                input_array = dtype_tuple[1](test_shape, dtype)
+                
+                self.assertRaisesRegexp(exception, e_str,
+                        getattr(builders, self.func), 
+                        *((input_array,) + args))
+
 
     def test_same_sized_s(self):
         dtype_tuple = io_dtypes[functions[self.func]]
@@ -235,7 +248,7 @@ class BuildersTestFFT(unittest.TestCase):
                         test_shape, dtype, s, kwargs)
 
                 self.assertTrue(
-                        type(FFTW_object) == _builders._FFTWWrapper)
+                        type(FFTW_object) == utils._FFTWWrapper)
 
     def test_smaller_s(self):
         dtype_tuple = io_dtypes[functions[self.func]]
@@ -252,19 +265,145 @@ class BuildersTestFFT(unittest.TestCase):
                         test_shape, dtype, s, kwargs)
 
                 self.assertTrue(
-                        type(FFTW_object) == _builders._FFTWWrapper)                
+                        type(FFTW_object) == utils._FFTWWrapper)                
 
-    def test_s_subset(self):
-        pass
+    def test_bigger_and_smaller_s(self):
+        dtype_tuple = io_dtypes[functions[self.func]]
+        for dtype in dtype_tuple[0]:
+            i = -1
+            for test_shape, s, kwargs in self.test_data:
 
-    def test_flags(self):
-        pass
+                try:
+                    for each_axis, length in enumerate(s):
+                        s[each_axis] += i * 2
+                        i *= i
+                except TypeError:
+                    s += i * 2
+                    i *= i
+
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                        test_shape, dtype, s, kwargs)
+
+                self.assertTrue(
+                        type(FFTW_object) == utils._FFTWWrapper)
 
     def test_auto_align_input(self):
-        pass
+        dtype_tuple = io_dtypes[functions[self.func]]
+        
+        for dtype in dtype_tuple[0]:
+            for test_shape, s, kwargs in self.test_data:
+                _kwargs = kwargs.copy()
+                s1 = None
+                s2 = s
+                try:
+                    for each_axis, length in enumerate(s):
+                        s2[each_axis] += 2
+                except TypeError:
+                    s2 += 2
 
-    def test_n_threads(self):
-        pass
+                input_array = dtype_tuple[1](test_shape, dtype)
+
+                # Firstly check the unaligned case (for both
+                # FFTW and _FFTWWrapper)
+                _kwargs['auto_align_input'] = False
+                FFTW_object = getattr(builders, self.func)(
+                        input_array.copy(), s1, **_kwargs)
+
+                self.assertFalse(FFTW_object.aligned)
+
+                FFTW_object = getattr(builders, self.func)(
+                        input_array.copy(), s2, **_kwargs)
+
+                self.assertFalse(FFTW_object.aligned)
+
+                # Now for the aligned case (for both
+                # FFTW and _FFTWWrapper)
+                _kwargs['auto_align_input'] = True
+                FFTW_object = getattr(builders, self.func)(
+                        input_array.copy(), s1, **_kwargs)
+
+                self.assertTrue(FFTW_object.aligned)
+
+                FFTW_object = getattr(builders, self.func)(
+                        input_array.copy(), s2, **_kwargs)
+
+                self.assertTrue(FFTW_object.aligned)
+
+
+    def test_dtype_coercian(self):
+        # Make sure we input a dtype that needs to be coerced
+        if functions[self.func] == 'r2c':
+            dtype_tuple = io_dtypes['complex']
+        else:
+            dtype_tuple = io_dtypes['r2c']
+
+        for dtype in dtype_tuple[0]:
+            for test_shape, s, kwargs in self.test_data:
+                s = None
+
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                        test_shape, dtype, s, kwargs)
+
+                self.assertTrue(type(FFTW_object) == FFTW)
+
+    def test_persistent_padding(self):
+        '''Test to confirm the padding it not touched after creation.
+        '''
+        dtype_tuple = io_dtypes[functions[self.func]]
+        for dtype in dtype_tuple[0]:
+            for test_shape, s, kwargs in self.test_data:
+
+                n_add = 2
+                # these slicers get the padding
+                # from the internal input array
+                padding_slicer = [slice(None)] * len(test_shape)
+                axes = self.axes_from_kwargs(kwargs)
+                try:
+                    for each_axis, length in enumerate(s):
+                        s[each_axis] += n_add
+                        padding_slicer[axes[each_axis]] = (
+                                slice(s[each_axis], None))
+
+                except TypeError:
+                    s += n_add
+                    padding_slicer[axes[0]] = slice(s, None)
+
+                # Get a valid object
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                        test_shape, dtype, s, kwargs)
+
+                internal_array = FFTW_object.get_input_array()
+                padding = internal_array[padding_slicer]
+
+                # Fill the padding with garbage
+                initial_padding = dtype_tuple[1](padding.shape, dtype)
+
+                padding[:] = initial_padding
+
+                # Now confirm that nothing is done to the padding
+                FFTW_object()
+
+                final_padding = FFTW_object.get_input_array()[padding_slicer]
+
+                self.assertTrue(numpy.all(final_padding == initial_padding))
+
+    def test_input_maintained(self):
+        '''Test to make sure the input is maintained
+        '''
+        dtype_tuple = io_dtypes[functions[self.func]]
+        for dtype in dtype_tuple[0]:
+            for test_shape, s, kwargs in self.test_data:
+
+                input_array = dtype_tuple[1](test_shape, dtype)
+                
+                FFTW_object = getattr(
+                        builders, self.func)(input_array, s, **kwargs)
+
+                final_input_array = FFTW_object.get_input_array()
+
+                self.assertTrue(
+                        numpy.alltrue(input_array == final_input_array))
+
 
 class BuildersTestIFFT(BuildersTestFFT):
     func = 'ifft'
@@ -278,7 +417,23 @@ class BuildersTestIRFFT(BuildersTestFFT):
 
 class BuildersTestFFT2(BuildersTestFFT):
     func = 'ifft2'
-    test_shapes = two_d_shapes
+    test_shapes = (
+            ((128, 64), {'axes': None}),
+            ((128, 32), {'axes': None}),
+            ((128, 32, 4), {'axes': (0, 2)}),
+            ((59, 100), {'axes': (-2, -1)}),
+            ((64, 128, 16), {'axes': (0, 2)}),
+            ((4, 6, 8, 4), {'axes': (0, 3)}),
+            )
+    
+    invalid_args = (
+            ((100,), ((100, 200),), ValueError, 'Shape error'),
+            ((100, 200), ((100, 200, 100),), ValueError, 'Shape error'),
+            ((100,), ((100, 200), (-3, -2, -1)), ValueError, 'Shape error'),
+            ((100, 200), (100, -1), TypeError, ''),
+            ((100, 200), ((100, 200), (-3, -2)), IndexError, 'Invalid axes'),
+            ((100, 200), ((100,), (-3,)), IndexError, 'Invalid axes'))
+
 
 class BuildersTestIFFT2(BuildersTestFFT2):
     func = 'ifft2'
@@ -292,7 +447,12 @@ class BuildersTestIRFFT2(BuildersTestFFT2):
 
 class BuildersTestFFTN(BuildersTestFFT2):
     func = 'ifftn'
-    test_shapes = n_d_shapes
+    test_shapes = (
+            ((128, 32, 4), {'axes': None}),
+            ((64, 128, 16), {'axes': (0, 1, 2)}),
+            ((4, 6, 8, 4), {'axes': (0, 3, 1)}),
+            ((4, 6, 8, 4), {'axes': (0, 3, 1, 2)}),
+            )
 
 class BuildersTestIFFTN(BuildersTestFFTN):
     func = 'ifftn'
@@ -323,7 +483,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         self.internal_array = n_byte_align_empty((256, 256), 16, 
                 dtype='complex128')
 
-        self.fft = _builders._FFTWWrapper(self.internal_array, 
+        self.fft = utils._FFTWWrapper(self.internal_array, 
                 self.output_array,
                 input_array_slicer=self.input_array_slicer,
                 FFTW_array_slicer=self.FFTW_array_slicer)
@@ -514,7 +674,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
                 numpy.random.randn(*internal_array_shape) 
                 + 1j*numpy.random.randn(*internal_array_shape), 16)
 
-        fft =  _builders._FFTWWrapper(internal_array, self.output_array,
+        fft =  utils._FFTWWrapper(internal_array, self.output_array,
                 input_array_slicer=self.input_array_slicer,
                 FFTW_array_slicer=self.FFTW_array_slicer)
         
@@ -551,7 +711,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         _input_array = n_byte_align_empty(self.internal_array.shape, 16,
                 dtype='complex128')
         
-        ifft = _builders._FFTWWrapper(self.output_array, _input_array, 
+        ifft = utils._FFTWWrapper(self.output_array, _input_array, 
                 direction='FFTW_BACKWARD',
                 input_array_slicer=slice(None),
                 FFTW_array_slicer=slice(None))
@@ -568,7 +728,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         _input_array = n_byte_align_empty(self.internal_array.shape, 16,
                 dtype='complex128')
 
-        ifft = _builders._FFTWWrapper(self.output_array, _input_array, 
+        ifft = utils._FFTWWrapper(self.output_array, _input_array, 
                 direction='FFTW_BACKWARD',
                 input_array_slicer=slice(None),
                 FFTW_array_slicer=slice(None))
@@ -586,7 +746,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         _input_array = n_byte_align_empty(self.internal_array.shape, 16,
                 dtype='complex128')
 
-        ifft = _builders._FFTWWrapper(self.output_array, _input_array, 
+        ifft = utils._FFTWWrapper(self.output_array, _input_array, 
                 direction='FFTW_BACKWARD',
                 input_array_slicer=slice(None),
                 FFTW_array_slicer=slice(None))
@@ -610,14 +770,14 @@ class BuildersTestUtilities(unittest.TestCase):
                 )
 
         outputs = (
-                ([slice(None), slice(None)], [slice(None), slice(None)]),
-                ([slice(0, 3), slice(None)], [slice(None), slice(0, 4)]),
-                ([slice(0, 3), slice(None)], [slice(None), slice(None)]),
+                ([slice(0, 4), slice(0, 5)], [slice(None), slice(None)]),
+                ([slice(0, 3), slice(0, 4)], [slice(None), slice(0, 4)]),
+                ([slice(0, 3), slice(0, 5)], [slice(None), slice(None)]),
                 )
 
         for _input, _output in zip(inputs, outputs):
             self.assertEqual(
-                    _builders._setup_input_slicers(*_input),
+                    utils._setup_input_slicers(*_input),
                     _output)
 
 
@@ -668,7 +828,7 @@ class BuildersTestUtilities(unittest.TestCase):
             a = numpy.empty(shape)
 
             self.assertEqual(
-                    _builders._compute_array_shapes(a, s, axes, inverse, real),
+                    utils._compute_array_shapes(a, s, axes, inverse, real),
                     output)
 
     def test_compute_array_shapes_invalid_axes(self):
@@ -681,7 +841,7 @@ class BuildersTestUtilities(unittest.TestCase):
 
             args = (a, s, each_axes, False, False)
             self.assertRaisesRegexp(IndexError, 'Invalid axes', 
-                    _builders._compute_array_shapes, *args)
+                    utils._compute_array_shapes, *args)
 
     def _call_cook_nd_args(self, arg_tuple):
         a = numpy.zeros(arg_tuple[0])
@@ -691,7 +851,7 @@ class BuildersTestUtilities(unittest.TestCase):
             if arg is not None:
                 arg_dict[arg_name] = arg
 
-        return _builders._cook_nd_args(**arg_dict)
+        return utils._cook_nd_args(**arg_dict)
 
     def test_cook_nd_args_normal(self):
         # inputs are (a.shape, s, axes, invreal)
@@ -764,21 +924,21 @@ class BuildersTestUtilities(unittest.TestCase):
             self.assertRaisesRegexp(ValueError, 'Shape error', 
                     self._call_cook_nd_args, *(each_input,))
 
-test_cases = (
-        BuildersTestFFTWWrapper,
-        BuildersTestUtilities,
-        BuildersTestFFT,
-        BuildersTestIFFT,
-        BuildersTestIRFFT,
-        BuildersTestIRFFT,
-        BuildersTestFFT2,
-        BuildersTestIFFT2,
-        BuildersTestIRFFT2,
-        BuildersTestIRFFT2,
-        BuildersTestFFTN,
-        BuildersTestIFFTN,
-        BuildersTestIRFFTN,
-        BuildersTestIRFFTN)
+#test_cases = (
+#        BuildersTestFFTWWrapper,
+#        BuildersTestUtilities,
+#        BuildersTestFFT,
+#        BuildersTestIFFT,
+#        BuildersTestIRFFT,
+#        BuildersTestIRFFT,
+#        BuildersTestFFT2,
+#        BuildersTestIFFT2,
+#        BuildersTestIRFFT2,
+#        BuildersTestIRFFT2,
+#        BuildersTestFFTN,
+#        BuildersTestIFFTN,
+#        BuildersTestIRFFTN,
+#        BuildersTestIRFFTN)
 
 if __name__ == '__main__':
 

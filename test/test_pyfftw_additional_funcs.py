@@ -33,6 +33,16 @@ class FFTWAdditionalFuncsTest(unittest.TestCase):
         self.output_array[:] = (numpy.random.randn(*self.output_array.shape) 
                 + 1j*numpy.random.randn(*self.output_array.shape))
 
+    def test_alignment_flag(self):
+        '''Test to see if the alignment flag is correct
+        '''
+        fft = FFTW(self.input_array, self.output_array)
+        self.assertTrue(fft.aligned)
+
+        fft = FFTW(self.input_array, self.output_array, flags=('FFTW_UNALIGNED',))
+        self.assertFalse(fft.aligned)
+
+
     def test_get_input_array(self):
         '''Test to see the get_input_array method returns the correct thing
         '''

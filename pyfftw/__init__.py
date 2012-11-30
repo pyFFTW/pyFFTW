@@ -13,4 +13,8 @@ from pyfftw import (
 
 import builders
 
+# clean up the namespace
+del builders.builders
+del builders._utils
+
 #from np_fft import *

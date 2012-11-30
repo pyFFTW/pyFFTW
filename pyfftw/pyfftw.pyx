@@ -633,10 +633,14 @@ cdef class FFTW:
 
     N = property(__get_N)
 
-    def __get_flags(self):
+    def __get_aligned(self):
         '''
-        Return the FFT flags used to create the object as a tuple
+        Return whether or not this FFTW object requires aligned
+        input and output data.
         '''
+        return self.__simd_allowed
+
+    aligned = property(__get_aligned)
 
     def __cinit__(self, input_array, output_array, axes=(-1,),
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
@@ -890,8 +894,9 @@ cdef class FFTW:
         FFTW_EXHAUSTIVE are supported. These describe the 
         increasing amount of effort spent during the planning 
         stage to create the fastest possible transform. 
-        Usually, FFTW_MEASURE is a good compromise and is the 
-        default.
+        Usually, FFTW_MEASURE is a good compromise. If conflicting
+        flags are passed, or no flags, then the default is simply
+        what is done by FFTW.
         
         In addition the FFTW_UNALIGNED flag is supported. 
         This tells FFTW not to assume anything about the 
