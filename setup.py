@@ -45,7 +45,7 @@ ext_modules = [Extension('pyfftw.pyfftw',
     library_dirs=library_dirs,
     include_dirs=include_dirs)]
 
-version = '0.8.2'
+version = '0.9.0'
 
 long_description = '''
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
@@ -98,7 +98,7 @@ setup_args = {
             'Topic :: Scientific/Engineering :: Mathematics',
             'Topic :: Multimedia :: Sound/Audio :: Analysis',
             ],
-        'packages':['pyfftw'],
+        'packages':['pyfftw', 'pyfftw.builders'],
         'ext_modules': ext_modules,
         'include_dirs': include_dirs,
         'package_data': package_data,
