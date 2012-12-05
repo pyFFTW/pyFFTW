@@ -47,14 +47,16 @@ class FFTWBaseTest(unittest.TestCase):
 
     def make_shapes(self):
         self.input_shapes = {
+                'small_1d': (16,),
                 '1d': (2048,),
                 '2d': (256, 2048),
-                '3d': (15, 256, 2048)}
+                '3d': (5, 256, 2048)}
 
         self.output_shapes = {
+                'small_1d': (16,),
                 '1d': (2048,),
                 '2d': (256, 2048),
-                '3d': (15, 256, 2048)}
+                '3d': (5, 256, 2048)}
 
     def create_test_arrays(self, input_shape, output_shape, axes=None):
         a = self.input_dtype(numpy.random.randn(*input_shape)
@@ -83,7 +85,7 @@ class FFTWBaseTest(unittest.TestCase):
 
     def run_validate_fft(self, a, b, axes, fft=None, ifft=None, 
             force_unaligned_data=False, create_array_copies=True, 
-            threads=1):
+            threads=1, flags=('FFTW_ESTIMATE',)):
         ''' Run a validation of the FFTW routines for the passed pair
         of arrays, a and b, and the axes argument.
 
@@ -96,6 +98,8 @@ class FFTWBaseTest(unittest.TestCase):
         will be passed to the fftw routines.
 
         The threads argument runs the validation with multiple threads.
+
+        flags is passed to the creation of the FFTW object.
         '''
 
         if create_array_copies:
@@ -105,7 +109,7 @@ class FFTWBaseTest(unittest.TestCase):
 
         a_orig = a.copy()
 
-        flags = ['FFTW_ESTIMATE']
+        flags = list(flags)
 
         if force_unaligned_data:
             flags.append('FFTW_UNALIGNED')

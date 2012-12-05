@@ -387,6 +387,11 @@ class BuildersTestFFT(unittest.TestCase):
 
                 self.assertTrue(numpy.all(final_padding == initial_padding))
 
+    def test_overwrite_input(self):
+        '''
+        '''
+        pass
+
     def test_input_maintained(self):
         '''Test to make sure the input is maintained
         '''
@@ -403,6 +408,21 @@ class BuildersTestFFT(unittest.TestCase):
 
                 self.assertTrue(
                         numpy.alltrue(input_array == final_input_array))
+
+    def test_avoid_copy(self):
+        '''Test the avoid_copy flag
+        '''
+        dtype_tuple = io_dtypes[functions[self.func]]
+        
+        for dtype in dtype_tuple[0]:
+            for test_shape, s, kwargs in self.test_data:
+                _kwargs = kwargs.copy()
+
+                input_array = dtype_tuple[1](test_shape, dtype)
+
+                _kwargs['avoid_copy'] = True
+                FFTW_object = getattr(builders, self.func)(
+                        input_array.copy(), s, **_kwargs)
 
 
 class BuildersTestIFFT(BuildersTestFFT):

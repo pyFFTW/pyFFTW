@@ -16,9 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pyfftw import FFTW, n_byte_align, n_byte_align_empty
+from pyfftw import FFTW, n_byte_align, n_byte_align_empty, forget_wisdom
 import numpy
 from timeit import Timer
+import time
 
 import unittest
 
@@ -37,14 +38,16 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
     def make_shapes(self):
 
         self.input_shapes = {
+                'small_1d': (9,),
                 '1d': (1025,),
                 '2d': (256, 1025),
-                '3d': (15, 256, 1025)}
+                '3d': (5, 256, 1025)}
 
         self.output_shapes = {
+                'small_1d': (16,),
                 '1d': (2048,),
                 '2d': (256, 2048),
-                '3d': (15, 256, 2048)}
+                '3d': (5, 256, 2048)}
 
     def create_test_arrays(self, input_shape, output_shape, axes=None):
 
@@ -81,7 +84,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
     def run_validate_fft(self, a, b, axes, fft=None, ifft=None, 
             force_unaligned_data=False, create_array_copies=True,
-            threads=1):
+            threads=1, flags=('FFTW_ESTIMATE',)):
         ''' *** EVERYTHING IS FLIPPED AROUND BECAUSE WE ARE
         VALIDATING AN INVERSE FFT ***
         
@@ -103,7 +106,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
         a_orig = a.copy()
 
-        flags = ['FFTW_ESTIMATE']
+        flags = list(flags)
 
         if force_unaligned_data:
             flags.append('FFTW_UNALIGNED')
@@ -177,6 +180,45 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
         with self.assertRaisesRegexp(ValueError, 'Invalid direction'):
             FFTW(a, b, direction='FFTW_FORWARD')
+
+    def test_planning_time_limit(self):
+        in_shape = self.input_shapes['1d']
+        out_shape = self.output_shapes['1d']
+
+        axes=(0,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        # run this a few times
+        runs = 10
+        t1 = time.time()
+        for n in xrange(runs):
+            forget_wisdom()
+            fft = FFTW(b, a, axes=axes)
+
+        unlimited_time = (time.time() - t1)/runs
+
+        time_limit = (unlimited_time)/8
+
+        # Now do it again but with an upper limit on the time
+        t1 = time.time()
+        for n in xrange(runs):
+            forget_wisdom()
+            fft = FFTW(b, a, axes=axes, planning_timelimit=time_limit)
+
+        limited_time = (time.time() - t1)/runs
+
+        # Give a 2x margin 
+        self.assertTrue(limited_time < time_limit*2)
+
+    def test_invalid_planning_time_limit(self):
+        in_shape = self.input_shapes['1d']
+        out_shape = self.output_shapes['1d']
+
+        axes=(0,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        self.assertRaisesRegexp(TypeError, 'Invalid planning timelimit',
+                FFTW, *(b, a, axes), **{'planning_timelimit': 'foo'})
 
     def test_default_args(self):
         in_shape = self.input_shapes['2d']

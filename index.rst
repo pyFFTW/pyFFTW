@@ -6,9 +6,8 @@
 Welcome to pyFFTW's documentation!
 ==================================
 
-* :ref:`FFTW Class <FFTW_class>`
-* :ref:`Wisdom Functions <WisdomFunctions>`  
-* :ref:`Utility Functions <UtilityFunctions>`
+Introduction
+------------
 
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
 speedy FFT library.  The ultimate aim is to present a unified interface for all
@@ -16,98 +15,38 @@ the possible transforms that FFTW can perform.
 
 Both the complex DFT and the real DFT are supported, as well as on arbitrary
 axes of abitrary shaped and strided arrays, which makes it almost
-feature equivalent to standard and real FFT functions of ``numpy.fft`` 
-(indeed, it supports the ``clongdouble`` dtype which ``numpy.fft`` does not). 
-See the ``numpy.fft`` `documentation
-<http://docs.scipy.org/doc/numpy/reference/routines.fft.html>`_ 
-for more information on that module.
-
-The source can be found in `github <https://github.com/hgomersall/pyFFTW>`_ 
-and it's page in the python package index is 
-`here <http://pypi.python.org/pypi/pyFFTW>`_.
+feature equivalent to standard and real FFT functions of :mod:`numpy.fft`
+(indeed, it supports the :attr:`~numpy.clongdouble` dtype which
+:mod:`!numpy.fft` does not).
 
 Operating FFTW in multithreaded mode is supported.
 
+The core interface is provided by a unified class, :class:`pyfftw.FFTW`. 
+This core interface can be accessed directly, or through a series of helper
+functions, provided by the :mod:`pyfftw.builders` module. These helper
+functions provide an interface similar to :mod:`numpy.fft` for ease of use.
+
+The source can be found in `github <https://github.com/hgomersall/pyFFTW>`_ and
+its page in the python package index is `here
+<http://pypi.python.org/pypi/pyFFTW>`_.
+
 A comprehensive unittest suite is included with the source on the repository.
+If any aspect of this library is not covered by the test suite, that is a bug 
+(please report it!).
 
-A quick (and very much non-comprehensive) usage example:
+Contents
+--------
 
-    >>> import pyfftw, numpy
-    >>> # Create 3 16-byte aligned arays using the aligned array creation functions
-    >>> # They are cleared during the object creation, so there is no point filling them.
-    >>> a = pyfftw.n_byte_align_empty((1,4), 16, dtype=numpy.complex128) 
-    >>> b = pyfftw.n_byte_align_empty(a.shape, 16, dtype=a.dtype)
-    >>> c = pyfftw.n_byte_align_empty(a.shape, 16, dtype=a.dtype)
-    >>> # Create the DFT and inverse DFT objects
-    >>> fft = pyfftw.FFTW(a, b)
-    >>> ifft = pyfftw.FFTW(b, c, direction='FFTW_BACKWARD')
-    >>> # Fill a with data
-    >>> a[:] = [1, 2, 3, 4]
-    >>> print a
-    [[ 1.+0.j  2.+0.j  3.+0.j  4.+0.j]]
-    >>> # perform the fft
-    >>> fft.execute()
-    >>> print b
-    [[ 10.+0.j  -2.+2.j  -2.+0.j  -2.-2.j]]
-    >>> # perform the inverse fft
-    >>> ifft.execute()
-    >>> print c/a.size
-    [[ 1.+0.j  2.+0.j  3.+0.j  4.+0.j]]
+.. toctree::
+   :maxdepth: 2
 
-**Note that what was previously the ComplexFFTW class is now just called
-FFTW. Simply renaming the class should be sufficient to migrate**
+   /sphinx/tutorial
+   /sphinx/api
 
-.. _FFTW_class:
+Indices and tables
+==================
 
-FFTW Class
------------------
-
-.. autoclass:: pyfftw.FFTW(input_array, output_array, axes=(-1,), direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), threads=1)
-
-   .. _FFTW___call__:
-
-   .. automethod:: pyfftw.FFTW.__call__(input_array=None, output_array=None)
-
-   .. _FFTW_update_arrays:
-
-   .. automethod:: pyfftw.FFTW.update_arrays(new_input_array, new_output_array)
-
-   .. _FFTW_execute:
-
-   .. automethod:: pyfftw.FFTW.execute()
-
-.. _WisdomFunctions:
-
-Wisdom Functions
-----------------
-
-Functions for dealing with FFTW's ability to export and restore plans, 
-referred to as *wisdom*. For further information, refer to the `FFTW 
-wisdom documentation <http://www.fftw.org/fftw3_doc/Words-of-Wisdom_002dSaving-Plans.html#Words-of-Wisdom_002dSaving-Plans>`_.
-
-.. _export_wisdom:
-
-.. autofunction:: pyfftw.export_wisdom
-
-.. _import_wisdom:
-
-.. autofunction:: pyfftw.import_wisdom
-
-.. _forget_wisdom:
-
-.. autofunction:: pyfftw.forget_wisdom
-
-
-.. _UtilityFunctions:
-
-Utility Functions
------------------
-
-.. _n_byte_align:
-
-.. autofunction:: pyfftw.n_byte_align
-
-.. _n_byte_align_empty:
-
-.. autofunction:: pyfftw.n_byte_align_empty
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
 

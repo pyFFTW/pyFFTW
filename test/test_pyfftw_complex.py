@@ -16,9 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pyfftw import FFTW, n_byte_align, n_byte_align_empty
+from pyfftw import FFTW, n_byte_align, n_byte_align_empty, forget_wisdom
+import pyfftw
 import numpy
 from timeit import Timer
+import time
 
 import unittest
 
@@ -90,6 +92,90 @@ class Complex64FFTW1DTest(object):
                 lambda: self.np_fft_comparison(a))
 
         self.assertTrue(True)
+
+    def test_planning_time_limit(self):
+        in_shape = self.input_shapes['1d']
+        out_shape = self.output_shapes['1d']
+
+        axes=(0,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        # run this a few times
+        runs = 10
+        t1 = time.time()
+        for n in xrange(runs):
+            forget_wisdom()
+            fft = FFTW(a, b, axes=axes)
+
+        unlimited_time = (time.time() - t1)/runs
+
+        time_limit = (unlimited_time)/8
+
+        # Now do it again but with an upper limit on the time
+        t1 = time.time()
+        for n in xrange(runs):
+            forget_wisdom()
+            fft = FFTW(a, b, axes=axes, planning_timelimit=time_limit)
+
+        limited_time = (time.time() - t1)/runs
+
+        # Give a 2x margin 
+        self.assertTrue(limited_time < time_limit*2)
+
+    def test_invalid_planning_time_limit(self):
+        in_shape = self.input_shapes['1d']
+        out_shape = self.output_shapes['1d']
+
+        axes=(0,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        self.assertRaisesRegexp(TypeError, 'Invalid planning timelimit',
+                FFTW, *(a,b, axes), **{'planning_timelimit': 'foo'})
+    
+    def test_planner_flags(self):
+        '''Test all the planner flags on a small array
+        '''
+        in_shape = self.input_shapes['small_1d']
+        out_shape = self.output_shapes['small_1d']
+        
+        axes=(0,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        for each_flag in pyfftw.pyfftw.flag_dict:
+            self.run_validate_fft(a, b, axes, 
+                    flags=(each_flag,))
+
+        # also, test no flags (which should still work)
+        self.run_validate_fft(a, b, axes, 
+                    flags=())
+
+    def test_destroy_input(self):
+        '''Test the destroy input flag
+        '''
+        # We can't really test it actually destroys the input, as it might
+        # not (plus it's not exactly something we want).
+        # It's enough just to check it runs ok with that flag.
+        in_shape = self.input_shapes['1d']
+        out_shape = self.output_shapes['1d']
+
+        axes=(0,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        self.run_validate_fft(a, b, axes, 
+                flags=('FFTW_ESTIMATE','FFTW_DESTROY_INPUT'))
+
+    def test_invalid_flag_fail(self):
+        '''Test passing a garbage flag fails
+        '''
+        in_shape = self.input_shapes['1d']
+        out_shape = self.output_shapes['1d']
+
+        axes=(0,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        self.assertRaisesRegexp(ValueError, 'Invalid flag', 
+                self.run_validate_fft, *(a, b, axes), 
+                **{'flags':('garbage',)})
 
     def test_zero_length_fft_axis_fail(self):
         

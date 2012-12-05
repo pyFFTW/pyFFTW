@@ -163,6 +163,15 @@ cdef extern from "fftw3.h":
     # Long double precision plan destroyer
     void fftwl_destroy_plan(fftwl_plan)
 
+    # Double precision set timelimit
+    void fftw_set_timelimit(double seconds)
+
+    # Single precision set timelimit
+    void fftwf_set_timelimit(double seconds)
+
+    # Long double precision set timelimit
+    void fftwl_set_timelimit(double seconds)
+
     # Threading routines
     # Double precision
     void fftw_init_threads()
@@ -205,6 +214,8 @@ cdef extern from "fftw3.h":
     void fftwf_forget_wisdom()
     void fftwl_forget_wisdom()
 
+    double FFTW_NO_TIMELIMIT
+
 # Define function pointers that can act as a placeholder
 # for whichever dtype is used (the problem being that fftw
 # has different function names and signatures for all the 
@@ -222,6 +233,8 @@ ctypedef void (*fftw_generic_destroy_plan)(void *_plan)
 ctypedef void (*fftw_generic_init_threads)()
 
 ctypedef void (*fftw_generic_plan_with_nthreads)(int n)
+
+ctypedef void (*fftw_generic_set_timelimit)(double seconds)
 
 ctypedef bint (*validator)(np.ndarray input_array, 
         np.ndarray output_array, int64_t *axes, int64_t *not_axes, 
@@ -242,3 +255,4 @@ cdef enum:
     FFTW_PRESERVE_INPUT = 16
     FFTW_PATIENT = 32
     FFTW_ESTIMATE = 64
+
