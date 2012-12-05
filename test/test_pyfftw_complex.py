@@ -142,11 +142,14 @@ class Complex64FFTW1DTest(object):
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         for each_flag in pyfftw.pyfftw.flag_dict:
-            self.run_validate_fft(a, b, axes, 
+            fft, ifft = self.run_validate_fft(a, b, axes, 
                     flags=(each_flag,))
 
+            self.assertTrue(each_flag in fft.flags)
+            self.assertTrue(each_flag in ifft.flags)
+
         # also, test no flags (which should still work)
-        self.run_validate_fft(a, b, axes, 
+        fft, ifft = self.run_validate_fft(a, b, axes, 
                     flags=())
 
     def test_destroy_input(self):

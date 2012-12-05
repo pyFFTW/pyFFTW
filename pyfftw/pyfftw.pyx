@@ -600,6 +600,7 @@ cdef class FFTW:
     cdef object __output_shape
     cdef object __input_dtype
     cdef object __output_dtype
+    cdef object __flags_used
 
     cdef float __normalisation_scaling
 
@@ -630,6 +631,16 @@ cdef class FFTW:
         return self.__simd_allowed
 
     aligned = property(__get_aligned)
+
+    def __get_flags_used(self):
+        '''
+        Return which flags were used to construct the FFTW object.
+        
+        This includes flags that were added during initialisation.
+        '''
+        return tuple(self.__flags_used)
+
+    flags = property(__get_flags_used)
 
     def __cinit__(self, input_array, output_array, axes=(-1,),
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
@@ -773,14 +784,17 @@ cdef class FFTW:
         self.__rank = unique_axes_length
         self.__howmany_rank = self.__input_array.ndim - unique_axes_length
         
-        self.__flags = 0 
+        self.__flags = 0
+        self.__flags_used = []
         for each_flag in flags:
             try:
                 self.__flags |= flag_dict[each_flag]
+                self.__flags_used.append(each_flag)
             except KeyError:
                 raise ValueError('Invalid flag: ' + '\'' + 
                         each_flag + '\' is not a valid planner flag.')
 
+        
         if ('FFTW_DESTROY_INPUT' not in flags) and (
                 (scheme[0] != 'c2r') or not self.__rank > 1):
             # The default in all possible cases is to preserve the input

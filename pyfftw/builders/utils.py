@@ -104,10 +104,13 @@ def _Xfftn(a, s, axes, overwrite_input,
 
     output_array = pyfftw.n_byte_align_empty(output_shape, 16, output_dtype)
 
+    flags = [planner_effort]
+
     if not auto_align_input:
-        flags = ['FFTW_UNALIGNED', planner_effort]
-    else:
-        flags = [planner_effort]
+        flags.append('FFTW_UNALIGNED')
+
+    if overwrite_input:
+        flags.append('FFTW_DESTROY_INPUT')
 
     if not a.shape == input_shape:
         # This means we need to use an _FFTWWrapper object

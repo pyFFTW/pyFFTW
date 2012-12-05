@@ -69,8 +69,21 @@ array is passed to a real transform routine, or vice-versa), then an
 attempt is made to convert the array to an array of the correct
 complexity. This results in a copy being made.
 
-Supported Functions
-"""""""""""""""""""
+**Example:**
+
+.. doctest::
+    
+    >>> import pyfftw
+    >>> a = pyfftw.n_byte_align_empty(4, 16, dtype='complex128')
+    >>> fft = pyfftw.builders.fft(a)
+    >>> a[:] = [1, 2, 3, 4]
+    >>> fft() # returns the output
+    array([ 10.+0.j,  -2.+2.j,  -2.+0.j,  -2.-2.j])
+
+More examples can be found in the :doc:`tutorial </sphinx/tutorial>`.
+
+Supported Functions and Caveats
+"""""""""""""""""""""""""""""""
 
 The following functions are supported. They can be used with the
 same calling signature as their respective functions in
@@ -130,8 +143,8 @@ following additional keyword arguments:
   algorithm being made available, as well as saving a copy during
   the planner stage. It causes the ``'FFTW_DESTROY_INPUT'`` flag
   to be passed to the :class:`pyfftw.FFTW` object. This flag is
-  not offered for the multi-dimensional real transforms, as FFTW
-  is unable to not overwrite the input in that case.
+  not offered for the multi-dimensional inverse real transforms, 
+  as FFTW is unable to not overwrite the input in that case.
 
 * ``planner_effort``: A string dictating how much effort is spent 
   in planning the FFTW routines. This is passed to the creation
@@ -262,7 +275,7 @@ def ifft2(a, s=None, axes=(-2,-1), overwrite_input=False,
 def fftn(a, s=None, axes=None, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=False, avoid_copy=False):
-    '''Return a :class:`pyfftw.FFTW` object representing a nD FFT.
+    '''Return a :class:`pyfftw.FFTW` object representing a n-D FFT.
     
     The first three arguments are as per :func:`numpy.fft.fftn`; 
     the rest of the arguments are documented 
@@ -280,7 +293,7 @@ def fftn(a, s=None, axes=None, overwrite_input=False,
 def ifftn(a, s=None, axes=None, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=False, avoid_copy=False):
-    '''Return a :class:`pyfftw.FFTW` object representing an nD 
+    '''Return a :class:`pyfftw.FFTW` object representing an n-D 
     inverse FFT.
     
     The first three arguments are as per :func:`numpy.fft.ifftn`; 
@@ -356,7 +369,7 @@ def rfft2(a, s=None, axes=(-2,-1), overwrite_input=False,
             threads, auto_align_input, avoid_copy, inverse,
             real)
 
-def irfft2(a, s=None, axes=(-2,-1), overwrite_input=False,
+def irfft2(a, s=None, axes=(-2,-1),
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=False, avoid_copy=False):
     '''Return a :class:`pyfftw.FFTW` object representing a 2D 
@@ -371,6 +384,8 @@ def irfft2(a, s=None, axes=(-2,-1), overwrite_input=False,
     inverse = True
     real = True
 
+    overwrite_input = True    
+
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
             threads, auto_align_input, avoid_copy, inverse,
             real)
@@ -379,7 +394,7 @@ def irfft2(a, s=None, axes=(-2,-1), overwrite_input=False,
 def rfftn(a, s=None, axes=None, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=False, avoid_copy=False):
-    '''Return a :class:`pyfftw.FFTW` object representing an nD 
+    '''Return a :class:`pyfftw.FFTW` object representing an n-D 
     real FFT.
     
     The first three arguments are as per :func:`numpy.fft.rfftn`; 
@@ -391,8 +406,6 @@ def rfftn(a, s=None, axes=None, overwrite_input=False,
     inverse = False
     real = True
 
-    overwrite_input = True
-
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
             threads, auto_align_input, avoid_copy, inverse,
             real)
@@ -401,7 +414,7 @@ def rfftn(a, s=None, axes=None, overwrite_input=False,
 def irfftn(a, s=None, axes=None,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=False, avoid_copy=False):
-    '''Return a :class:`pyfftw.FFTW` object representing an nD 
+    '''Return a :class:`pyfftw.FFTW` object representing an n-D 
     real inverse FFT.
     
     The first three arguments are as per :func:`numpy.fft.rfftn`; 

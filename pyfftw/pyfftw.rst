@@ -12,6 +12,8 @@ FFTW Class
 
    .. autoattribute:: pyfftw.FFTW.aligned
 
+   .. autoattribute:: pyfftw.FFTW.flags
+
    .. automethod:: pyfftw.FFTW.__call__(input_array=None, output_array=None, normalise_idft=True)
 
    .. automethod:: pyfftw.FFTW.update_arrays(new_input_array, new_output_array)

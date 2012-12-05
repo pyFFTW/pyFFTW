@@ -60,6 +60,7 @@ functions = {
 class BuildersTestFFT(unittest.TestCase):
 
     func = 'fft'
+    axes_kw = 'axis'
     test_shapes = (
             ((100,), {}),
             ((128, 64), {'axis': 0}),
@@ -115,8 +116,15 @@ class BuildersTestFFT(unittest.TestCase):
 
             output_array = FFTW_object(input_array.copy())
 
+            if 'axes' in kwargs:
+                axes = {'axes': kwargs['axes']}
+            elif 'axis' in kwargs:
+                axes = {'axis': kwargs['axis']}
+            else:
+                axes = {}
+
             test_out_array = getattr(np_fft, self.func)(
-                    np_input_array.copy(), s, **kwargs)
+                    np_input_array.copy(), s, **axes)
 
             if (functions[self.func] == 'r2c'):
                 if numpy.iscomplexobj(input_array):
@@ -324,11 +332,13 @@ class BuildersTestFFT(unittest.TestCase):
 
                 self.assertTrue(FFTW_object.aligned)
 
+                self.assertTrue('FFTW_UNALIGNED' not in FFTW_object.flags)                
                 FFTW_object = getattr(builders, self.func)(
                         input_array.copy(), s2, **_kwargs)
 
                 self.assertTrue(FFTW_object.aligned)
 
+                self.assertTrue('FFTW_UNALIGNED' not in FFTW_object.flags)
 
     def test_dtype_coercian(self):
         # Make sure we input a dtype that needs to be coerced
@@ -387,10 +397,86 @@ class BuildersTestFFT(unittest.TestCase):
 
                 self.assertTrue(numpy.all(final_padding == initial_padding))
 
+    def test_planner_effort(self):
+        '''Test the planner effort arg
+        '''
+        dtype_tuple = io_dtypes[functions[self.func]]
+        test_shape = (16,)
+        
+        for dtype in dtype_tuple[0]:
+            s = None
+            if self.axes_kw == 'axis':
+                kwargs = {'axis': -1}
+            else:
+                kwargs = {'axes': (-1,)}
+
+            for each_effort in ('FFTW_ESTIMATE', 'FFTW_MEASURE', 
+                    'FFTW_PATIENT', 'FFTW_EXHAUSTIVE'):
+                
+                kwargs['planner_effort'] = each_effort
+                
+                FFTW_object = self.validate_pyfftw_object(
+                        dtype_tuple[1], test_shape, dtype, s, kwargs)
+
+                self.assertTrue(each_effort in FFTW_object.flags)
+
+            kwargs['planner_effort'] = 'garbage'
+
+            self.assertRaisesRegexp(ValueError, 'Invalid planner effort',
+                    self.validate_pyfftw_object, 
+                    *(dtype_tuple[1], test_shape, dtype, s, kwargs))
+
+    def test_threads_arg(self):
+        '''Test the threads argument
+        '''
+        dtype_tuple = io_dtypes[functions[self.func]]
+        test_shape = (16,)
+        
+        for dtype in dtype_tuple[0]:
+            s = None
+            if self.axes_kw == 'axis':
+                kwargs = {'axis': -1}
+            else:
+                kwargs = {'axes': (-1,)}
+
+            kwargs['threads'] = 2
+            
+            # Should just work
+            FFTW_object = self.validate_pyfftw_object(
+                    dtype_tuple[1], test_shape, dtype, s, kwargs)
+
+            kwargs['threads'] = 'bleh'
+            
+            # Should not work
+            self.assertRaises(TypeError,
+                    self.validate_pyfftw_object, 
+                    *(dtype_tuple[1], test_shape, dtype, s, kwargs))
+
+
     def test_overwrite_input(self):
+        '''Test the overwrite_input flag
         '''
-        '''
-        pass
+        dtype_tuple = io_dtypes[functions[self.func]]
+        
+        for dtype in dtype_tuple[0]:
+            for test_shape, s, _kwargs in self.test_data:
+                s = None
+
+                kwargs = _kwargs.copy()
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                        test_shape, dtype, s, kwargs)
+
+                if self.func not in ('irfft2', 'irfftn'):
+                    self.assertTrue(
+                            'FFTW_DESTROY_INPUT' not in FFTW_object.flags)
+
+                    kwargs['overwrite_input'] = True
+
+                    FFTW_object = self.validate_pyfftw_object(
+                            dtype_tuple[1], test_shape, dtype, s, kwargs)
+
+                self.assertTrue('FFTW_DESTROY_INPUT' in FFTW_object.flags)
+
 
     def test_input_maintained(self):
         '''Test to make sure the input is maintained
@@ -436,6 +522,7 @@ class BuildersTestIRFFT(BuildersTestFFT):
     realinv = True    
 
 class BuildersTestFFT2(BuildersTestFFT):
+    axes_kw = 'axes'    
     func = 'ifft2'
     test_shapes = (
             ((128, 64), {'axes': None}),
@@ -944,21 +1031,21 @@ class BuildersTestUtilities(unittest.TestCase):
             self.assertRaisesRegexp(ValueError, 'Shape error', 
                     self._call_cook_nd_args, *(each_input,))
 
-#test_cases = (
-#        BuildersTestFFTWWrapper,
-#        BuildersTestUtilities,
-#        BuildersTestFFT,
-#        BuildersTestIFFT,
-#        BuildersTestIRFFT,
-#        BuildersTestIRFFT,
-#        BuildersTestFFT2,
-#        BuildersTestIFFT2,
-#        BuildersTestIRFFT2,
-#        BuildersTestIRFFT2,
-#        BuildersTestFFTN,
-#        BuildersTestIFFTN,
-#        BuildersTestIRFFTN,
-#        BuildersTestIRFFTN)
+test_cases = (
+        BuildersTestFFTWWrapper,
+        BuildersTestUtilities,
+        BuildersTestFFT,
+        BuildersTestIFFT,
+        BuildersTestIRFFT,
+        BuildersTestIRFFT,
+        BuildersTestFFT2,
+        BuildersTestIFFT2,
+        BuildersTestIRFFT2,
+        BuildersTestIRFFT2,
+        BuildersTestFFTN,
+        BuildersTestIFFTN,
+        BuildersTestIRFFTN,
+        BuildersTestIRFFTN)
 
 if __name__ == '__main__':
 

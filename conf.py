@@ -41,7 +41,7 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = os.path.join('sphinx','index')
 
 # General information about the project.
 project = u'pyFFTW'
@@ -69,7 +69,7 @@ release = pyfftw_version
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['docs']
+exclude_patterns = ['docs', 'README.rst']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
