@@ -6,7 +6,7 @@
 FFTW Class
 ----------
 
-.. autoclass:: pyfftw.FFTW(input_array, output_array, axes=(-1,), direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), threads=1, planning_time_limit=None)
+.. autoclass:: pyfftw.FFTW(input_array, output_array, axes=(-1,), direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), threads=1, planning_timelimit=None)
 
    .. autoattribute:: pyfftw.FFTW.N
 
@@ -14,15 +14,15 @@ FFTW Class
 
    .. autoattribute:: pyfftw.FFTW.flags
 
-   .. automethod:: pyfftw.FFTW.__call__(input_array=None, output_array=None, normalise_idft=True)
+   .. automethod:: pyfftw.FFTW.__call__
 
-   .. automethod:: pyfftw.FFTW.update_arrays(new_input_array, new_output_array)
+   .. automethod:: pyfftw.FFTW.update_arrays
 
-   .. automethod:: pyfftw.FFTW.execute()
+   .. automethod:: pyfftw.FFTW.execute
 
-   .. automethod:: pyfftw.FFTW.get_input_array()
+   .. automethod:: pyfftw.FFTW.get_input_array
 
-   .. automethod:: pyfftw.FFTW.get_output_array()
+   .. automethod:: pyfftw.FFTW.get_output_array
 
 .. _wisdom_functions:
 

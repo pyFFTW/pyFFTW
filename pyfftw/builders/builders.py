@@ -202,7 +202,7 @@ def fft(a, n=None, axis=-1, overwrite_input=False,
     
     The first three arguments are as per :func:`numpy.fft.fft`; 
     the rest of the arguments are documented 
-    :ref:`above <builders_args>`.
+    :ref:`in the module docs <builders_args>`.
     '''
     inverse = False
     real = False
@@ -221,7 +221,7 @@ def ifft(a, n=None, axis=-1, overwrite_input=False,
     
     The first three arguments are as per :func:`numpy.fft.ifft`; 
     the rest of the arguments are documented 
-    :ref:`above <builders_args>`.
+    :ref:`in the module docs <builders_args>`.
     '''
 
     inverse = True
@@ -241,7 +241,7 @@ def fft2(a, s=None, axes=(-2,-1), overwrite_input=False,
     
     The first three arguments are as per :func:`numpy.fft.fft2`; 
     the rest of the arguments are documented 
-    :ref:`above <builders_args>`.
+    :ref:`in the module docs <builders_args>`.
     '''
 
     
@@ -260,7 +260,7 @@ def ifft2(a, s=None, axes=(-2,-1), overwrite_input=False,
     
     The first three arguments are as per :func:`numpy.fft.ifft2`; 
     the rest of the arguments are documented 
-    :ref:`above <builders_args>`.
+    :ref:`in the module docs <builders_args>`.
     '''
 
     
@@ -279,7 +279,7 @@ def fftn(a, s=None, axes=None, overwrite_input=False,
     
     The first three arguments are as per :func:`numpy.fft.fftn`; 
     the rest of the arguments are documented 
-    :ref:`above <builders_args>`.
+    :ref:`in the module docs <builders_args>`.
     '''
 
 
@@ -298,7 +298,7 @@ def ifftn(a, s=None, axes=None, overwrite_input=False,
     
     The first three arguments are as per :func:`numpy.fft.ifftn`; 
     the rest of the arguments are documented 
-    :ref:`above <builders_args>`.
+    :ref:`in the module docs <builders_args>`.
     '''
 
 
@@ -317,7 +317,7 @@ def rfft(a, n=None, axis=-1, overwrite_input=False,
     
     The first three arguments are as per :func:`numpy.fft.rfft`; 
     the rest of the arguments are documented 
-    :ref:`above <builders_args>`.
+    :ref:`in the module docs <builders_args>`.
     '''
 
 
@@ -338,7 +338,7 @@ def irfft(a, n=None, axis=-1, overwrite_input=False,
     
     The first three arguments are as per :func:`numpy.fft.irfft`; 
     the rest of the arguments are documented 
-    :ref:`above <builders_args>`.
+    :ref:`in the module docs <builders_args>`.
     '''
 
 
@@ -359,7 +359,7 @@ def rfft2(a, s=None, axes=(-2,-1), overwrite_input=False,
     
     The first three arguments are as per :func:`numpy.fft.rfft2`; 
     the rest of the arguments are documented 
-    :ref:`above <builders_args>`.
+    :ref:`in the module docs <builders_args>`.
     '''
 
     inverse = False
@@ -377,7 +377,7 @@ def irfft2(a, s=None, axes=(-2,-1),
     
     The first three arguments are as per :func:`numpy.fft.irfft2`; 
     the rest of the arguments are documented 
-    :ref:`above <builders_args>`.
+    :ref:`in the module docs <builders_args>`.
     '''
 
 
@@ -399,7 +399,7 @@ def rfftn(a, s=None, axes=None, overwrite_input=False,
     
     The first three arguments are as per :func:`numpy.fft.rfftn`; 
     the rest of the arguments are documented 
-    :ref:`above <builders_args>`.
+    :ref:`in the module docs <builders_args>`.
     '''
 
 
@@ -419,7 +419,7 @@ def irfftn(a, s=None, axes=None,
     
     The first three arguments are as per :func:`numpy.fft.rfftn`; 
     the rest of the arguments are documented 
-    :ref:`above <builders_args>`.
+    :ref:`in the module docs <builders_args>`.
     '''
 
 

@@ -5,4 +5,4 @@ API Reference
    
    /pyfftw/pyfftw
    /pyfftw/builders/builders
-   /pyfftw/builders/utils
+   /pyfftw/builders/_utils

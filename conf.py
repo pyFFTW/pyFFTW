@@ -225,3 +225,6 @@ intersphinx_mapping = {'http://docs.python.org/': None,
         'http://docs.scipy.org/doc/numpy': None,
         'http://docs.scipy.org/doc/scipy/reference': None}
 
+dependencies = {'pyfftw/pyfftw': ['pyfftw/pyfftw.so'],
+        'pyfftw/builders': ['pyfftw/builders/builders.py'],
+        'pyfftw/builders/_utils': ['pyfftw/builders/utils.py']}

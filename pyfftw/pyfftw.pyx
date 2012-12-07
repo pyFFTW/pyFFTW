@@ -552,11 +552,11 @@ cdef class FFTW:
     designed to be somewhat pythonic, with the correct transform being 
     inferred from the dtypes of the passed arrays.
 
-    On instantiation, the dtypes of the input arrays are compared to the 
-    set of valid (and implemented) :ref:`FFTW schemes <scheme_table>`. 
-    If a match is found, the plan that corresponds to that scheme is
-    created, operating on the arrays that are passed in. If no scheme can
-    be created, then ``ValueError`` is raised.
+    On instantiation, the dtypes and relative shapes of the input array and
+    output arrays are compared to the set of valid (and implemented)
+    :ref:`FFTW schemes <scheme_table>`.  If a match is found, the plan that
+    corresponds to that scheme is created, operating on the arrays that are
+    passed in. If no scheme can be created, then ``ValueError`` is raised.
 
     The actual FFT or iFFT is performed by calling the 
     :meth:`~pyfftw.FFTW.execute` method.
@@ -564,11 +564,11 @@ cdef class FFTW:
     The arrays can be updated by calling the 
     :meth:`~pyfftw.FFTW.update_arrays` method.
 
-    The created instance of the class is itself callable, and can perform the
-    execution of the FFT, both with or without array updates, returning the
-    result of the FFT. Unlike calling the :meth:`~pyfftw.FFTW.execute`
+    The created instance of the class is itself callable, and can perform
+    the execution of the FFT, both with or without array updates, returning
+    the result of the FFT. Unlike calling the :meth:`~pyfftw.FFTW.execute`
     method, calling the class instance will also optionally normalise the
-    output as necessary. Additionally, calling with an input array update 
+    output as necessary. Additionally, calling with an input array update
     will also coerce that array to be the correct dtype. 
     
     See the documentation on the :meth:`~pyfftw.FFTW.__call__` method 
@@ -929,9 +929,7 @@ cdef class FFTW:
             increasing amount of effort spent during the planning 
             stage to create the fastest possible transform. 
             Usually ``'FFTW_MEASURE'`` is a good compromise. If no flag
-            is passed, the default ``'FFTW_MEASURE'`` is used. If multiple
-            flags are passed, then the one corresponding to the most
-            effort is used.
+            is passed, the default ``'FFTW_MEASURE'`` is used.
           * ``'FFTW_UNALIGNED'`` is supported. 
             This tells FFTW not to assume anything about the 
             alignment of the data and disabling any SIMD capability 
@@ -967,6 +965,8 @@ cdef class FFTW:
           tried. See the `FFTW planner flags
           <http://www.fftw.org/fftw3_doc/Planner-Flags.html#Planner-Flags>`_
           for more information on this.
+
+        .. _fftw_schemes:
 
         **Schemes**
 
@@ -1027,7 +1027,7 @@ cdef class FFTW:
           * All the other axes should be equal in length.
 
         In the above expressions for the Real transform, the ``axes`` 
-        arguments denotes the the unique set of axes on which we are taking
+        arguments denotes the unique set of axes on which we are taking
         the FFT, in the order passed. It is the last of these axes that 
         is subject to the special case shown.
 
@@ -1085,9 +1085,11 @@ cdef class FFTW:
 
     def __call__(self, input_array=None, output_array=None, 
             normalise_idft=True):
-        '''
+        '''__call__(input_array=None, output_array=None, normalise_idft=True)
+
         Calling the class instance (optionally) updates the arrays, then
-        calls :meth:`~pyfftw.FFTW.execute`, returning the output array.
+        calls :meth:`~pyfftw.FFTW.execute`, before optionally normalising 
+        the output and returning the output array.
 
         It has some built-in helpers to make life simpler for the calling
         functions (as distinct from manually updating the arrays and
@@ -1188,7 +1190,8 @@ cdef class FFTW:
 
     cpdef update_arrays(self, 
             new_input_array, new_output_array):
-        ''' 
+        '''update_arrays(new_input_array, new_output_array)
+
         Update the arrays upon which the DFT is taken.
 
         The new arrays should be of the same dtypes as the originals, the
@@ -1276,21 +1279,24 @@ cdef class FFTW:
         self.__output_array = new_output_array
 
     def get_input_array(self):
-        '''
+        '''get_input_array()
+
         Return the input array that is associated with the FFTW 
         instance.
         '''
         return self.__input_array
 
     def get_output_array(self):
-        '''
+        '''get_output_array()
+
         Return the output array that is associated with the FFTW
         instance.
         '''
         return self.__output_array
 
     cpdef execute(self):
-        '''
+        '''execute()
+
         Execute the planned operation, taking the correct kind of FFT of
         the input array (what is returned by :meth:`get_input_array`), 
         and putting the result in the output array (what is returned by
@@ -1338,7 +1344,8 @@ cdef void write_char_to_string(char c, void *string_location_ptr):
 
 
 def export_wisdom():
-    ''' 
+    '''export_wisdom()
+
     Return the FFTW wisdom as a tuple of strings.
 
     The first string in the tuple is the string for the double
@@ -1396,7 +1403,8 @@ def export_wisdom():
     return (py_wisdom, py_wisdomf, py_wisdoml)
 
 def import_wisdom(wisdom):
-    '''
+    '''import_wisdom(wisdom)
+
     Function that imports wisdom from the passed tuple
     of strings.
 
@@ -1557,6 +1565,7 @@ cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
 
 cpdef n_byte_align(array, n, dtype=None):
     ''' n_byte_align(array, n, dtype=None)
+
     Function that takes a numpy array and checks it is aligned on an n-byte
     boundary, where ``n`` is a passed parameter. If it is, the array is
     returned without further ado.  If it is not, a new array is created and
