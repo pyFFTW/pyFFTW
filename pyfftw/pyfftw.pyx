@@ -1063,6 +1063,13 @@ cdef class FFTW:
         :func:`~pyfftw.n_byte_align_empty` are two methods
         included with this module for producing aligned arrays.
 
+        It's worth noting that just being aligned may not be sufficient
+        to create the fastest possible transform. For example, if the
+        array is not contiguous (i.e. certain axes are displaced in
+        memory), it may be faster to plan a transform for a contiguous
+        array, and then rely on the array being copied in before the
+        transform (which :class:`pyfftw.FFTW` will handle for you when
+        accessed through :meth:`~pyfftw.FFTW.__call__`).
         '''
         pass
 
@@ -1163,7 +1170,9 @@ cdef class FFTW:
 
             if copy_needed:
 
-                input_array = np.asanyarray(input_array)
+                if not isinstance(input_array, np.ndarray):
+                    input_array = np.asanyarray(input_array)
+
                 if not input_array.shape == self.__input_shape:
                     raise ValueError('Invalid input shape: '
                             'The new input array should be the same shape '
@@ -1576,7 +1585,8 @@ cpdef n_byte_align(array, n, dtype=None):
     '''
     
     if not isinstance(array, np.ndarray):
-        raise TypeError('n_byte_align requires a subclass of ndarray')
+        raise TypeError('Invalid array: n_byte_align requires a subclass '
+                'of ndarray')
 
     if dtype is not None:
         if not array.dtype == dtype:
@@ -1598,3 +1608,19 @@ cpdef n_byte_align(array, n, dtype=None):
         array = _array_aligned.view(type=array.__class__)
     
     return array
+
+cpdef is_n_byte_aligned(array, n):
+    ''' n_byte_align(array, n)
+
+    Function that takes a numpy array and checks it is aligned on an n-byte
+    boundary, where ``n`` is a passed parameter, returning ``True`` if it is,
+    and ``False`` if it is not.
+    '''
+    if not isinstance(array, np.ndarray):
+        raise TypeError('Invalid array: is_n_byte_aligned requires a subclass '
+                'of ndarray')
+
+    # See if we're n byte aligned.
+    offset = <intptr_t>np.PyArray_DATA(array) %n
+
+    return not bool(offset)

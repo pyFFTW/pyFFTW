@@ -69,6 +69,12 @@ array is passed to a real transform routine, or vice-versa), then an
 attempt is made to convert the array to an array of the correct
 complexity. This results in a copy being made.
 
+Although the array that is internal to the :class:`pyfftw.FFTW` object
+will be correctly loaded with the values within the input array, it is
+not necessarily the case that the internal array *is* the input array.
+The actual internal input array can always be retrieved with 
+:meth:`pyfftw.FFTW.get_input_array`.
+
 **Example:**
 
 .. doctest::
@@ -140,11 +146,10 @@ following additional keyword arguments:
 
 * ``overwrite_input``: Whether or not the input array can be
   overwritten during the transform. This sometimes results in a faster
-  algorithm being made available, as well as saving a copy during
-  the planner stage. It causes the ``'FFTW_DESTROY_INPUT'`` flag
-  to be passed to the :class:`pyfftw.FFTW` object. This flag is
-  not offered for the multi-dimensional inverse real transforms, 
-  as FFTW is unable to not overwrite the input in that case.
+  algorithm being made available. It causes the ``'FFTW_DESTROY_INPUT'``
+  flag to be passed to the :class:`pyfftw.FFTW` object. This flag is not
+  offered for the multi-dimensional inverse real transforms, as FFTW is
+  unable to not overwrite the input in that case.
 
 * ``planner_effort``: A string dictating how much effort is spent 
   in planning the FFTW routines. This is passed to the creation
@@ -156,10 +161,17 @@ following additional keyword arguments:
   ``'FFTW_ESTIMATE'``, ``'FFTW_MEASURE'`` (default), ``'FFTW_PATIENT'``
   and ``'FFTW_EXHAUSTIVE'``.
 
+  The `Wisdom
+  <http://www.fftw.org/fftw3_doc/Words-of-Wisdom_002dSaving-Plans.html>`_
+  that FFTW has accumulated or has loaded (through
+  :func:`pyfftw.import_wisdom`) is used during the creation of
+  :class:`pyfftw.FFTW` objects.
+
 * ``threads``: The number of threads used to perform the FFT.
 
 * ``auto_align_input``: Correctly byte align the input array for optimal
   usage of vector instructions. This can lead to a substantial speedup.
+
   Setting this argument to ``True`` makes sure that the input array
   is correctly aligned. It is possible to correctly byte align the array
   prior to calling this function (using, for example,
@@ -168,24 +180,58 @@ following additional keyword arguments:
   up to the calling code to acquire that new input array using 
   :func:`pyfftw.FFTW.get_input_array`.
 
+  The resultant :class:`pyfftw.FFTW` object that is created will be
+  designed to operate on arrays that are aligned. If the object is
+  called with an unaligned array, this would result in a copy. Despite
+  this, it may still be faster to set the ``auto_align_input`` flag
+  and incur a copy with unaligned arrays than to set up an object
+  that uses aligned arrays.
+
+  It's worth noting that just being aligned may not be sufficient to
+  create the fastest possible transform. For example, if the array is not
+  contiguous (i.e. certain axes have gaps in memory between slices), it
+  may be faster to plan a transform for a contiguous array, and then rely
+  on the array being copied in before the transform (which
+  :class:`pyfftw.FFTW` will handle for you). The ``auto_contiguous``
+  argument controls whether this function also takes care of making sure
+  the array is contiguous or not.
+
+* ``auto_contiguous``: Make sure the input array is contiguous in
+  memory before performing the transform on it. If the array is not
+  contiguous, it is copied into an interim array. This is because it
+  is often faster to copy the data before the transform and then transform
+  a contiguous array than it is to try to take the transform of a 
+  non-contiguous array. This is particularly true in conjunction with
+  the ``auto_align_input`` argument which is used to make sure that the 
+  transform is taken of an aligned array.
+
+  Like ``auto_align_input``, If a new array is created, it is 
+  up to the calling code to acquire that new input array using 
+  :func:`pyfftw.FFTW.get_input_array`.
+
 * ``avoid_copy``: By default, these functions will always create a copy 
   (and sometimes more than one) of the passed in input array. This is 
   because the creation of the :class:`pyfftw.FFTW` object generally
   destroys the contents of the input array. Setting this argument to
   ``True`` will try not to create a copy of the input array, likely
-  resulting in the input array being destroyed. It may not be possible
-  to avoid a copy if the shape of the FFT input as dictated by ``s`` is
-  necessarily different from the shape of the passed-in array, or the
-  dtypes are incompatible with the FFT routine.
+  resulting in the input array being destroyed. If it is not possible
+  to create the object without a copy being made, a ``ValueError`` is
+  raised.
+
+  Example situations that require a copy, and so cause the exception
+  to be raised when this flag is set:
+  * The shape of the FFT input as dictated by ``s`` is
+    necessarily different from the shape of the passed-in array.
+  * The dtypes are incompatible with the FFT routine.
+  * The ``auto_contiguous`` or ``auto_align`` flags are True and 
+    the input array is not already contiguous or aligned.
 
   This argument is distinct from ``overwrite_input`` in that it only
   influences a copy during the creation of the object. It changes no
-  flags in the :class:`pyfftw.FFTW` object. However, in general,
-  if no slicing is required during a call to the returned object,
-  then no copy is performed during
+  flags in the :class:`pyfftw.FFTW` object.
 
 The exceptions raised by each of these functions are as per their
-equivalents in :mod:`numpy.fft`.
+equivalents in :mod:`numpy.fft`, or as documented above.
 '''
 
 from _utils import _precook_1d_args, _Xfftn
@@ -197,7 +243,8 @@ __all__ = ['fft','ifft', 'fft2', 'ifft2', 'fftn',
 
 def fft(a, n=None, axis=-1, overwrite_input=False, 
         planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=False, avoid_copy=False):
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False):
     '''Return a :class:`pyfftw.FFTW` object representing a 1D FFT.
     
     The first three arguments are as per :func:`numpy.fft.fft`; 
@@ -210,12 +257,13 @@ def fft(a, n=None, axis=-1, overwrite_input=False,
     s, axes = _precook_1d_args(a, n, axis)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, avoid_copy, inverse,
-            real)
+            threads, auto_align_input, auto_contiguous, 
+            avoid_copy, inverse, real)
 
 def ifft(a, n=None, axis=-1, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=False, avoid_copy=False):
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False):
     '''Return a :class:`pyfftw.FFTW` object representing a 1D 
     inverse FFT.
     
@@ -230,13 +278,14 @@ def ifft(a, n=None, axis=-1, overwrite_input=False,
     s, axes = _precook_1d_args(a, n, axis)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, avoid_copy, inverse,
-            real)
+            threads, auto_align_input, auto_contiguous, 
+            avoid_copy, inverse, real)
 
 
 def fft2(a, s=None, axes=(-2,-1), overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=False, avoid_copy=False):
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False):
     '''Return a :class:`pyfftw.FFTW` object representing a 2D FFT.
     
     The first three arguments are as per :func:`numpy.fft.fft2`; 
@@ -249,12 +298,13 @@ def fft2(a, s=None, axes=(-2,-1), overwrite_input=False,
     real = False
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, avoid_copy, inverse,
-            real)
+            threads, auto_align_input, auto_contiguous, 
+            avoid_copy, inverse, real)
 
 def ifft2(a, s=None, axes=(-2,-1), overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=False, avoid_copy=False):
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False):
     '''Return a :class:`pyfftw.FFTW` object representing a 
     2D inverse FFT.
     
@@ -268,13 +318,14 @@ def ifft2(a, s=None, axes=(-2,-1), overwrite_input=False,
     real = False
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, avoid_copy, inverse,
-            real)
+            threads, auto_align_input, auto_contiguous, 
+            avoid_copy, inverse, real)
 
 
 def fftn(a, s=None, axes=None, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=False, avoid_copy=False):
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False):
     '''Return a :class:`pyfftw.FFTW` object representing a n-D FFT.
     
     The first three arguments are as per :func:`numpy.fft.fftn`; 
@@ -287,12 +338,13 @@ def fftn(a, s=None, axes=None, overwrite_input=False,
     real = False
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, avoid_copy, inverse,
-            real)
+            threads, auto_align_input, auto_contiguous, 
+            avoid_copy, inverse, real)
 
 def ifftn(a, s=None, axes=None, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=False, avoid_copy=False):
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False):
     '''Return a :class:`pyfftw.FFTW` object representing an n-D 
     inverse FFT.
     
@@ -306,12 +358,13 @@ def ifftn(a, s=None, axes=None, overwrite_input=False,
     real = False
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, avoid_copy, inverse,
-            real)
+            threads, auto_align_input, auto_contiguous, 
+            avoid_copy, inverse, real)
 
 def rfft(a, n=None, axis=-1, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=False, avoid_copy=False):
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False):
     '''Return a :class:`pyfftw.FFTW` object representing a 1D 
     real FFT.
     
@@ -327,12 +380,13 @@ def rfft(a, n=None, axis=-1, overwrite_input=False,
     s, axes = _precook_1d_args(a, n, axis)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, avoid_copy, inverse,
-            real)
+            threads, auto_align_input, auto_contiguous, 
+            avoid_copy, inverse, real)
 
 def irfft(a, n=None, axis=-1, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=False, avoid_copy=False):
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False):
     '''Return a :class:`pyfftw.FFTW` object representing a 1D 
     real inverse FFT.
     
@@ -348,12 +402,13 @@ def irfft(a, n=None, axis=-1, overwrite_input=False,
     s, axes = _precook_1d_args(a, n, axis)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, avoid_copy, inverse,
-            real)
+            threads, auto_align_input, auto_contiguous, 
+            avoid_copy, inverse, real)
 
 def rfft2(a, s=None, axes=(-2,-1), overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=False, avoid_copy=False):
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False):
     '''Return a :class:`pyfftw.FFTW` object representing a 2D 
     real FFT.
     
@@ -366,12 +421,13 @@ def rfft2(a, s=None, axes=(-2,-1), overwrite_input=False,
     real = True
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, avoid_copy, inverse,
-            real)
+            threads, auto_align_input, auto_contiguous, 
+            avoid_copy, inverse, real)
 
 def irfft2(a, s=None, axes=(-2,-1),
         planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=False, avoid_copy=False):
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False):
     '''Return a :class:`pyfftw.FFTW` object representing a 2D 
     real inverse FFT.
     
@@ -387,13 +443,14 @@ def irfft2(a, s=None, axes=(-2,-1),
     overwrite_input = True    
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, avoid_copy, inverse,
-            real)
+            threads, auto_align_input, auto_contiguous, 
+            avoid_copy, inverse, real)
 
 
 def rfftn(a, s=None, axes=None, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=False, avoid_copy=False):
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False):
     '''Return a :class:`pyfftw.FFTW` object representing an n-D 
     real FFT.
     
@@ -407,13 +464,14 @@ def rfftn(a, s=None, axes=None, overwrite_input=False,
     real = True
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, avoid_copy, inverse,
-            real)
+            threads, auto_align_input, auto_contiguous, 
+            avoid_copy, inverse, real)
 
 
 def irfftn(a, s=None, axes=None,
         planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=False, avoid_copy=False):
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False):
     '''Return a :class:`pyfftw.FFTW` object representing an n-D 
     real inverse FFT.
     
@@ -429,8 +487,8 @@ def irfftn(a, s=None, axes=None,
     overwrite_input = True
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, avoid_copy, inverse,
-            real)
+            threads, auto_align_input, auto_contiguous, 
+            avoid_copy, inverse, real)
 
 
 

@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pyfftw import n_byte_align, n_byte_align_empty
+from pyfftw import n_byte_align, n_byte_align_empty, is_n_byte_aligned
 import numpy
 from timeit import Timer
 
@@ -64,6 +64,29 @@ class NByteAlignTest(unittest.TestCase):
         for n in [3, 7, 9, 16, 24, 23, 63, 64]:
             b = n_byte_align(a, n)
             self.assertTrue(b.ctypes.data%n == 0)
+
+    def test_is_n_byte_aligned(self):
+        a = n_byte_align_empty(100, 16)
+        self.assertTrue(is_n_byte_aligned(a, 16))
+
+        a = n_byte_align_empty(100, 5)
+        self.assertTrue(is_n_byte_aligned(a, 5))
+
+        a = n_byte_align_empty(100, 16, dtype='float32')[1:]
+        self.assertFalse(is_n_byte_aligned(a, 16))
+        self.assertTrue(is_n_byte_aligned(a, 4))
+
+    def test_is_n_byte_aligned_fail_with_non_array(self):
+
+        a = [1, 2, 3, 4]
+        self.assertRaisesRegexp(TypeError, 'Invalid array',
+                is_n_byte_aligned, a, 16)
+
+    def test_n_byte_align_fail_with_non_array(self):
+
+        a = [1, 2, 3, 4]
+        self.assertRaisesRegexp(TypeError, 'Invalid array',
+                n_byte_align, a, 16)
 
     def test_n_byte_align_consistent_data(self):
         shape = (10,10)

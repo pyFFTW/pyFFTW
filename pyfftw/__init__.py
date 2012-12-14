@@ -17,12 +17,12 @@ from pyfftw import (
         import_wisdom,
         forget_wisdom,
         n_byte_align_empty,
-        n_byte_align,)
+        n_byte_align,
+        is_n_byte_aligned,)
 
 import builders
 
 # clean up the namespace
 del builders.builders
-del builders._utils
 
 #from np_fft import *

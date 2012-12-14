@@ -17,11 +17,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfftw import builders, n_byte_align_empty, n_byte_align, FFTW
-from pyfftw.builders import utils
+from pyfftw.builders import _utils as utils
 
 import unittest
 import numpy
 from numpy import fft as np_fft
+import copy
 import inspect
 import warnings
 warnings.filterwarnings('always')
@@ -294,6 +295,72 @@ class BuildersTestFFT(unittest.TestCase):
 
                 self.assertTrue(
                         type(FFTW_object) == utils._FFTWWrapper)
+    
+    def test_auto_contiguous_input(self):
+        dtype_tuple = io_dtypes[functions[self.func]]
+        
+        for dtype in dtype_tuple[0]:
+            for test_shape, s, kwargs in self.test_data:
+                _kwargs = kwargs.copy()
+                s1 = None
+                s2 = copy.copy(s)
+                try:
+                    for each_axis, length in enumerate(s):
+                        s2[each_axis] += 2
+                except TypeError:
+                    s2 += 2
+
+                _test_shape = []
+                slices = []
+                for each_dim in test_shape:
+                    _test_shape.append(each_dim*2)
+                    slices.append(slice(None, None, 2))
+
+                input_array = dtype_tuple[1](_test_shape, dtype)[slices]
+                # check the input is non contiguous
+                self.assertFalse(input_array.flags['C_CONTIGUOUS'] or 
+                    input_array.flags['F_CONTIGUOUS'])
+
+
+                # Firstly check the non-contiguous case (for both
+                # FFTW and _FFTWWrapper)
+                _kwargs['auto_contiguous'] = False
+                FFTW_object = getattr(builders, self.func)(
+                        input_array, s1, **_kwargs)
+
+                internal_input_array = FFTW_object.get_input_array()
+                flags = internal_input_array.flags
+                self.assertTrue(input_array is internal_input_array)
+                self.assertFalse(flags['C_CONTIGUOUS'] or 
+                    flags['F_CONTIGUOUS'])
+
+                FFTW_object = getattr(builders, self.func)(
+                        input_array, s2, **_kwargs)
+
+                internal_input_array = FFTW_object.get_input_array()
+                flags = internal_input_array.flags
+                # We actually expect the _FFTWWrapper to be C_CONTIGUOUS
+                self.assertTrue(flags['C_CONTIGUOUS'])
+
+                # Now for the contiguous case (for both
+                # FFTW and _FFTWWrapper)
+                _kwargs['auto_contiguous'] = True
+                FFTW_object = getattr(builders, self.func)(
+                        input_array, s1, **_kwargs)
+
+                internal_input_array = FFTW_object.get_input_array()
+                flags = internal_input_array.flags
+                self.assertTrue(flags['C_CONTIGUOUS'] or 
+                    flags['F_CONTIGUOUS'])
+                
+                FFTW_object = getattr(builders, self.func)(
+                        input_array, s2, **_kwargs)
+
+                internal_input_array = FFTW_object.get_input_array()
+                flags = internal_input_array.flags
+                # as above
+                self.assertTrue(flags['C_CONTIGUOUS'])
+
 
     def test_auto_align_input(self):
         dtype_tuple = io_dtypes[functions[self.func]]
@@ -302,7 +369,7 @@ class BuildersTestFFT(unittest.TestCase):
             for test_shape, s, kwargs in self.test_data:
                 _kwargs = kwargs.copy()
                 s1 = None
-                s2 = s
+                s2 = copy.copy(s)
                 try:
                     for each_axis, length in enumerate(s):
                         s2[each_axis] += 2
@@ -504,11 +571,57 @@ class BuildersTestFFT(unittest.TestCase):
             for test_shape, s, kwargs in self.test_data:
                 _kwargs = kwargs.copy()
 
+                _kwargs['avoid_copy'] = True
+
+                s2 = copy.copy(s)
+                try:
+                    for each_axis, length in enumerate(s):
+                        s2[each_axis] += 2
+                except TypeError:
+                    s2 += 2
+
                 input_array = dtype_tuple[1](test_shape, dtype)
 
-                _kwargs['avoid_copy'] = True
+                self.assertRaisesRegexp(ValueError, 
+                        'Cannot avoid copy.*transform shape.*',
+                        getattr(builders, self.func),
+                        input_array, s2, **_kwargs)
+
+                non_contiguous_shape = [
+                        each_dim * 2 for each_dim in test_shape]
+                non_contiguous_slices = (
+                        [slice(None, None, 2)] * len(test_shape))
+
+                misaligned_input_array = dtype_tuple[1](
+                        non_contiguous_shape, dtype)[non_contiguous_slices]
+
+                self.assertRaisesRegexp(ValueError, 
+                        'Cannot avoid copy.*not contiguous.*',
+                        getattr(builders, self.func),
+                        misaligned_input_array, s, **_kwargs)
+
+                # Offset by one from 16 byte aligned to guarantee it's not
+                # 16 byte aligned
+                _input_array = n_byte_align_empty(
+                        numpy.prod(test_shape)*input_array.itemsize+1, 
+                        16, dtype='int8')
+    
+                misaligned_input_array = _input_array[1:].view(
+                         dtype=input_array.dtype).reshape(*test_shape)
+
+                self.assertRaisesRegexp(ValueError, 
+                        'Cannot avoid copy.*not aligned.*',
+                        getattr(builders, self.func),
+                        misaligned_input_array, s, **_kwargs)
+
+                _input_array = input_array.copy()
                 FFTW_object = getattr(builders, self.func)(
-                        input_array.copy(), s, **_kwargs)
+                        _input_array, s, **_kwargs)
+
+                # A catch all to make sure the internal array
+                # is not a copy
+                self.assertTrue(FFTW_object.get_input_array() is
+                        _input_array)
 
 
 class BuildersTestIFFT(BuildersTestFFT):
