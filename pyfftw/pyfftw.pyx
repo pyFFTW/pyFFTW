@@ -22,9 +22,13 @@ from libc.stdlib cimport calloc, malloc, free
 from libc.stdint cimport intptr_t, int64_t
 from libc cimport limits
 
+include 'utils.pxi'
+
+cdef object directions
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
         'FFTW_BACKWARD': FFTW_BACKWARD}
 
+cdef object flag_dict
 flag_dict = {'FFTW_MEASURE': FFTW_MEASURE,
         'FFTW_EXHAUSTIVE': FFTW_EXHAUSTIVE,
         'FFTW_PATIENT': FFTW_PATIENT,
@@ -404,6 +408,7 @@ def _lookup_shape_c2r_arrays(input_array, output_array):
 # along each axis. It's necessary because the real FFT has a length
 # that is different to the length of the input array).
 
+cdef object fftw_schemes
 fftw_schemes = {
         (np.dtype('complex128'), np.dtype('complex128')): ('c2c', '64'),
         (np.dtype('complex64'), np.dtype('complex64')): ('c2c', '32'),
@@ -415,6 +420,7 @@ fftw_schemes = {
         (np.dtype('complex64'), np.dtype('float32')): ('c2r', '32'),
         (np.dtype('clongdouble'), np.dtype('longdouble')): ('c2r', 'ld')}
 
+cdef object scheme_directions
 scheme_directions = {
         ('c2c', '64'): ['FFTW_FORWARD', 'FFTW_BACKWARD'],
         ('c2c', '32'): ['FFTW_FORWARD', 'FFTW_BACKWARD'],
@@ -426,6 +432,7 @@ scheme_directions = {
         ('c2r', '32'): ['FFTW_BACKWARD'],
         ('c2r', 'ld'): ['FFTW_BACKWARD']}
 
+cdef object scheme_functions
 scheme_functions = {
     ('c2c', '64'): {'planner': 0, 'executor':0, 'generic_precision':0,
         'validator':None, 'fft_shape_lookup': None},
@@ -469,7 +476,7 @@ fftwl_init_threads()
 # Set the cleanup routine
 import atexit
 @atexit.register
-def cleanup():
+def _cleanup():
     fftw_cleanup()
     fftwf_cleanup()
     fftwl_cleanup()
@@ -1057,7 +1064,8 @@ cdef class FFTW:
         the data arrays will be checked for similar alignment. SIMD
         instructions can be explicitly disabled by setting the
         FFTW_UNALIGNED flags, to allow for updates with unaligned
-        data.
+        data. If your processor supports AVX, then alignment on a
+        32-byte boundary adds further benefit.
 
         :func:`~pyfftw.n_byte_align` and 
         :func:`~pyfftw.n_byte_align_empty` are two methods
@@ -1536,91 +1544,4 @@ def forget_wisdom():
     fftwf_forget_wisdom()
     fftwl_forget_wisdom()
 
-cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
-    '''n_byte_align_empty(shape, n, dtype='float64', order='C')
 
-    Function that returns an empty numpy array
-    that is n-byte aligned.
-
-    The alignment is given by the second argument, ``n``.
-    The rest of the arguments are as per :func:`numpy.empty`.
-    '''
-    
-    itemsize = np.dtype(dtype).itemsize
-
-    # Apparently there is an issue with numpy.prod wrapping around on 32-bits
-    # on Windows 64-bit. This shouldn't happen, but the following code 
-    # alleviates the problem.
-    if not isinstance(shape, int):
-        array_length = 1
-        for each_dimension in shape:
-            array_length *= each_dimension
-    
-    else:
-        array_length = shape
-
-    # Allocate a new array that will contain the aligned data
-    _array_aligned = np.empty(array_length*itemsize+n, dtype='int8')
-    
-    # We now need to know how to offset _array_aligned 
-    # so it is correctly aligned
-    _array_aligned_offset = (n-<intptr_t>np.PyArray_DATA(_array_aligned))%n
-
-    array = np.frombuffer(
-            _array_aligned[_array_aligned_offset:_array_aligned_offset-n].data,
-            dtype=dtype).reshape(shape, order=order)
-    
-    return array
-
-cpdef n_byte_align(array, n, dtype=None):
-    ''' n_byte_align(array, n, dtype=None)
-
-    Function that takes a numpy array and checks it is aligned on an n-byte
-    boundary, where ``n`` is a passed parameter. If it is, the array is
-    returned without further ado.  If it is not, a new array is created and
-    the data copied in, but aligned on the n-byte boundary.
-
-    ``dtype`` is an optional argument that forces the resultant array to be
-    of that dtype.
-    '''
-    
-    if not isinstance(array, np.ndarray):
-        raise TypeError('Invalid array: n_byte_align requires a subclass '
-                'of ndarray')
-
-    if dtype is not None:
-        if not array.dtype == dtype:
-            update_dtype = True
-    
-    else:
-        dtype = array.dtype
-        update_dtype = False
-    
-    # See if we're already n byte aligned. If so, do nothing.
-    offset = <intptr_t>np.PyArray_DATA(array) %n
-
-    if offset is not 0 or update_dtype:
-
-        _array_aligned = n_byte_align_empty(array.shape, n, dtype)
-
-        _array_aligned[:] = array
-
-        array = _array_aligned.view(type=array.__class__)
-    
-    return array
-
-cpdef is_n_byte_aligned(array, n):
-    ''' n_byte_align(array, n)
-
-    Function that takes a numpy array and checks it is aligned on an n-byte
-    boundary, where ``n`` is a passed parameter, returning ``True`` if it is,
-    and ``False`` if it is not.
-    '''
-    if not isinstance(array, np.ndarray):
-        raise TypeError('Invalid array: is_n_byte_aligned requires a subclass '
-                'of ndarray')
-
-    # See if we're n byte aligned.
-    offset = <intptr_t>np.PyArray_DATA(array) %n
-
-    return not bool(offset)
