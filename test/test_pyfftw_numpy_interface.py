@@ -96,6 +96,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             s, kwargs):
 
         input_array = array_type(test_shape, dtype)
+        orig_input_array = input_array.copy()
         
         if input_array.dtype == 'clongdouble':
             np_input_array = numpy.complex128(input_array)
@@ -133,6 +134,10 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 numpy.allclose(output_array, test_out_array, 
                     rtol=1e-2, atol=1e-4))
 
+        if (not 'overwrite_input' in kwargs or 
+                not kwargs['overwrite_input']):
+            self.assertTrue(numpy.allclose(input_array,
+                orig_input_array))
 
     def axes_from_kwargs(self, kwargs):
         
@@ -441,66 +446,6 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 self.assertTrue(
                         numpy.alltrue(input_array == orig_input_array))
 
-    def test_avoid_copy(self):
-        '''Test the avoid_copy flag
-        '''
-        dtype_tuple = io_dtypes[functions[self.func]]
-        
-        for dtype in dtype_tuple[0]:
-            for test_shape, s, kwargs in self.test_data:
-                _kwargs = kwargs.copy()
-
-                _kwargs['avoid_copy'] = True
-
-                s2 = copy.copy(s)
-                try:
-                    for each_axis, length in enumerate(s):
-                        s2[each_axis] += 2
-                except TypeError:
-                    s2 += 2
-
-                input_array = dtype_tuple[1](test_shape, dtype)
-
-                self.assertRaisesRegexp(ValueError, 
-                        'Cannot avoid copy.*transform shape.*',
-                        getattr(interfaces.numpy_fft, self.func),
-                        input_array, s2, **_kwargs)
-
-                non_contiguous_shape = [
-                        each_dim * 2 for each_dim in test_shape]
-                non_contiguous_slices = (
-                        [slice(None, None, 2)] * len(test_shape))
-
-                misaligned_input_array = dtype_tuple[1](
-                        non_contiguous_shape, dtype)[non_contiguous_slices]
-
-                self.assertRaisesRegexp(ValueError, 
-                        'Cannot avoid copy.*not contiguous.*',
-                        getattr(interface.numpy_fft, self.func),
-                        misaligned_input_array, s, **_kwargs)
-
-                # Offset by one from 16 byte aligned to guarantee it's not
-                # 16 byte aligned
-                _input_array = n_byte_align_empty(
-                        numpy.prod(test_shape)*input_array.itemsize+1, 
-                        16, dtype='int8')
-    
-                misaligned_input_array = _input_array[1:].view(
-                         dtype=input_array.dtype).reshape(*test_shape)
-
-                self.assertRaisesRegexp(ValueError, 
-                        'Cannot avoid copy.*not aligned.*',
-                        getattr(interfaces.numpy_fft, self.func),
-                        misaligned_input_array, s, **_kwargs)
-
-                if self.func in ('irfft2', 'irfft2'):
-                    _input_array = input_array.copy()
-                    _kwargs['overwrite_input'] = False
-                    self.assertRaisesRegexp(ValueError, 
-                            'Cannot avoid copy.*real inverse.*',
-                            getattr(interfaces.numpy_fft, self.func),
-                            _input_array, s, **_kwargs)
-                
 
 class InterfacesNumpyFFTTestIFFT(InterfacesNumpyFFTTestFFT):
     func = 'ifft'
