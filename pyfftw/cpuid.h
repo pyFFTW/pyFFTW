@@ -19,22 +19,25 @@
  */
 
 #ifdef _MSC_VER
-  // Visual Studio Code
+  /* Visual Studio Code */
   #include <intrin.h>
   #define cpuid(func, cpuinfo)\
     __cpuid(cpuinfo, func);
  
 #else
-  // Assembly code (based on wikipedia example)
+  /* Assembly code (based on wikipedia example) 
+   * Firstly it's necessary to move ebx into an interim
+   * register to protect it (cpuid clobbers eax, ebx ecx and edx)
+   * */
   #define cpuid(func, cpuinfo)\
-    cpuinfo[0] = func; \
+    cpuinfo[0] = func; /* Load the first entry with the func id */\
     __asm__ __volatile__ \
     ("mov %%ebx, %%edi;" /* 32bit PIC: don't clobber ebx */ \
      "cpuid;" \
      "mov %%ebx, %%esi;" \
      "mov %%edi, %%ebx;" \
-     :"+a" (cpuinfo[0]), "=S" (cpuinfo[1]), \
-     "=c" (cpuinfo[2]), "=d" (cpuinfo[3]) \
+     :"+a" (cpuinfo[0]), "=S" (cpuinfo[1]), /* eax rw, esi read */ \
+     "=c" (cpuinfo[2]), "=d" (cpuinfo[3]) /* ecx read, edx read */\
      : :"edi");
 #endif
 
