@@ -26,12 +26,15 @@ import unittest
 
 from test_pyfftw_base import FFTWBaseTest
 
+run_only_fast_tests = False
+
 # We make this 1D case not inherit from FFTWBaseTest.
 # It needs to be combined with FFTWBaseTest to work.
 # This allows us to separate out tests that are use
 # in multiple locations.
 class Complex64FFTW1DTest(object):
-    
+            
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_time(self):
         
         in_shape = self.input_shapes['2d']
@@ -46,6 +49,7 @@ class Complex64FFTW1DTest(object):
                 lambda: self.np_fft_comparison(a))
         self.assertTrue(True)
 
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_1d(self):
         in_shape = self.input_shapes['1d']
         out_shape = self.output_shapes['1d']
@@ -54,7 +58,8 @@ class Complex64FFTW1DTest(object):
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.run_validate_fft(a, b, axes)
-       
+
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')       
     def test_multiple_1d(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -64,6 +69,7 @@ class Complex64FFTW1DTest(object):
 
         self.run_validate_fft(a, b, axes)
 
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')    
     def test_default_args(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -75,6 +81,7 @@ class Complex64FFTW1DTest(object):
         ref_b = self.reference_fftn(a, axes=(-1,))
         self.assertTrue(numpy.allclose(b, ref_b, rtol=1e-2, atol=1e-3))
 
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')    
     def test_time_with_array_update(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -92,7 +99,8 @@ class Complex64FFTW1DTest(object):
                 lambda: self.np_fft_comparison(a))
 
         self.assertTrue(True)
-
+        
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_planning_time_limit(self):
         in_shape = self.input_shapes['1d']
         out_shape = self.output_shapes['1d']
@@ -141,7 +149,7 @@ class Complex64FFTW1DTest(object):
         axes=(0,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        for each_flag in pyfftw.pyfftw.flag_dict:
+        for each_flag in pyfftw.pyfftw._flag_dict:
             fft, ifft = self.run_validate_fft(a, b, axes, 
                     flags=(each_flag,))
 
@@ -179,6 +187,120 @@ class Complex64FFTW1DTest(object):
         self.assertRaisesRegexp(ValueError, 'Invalid flag', 
                 self.run_validate_fft, *(a, b, axes), 
                 **{'flags':('garbage',)})
+
+    def test_alignment(self):
+        '''Test to see if the alignment is returned correctly
+        '''
+        in_shape = self.input_shapes['2d']
+        out_shape = self.output_shapes['2d']
+
+        input_dtype_alignment = self.get_input_dtype_alignment()
+        output_dtype_alignment = self.get_output_dtype_alignment()
+        
+        axes=(-1,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        a = n_byte_align(a, 16)
+        b = n_byte_align(b, 16)
+
+        fft, ifft = self.run_validate_fft(a, b, axes, 
+                force_unaligned_data=True)
+
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        a_orig = a.copy()
+        b_orig = b.copy()
+
+        # Offset from 16 byte aligned to guarantee it's not
+        # 16 byte aligned
+        a__ = n_byte_align_empty(
+                numpy.prod(in_shape)*a.itemsize + input_dtype_alignment, 
+                16, dtype='int8')
+        
+        a_ = (a__[input_dtype_alignment:]
+                .view(dtype=self.input_dtype).reshape(*in_shape))
+        a_[:] = a 
+        
+        b__ = n_byte_align_empty(
+                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment, 
+                16, dtype='int8')
+        
+        b_ = (b__[input_dtype_alignment:]
+                .view(dtype=self.output_dtype).reshape(*out_shape))
+        b_[:] = b
+
+        a[:] = a_orig        
+        fft, ifft = self.run_validate_fft(a, b, axes, 
+                create_array_copies=False)
+        self.assertTrue(fft.input_alignment == 16)
+        self.assertTrue(fft.output_alignment == 16)
+
+        a[:] = a_orig
+        fft, ifft = self.run_validate_fft(a, b_, axes, 
+                create_array_copies=False)
+
+        self.assertTrue(fft.input_alignment == input_dtype_alignment)
+        self.assertTrue(fft.output_alignment == output_dtype_alignment)
+
+        a_[:] = a_orig        
+        fft, ifft = self.run_validate_fft(a_, b, axes, 
+                create_array_copies=False)        
+        self.assertTrue(fft.input_alignment == input_dtype_alignment)
+        self.assertTrue(fft.output_alignment == output_dtype_alignment)
+
+        a_[:] = a_orig        
+        fft, ifft = self.run_validate_fft(a_, b_, axes, 
+                create_array_copies=False)        
+        self.assertTrue(fft.input_alignment == input_dtype_alignment)
+        self.assertTrue(fft.output_alignment == output_dtype_alignment)
+
+        a[:] = a_orig        
+        fft, ifft = self.run_validate_fft(a, b, axes, 
+                create_array_copies=False, force_unaligned_data=True)
+        self.assertTrue(fft.input_alignment == input_dtype_alignment)
+        self.assertTrue(fft.output_alignment == output_dtype_alignment)
+    
+    def test_incorrect_byte_alignment_fails(self):
+        in_shape = self.input_shapes['2d']
+        out_shape = self.output_shapes['2d']
+
+        input_dtype_alignment = self.get_input_dtype_alignment()
+        
+        axes=(-1,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        a = n_byte_align(a, 16)
+        b = n_byte_align(b, 16)
+
+        fft, ifft = self.run_validate_fft(a, b, axes, 
+                force_unaligned_data=True)
+
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        # Offset from 16 byte aligned to guarantee it's not
+        # 16 byte aligned
+        a__ = n_byte_align_empty(
+                numpy.prod(in_shape)*a.itemsize + 1, 
+                16, dtype='int8')
+        
+        a_ = a__[1:].view(dtype=self.input_dtype).reshape(*in_shape)
+        a_[:] = a 
+        
+        b__ = n_byte_align_empty(
+                numpy.prod(out_shape)*b.itemsize + 1, 
+                16, dtype='int8')
+        
+        b_ = b__[1:].view(dtype=self.output_dtype).reshape(*out_shape)
+        b_[:] = b
+
+        self.assertRaisesRegexp(ValueError, 'Invalid output alignment',
+                FFTW, *(a, b_))
+
+        self.assertRaisesRegexp(ValueError, 'Invalid input alignment',
+                FFTW, *(a_, b))
+
+        self.assertRaisesRegexp(ValueError, 'Invalid input alignment',
+                FFTW, *(a_, b_))
 
     def test_zero_length_fft_axis_fail(self):
         
@@ -225,7 +347,8 @@ class Complex64FFTW1DTest(object):
     
         with self.assertRaisesRegexp(ValueError, 'Invalid shapes'):
                 FFTW(a, b, direction=self.direction)
-
+        
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_f_contiguous_1d(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -255,7 +378,8 @@ class Complex64FFTW1DTest(object):
         b_ = numpy.complex64(b)
         self.assertRaisesRegexp(ValueError, 'Invalid scheme',
                 FFTW, *(a_,b_))
-
+        
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_update_data(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -349,6 +473,8 @@ class Complex64FFTW1DTest(object):
     def test_update_unaligned_data_with_FFTW_UNALIGNED(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
+
+        input_dtype_alignment = self.get_input_dtype_alignment()
         
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
@@ -361,18 +487,22 @@ class Complex64FFTW1DTest(object):
 
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        # Offset by one from 16 byte aligned to guarantee it's not
+        # Offset from 16 byte aligned to guarantee it's not
         # 16 byte aligned
         a__ = n_byte_align_empty(
-                numpy.prod(in_shape)*a.itemsize+1, 16, dtype='int8')
+                numpy.prod(in_shape)*a.itemsize + input_dtype_alignment, 
+                16, dtype='int8')
         
-        a_ = a__[1:].view(dtype=self.input_dtype).reshape(*in_shape)
+        a_ = (a__[input_dtype_alignment:]
+                .view(dtype=self.input_dtype).reshape(*in_shape))
         a_[:] = a 
         
         b__ = n_byte_align_empty(
-                numpy.prod(out_shape)*b.itemsize+1, 16, dtype='int8')
+                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment, 
+                16, dtype='int8')
         
-        b_ = b__[1:].view(dtype=self.output_dtype).reshape(*out_shape)
+        b_ = (b__[input_dtype_alignment:]
+                .view(dtype=self.output_dtype).reshape(*out_shape))
         b_[:] = b
 
         self.run_validate_fft(a, b_, axes, fft=fft, ifft=ifft)
@@ -382,22 +512,26 @@ class Complex64FFTW1DTest(object):
     def test_update_data_with_unaligned_original(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
+
+        input_dtype_alignment = self.get_input_dtype_alignment()
         
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        # Offset by one from 16 byte aligned to guarantee it's not
+        # Offset from 16 byte aligned to guarantee it's not
         # 16 byte aligned
         a__ = n_byte_align_empty(
-                numpy.prod(in_shape)*a.itemsize+1, 16, dtype='int8')
+                numpy.prod(in_shape)*a.itemsize + input_dtype_alignment,
+                16, dtype='int8')
         
-        a_ = a__[1:].view(dtype=self.input_dtype).reshape(*in_shape)
+        a_ = a__[input_dtype_alignment:].view(dtype=self.input_dtype).reshape(*in_shape)
         a_[:] = a
         
         b__ = n_byte_align_empty(
-                numpy.prod(out_shape)*b.itemsize+1, 16, dtype='int8')
+                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment, 
+                16, dtype='int8')
         
-        b_ = b__[1:].view(dtype=self.output_dtype).reshape(*out_shape)
+        b_ = b__[input_dtype_alignment:].view(dtype=self.output_dtype).reshape(*out_shape)
         b_[:] = b
         
         fft, ifft = self.run_validate_fft(a_, b_, axes, 
@@ -411,6 +545,8 @@ class Complex64FFTW1DTest(object):
     def test_update_data_with_alignment_error(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
+
+        byte_error = 1
         
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
@@ -422,20 +558,36 @@ class Complex64FFTW1DTest(object):
         
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        # Offset by one from 16 byte aligned to guarantee it's not
+        # Offset from 16 byte aligned to guarantee it's not
         # 16 byte aligned
         a__ = n_byte_align_empty(
-                numpy.prod(in_shape)*a.itemsize+1, 16, dtype='int8')
+                numpy.prod(in_shape)*a.itemsize+byte_error, 
+                16, dtype='int8')
         
-        a_ = a__[1:].view(dtype=self.input_dtype).reshape(*in_shape)
+        a_ = (a__[byte_error:]
+                .view(dtype=self.input_dtype).reshape(*in_shape))
         a_[:] = a 
         
         b__ = n_byte_align_empty(
-                numpy.prod(out_shape)*b.itemsize+1, 16, dtype='int8')
+                numpy.prod(out_shape)*b.itemsize+byte_error, 
+                16, dtype='int8')
         
-        b_ = b__[1:].view(dtype=self.output_dtype).reshape(*out_shape)
+        b_ = (b__[byte_error:]
+                .view(dtype=self.output_dtype).reshape(*out_shape))
         b_[:] = b
      
+        with self.assertRaisesRegexp(ValueError, 'Invalid output alignment'):
+            self.run_validate_fft(a, b_, axes, fft=fft, ifft=ifft, 
+                    create_array_copies=False)
+
+        with self.assertRaisesRegexp(ValueError, 'Invalid input alignment'):
+            self.run_validate_fft(a_, b, axes, fft=fft, ifft=ifft, 
+                    create_array_copies=False)
+
+        # Should also be true for the unaligned case
+        fft, ifft = self.run_validate_fft(a, b, axes, 
+                force_unaligned_data=True)
+
         with self.assertRaisesRegexp(ValueError, 'Invalid output alignment'):
             self.run_validate_fft(a, b_, axes, fft=fft, ifft=ifft, 
                     create_array_copies=False)
@@ -460,7 +612,8 @@ class Complex64FFTW1DTest(object):
 
 
 class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
-
+        
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_2d(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -469,7 +622,8 @@ class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.run_validate_fft(a, b, axes, create_array_copies=False)
-    
+           
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set') 
     def test_multiple_2d(self):
         in_shape = self.input_shapes['3d']
         out_shape = self.output_shapes['3d']
@@ -478,7 +632,8 @@ class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.run_validate_fft(a, b, axes, create_array_copies=False)
-
+        
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_3d(self):
         in_shape = self.input_shapes['3d']
         out_shape = self.output_shapes['3d']
@@ -487,7 +642,8 @@ class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.run_validate_fft(a, b, axes, create_array_copies=False)
-
+        
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_non_monotonic_increasing_axes(self):
         '''Test the case where the axes arg does not monotonically increase.
         '''
@@ -500,7 +656,8 @@ class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
         a, b = self.create_test_arrays(in_shape, out_shape, axes=axes)
 
         self.run_validate_fft(a, b, axes, create_array_copies=False)
-
+        
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_non_contiguous_2d(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -514,7 +671,8 @@ class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
         b_sliced = b[20:146:2, 100:1458:7]
 
         self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
-
+        
+    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_non_contiguous_2d_in_3d(self):
         in_shape = (256, 4, 2048)
         out_shape = in_shape

@@ -56,7 +56,7 @@ functions = {
         'ifftn': 'complex'}
 
 
-class InterfacesNumpyFFTTestFFT(unittest.TestCase):
+class InterfacesNumpyFFTTestFFT():#unittest.TestCase):
 
     func = 'fft'
     axes_kw = 'axis'

@@ -18,7 +18,7 @@
 
 
 import unittest
-from pyfftw import pyfftw
+import pyfftw
 import platform
 import os
 
@@ -64,30 +64,11 @@ class UtilsTest(unittest.TestCase):
         
         for each_cpu in cpus_info:
             if 'avx' in each_cpu['flags']:
-                self.assertTrue(pyfftw.get_alignment() == 32)
+                self.assertTrue(pyfftw.simd_alignment == 32)
             elif 'sse' in each_cpu['flags']:
-                self.assertTrue(pyfftw.get_alignment() == 16)
+                self.assertTrue(pyfftw.simd_alignment == 16)
             else:
-                self.assertTrue(pyfftw.get_alignment() == 1)
-
-    @unittest.skipIf('Linux' not in platform.system(),
-            'Skipping as we only have it set up for Linux at present.')
-    def test_correct_cpuinfo_lookup(self):
-        utils_cpuinfo = pyfftw.get_cpuinfo()
-        cpus_info = get_cpus_info()
-        
-        for each_cpu in cpus_info:
-            for each_flag in utils_cpuinfo:
-                if utils_cpuinfo[each_flag]:
-                    self.assertTrue(each_flag in each_cpu['flags'])
-                else:
-                    self.assertTrue(each_flag not in each_cpu['flags'])
-
-    def test_cpuinfo_lookup(self):
-        cpuinfo = pyfftw.get_cpuinfo()
-
-        for each_flag in cpuinfo:
-            self.assertTrue(each_flag in ('avx', 'sse', 'sse2'))
+                self.assertTrue(pyfftw.simd_alignment == 1)
 
 test_cases = (
         UtilsTest,)

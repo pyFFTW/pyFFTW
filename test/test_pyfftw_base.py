@@ -18,6 +18,7 @@
 
 from pyfftw import FFTW, n_byte_align, n_byte_align_empty
 import numpy
+import struct
 from timeit import Timer
 
 import unittest
@@ -44,6 +45,12 @@ class FFTWBaseTest(unittest.TestCase):
     def tearDown(self):
         
         return
+
+    def get_input_dtype_alignment(self):
+        return numpy.dtype(self.input_dtype).alignment
+
+    def get_output_dtype_alignment(self):
+        return numpy.dtype(self.output_dtype).alignment
 
     def make_shapes(self):
         self.input_shapes = {

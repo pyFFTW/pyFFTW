@@ -44,7 +44,18 @@ wisdom documentation <http://www.fftw.org/fftw3_doc/Words-of-Wisdom_002dSaving-P
 Utility Functions
 -----------------
 
+.. data:: pyfftw.simd_alignment
+   
+   An integer giving the optimum SIMD alignment in bytes, found by 
+   inspecting the CPU (e.g. if AVX is supported, its value will be 32).
+
+   This can be used as ``n`` in the arguments for :func:`n_byte_align` and 
+   :func:`n_byte_align_empty` to create optimally aligned arrays for
+   the running platform.
+
 .. autofunction:: pyfftw.n_byte_align
 
 .. autofunction:: pyfftw.n_byte_align_empty
+
+.. autofunction:: pyfftw.is_n_byte_aligned
 

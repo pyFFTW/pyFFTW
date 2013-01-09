@@ -203,10 +203,27 @@ class FFTWCallTest(unittest.TestCase):
                 self.fft.update_arrays, *(a_, self.output_array))
         
         self.fft(a_, self.output_array)
-
+        
         self.assertTrue(numpy.alltrue(output_array == self.output_array))
-    
-    
+
+        # now try with a single byte offset and SIMD off
+        ar, ai = numpy.float32(numpy.random.randn(2, 257))
+        a = ar[1:] + 1j*ai[1:]
+
+        b = a.copy()
+
+        update_array = numpy.frombuffer(
+                numpy.zeros(len(a.data)+1, dtype='int8')[1:].data, 
+                dtype=a.dtype).reshape(a.shape)
+
+        fft = FFTW(a, b, flags=('FFTW_UNALIGNED',))
+        # Confirm that a usual update will fail (it's not on the
+        # byte boundary)
+        self.assertRaisesRegexp(ValueError, 'Invalid input alignment', 
+                fft.update_arrays, *(update_array, b))
+
+        fft(update_array, b)
+
     def test_call_with_invalid_output_striding(self):
         '''Test the class call with an invalid strided output update.
         '''
@@ -255,7 +272,7 @@ class FFTWCallTest(unittest.TestCase):
                 self.fft, **{'input_array': input_array[:,:,0]})
 
     def test_call_with_unaligned(self):
-        '''Test the class call with a keyword input update.
+        '''Make sure the right thing happens with unaligned data.
         '''
         input_array = (numpy.random.randn(*self.input_array.shape) 
                 + 1j*numpy.random.randn(*self.input_array.shape))
@@ -273,7 +290,7 @@ class FFTWCallTest(unittest.TestCase):
         a_[:] = a
 
         # Create a different second array the same way
-        b = input_array.copy()
+        b = output_array.copy()
         b__ = n_byte_align_empty(
                 numpy.prod(b.shape)*a.itemsize+1, 16, dtype='int8')
         
@@ -281,18 +298,30 @@ class FFTWCallTest(unittest.TestCase):
         b_[:] = a
 
         # Set up for the first array
-        fft = FFTW(a_, self.output_array)
+        fft = FFTW(input_array, output_array)
         a_[:] = a
         output_array = fft().copy()
 
-        # Check b is not aligned...
+        # Check a_ is not aligned...
         self.assertRaisesRegexp(ValueError, 'Invalid input alignment', 
-                self.fft.update_arrays, *(b_, self.output_array))
-        
-        # But it should still work with the new array
-        fft(b_)
+                self.fft.update_arrays, *(a_, output_array))
 
-        self.assertTrue(numpy.alltrue(output_array == self.output_array))
+        # and b_ too
+        self.assertRaisesRegexp(ValueError, 'Invalid output alignment', 
+                self.fft.update_arrays, *(input_array, b_))
+        
+        # But it should still work with the a_
+        fft(a_)
+
+        # However, trying to update the output will raise an error
+        self.assertRaisesRegexp(ValueError, 'Invalid output alignment', 
+                self.fft.update_arrays, *(input_array, b_))
+
+        # Same with SIMD off
+        fft = FFTW(input_array, output_array, flags=('FFTW_UNALIGNED',))
+        fft(a_)
+        self.assertRaisesRegexp(ValueError, 'Invalid output alignment', 
+                self.fft.update_arrays, *(input_array, b_))
 
     def test_call_with_normalisation_on(self):
         _input_array = n_byte_align_empty((256, 512), 16,

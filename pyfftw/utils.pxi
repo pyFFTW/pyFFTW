@@ -17,48 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cimport numpy as np
-from cpuid cimport cpuid  # a thin wrapper around cpuid assembly
+cimport cpu
 from libc.stdint cimport intptr_t
 
-cdef object _cpuid_info_and_feature_bit_masks
-# tuple gives (which int, which bit)
-_cpuid_info_and_feature_bit_masks = {
-        'avx': (2, 28),
-        'sse': (3, 25),
-        'sse2': (3, 26),
-        }
 
-cdef int alignment = get_alignment()
+cdef int _simd_alignment = cpu.simd_alignment()
 
-cpdef int get_alignment():
-
-    cpuinfo = get_cpuinfo()
-
-    if cpuinfo['avx']:
-        return 32
-    elif cpuinfo['sse']:
-        return 16
-    else:
-        return 1
-
-cpdef get_cpuinfo():
-    cdef int _cpuinfo[4]
-
-    # function 1 is processor info and feature bits
-    cpuid(1, _cpuinfo)
-
-    cpuid_output = (_cpuinfo[0], _cpuinfo[1], _cpuinfo[2], _cpuinfo[3])
-
-    cpuinfo = {}
-
-    for each_mask in _cpuid_info_and_feature_bit_masks:
-        int_number = _cpuid_info_and_feature_bit_masks[each_mask][0]
-        bit_number = _cpuid_info_and_feature_bit_masks[each_mask][1]
-
-        cpuinfo[each_mask] = bool(
-                cpuid_output[int_number] & (1<<bit_number))
-
-    return cpuinfo
+#: The optimum SIMD alignment in bytes, found by inspecting the CPU.
+simd_alignment = _simd_alignment
 
 cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
     '''n_byte_align_empty(shape, n, dtype='float64', order='C')

@@ -14,12 +14,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfftw import (
-        FFTW, n_byte_align_empty)
+        FFTW, n_byte_align_empty, is_n_byte_aligned)
 
 import unittest
 import numpy
 
-class FFTWAdditionalAttrsTest(unittest.TestCase):
+# FFTW tests that don't seem to fit anywhere else
+
+class FFTWMiscTest(unittest.TestCase):
    
     def setUp(self):
 
@@ -33,16 +35,16 @@ class FFTWAdditionalAttrsTest(unittest.TestCase):
         self.output_array[:] = (numpy.random.randn(*self.output_array.shape) 
                 + 1j*numpy.random.randn(*self.output_array.shape))
 
-    def test_alignment_flag(self):
-        '''Test to see if the alignment flag is correct
+    def test_aligned_flag(self):
+        '''Test to see if the aligned flag is correct
         '''
         fft = FFTW(self.input_array, self.output_array)
-        self.assertTrue(fft.aligned)
+        self.assertTrue(fft.simd_aligned)
 
         fft = FFTW(self.input_array, self.output_array, 
                 flags=('FFTW_UNALIGNED',))
 
-        self.assertFalse(fft.aligned)
+        self.assertFalse(fft.simd_aligned)
 
     def test_flags(self):
         '''Test to see if the flags are correct
@@ -59,12 +61,19 @@ class FFTWAdditionalAttrsTest(unittest.TestCase):
         _output_array = n_byte_align_empty(256, 16, dtype='complex64')
 
         # These are guaranteed to be misaligned (due to dtype size == 8)
-        input_array = _input_array[1:]
-        output_array = _output_array[1:]
+        input_array = _input_array[:-1]
+        output_array = _output_array[:-1]
+        u_input_array = _input_array[1:]
+        u_output_array = _output_array[1:]
 
-        fft = FFTW(input_array, output_array)
+        fft = FFTW(input_array, u_output_array)
         self.assertEqual(fft.flags, ('FFTW_MEASURE', 'FFTW_UNALIGNED'))
 
+        fft = FFTW(u_input_array, output_array)
+        self.assertEqual(fft.flags, ('FFTW_MEASURE', 'FFTW_UNALIGNED'))
+
+        fft = FFTW(u_input_array, u_output_array)
+        self.assertEqual(fft.flags, ('FFTW_MEASURE', 'FFTW_UNALIGNED'))
 
     def test_get_input_array(self):
         '''Test to see the get_input_array method returns the correct thing
@@ -79,7 +88,7 @@ class FFTWAdditionalAttrsTest(unittest.TestCase):
         self.assertIs(self.output_array, self.fft.get_output_array())
 
 test_cases = (
-        FFTWAdditionalAttrsTest,)
+        FFTWMiscTest,)
 
 if __name__ == '__main__':
 

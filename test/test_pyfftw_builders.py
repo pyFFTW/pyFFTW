@@ -384,12 +384,12 @@ class BuildersTestFFT(unittest.TestCase):
                 FFTW_object = getattr(builders, self.func)(
                         input_array.copy(), s1, **_kwargs)
 
-                self.assertFalse(FFTW_object.aligned)
+                self.assertFalse(FFTW_object.simd_aligned)
 
                 FFTW_object = getattr(builders, self.func)(
                         input_array.copy(), s2, **_kwargs)
 
-                self.assertFalse(FFTW_object.aligned)
+                self.assertFalse(FFTW_object.simd_aligned)
 
                 # Now for the aligned case (for both
                 # FFTW and _FFTWWrapper)
@@ -397,13 +397,13 @@ class BuildersTestFFT(unittest.TestCase):
                 FFTW_object = getattr(builders, self.func)(
                         input_array.copy(), s1, **_kwargs)
 
-                self.assertTrue(FFTW_object.aligned)
+                self.assertTrue(FFTW_object.simd_aligned)
 
                 self.assertTrue('FFTW_UNALIGNED' not in FFTW_object.flags)                
                 FFTW_object = getattr(builders, self.func)(
                         input_array.copy(), s2, **_kwargs)
 
-                self.assertTrue(FFTW_object.aligned)
+                self.assertTrue(FFTW_object.simd_aligned)
 
                 self.assertTrue('FFTW_UNALIGNED' not in FFTW_object.flags)
 

@@ -220,9 +220,12 @@ following additional keyword arguments:
 
   Example situations that require a copy, and so cause the exception
   to be raised when this flag is set:
+
   * The shape of the FFT input as dictated by ``s`` is
     necessarily different from the shape of the passed-in array.
+
   * The dtypes are incompatible with the FFT routine.
+
   * The ``auto_contiguous`` or ``auto_align`` flags are True and 
     the input array is not already contiguous or aligned.
 

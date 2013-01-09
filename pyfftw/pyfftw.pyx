@@ -36,6 +36,8 @@ flag_dict = {'FFTW_MEASURE': FFTW_MEASURE,
         'FFTW_UNALIGNED': FFTW_UNALIGNED,
         'FFTW_DESTROY_INPUT': FFTW_DESTROY_INPUT}
 
+_flag_dict = flag_dict.copy()
+
 # Function wrappers
 # =================
 # All of these have the same signature as the fftw_generic functions
@@ -596,7 +598,10 @@ cdef class FFTW:
     cdef np.ndarray __output_array
     cdef int __direction
     cdef int __flags
+
     cdef bint __simd_allowed
+    cdef int __input_array_alignment
+    cdef int __output_array_alignment    
     cdef bint __use_threads
 
     cdef object __input_strides
@@ -630,14 +635,40 @@ cdef class FFTW:
 
     N = property(__get_N)
 
-    def __get_aligned(self):
+    def __get_simd_aligned(self):
         '''
-        Return whether or not this FFTW object requires aligned
+        Return whether or not this FFTW object requires simd aligned
         input and output data.
         '''
         return self.__simd_allowed
 
-    aligned = property(__get_aligned)
+    simd_aligned = property(__get_simd_aligned)
+
+    def __get_input_alignment(self):
+        '''
+        Returns the byte alignment of the input arrays for which the
+        :class:`~pyfftw.FFTW` object was created.
+
+        Input array updates with arrays that are not aligned on this
+        byte boundary will result in a ValueError being raised, or
+        a copy being made if the :method:`~pyfftw.FFTW.__call__` 
+        interface is used.
+        '''
+        return self.__input_array_alignment
+
+    input_alignment = property(__get_input_alignment)
+
+    def __get_output_alignment(self):
+        '''
+        Returns the byte alignment of the output arrays for which the
+        :class:`~pyfftw.FFTW` object was created.
+
+        Output array updates with arrays that are not aligned on this
+        byte boundary will result in a ValueError being raised.
+        '''
+        return self.__output_array_alignment
+
+    output_alignment = property(__get_output_alignment)
 
     def __get_flags_used(self):
         '''
@@ -651,8 +682,8 @@ cdef class FFTW:
 
     def __cinit__(self, input_array, output_array, axes=(-1,),
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
-            unsigned int threads=1, planning_timelimit=None, *args, 
-            **kwargs):
+            unsigned int threads=1, planning_timelimit=None, 
+            *args, **kwargs):
         
         # Initialise the pointers that need to be freed
         self.__plan = NULL
@@ -685,37 +716,19 @@ cdef class FFTW:
                     'of numpy.ndarray')
 
         try:
-            scheme = fftw_schemes[
-                    (input_array.dtype, output_array.dtype)]
+            input_dtype = input_array.dtype
+            output_dtype = output_array.dtype
+            scheme = fftw_schemes[(input_dtype, output_dtype)]
         except KeyError:
             raise ValueError('Invalid scheme: '
                     'The output array and input array dtypes '
                     'do not correspond to a valid fftw scheme.')
 
-        self.__input_dtype = input_array.dtype
-        self.__output_dtype = output_array.dtype
-
-        # If either of the arrays is not aligned on a 16-byte boundary,
-        # we set the FFTW_UNALIGNED flag. This disables SIMD.
-        if 'FFTW_UNALIGNED' in flags:
-            self.__simd_allowed = False
-        elif (<intptr_t>np.PyArray_DATA(input_array)%16 == 0 and 
-                <intptr_t>np.PyArray_DATA(input_array)%16 == 0):
-            self.__simd_allowed = True
-        else:
-            flags.append('FFTW_UNALIGNED')
-            self.__simd_allowed = False
-
-        if not direction in scheme_directions[scheme]:
-            raise ValueError('Invalid direction: '
-                    'The direction is not valid for the scheme. '
-                    'Try setting it explicitly if it is not already.')
-
-        self.__direction = directions[direction]
-        self.__input_shape = input_array.shape
-        self.__output_shape = output_array.shape
+        self.__input_dtype = input_dtype
+        self.__output_dtype = output_dtype
         
         functions = scheme_functions[scheme]
+        
         self.__fftw_planner = planners[functions['planner']]
         self.__fftw_execute = executors[functions['executor']]
         self.__fftw_destroy = destroyers[functions['generic_precision']]
@@ -725,6 +738,55 @@ cdef class FFTW:
 
         cdef fftw_generic_set_timelimit set_timelimit_func = (
                 set_timelimit_funcs[functions['generic_precision']])
+
+        # If either of the arrays is not aligned on a 16-byte boundary,
+        # we set the FFTW_UNALIGNED flag. This disables SIMD.
+        # (16 bytes is assumed to be the minimal alignment)
+        if 'FFTW_UNALIGNED' in flags:
+            self.__simd_allowed = False
+            self.__input_array_alignment = self.__input_dtype.alignment
+            self.__output_array_alignment = self.__output_dtype.alignment
+
+        elif (<intptr_t>np.PyArray_DATA(input_array)%16 == 0 and 
+                <intptr_t>np.PyArray_DATA(output_array)%16 == 0):
+            self.__simd_allowed = True
+            # We assume that 16 still works for SIMD alignment, but
+            # 32 might still. We therefore allow 32 if everything fits
+            # otherwise fall back to 16.
+            self.__input_array_alignment = min((
+                (simd_alignment - 
+                    <intptr_t>np.PyArray_DATA(input_array) % simd_alignment),
+                (simd_alignment - 
+                    <intptr_t>np.PyArray_DATA(output_array) % simd_alignment),
+                simd_alignment))
+
+            self.__output_array_alignment = self.__input_array_alignment
+        else:
+            flags.append('FFTW_UNALIGNED')
+            self.__simd_allowed = False
+            self.__input_array_alignment = self.__input_dtype.alignment
+            self.__output_array_alignment = self.__output_dtype.alignment
+
+        if (not (<intptr_t>np.PyArray_DATA(input_array)
+            % self.__input_array_alignment == 0)):
+            raise ValueError('Invalid input alignment: '
+                    'The input array is expected to lie on a %d '
+                    'byte boundary.' % self.__input_array_alignment)
+
+        if (not (<intptr_t>np.PyArray_DATA(output_array)
+            % self.__output_array_alignment == 0)):
+            raise ValueError('Invalid output alignment: '
+                    'The output array is expected to lie on a %d '
+                    'byte boundary.' % self.__output_array_alignment)
+
+        if not direction in scheme_directions[scheme]:
+            raise ValueError('Invalid direction: '
+                    'The direction is not valid for the scheme. '
+                    'Try setting it explicitly if it is not already.')
+
+        self.__direction = directions[direction]
+        self.__input_shape = input_array.shape
+        self.__output_shape = output_array.shape
         
         self.__input_array = input_array
         self.__output_array = output_array
@@ -895,7 +957,8 @@ cdef class FFTW:
 
     def __init__(self, input_array, output_array, axes=(-1,), 
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
-            int threads=1, planning_timelimit=None, *args, **kwargs):
+            int threads=1, planning_timelimit=None, 
+            *args, **kwargs):
         '''
         **Arguments**:
 
@@ -1057,19 +1120,25 @@ cdef class FFTW:
         <http://www.fftw.org/fftw3_doc/What-FFTW-Really-Computes.html>`_.
 
         The FFTW library benefits greatly from the beginning of each
-        DFT axes being aligned on a 16-byte boundary, which enables
-        SIMD instructions. By default, if the data begins on a 16-byte 
+        DFT axes being aligned on the correct byte boundary, enabling
+        SIMD instructions. By default, if the data begins on such a
         boundary, then FFTW will be allowed to try and enable
         SIMD instructions. This means that all future changes to
         the data arrays will be checked for similar alignment. SIMD
         instructions can be explicitly disabled by setting the
         FFTW_UNALIGNED flags, to allow for updates with unaligned
-        data. If your processor supports AVX, then alignment on a
-        32-byte boundary adds further benefit.
-
+        data.
+        
         :func:`~pyfftw.n_byte_align` and 
         :func:`~pyfftw.n_byte_align_empty` are two methods
         included with this module for producing aligned arrays.
+
+        The optimum alignment for the running platform is provided
+        by :data:`pyfftw.simd_alignment`, though a different alignment
+        may still result in some performance improvement. For example,
+        if the processor supports AVX (requiring 32-byte alignment) as
+        well as SSE (requiring 16-byte alignment), then if the array
+        is 16-byte aligned, SSE will be used but AVX will not.
 
         It's worth noting that just being aligned may not be sufficient
         to create the fastest possible transform. For example, if the
@@ -1170,8 +1239,8 @@ cdef class FFTW:
                 copy_needed = True
             elif (not input_array.strides == self.__input_byte_strides):
                 copy_needed = True
-            elif (self.__simd_allowed and
-                    not (<intptr_t>np.PyArray_DATA(input_array)%16 == 0)):
+            elif not (<intptr_t>np.PyArray_DATA(input_array) 
+                    % self.input_alignment == 0):
                 copy_needed = True
             else:
                 copy_needed = False
@@ -1214,17 +1283,19 @@ cdef class FFTW:
         The new arrays should be of the same dtypes as the originals, the
         same shapes as the originals and
         should have the same strides between axes. If the original
-        data was aligned so as to allow SIMD instructions (by being 
-        aligned on a 16-byte boundary), then the new array
+        data was aligned so as to allow SIMD instructions (e.g. by being 
+        aligned on a 16- or 32-byte boundary), then the new array
         must also be aligned in the same way.
+        
+        The byte alignment requirement extends to requiring natural
+        alignment in the non-SIMD cases as well, but this is much less
+        stringent as it simply means avoiding arrays shifted by, say,
+        a single byte (which invariably takes some effort to
+        achieve!).
 
         If all these conditions are not met, a ``ValueError`` will
         be raised and the data will *not* be updated (though the 
         object will still be in a sane state).
-        
-        Note that if the original array was not aligned on a 16-byte
-        boundary, then SIMD is disabled and the alignment of the new
-        array can be arbitrary.
         '''
         if not isinstance(new_input_array, np.ndarray):
             raise ValueError('Invalid input array: '
@@ -1236,18 +1307,19 @@ cdef class FFTW:
                     'The new output array needs to be an instance '
                     'of numpy.ndarray')
 
-        if self.__simd_allowed:
-            if not (<intptr_t>np.PyArray_DATA(new_input_array)%16 == 0):
-                raise ValueError('Invalid input alignment: '
-                        'The original arrays were 16-byte aligned. It is '
-                        'necessary that the update input array is similarly '
-                        'aligned.')
+        if not (<intptr_t>np.PyArray_DATA(new_input_array) % 
+                self.input_alignment == 0):
+            raise ValueError('Invalid input alignment: '
+                    'The original arrays were %d-byte aligned. It is '
+                    'necessary that the update input array is similarly '
+                    'aligned.' % self.input_alignment)
 
-            if not (<intptr_t>np.PyArray_DATA(new_output_array)%16 == 0):
-                raise ValueError('Invalid output alignment: '
-                        'The original arrays were 16-byte aligned. It is '
-                        'necessary that the update output array is similarly '
-                        'aligned.')
+        if not (<intptr_t>np.PyArray_DATA(new_output_array) % 
+                self.output_alignment == 0):
+            raise ValueError('Invalid output alignment: '
+                    'The original arrays were %d-byte aligned. It is '
+                    'necessary that the update output array is similarly '
+                    'aligned.' % self.output_alignment)
 
         if not new_input_array.dtype == self.__input_dtype:
             raise ValueError('Invalid input dtype: '

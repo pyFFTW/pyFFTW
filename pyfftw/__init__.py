@@ -16,6 +16,7 @@ from pyfftw import (
         export_wisdom,
         import_wisdom,
         forget_wisdom,
+        simd_alignment,
         n_byte_align_empty,
         n_byte_align,
         is_n_byte_aligned,)

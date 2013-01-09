@@ -16,6 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-cdef extern from "cpuid.h":
+cdef extern from "cpu.h":
 
-    int cpuid(int func, int cpuinfo[4])
+    int simd_alignment()
