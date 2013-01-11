@@ -52,7 +52,7 @@
   #endif
 
 /* Returns the byte alignment for optimum simd operations */
-inline int simd_alignment(){
+inline int simd_alignment(void){
     int cpuinfo[4];
 
     /* This gets the cpuinfo (set by 1)*/
@@ -63,13 +63,13 @@ inline int simd_alignment(){
     else if (cpuinfo[SSE_BYTE] & (1<<SSE_BIT))  /* SSE */
         return 16;
     else  /* No SIMD */
-        return 1;
+        return 4;
 }
 
 #else
 
-inline int simd_alignment(){
-    return 1;
+inline int simd_alignment(void){
+    return 4;
 }
 #endif
 

@@ -19,6 +19,7 @@
 from pyfftw import (
         FFTW, n_byte_align_empty, n_byte_align)
 
+from test_pyfftw_base import run_test_suites
 import numpy
 import unittest
 
@@ -366,12 +367,9 @@ class FFTWCallTest(unittest.TestCase):
 test_cases = (
         FFTWCallTest,)
 
+test_set = None
+
 if __name__ == '__main__':
 
-    suite = unittest.TestSuite()
+    run_test_suites(test_cases, test_set)
 
-    for test_class in test_cases:
-        tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
-        suite.addTests(tests)
-    
-    unittest.TextTestRunner(verbosity=2).run(suite)

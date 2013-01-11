@@ -159,3 +159,38 @@ class FFTWBaseTest(unittest.TestCase):
         return fft, ifft
 
 
+def run_test_suites(test_suites, run_tests=None):
+    '''From each test case (derived from TestCase) in test_suites,
+    load and run all the test cases within.
+
+    If run_tests is not None, then it should be a dictionary with
+    keys being the test suite class name, and the values being
+    a list of test methods to run. Alternatively, the key can
+    be 'all' in which case all the test suites will be run with 
+    the provided list of test suites.
+    '''
+    suite = unittest.TestSuite()
+
+    for test_class in test_suites:
+        tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
+        
+        if run_tests is not None:
+            if test_class.__name__ in run_tests:
+                this_suite_run = set(run_tests[test_class.__name__])
+            else:
+                this_suite_run = set()
+
+            if 'all' in run_tests:
+                this_suite_run = this_suite_run.union(run_tests['all'])
+
+            _tests = []
+            for each_test in tests:
+                if (each_test.id().split('.')[-1] in this_suite_run):
+                    _tests.append(each_test)
+
+            tests = _tests
+
+        suite.addTests(tests)
+
+    
+    unittest.TextTestRunner(verbosity=2).run(suite)

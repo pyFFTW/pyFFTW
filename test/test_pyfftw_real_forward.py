@@ -20,6 +20,8 @@ from pyfftw import FFTW, n_byte_align, n_byte_align_empty
 import numpy
 from timeit import Timer
 
+from test_pyfftw_base import run_test_suites
+
 import unittest
 
 from test_pyfftw_complex import Complex64FFTWTest
@@ -134,14 +136,10 @@ test_cases = (
         RealForwardSingleFFTWTest,
         RealForwardLongDoubleFFTWTest,)
 
+test_set = None
+
 if __name__ == '__main__':
 
-    suite = unittest.TestSuite()
-
-    for test_class in test_cases:
-        tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
-        suite.addTests(tests)
-    
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    run_test_suites(test_cases, test_set)
 
 del Complex64FFTWTest

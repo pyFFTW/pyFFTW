@@ -24,9 +24,7 @@ import time
 
 import unittest
 
-from test_pyfftw_base import FFTWBaseTest
-
-run_only_fast_tests = False
+from test_pyfftw_base import FFTWBaseTest, run_test_suites
 
 # We make this 1D case not inherit from FFTWBaseTest.
 # It needs to be combined with FFTWBaseTest to work.
@@ -34,7 +32,6 @@ run_only_fast_tests = False
 # in multiple locations.
 class Complex64FFTW1DTest(object):
             
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_time(self):
         
         in_shape = self.input_shapes['2d']
@@ -49,7 +46,6 @@ class Complex64FFTW1DTest(object):
                 lambda: self.np_fft_comparison(a))
         self.assertTrue(True)
 
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_1d(self):
         in_shape = self.input_shapes['1d']
         out_shape = self.output_shapes['1d']
@@ -59,7 +55,6 @@ class Complex64FFTW1DTest(object):
 
         self.run_validate_fft(a, b, axes)
 
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')       
     def test_multiple_1d(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -69,7 +64,6 @@ class Complex64FFTW1DTest(object):
 
         self.run_validate_fft(a, b, axes)
 
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')    
     def test_default_args(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -81,7 +75,6 @@ class Complex64FFTW1DTest(object):
         ref_b = self.reference_fftn(a, axes=(-1,))
         self.assertTrue(numpy.allclose(b, ref_b, rtol=1e-2, atol=1e-3))
 
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')    
     def test_time_with_array_update(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -100,7 +93,6 @@ class Complex64FFTW1DTest(object):
 
         self.assertTrue(True)
         
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_planning_time_limit(self):
         in_shape = self.input_shapes['1d']
         out_shape = self.output_shapes['1d']
@@ -348,7 +340,6 @@ class Complex64FFTW1DTest(object):
         with self.assertRaisesRegexp(ValueError, 'Invalid shapes'):
                 FFTW(a, b, direction=self.direction)
         
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_f_contiguous_1d(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -379,7 +370,6 @@ class Complex64FFTW1DTest(object):
         self.assertRaisesRegexp(ValueError, 'Invalid scheme',
                 FFTW, *(a_,b_))
         
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_update_data(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -613,7 +603,6 @@ class Complex64FFTW1DTest(object):
 
 class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
         
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_2d(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -623,7 +612,6 @@ class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
 
         self.run_validate_fft(a, b, axes, create_array_copies=False)
            
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set') 
     def test_multiple_2d(self):
         in_shape = self.input_shapes['3d']
         out_shape = self.output_shapes['3d']
@@ -633,7 +621,6 @@ class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
 
         self.run_validate_fft(a, b, axes, create_array_copies=False)
         
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_3d(self):
         in_shape = self.input_shapes['3d']
         out_shape = self.output_shapes['3d']
@@ -643,7 +630,6 @@ class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
 
         self.run_validate_fft(a, b, axes, create_array_copies=False)
         
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_non_monotonic_increasing_axes(self):
         '''Test the case where the axes arg does not monotonically increase.
         '''
@@ -657,7 +643,6 @@ class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
 
         self.run_validate_fft(a, b, axes, create_array_copies=False)
         
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_non_contiguous_2d(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
@@ -672,7 +657,6 @@ class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
 
         self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
         
-    @unittest.skipIf(run_only_fast_tests, 'run_only_fast_tests set')
     def test_non_contiguous_2d_in_3d(self):
         in_shape = (256, 4, 2048)
         out_shape = in_shape
@@ -729,13 +713,8 @@ test_cases = (
         Complex128FFTWTest,
         ComplexLongDoubleFFTWTest,)
 
+test_set = {'Complex64FFTWTest':['test_time_with_array_update']}
+
 if __name__ == '__main__':
-
-    suite = unittest.TestSuite()
-
-    for test_class in test_cases:
-        tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
-        suite.addTests(tests)
-    
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    run_test_suites(test_cases, test_set)
 

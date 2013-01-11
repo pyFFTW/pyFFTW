@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from test_pyfftw_base import run_test_suites
+
 import unittest
 import pyfftw
 import platform
@@ -73,12 +75,9 @@ class UtilsTest(unittest.TestCase):
 test_cases = (
         UtilsTest,)
 
+test_set = None
+
 if __name__ == '__main__':
 
-    suite = unittest.TestSuite()
+    run_test_suites(test_cases, test_set)
 
-    for test_class in test_cases:
-        tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
-        suite.addTests(tests)
-    
-    unittest.TextTestRunner(verbosity=2).run(suite)
