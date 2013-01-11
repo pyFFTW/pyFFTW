@@ -326,6 +326,11 @@ class BuildersTestFFT(unittest.TestCase):
                 # Firstly check the non-contiguous case (for both
                 # FFTW and _FFTWWrapper)
                 _kwargs['auto_contiguous'] = False
+                
+                # We also need to make sure we're not copying due
+                # to a trivial misalignment
+                _kwargs['auto_align_input'] = False
+
                 FFTW_object = getattr(builders, self.func)(
                         input_array, s1, **_kwargs)
 
@@ -615,7 +620,7 @@ class BuildersTestFFT(unittest.TestCase):
                         getattr(builders, self.func),
                         misaligned_input_array, s, **_kwargs)
 
-                _input_array = input_array.copy()
+                _input_array = n_byte_align(input_array.copy(), 16)
                 FFTW_object = getattr(builders, self.func)(
                         _input_array, s, **_kwargs)
 
@@ -1150,18 +1155,19 @@ test_cases = (
         BuildersTestUtilities,
         BuildersTestFFT,
         BuildersTestIFFT,
-        BuildersTestIRFFT,
+        BuildersTestRFFT,
         BuildersTestIRFFT,
         BuildersTestFFT2,
         BuildersTestIFFT2,
-        BuildersTestIRFFT2,
+        BuildersTestRFFT2,
         BuildersTestIRFFT2,
         BuildersTestFFTN,
         BuildersTestIFFTN,
-        BuildersTestIRFFTN,
+        BuildersTestRFFTN,
         BuildersTestIRFFTN)
 
 test_set = None
+#test_set = {'BuildersTestIRFFT2': ['test_valid']}
 
 if __name__ == '__main__':
 

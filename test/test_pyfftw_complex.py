@@ -200,6 +200,9 @@ class Complex64FFTW1DTest(object):
 
         a, b = self.create_test_arrays(in_shape, out_shape)
 
+        a = n_byte_align(a, 16)
+        b = n_byte_align(b, 16)
+
         a_orig = a.copy()
         b_orig = b.copy()
 
@@ -224,6 +227,7 @@ class Complex64FFTW1DTest(object):
         a[:] = a_orig        
         fft, ifft = self.run_validate_fft(a, b, axes, 
                 create_array_copies=False)
+
         self.assertTrue(fft.input_alignment == 16)
         self.assertTrue(fft.output_alignment == 16)
 
@@ -713,7 +717,8 @@ test_cases = (
         Complex128FFTWTest,
         ComplexLongDoubleFFTWTest,)
 
-test_set = {'Complex64FFTWTest':['test_time_with_array_update']}
+test_set = None
+#test_set = {'all':['test_alignment']}
 
 if __name__ == '__main__':
     run_test_suites(test_cases, test_set)
