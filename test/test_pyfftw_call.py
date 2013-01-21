@@ -153,8 +153,10 @@ class FFTWCallTest(unittest.TestCase):
 
         output_array = self.fft(n_byte_align(input_array.copy(), 16)).copy()
 
-        _input_array = numpy.asarray(input_array,
-                dtype=self.input_array.dtype)
+        _input_array = n_byte_align(numpy.asarray(input_array,
+                dtype=self.input_array.dtype), 16)
+
+        self.assertTrue(_input_array.dtype != input_array.dtype)
 
         self.fft.update_arrays(_input_array, self.output_array)
         self.fft.execute()
@@ -290,9 +292,12 @@ class FFTWCallTest(unittest.TestCase):
         output_array = self.fft(
                 input_array=n_byte_align(input_array.copy(), 16)).copy()
 
+        input_array = n_byte_align(input_array, 16)
+        output_array = n_byte_align(output_array, 16)
+
         # Offset by one from 16 byte aligned to guarantee it's not
         # 16 byte aligned
-        a = input_array.copy()
+        a = n_byte_align(input_array.copy(), 16)
         a__ = n_byte_align_empty(
                 numpy.prod(a.shape)*a.itemsize+1, 16, dtype='int8')
         
@@ -300,7 +305,7 @@ class FFTWCallTest(unittest.TestCase):
         a_[:] = a
 
         # Create a different second array the same way
-        b = output_array.copy()
+        b = n_byte_align(output_array.copy(), 16)
         b__ = n_byte_align_empty(
                 numpy.prod(b.shape)*a.itemsize+1, 16, dtype='int8')
         
