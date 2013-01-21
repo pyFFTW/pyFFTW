@@ -257,7 +257,7 @@ def _setup_input_slicers(a_shape, input_shape):
     FFTW_array_slicer = [slice(None)]*len(a_shape)
 
     # iterate over each dimension and modify the slicer and FFTW dimension
-    for axis in xrange(len(a_shape)):
+    for axis in range(len(a_shape)):
 
         if a_shape[axis] > input_shape[axis]:
             update_input_array_slicer[axis] = (
@@ -335,7 +335,7 @@ def _cook_nd_args(a, s=None, axes=None, invreal=False):
         else:
             len_s = len(s)
 
-        axes = range(-len_s, 0)
+        axes = list(range(-len_s, 0))
 
     if s is None:
         s = list(numpy.take(a.shape, axes))

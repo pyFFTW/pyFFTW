@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites
 
 import unittest
 import pyfftw
@@ -28,21 +28,21 @@ def get_cpus_info():
     
     if 'Linux' in platform.system():
         # A simple /proc/cpuinfo parser
-        f = open(os.path.join('/', 'proc','cpuinfo'), 'r')
+        with open(os.path.join('/', 'proc','cpuinfo'), 'r') as f:
 
-        cpus_info = []
-        idx = 0
-        for line in f.readlines():
-            if line.find(':') < 0:
-                idx += 1
-                continue
+            cpus_info = []
+            idx = 0
+            for line in f.readlines():
+                if line.find(':') < 0:
+                    idx += 1
+                    continue
 
-            key, values = [each.strip() for each in line.split(':')]
+                key, values = [each.strip() for each in line.split(':')]
 
-            try:
-                cpus_info[idx][key] = values
-            except IndexError:
-                cpus_info.append({key: values})
+                try:
+                    cpus_info[idx][key] = values
+                except IndexError:
+                    cpus_info.append({key: values})
 
     else:
         cpus_info = None

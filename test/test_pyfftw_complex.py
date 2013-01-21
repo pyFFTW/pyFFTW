@@ -24,14 +24,14 @@ import time
 
 import unittest
 
-from test_pyfftw_base import FFTWBaseTest, run_test_suites
+from .test_pyfftw_base import FFTWBaseTest, run_test_suites
 
 # We make this 1D case not inherit from FFTWBaseTest.
 # It needs to be combined with FFTWBaseTest to work.
 # This allows us to separate out tests that are use
 # in multiple locations.
 class Complex64FFTW1DTest(object):
-            
+
     def test_time(self):
         
         in_shape = self.input_shapes['2d']
@@ -103,7 +103,7 @@ class Complex64FFTW1DTest(object):
         # run this a few times
         runs = 10
         t1 = time.time()
-        for n in xrange(runs):
+        for n in range(runs):
             forget_wisdom()
             fft = FFTW(a, b, axes=axes)
 
@@ -113,7 +113,7 @@ class Complex64FFTW1DTest(object):
 
         # Now do it again but with an upper limit on the time
         t1 = time.time()
-        for n in xrange(runs):
+        for n in range(runs):
             forget_wisdom()
             fft = FFTW(a, b, axes=axes, planning_timelimit=time_limit)
 
@@ -129,7 +129,7 @@ class Complex64FFTW1DTest(object):
         axes=(0,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        self.assertRaisesRegexp(TypeError, 'Invalid planning timelimit',
+        self.assertRaisesRegex(TypeError, 'Invalid planning timelimit',
                 FFTW, *(a,b, axes), **{'planning_timelimit': 'foo'})
     
     def test_planner_flags(self):
@@ -176,7 +176,7 @@ class Complex64FFTW1DTest(object):
         axes=(0,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        self.assertRaisesRegexp(ValueError, 'Invalid flag', 
+        self.assertRaisesRegex(ValueError, 'Invalid flag', 
                 self.run_validate_fft, *(a, b, axes), 
                 **{'flags':('garbage',)})
 
@@ -285,13 +285,13 @@ class Complex64FFTW1DTest(object):
         b_ = b__[1:].view(dtype=self.output_dtype).reshape(*out_shape)
         b_[:] = b
 
-        self.assertRaisesRegexp(ValueError, 'Invalid output alignment',
+        self.assertRaisesRegex(ValueError, 'Invalid output alignment',
                 FFTW, *(a, b_))
 
-        self.assertRaisesRegexp(ValueError, 'Invalid input alignment',
+        self.assertRaisesRegex(ValueError, 'Invalid input alignment',
                 FFTW, *(a_, b))
 
-        self.assertRaisesRegexp(ValueError, 'Invalid input alignment',
+        self.assertRaisesRegex(ValueError, 'Invalid input alignment',
                 FFTW, *(a_, b_))
 
     def test_zero_length_fft_axis_fail(self):
@@ -303,7 +303,7 @@ class Complex64FFTW1DTest(object):
 
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        self.assertRaisesRegexp(ValueError, 'Zero length array',
+        self.assertRaisesRegex(ValueError, 'Zero length array',
                 self.run_validate_fft, *(a,b, axes))
 
     def test_missized_fail(self):
@@ -315,7 +315,7 @@ class Complex64FFTW1DTest(object):
         axes=(0,)
         a, b = self.create_test_arrays(in_shape, out_shape)
     
-        with self.assertRaisesRegexp(ValueError, 'Invalid shapes'):
+        with self.assertRaisesRegex(ValueError, 'Invalid shapes'):
                 FFTW(a, b, axes, direction=self.direction)
 
     def test_missized_nonfft_axes_fail(self):
@@ -326,7 +326,7 @@ class Complex64FFTW1DTest(object):
         axes=(2,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        with self.assertRaisesRegexp(ValueError, 'Invalid shapes'):
+        with self.assertRaisesRegex(ValueError, 'Invalid shapes'):
                 FFTW(a, b, direction=self.direction)
 
     def test_extra_dimension_fail(self):
@@ -337,7 +337,7 @@ class Complex64FFTW1DTest(object):
         axes=(1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
     
-        with self.assertRaisesRegexp(ValueError, 'Invalid shapes'):
+        with self.assertRaisesRegex(ValueError, 'Invalid shapes'):
                 FFTW(a, b, direction=self.direction)
         
     def test_f_contiguous_1d(self):
@@ -362,12 +362,12 @@ class Complex64FFTW1DTest(object):
 
         a_ = numpy.complex64(a)
         b_ = numpy.complex128(b)
-        self.assertRaisesRegexp(ValueError, 'Invalid scheme',
+        self.assertRaisesRegex(ValueError, 'Invalid scheme',
                 FFTW, *(a_,b_))
 
         a_ = numpy.complex128(a)
         b_ = numpy.complex64(b)
-        self.assertRaisesRegexp(ValueError, 'Invalid scheme',
+        self.assertRaisesRegex(ValueError, 'Invalid scheme',
                 FFTW, *(a_,b_))
         
     def test_update_data(self):
@@ -389,10 +389,10 @@ class Complex64FFTW1DTest(object):
         
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        self.assertRaisesRegexp(ValueError, 'Invalid output array',
+        self.assertRaisesRegex(ValueError, 'Invalid output array',
                 FFTW, *(a,10))
 
-        self.assertRaisesRegexp(ValueError, 'Invalid input array',
+        self.assertRaisesRegex(ValueError, 'Invalid input array',
                 FFTW, *(10,b))
 
     def test_update_data_with_not_ndarray_error(self):
@@ -405,10 +405,10 @@ class Complex64FFTW1DTest(object):
         fft, ifft = self.run_validate_fft(a, b, axes, 
                 create_array_copies=False)
 
-        self.assertRaisesRegexp(ValueError, 'Invalid output array',
+        self.assertRaisesRegex(ValueError, 'Invalid output array',
                 fft.update_arrays, *(a,10))
 
-        self.assertRaisesRegexp(ValueError, 'Invalid input array',
+        self.assertRaisesRegex(ValueError, 'Invalid input array',
                 fft.update_arrays, *(10,b))
 
     def test_update_data_with_stride_error(self):
@@ -430,11 +430,11 @@ class Complex64FFTW1DTest(object):
         a_ = a_[16:,16:]
         b_ = b_[16:,16:]
 
-        with self.assertRaisesRegexp(ValueError, 'Invalid input striding'):
+        with self.assertRaisesRegex(ValueError, 'Invalid input striding'):
             self.run_validate_fft(a_, b, axes, 
                     fft=fft, ifft=ifft, create_array_copies=False)
 
-        with self.assertRaisesRegexp(ValueError, 'Invalid output striding'):
+        with self.assertRaisesRegex(ValueError, 'Invalid output striding'):
             self.run_validate_fft(a, b_, axes, 
                     fft=fft, ifft=ifft, create_array_copies=False)
 
@@ -452,11 +452,11 @@ class Complex64FFTW1DTest(object):
 
         a_, b_ = self.create_test_arrays(in_shape, out_shape)
 
-        with self.assertRaisesRegexp(ValueError, 'Invalid input shape'):
+        with self.assertRaisesRegex(ValueError, 'Invalid input shape'):
             self.run_validate_fft(a_, b, axes, 
                     fft=fft, ifft=ifft, create_array_copies=False)
 
-        with self.assertRaisesRegexp(ValueError, 'Invalid output shape'):
+        with self.assertRaisesRegex(ValueError, 'Invalid output shape'):
             self.run_validate_fft(a, b_, axes, 
                     fft=fft, ifft=ifft, create_array_copies=False)
 
@@ -566,11 +566,11 @@ class Complex64FFTW1DTest(object):
                 .view(dtype=self.output_dtype).reshape(*out_shape))
         b_[:] = b
      
-        with self.assertRaisesRegexp(ValueError, 'Invalid output alignment'):
+        with self.assertRaisesRegex(ValueError, 'Invalid output alignment'):
             self.run_validate_fft(a, b_, axes, fft=fft, ifft=ifft, 
                     create_array_copies=False)
 
-        with self.assertRaisesRegexp(ValueError, 'Invalid input alignment'):
+        with self.assertRaisesRegex(ValueError, 'Invalid input alignment'):
             self.run_validate_fft(a_, b, axes, fft=fft, ifft=ifft, 
                     create_array_copies=False)
 
@@ -578,11 +578,11 @@ class Complex64FFTW1DTest(object):
         fft, ifft = self.run_validate_fft(a, b, axes, 
                 force_unaligned_data=True)
 
-        with self.assertRaisesRegexp(ValueError, 'Invalid output alignment'):
+        with self.assertRaisesRegex(ValueError, 'Invalid output alignment'):
             self.run_validate_fft(a, b_, axes, fft=fft, ifft=ifft, 
                     create_array_copies=False)
 
-        with self.assertRaisesRegexp(ValueError, 'Invalid input alignment'):
+        with self.assertRaisesRegex(ValueError, 'Invalid input alignment'):
             self.run_validate_fft(a_, b, axes, fft=fft, ifft=ifft, 
                     create_array_copies=False)
 
@@ -593,11 +593,11 @@ class Complex64FFTW1DTest(object):
         axes=(-3,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        with self.assertRaisesRegexp(IndexError, 'Invalid axes'):
+        with self.assertRaisesRegex(IndexError, 'Invalid axes'):
                 FFTW(a, b, axes, direction=self.direction)
 
         axes=(10,)
-        with self.assertRaisesRegexp(IndexError, 'Invalid axes'):
+        with self.assertRaisesRegex(IndexError, 'Invalid axes'):
                 FFTW(a, b, axes, direction=self.direction)
 
 
@@ -713,7 +713,8 @@ test_cases = (
         Complex128FFTWTest,
         ComplexLongDoubleFFTWTest,)
 
-test_set = {'Complex64FFTWTest':['test_time_with_array_update']}
+test_set = None
+#test_set = {'Complex64FFTWTest':['test_time_with_array_update']}
 
 if __name__ == '__main__':
     run_test_suites(test_cases, test_set)

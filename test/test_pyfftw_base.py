@@ -33,6 +33,9 @@ class FFTWBaseTest(unittest.TestCase):
         super(FFTWBaseTest, self).__init__(*args, **kwargs)
         self.make_shapes()
 
+        if not hasattr(self, 'assertRaisesRegex'):
+            self.assertRaisesRegex = self.assertRaisesRegexp
+
     def setUp(self):
         
         self.input_dtype = numpy.complex64
@@ -85,7 +88,7 @@ class FFTWBaseTest(unittest.TestCase):
         t_str = ("%.2f" % (1000.0/N*t.timeit(N)))+' ms'
         t_numpy_str = ("%.2f" % (1000.0/N*t_numpy_fft.timeit(N)))+' ms'
 
-        print ('One run: '+ t_str + \
+        print('One run: '+ t_str + \
                 ' (versus ' + t_numpy_str + ' for ' + comparison_string + \
                 ')')
 

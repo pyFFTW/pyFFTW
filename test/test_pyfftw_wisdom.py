@@ -20,10 +20,10 @@ from pyfftw import (
         FFTW, n_byte_align_empty, 
         export_wisdom, import_wisdom, forget_wisdom)
 
-from test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites
 
 import numpy
-import cPickle
+import pickle
 
 import unittest
 

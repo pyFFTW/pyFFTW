@@ -19,11 +19,18 @@
 from pyfftw import (
         FFTW, n_byte_align_empty, n_byte_align)
 
-from test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites
 import numpy
 import unittest
 
 class FFTWCallTest(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+
+        super(FFTWCallTest, self).__init__(*args, **kwargs)
+
+        if not hasattr(self, 'assertRaisesRegex'):
+            self.assertRaisesRegex = self.assertRaisesRegexp
    
     def setUp(self):
 
@@ -200,7 +207,7 @@ class FFTWCallTest(unittest.TestCase):
         a_[:] = a
 
         # Just confirm that a usual update will fail
-        self.assertRaisesRegexp(ValueError, 'Invalid input alignment', 
+        self.assertRaisesRegex(ValueError, 'Invalid input alignment', 
                 self.fft.update_arrays, *(a_, self.output_array))
         
         self.fft(a_, self.output_array)
@@ -213,14 +220,16 @@ class FFTWCallTest(unittest.TestCase):
 
         b = a.copy()
 
+        a_size = len(a.ravel())*a.itemsize
+
         update_array = numpy.frombuffer(
-                numpy.zeros(len(a.data)+1, dtype='int8')[1:].data, 
+                numpy.zeros(a_size + 1, dtype='int8')[1:].data, 
                 dtype=a.dtype).reshape(a.shape)
 
         fft = FFTW(a, b, flags=('FFTW_UNALIGNED',))
         # Confirm that a usual update will fail (it's not on the
         # byte boundary)
-        self.assertRaisesRegexp(ValueError, 'Invalid input alignment', 
+        self.assertRaisesRegex(ValueError, 'Invalid input alignment', 
                 fft.update_arrays, *(update_array, b))
 
         fft(update_array, b)
@@ -233,7 +242,7 @@ class FFTWCallTest(unittest.TestCase):
         output_array = n_byte_align(numpy.random.randn(*new_shape) 
                 + 1j*numpy.random.randn(*new_shape), 16)
 
-        self.assertRaisesRegexp(ValueError, 'Invalid output striding',
+        self.assertRaisesRegex(ValueError, 'Invalid output striding',
                 self.fft, **{'output_array': output_array[:,:,1]})
 
     def test_call_with_different_striding(self):
@@ -269,7 +278,7 @@ class FFTWCallTest(unittest.TestCase):
 
         fft = FFTW(self.input_array, self.output_array)
         
-        self.assertRaisesRegexp(ValueError, 'Invalid input shape',
+        self.assertRaisesRegex(ValueError, 'Invalid input shape',
                 self.fft, **{'input_array': input_array[:,:,0]})
 
     def test_call_with_unaligned(self):
@@ -304,24 +313,24 @@ class FFTWCallTest(unittest.TestCase):
         output_array = fft().copy()
 
         # Check a_ is not aligned...
-        self.assertRaisesRegexp(ValueError, 'Invalid input alignment', 
+        self.assertRaisesRegex(ValueError, 'Invalid input alignment', 
                 self.fft.update_arrays, *(a_, output_array))
 
         # and b_ too
-        self.assertRaisesRegexp(ValueError, 'Invalid output alignment', 
+        self.assertRaisesRegex(ValueError, 'Invalid output alignment', 
                 self.fft.update_arrays, *(input_array, b_))
         
         # But it should still work with the a_
         fft(a_)
 
         # However, trying to update the output will raise an error
-        self.assertRaisesRegexp(ValueError, 'Invalid output alignment', 
+        self.assertRaisesRegex(ValueError, 'Invalid output alignment', 
                 self.fft.update_arrays, *(input_array, b_))
 
         # Same with SIMD off
         fft = FFTW(input_array, output_array, flags=('FFTW_UNALIGNED',))
         fft(a_)
-        self.assertRaisesRegexp(ValueError, 'Invalid output alignment', 
+        self.assertRaisesRegex(ValueError, 'Invalid output alignment', 
                 self.fft.update_arrays, *(input_array, b_))
 
     def test_call_with_normalisation_on(self):

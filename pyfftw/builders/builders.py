@@ -237,7 +237,7 @@ The exceptions raised by each of these functions are as per their
 equivalents in :mod:`numpy.fft`, or as documented above.
 '''
 
-from _utils import _precook_1d_args, _Xfftn
+from ._utils import _precook_1d_args, _Xfftn
 
 __all__ = ['fft','ifft', 'fft2', 'ifft2', 'fftn',
            'ifftn', 'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn', 

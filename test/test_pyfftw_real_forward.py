@@ -20,11 +20,11 @@ from pyfftw import FFTW, n_byte_align, n_byte_align_empty
 import numpy
 from timeit import Timer
 
-from test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites
 
 import unittest
 
-from test_pyfftw_complex import Complex64FFTWTest
+from .test_pyfftw_complex import Complex64FFTWTest
 
 class RealForwardDoubleFFTWTest(Complex64FFTWTest):
     
@@ -68,7 +68,7 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        with self.assertRaisesRegexp(ValueError, 'Invalid direction'):
+        with self.assertRaisesRegex(ValueError, 'Invalid direction'):
             FFTW(a, b, direction='FFTW_BACKWARD')
 
     def test_non_contiguous_2d(self):

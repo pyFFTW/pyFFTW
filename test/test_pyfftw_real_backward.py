@@ -21,11 +21,11 @@ import numpy
 from timeit import Timer
 import time
 
-from test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites
 
 import unittest
 
-from test_pyfftw_complex import Complex64FFTWTest
+from .test_pyfftw_complex import Complex64FFTWTest
 
 class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
     
@@ -180,7 +180,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        with self.assertRaisesRegexp(ValueError, 'Invalid direction'):
+        with self.assertRaisesRegex(ValueError, 'Invalid direction'):
             FFTW(a, b, direction='FFTW_FORWARD')
 
     def test_planning_time_limit(self):
@@ -193,7 +193,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         # run this a few times
         runs = 10
         t1 = time.time()
-        for n in xrange(runs):
+        for n in range(runs):
             forget_wisdom()
             fft = FFTW(b, a, axes=axes)
 
@@ -203,7 +203,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
         # Now do it again but with an upper limit on the time
         t1 = time.time()
-        for n in xrange(runs):
+        for n in range(runs):
             forget_wisdom()
             fft = FFTW(b, a, axes=axes, planning_timelimit=time_limit)
 
@@ -219,7 +219,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         axes=(0,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        self.assertRaisesRegexp(TypeError, 'Invalid planning timelimit',
+        self.assertRaisesRegex(TypeError, 'Invalid planning timelimit',
                 FFTW, *(b, a, axes), **{'planning_timelimit': 'foo'})
 
     def test_default_args(self):
@@ -230,7 +230,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         
         # default args should fail for backwards transforms
         # (as the default is FFTW_FORWARD)
-        with self.assertRaisesRegexp(ValueError, 'Invalid direction'):
+        with self.assertRaisesRegex(ValueError, 'Invalid direction'):
             FFTW(a, b)
 
     def test_non_contiguous_2d(self):

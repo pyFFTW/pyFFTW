@@ -41,7 +41,7 @@ cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
     # Apparently there is an issue with numpy.prod wrapping around on 32-bits
     # on Windows 64-bit. This shouldn't happen, but the following code 
     # alleviates the problem.
-    if not isinstance(shape, int):
+    if not isinstance(shape, (int, np.integer)):
         array_length = 1
         for each_dimension in shape:
             array_length *= each_dimension

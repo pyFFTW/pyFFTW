@@ -20,11 +20,11 @@ from pyfftw import FFTW, n_byte_align, n_byte_align_empty
 import numpy
 from timeit import Timer
 
-from test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites
 
 import unittest
 
-from test_pyfftw_base import FFTWBaseTest
+from .test_pyfftw_base import FFTWBaseTest
 
 class Complex64MultiThreadedTest(FFTWBaseTest):
     

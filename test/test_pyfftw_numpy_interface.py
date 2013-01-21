@@ -18,7 +18,7 @@
 
 from pyfftw import n_byte_align_empty, n_byte_align, interfaces
 
-from test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites
 
 import unittest
 import numpy
@@ -94,6 +94,13 @@ class InterfacesNumpyFFTTestFFT():#unittest.TestCase):
 
             yield test_shape, s, kwargs
 
+    def __init__(self, *args, **kwargs):
+
+        super(InterfacesNumpyFFTTestFFT, self).__init__(*args, **kwargs)
+
+        if not hasattr(self, 'assertRaisesRegex'):
+            self.assertRaisesRegex = self.assertRaisesRegexp
+
     def validate(self, array_type, test_shape, dtype, 
             s, kwargs):
 
@@ -144,8 +151,8 @@ class InterfacesNumpyFFTTestFFT():#unittest.TestCase):
     def axes_from_kwargs(self, kwargs):
         
         argspec = inspect.getargspec(getattr(interfaces.numpy_fft, self.func))
-        default_args = dict(zip(
-            argspec.args[-len(argspec.defaults):], argspec.defaults))
+        default_args = dict(list(zip(
+            argspec.args[-len(argspec.defaults):], argspec.defaults)))
 
         if 'axis' in kwargs:
             axes = (kwargs['axis'],)
@@ -173,8 +180,8 @@ class InterfacesNumpyFFTTestFFT():#unittest.TestCase):
         whether axis or axes is specified
         '''
         argspec = inspect.getargspec(getattr(interfaces.numpy_fft, self.func))
-        default_args = dict(zip(
-            argspec.args[-len(argspec.defaults):], argspec.defaults))
+        default_args = dict(list(zip(
+            argspec.args[-len(argspec.defaults):], argspec.defaults)))
 
         if 'axis' in kwargs:
             s = test_shape[kwargs['axis']]
@@ -228,7 +235,7 @@ class InterfacesNumpyFFTTestFFT():#unittest.TestCase):
             for test_shape, args, exception, e_str in self.invalid_args:
                 input_array = dtype_tuple[1](test_shape, dtype)
                 
-                self.assertRaisesRegexp(exception, e_str,
+                self.assertRaisesRegex(exception, e_str,
                         getattr(interfaces.numpy_fft, self.func), 
                         *((input_array,) + args))
 
@@ -375,7 +382,7 @@ class InterfacesNumpyFFTTestFFT():#unittest.TestCase):
 
             kwargs['planner_effort'] = 'garbage'
 
-            self.assertRaisesRegexp(ValueError, 'Invalid planner effort',
+            self.assertRaisesRegex(ValueError, 'Invalid planner effort',
                     self.validate, 
                     *(dtype_tuple[1], test_shape, dtype, s, kwargs))
 

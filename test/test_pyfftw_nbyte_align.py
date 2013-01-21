@@ -20,11 +20,18 @@ from pyfftw import n_byte_align, n_byte_align_empty, is_n_byte_aligned
 import numpy
 from timeit import Timer
 
-from test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites
 
 import unittest
 
 class NByteAlignTest(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+
+        super(NByteAlignTest, self).__init__(*args, **kwargs)
+
+        if not hasattr(self, 'assertRaisesRegex'):
+            self.assertRaisesRegex = self.assertRaisesRegexp
 
     def setUp(self):
 
@@ -81,13 +88,13 @@ class NByteAlignTest(unittest.TestCase):
     def test_is_n_byte_aligned_fail_with_non_array(self):
 
         a = [1, 2, 3, 4]
-        self.assertRaisesRegexp(TypeError, 'Invalid array',
+        self.assertRaisesRegex(TypeError, 'Invalid array',
                 is_n_byte_aligned, a, 16)
 
     def test_n_byte_align_fail_with_non_array(self):
 
         a = [1, 2, 3, 4]
-        self.assertRaisesRegexp(TypeError, 'Invalid array',
+        self.assertRaisesRegex(TypeError, 'Invalid array',
                 n_byte_align, a, 16)
 
     def test_n_byte_align_consistent_data(self):

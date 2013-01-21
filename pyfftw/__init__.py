@@ -11,7 +11,7 @@ library <http://www.fftw.org/>`_. However, users may find it easier to
 use the helper routines provided in :mod:`pyfftw.builders`.
 '''
 
-from pyfftw import (
+from .pyfftw import (
         FFTW,
         export_wisdom,
         import_wisdom,
@@ -21,7 +21,7 @@ from pyfftw import (
         n_byte_align,
         is_n_byte_aligned,)
 
-import builders
+from . import builders
 
 # clean up the namespace
 del builders.builders
