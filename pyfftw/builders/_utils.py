@@ -24,11 +24,11 @@ not need to use the functions directly, but they are included here for
 completeness and to aid with understanding of what is happening behind
 the scenes.
 
-These functions are *not* part of the public API and may change in future
-versions.
-
 Certainly, users may encounter instances of 
 :class:`~pyfftw.builders._utils._FFTWWrapper`.
+
+These everything documented in this module is *not* part of the public API 
+and may change in future versions.
 '''
 
 import pyfftw
