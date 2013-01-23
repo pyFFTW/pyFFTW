@@ -100,7 +100,7 @@ cpdef n_byte_align(array, n, dtype=None):
     return array
 
 cpdef is_n_byte_aligned(array, n):
-    ''' n_byte_align(array, n)
+    ''' is_n_byte_aligned(array, n)
 
     Function that takes a numpy array and checks it is aligned on an n-byte
     boundary, where ``n`` is a passed parameter, returning ``True`` if it is,

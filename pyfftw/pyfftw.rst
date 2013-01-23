@@ -10,7 +10,9 @@ FFTW Class
 
    .. autoattribute:: pyfftw.FFTW.N
 
-   .. autoattribute:: pyfftw.FFTW.aligned
+   .. autoattribute:: pyfftw.FFTW.simd_aligned
+
+   .. autoattribute:: pyfftw.FFTW.input_alignment
 
    .. autoattribute:: pyfftw.FFTW.flags
 

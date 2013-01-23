@@ -651,7 +651,7 @@ cdef class FFTW:
 
         Input array updates with arrays that are not aligned on this
         byte boundary will result in a ValueError being raised, or
-        a copy being made if the :method:`~pyfftw.FFTW.__call__` 
+        a copy being made if the :meth:`~pyfftw.FFTW.__call__` 
         interface is used.
         '''
         return self.__input_array_alignment
@@ -1032,7 +1032,7 @@ cdef class FFTW:
           (or an equivalent dependent on type) in the underlying FFTW
           library. If ``None`` is set, the planner will run indefinitely
           until all the planning modes allowed by the flags have been
-          tried. See the `FFTW planner flags
+          tried. See the `FFTW planner flags page
           <http://www.fftw.org/fftw3_doc/Planner-Flags.html#Planner-Flags>`_
           for more information on this.
 

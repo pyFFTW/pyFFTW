@@ -55,7 +55,8 @@ array sizes together define exactly what transform should be performed.
 We refer to a valid transform as a :ref:`scheme <fftw_schemes>`.
 
 Internally, three precisions of FFT are supported. These correspond
-to 32-bit floating point, 64-bit floating point and 128-bit floating
+to single precision floating point, double precision floating point 
+and long double precision floating
 point, which correspond to :mod:`numpy`'s ``float32``, ``float64``
 and ``longdouble`` dtypes respectively (and the corresponding
 complex types). The precision is decided by the relevant scheme, 

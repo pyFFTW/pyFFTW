@@ -22,6 +22,7 @@ from .pyfftw import (
         is_n_byte_aligned,)
 
 from . import builders
+#from . import interfaces
 
 # clean up the namespace
 del builders.builders
