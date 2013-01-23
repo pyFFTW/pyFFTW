@@ -128,22 +128,6 @@ real FFTs (:func:`pyfftw.interfaces.numpy_fft.irfft2` and
 
   The default is ``True``.
 
-* ``avoid_copy``: Generally these functions will create a copy 
-  (and sometimes more than one) of the passed in input array. Setting this
-  argument to ``True`` will try not to create a copy of the input array,
-  possibly resulting in the input array being destroyed. If it is not 
-  possible to create the object without a copy being made, a 
-  ``ValueError`` is raised.
-
-  Example situations that require a copy, and so cause the exception
-  to be raised when this flag is set:
-
-  * The shape of the FFT input as dictated by ``s`` is
-    necessarily different from the shape of the passed-in array.
-  * The dtypes are incompatible with the FFT routine.
-  * The ``auto_contiguous`` or ``auto_align`` flags are True and 
-    the input array is not already contiguous or aligned.
-
 The exceptions raised by each of these functions are as per their
 equivalents in :mod:`numpy.fft`.
 '''
