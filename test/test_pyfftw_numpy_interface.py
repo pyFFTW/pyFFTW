@@ -519,7 +519,7 @@ class InterfacesNumpyFFTTestIRFFTN(InterfacesNumpyFFTTestFFTN):
 test_cases = (
         InterfacesNumpyFFTTestFFT,
         InterfacesNumpyFFTTestIFFT,
-        InterfacesNumpyFFTTestIRFFT,
+        InterfacesNumpyFFTTestRFFT,
         InterfacesNumpyFFTTestIRFFT,
         InterfacesNumpyFFTTestFFT2,
         InterfacesNumpyFFTTestIFFT2,
