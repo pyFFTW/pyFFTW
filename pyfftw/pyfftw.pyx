@@ -682,7 +682,7 @@ cdef class FFTW:
 
     def __cinit__(self, input_array, output_array, axes=(-1,),
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
-            unsigned int threads=1, planning_timelimit=None, 
+            unsigned int threads=1, planning_timelimit=None,
             *args, **kwargs):
         
         # Initialise the pointers that need to be freed
@@ -747,25 +747,34 @@ cdef class FFTW:
             self.__input_array_alignment = self.__input_dtype.alignment
             self.__output_array_alignment = self.__output_dtype.alignment
 
-        elif (<intptr_t>np.PyArray_DATA(input_array)%16 == 0 and 
-                <intptr_t>np.PyArray_DATA(output_array)%16 == 0):
-            self.__simd_allowed = True
-            # We assume that 16 still works for SIMD alignment, but
-            # 32 might still. We therefore allow 32 if everything fits
-            # otherwise fall back to 16.
-            self.__input_array_alignment = min((
-                (simd_alignment - 
-                    <intptr_t>np.PyArray_DATA(input_array) % simd_alignment),
-                (simd_alignment - 
-                    <intptr_t>np.PyArray_DATA(output_array) % simd_alignment),
-                simd_alignment))
-
-            self.__output_array_alignment = self.__input_array_alignment
         else:
-            flags.append('FFTW_UNALIGNED')
-            self.__simd_allowed = False
-            self.__input_array_alignment = self.__input_dtype.alignment
-            self.__output_array_alignment = self.__output_dtype.alignment
+
+            self.__input_array_alignment = -1
+            self.__output_array_alignment = -1
+
+            for each_alignment in _valid_simd_alignments:
+                if (<intptr_t>np.PyArray_DATA(input_array) % 
+                        each_alignment == 0 and
+                        <intptr_t>np.PyArray_DATA(output_array) % 
+                        each_alignment == 0):
+
+                    self.__simd_allowed = True
+
+                    self.__input_array_alignment = each_alignment
+                    self.__output_array_alignment = each_alignment
+
+                    break
+
+            if (self.__input_array_alignment == -1 or
+                    self.__output_array_alignment == -1):
+
+                self.__simd_allowed = False
+
+                self.__input_array_alignment = (
+                        self.__input_dtype.alignment)
+                self.__output_array_alignment = (
+                        self.__output_dtype.alignment)
+                flags.append('FFTW_UNALIGNED')
 
         if (not (<intptr_t>np.PyArray_DATA(input_array)
             % self.__input_array_alignment == 0)):
@@ -1138,7 +1147,7 @@ cdef class FFTW:
         may still result in some performance improvement. For example,
         if the processor supports AVX (requiring 32-byte alignment) as
         well as SSE (requiring 16-byte alignment), then if the array
-        is 16-byte aligned, SSE will be used but AVX will not.
+        is 16-byte aligned, SSE will still be used.
 
         It's worth noting that just being aligned may not be sufficient
         to create the fastest possible transform. For example, if the
@@ -1280,12 +1289,12 @@ cdef class FFTW:
 
         Update the arrays upon which the DFT is taken.
 
-        The new arrays should be of the same dtypes as the originals, the
-        same shapes as the originals and
-        should have the same strides between axes. If the original
-        data was aligned so as to allow SIMD instructions (e.g. by being 
-        aligned on a 16- or 32-byte boundary), then the new array
-        must also be aligned in the same way.
+        The new arrays should be of the same dtypes as the originals, the same
+        shapes as the originals and should have the same strides between axes.
+        If the original data was aligned so as to allow SIMD instructions
+        (e.g. by being aligned on a 16-byte boundary), then the new array must
+        also be aligned so as to allow SIMD instructions (assuming, of
+        course, that the ``FFTW_UNALIGNED`` flag was not enabled).
         
         The byte alignment requirement extends to requiring natural
         alignment in the non-SIMD cases as well, but this is much less

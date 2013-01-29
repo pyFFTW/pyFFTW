@@ -57,6 +57,20 @@ functions = {
         'fftn': 'complex',
         'ifftn': 'complex'}
 
+acquired_names = ('hfft', 'ihfft', 'fftfreq', 'fftshift', 'ifftshift')
+
+class InterfacesNumpyFFTTestModule(unittest.TestCase):
+    ''' A really simple test suite to check the module works as expected.
+    '''
+
+    def test_acquired_names(self):
+        for each_name in acquired_names:
+
+            numpy_fft_attr = getattr(numpy.fft, each_name)
+            acquired_attr = getattr(interfaces.numpy_fft, each_name)
+
+            self.assertIs(numpy_fft_attr, acquired_attr)
+
 class InterfacesNumpyFFTTestFFT(unittest.TestCase):
 
     func = 'fft'
@@ -97,6 +111,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
 
         super(InterfacesNumpyFFTTestFFT, self).__init__(*args, **kwargs)
 
+        # Assume python 3, but keep backwards compatibility
         if not hasattr(self, 'assertRaisesRegex'):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
@@ -517,6 +532,7 @@ class InterfacesNumpyFFTTestIRFFTN(InterfacesNumpyFFTTestFFTN):
 
 
 test_cases = (
+        InterfacesNumpyFFTTestModule,
         InterfacesNumpyFFTTestFFT,
         InterfacesNumpyFFTTestIFFT,
         InterfacesNumpyFFTTestRFFT,

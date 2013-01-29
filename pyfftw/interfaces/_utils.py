@@ -24,8 +24,6 @@ Utility functions for the interfaces routines
 
 import pyfftw.builders as builders
 
-_default_args = {}
-
 def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         threads, auto_align_input, auto_contiguous, 
         calling_func):
@@ -33,6 +31,7 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
     reload_after_transform = False
 
     if calling_func in ('irfft2', 'irfftn'):
+        # overwrite_input is not an argument to irfft2 or irfftn
         args = (a, s, axes, planner_effort, threads, 
                 auto_align_input, auto_contiguous)
 

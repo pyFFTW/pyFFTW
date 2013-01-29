@@ -718,11 +718,7 @@ test_cases = (
         ComplexLongDoubleFFTWTest,)
 
 test_set = None
-<<<<<<< HEAD
-#test_set = {'Complex64FFTWTest':['test_time_with_array_update']}
-=======
-#test_set = {'all':['test_alignment']}
->>>>>>> 16f9f7fe0086fd3f24e26a4f5e7067daeeace096
+#test_set = {'all':['test_alignment', 'test_incorrect_byte_alignment_fails']}
 
 if __name__ == '__main__':
     run_test_suites(test_cases, test_set)

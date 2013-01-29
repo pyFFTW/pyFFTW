@@ -26,6 +26,16 @@ cdef int _simd_alignment = cpu.simd_alignment()
 #: The optimum SIMD alignment in bytes, found by inspecting the CPU.
 simd_alignment = _simd_alignment
 
+#: A tuple of simd alignments that make sense for this cpu
+if _simd_alignment == 16:
+    _valid_simd_alignments = (16,)
+
+elif _simd_alignment == 32:
+    _valid_simd_alignments = (16, 32)
+
+else:
+    _valid_simd_alignments = ()
+
 cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
     '''n_byte_align_empty(shape, n, dtype='float64', order='C')
 

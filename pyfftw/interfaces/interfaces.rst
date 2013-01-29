@@ -1,10 +1,16 @@
 ``pyfftw.interfaces`` - Drop in replacements for other FFT implementations
 ==========================================================================
 
-.. automodule:: pyfftw.interfaces.numpy_fft
-   :members:
-   :undoc-members:
-   
-   The Functions
-   """""""""""""
+.. toctree::
+   :hidden:
+
+   numpy_fft
+   scipy_fftpack
+
+.. automodule:: pyfftw.interfaces
+
+Caching
+-------
+
+.. automodule:: pyfftw.interfaces.cache
 
