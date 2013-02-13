@@ -199,6 +199,11 @@ class _FFTWWrapper(pyfftw.FFTW):
         self.__input_array_slicer = kwargs.pop('input_array_slicer')
         self.__FFTW_array_slicer = kwargs.pop('FFTW_array_slicer')
 
+        if 'FFTW_DESTROY_INPUT' in flags:
+            self.__input_destroyed = True
+        else:
+            self.__input_destroyed = False
+
         super(_FFTWWrapper, self).__init__(input_array, output_array, 
                 axes, direction, flags, threads, *args, **kwargs)
 
@@ -223,6 +228,9 @@ class _FFTWWrapper(pyfftw.FFTW):
             internal_input_array = self.get_input_array()
             input_array = numpy.asanyarray(input_array)
 
+            if self.__input_destroyed:
+                internal_input_array[:] = 0
+
             sliced_internal = internal_input_array[self.__FFTW_array_slicer]
             sliced_input = input_array[self.__input_array_slicer]
 
@@ -234,8 +242,10 @@ class _FFTWWrapper(pyfftw.FFTW):
 
             sliced_internal[:] = sliced_input
 
-        return super(_FFTWWrapper, self).__call__(input_array=None,
+        output = super(_FFTWWrapper, self).__call__(input_array=None,
                 output_array=output_array, normalise_idft=normalise_idft)
+
+        return output
 
 
 def _setup_input_slicers(a_shape, input_shape):

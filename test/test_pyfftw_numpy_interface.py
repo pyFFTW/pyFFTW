@@ -71,6 +71,7 @@ class InterfacesNumpyFFTTestModule(unittest.TestCase):
 
             self.assertIs(numpy_fft_attr, acquired_attr)
 
+
 class InterfacesNumpyFFTTestFFT(unittest.TestCase):
 
     func = 'fft'
@@ -116,6 +117,15 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
     def validate(self, array_type, test_shape, dtype, 
+            s, kwargs):
+
+        # Do it without the cache
+
+        # without:
+        interfaces.cache.disable()
+        self._validate(array_type, test_shape, dtype, s, kwargs)
+
+    def _validate(self, array_type, test_shape, dtype, 
             s, kwargs):
 
         input_array = array_type(test_shape, dtype)
@@ -546,6 +556,7 @@ test_cases = (
         InterfacesNumpyFFTTestRFFTN,
         InterfacesNumpyFFTTestIRFFTN)
 
+#test_set = {'InterfacesNumpyFFTTestIRFFT2': ('test_bigger_s',)}
 test_set = None
 
 if __name__ == '__main__':

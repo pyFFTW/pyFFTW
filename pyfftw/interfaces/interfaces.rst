@@ -13,4 +13,4 @@ Caching
 -------
 
 .. automodule:: pyfftw.interfaces.cache
-
+   :members:

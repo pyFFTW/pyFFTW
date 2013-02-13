@@ -123,7 +123,12 @@ class BuildersTestFFT(unittest.TestCase):
             FFTW_object = getattr(builders, self.func)(
                     input_array.copy(), s, **kwargs)
 
+            # We run FFT twice to check two operations don't
+            # yield different results (which they might if 
+            # the state is buggered up).
             output_array = FFTW_object(input_array.copy())
+            output_array_2 = FFTW_object(input_array.copy())
+
 
             if 'axes' in kwargs:
                 axes = {'axes': kwargs['axes']}
@@ -144,6 +149,10 @@ class BuildersTestFFT(unittest.TestCase):
         
         self.assertTrue(
                 numpy.allclose(output_array, test_out_array, 
+                    rtol=1e-2, atol=1e-4))
+
+        self.assertTrue(
+                numpy.allclose(output_array_2, test_out_array, 
                     rtol=1e-2, atol=1e-4))
 
         return FFTW_object
@@ -250,6 +259,31 @@ class BuildersTestFFT(unittest.TestCase):
                         test_shape, dtype, s, kwargs)
 
                 self.assertTrue(type(FFTW_object) == FFTW)
+
+    def test_bigger_s_overwrite_input(self):
+        '''Test that FFTWWrapper deals with a destroyed input properly.
+        '''
+        dtype_tuple = io_dtypes[functions[self.func]]
+        for dtype in dtype_tuple[0]:
+            for test_shape, s, kwargs in self.test_data:
+
+                try:
+                    for each_axis, length in enumerate(s):
+                        s[each_axis] += 2
+                except TypeError:
+                    s += 2
+
+                _kwargs = kwargs.copy()
+
+                if self.func not in ('irfft2', 'irfftn'):
+                    # They implicitly overwrite the input anyway
+                    _kwargs['overwrite_input'] = True
+
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                        test_shape, dtype, s, _kwargs)
+
+                self.assertTrue(
+                        type(FFTW_object) == utils._FFTWWrapper)
     
     def test_bigger_s(self):
         dtype_tuple = io_dtypes[functions[self.func]]
@@ -1190,7 +1224,7 @@ test_cases = (
 
 #test_set = {'BuildersTestRFFTN': ['test_dtype_coercian']}
 test_set = None
-#test_set = {'BuildersTestIRFFT2': ['test_valid']}
+
 
 if __name__ == '__main__':
 

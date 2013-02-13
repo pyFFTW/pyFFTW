@@ -23,12 +23,19 @@ Utility functions for the interfaces routines
 '''
 
 import pyfftw.builders as builders
+from . import cache
 
 def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         threads, auto_align_input, auto_contiguous, 
         calling_func):
 
     reload_after_transform = False
+
+    if not s.__hash__:
+        s = tuple(s)
+
+    if not axes.__hash__:
+        axes = tuple(axes)
 
     if calling_func in ('irfft2', 'irfftn'):
         # overwrite_input is not an argument to irfft2 or irfftn
@@ -43,23 +50,38 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
     else:
         args = (a, s, axes, overwrite_input, planner_effort, threads, 
                 auto_align_input, auto_contiguous)
-
-    # If we're going to create a new FFTW object, we need to copy
-    # the input array to preserve it, otherwise we can't actually
-    # take the transform of the input array! (in general, we have
-    # to assume that the input array will be destroyed during 
-    # planning).
-    a_copy = a.copy()
-
-    FFTW_object = getattr(builders, calling_func)(*args)
     
-    # Only copy if the input array is what was actually used
-    # (otherwise it shouldn't be overwritten)
-    if FFTW_object.get_input_array() is a:
-        a[:] = a_copy
+    if cache.is_enabled():
+        key = (calling_func, a.shape, a.strides, args[1:])
 
-    output_array = FFTW_object()
+    if not cache.is_enabled() or key not in cache._fftw_cache:
 
+        # If we're going to create a new FFTW object, we need to copy
+        # the input array to preserve it, otherwise we can't actually
+        # take the transform of the input array! (in general, we have
+        # to assume that the input array will be destroyed during 
+        # planning).
+        a_copy = a.copy()
+
+        FFTW_object = getattr(builders, calling_func)(*args)
+    
+        # Only copy if the input array is what was actually used
+        # (otherwise it shouldn't be overwritten)
+        if FFTW_object.get_input_array() is a:
+            a[:] = a_copy
+
+        if cache.is_enabled():
+            cache._fftw_cache.insert(FFTW_object, key)
+
+        output_array = FFTW_object()
+    else:
+        if reload_after_transform:
+            a_copy = a.copy()
+
+        FFTW_object = cache._fftw_cache.lookup(key)
+
+        output_array = FFTW_object(a)
+    
     if reload_after_transform:
         a[:] = a_copy
 
