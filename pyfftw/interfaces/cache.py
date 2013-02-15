@@ -34,10 +34,10 @@ if the properties of the array (shape, strides, dtype) change in any way, then
 the cache lookup will fail.
 
 The cache temporarily stores a copy of any interim :class:`pyfftw.FFTW`
-objects that are created. If they are not used for a short period of time,
+objects that are created. If they are not used for some period of time,
 which can be set with :func:`pyfftw.interfaces.cache.set_keepalive_time`,
 then they are removed from the cache (liberating any associated memory).
-The default time is 0.1 seconds.
+The default keepalive time is 0.1 seconds.
 
 Enable the cache by calling :func:`pyfftw.interfaces.cache.enable`. 
 Disable it by calling :func:`pyfftw.interfaces.cache.disable`. By default,
