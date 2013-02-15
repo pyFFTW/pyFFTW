@@ -220,6 +220,6 @@ try:
 except ImportError:
     pass
 else:
-    del scipy.fftpack
+    del scipy
     from . import scipy_fftpack
 

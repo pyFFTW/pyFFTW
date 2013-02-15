@@ -1,5 +1,6 @@
 include COPYING.txt
-include pyfftw.c
+include pyfftw/pyfftw.c
+include pyfftw/cpu.h
 include test/test_*.py
 include test/__init__.py
 recursive-include docs *.html *.css *.png *.js
