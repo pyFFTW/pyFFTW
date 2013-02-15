@@ -1,0 +1,202 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pyfftw.builders._utils - Helper functions for pyfftw.builders &mdash; pyFFTW 0.9.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.9.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="pyFFTW 0.9.0 documentation" href="../../index.html" />
+    <link rel="up" title="API Reference" href="../../sphinx/api.html" />
+    <link rel="next" title="pyfftw.interfaces - Drop in replacements for other FFT implementations" href="../interfaces/interfaces.html" />
+    <link rel="prev" title="pyfftw.builders - Get FFTW objects using a numpy.fft like interface" href="builders.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../interfaces/interfaces.html" title="pyfftw.interfaces - Drop in replacements for other FFT implementations"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="builders.html" title="pyfftw.builders - Get FFTW objects using a numpy.fft like interface"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../sphinx/index.html">pyFFTW 0.9.0 documentation</a> &raquo;</li>
+          <li><a href="../../sphinx/api.html" accesskey="U">API Reference</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pyfftw.builders._utils">
+<span id="pyfftw-builders-utils-helper-functions-for-pyfftw-builders"></span><h1><tt class="docutils literal"><span class="pre">pyfftw.builders._utils</span></tt> - Helper functions for <a class="reference internal" href="builders.html#module-pyfftw.builders" title="pyfftw.builders"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.builders</span></tt></a><a class="headerlink" href="#module-pyfftw.builders._utils" title="Permalink to this headline">¶</a></h1>
+<p>A set of utility functions for use with the builders. Users should
+not need to use the functions directly, but they are included here for
+completeness and to aid with understanding of what is happening behind
+the scenes.</p>
+<p>Certainly, users may encounter instances of 
+<a class="reference internal" href="#pyfftw.builders._utils._FFTWWrapper" title="pyfftw.builders._utils._FFTWWrapper"><tt class="xref py py-class docutils literal"><span class="pre">_FFTWWrapper</span></tt></a>.</p>
+<p>These everything documented in this module is <em>not</em> part of the public API 
+and may change in future versions.</p>
+<dl class="class">
+<dt id="pyfftw.builders._utils._FFTWWrapper">
+<em class="property">class </em><tt class="descclassname">pyfftw.builders._utils.</tt><tt class="descname">_FFTWWrapper</tt><big>(</big><em>input_array, output_array, axes=[-1], direction='FFTW_FORWARD', flags=['FFTW_MEASURE'], threads=1, *args, **kwargs</em><big>)</big><a class="headerlink" href="#pyfftw.builders._utils._FFTWWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class that wraps <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>, providing a slicer on the input
+stage during calls to <a class="reference internal" href="#pyfftw.builders._utils._FFTWWrapper.__call__" title="pyfftw.builders._utils._FFTWWrapper.__call__"><tt class="xref py py-meth docutils literal"><span class="pre">__call__()</span></tt></a>.</p>
+<p>The arguments are as per <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>, but with the addition
+of 2 keyword arguments: <tt class="docutils literal"><span class="pre">input_array_slicer</span></tt> and
+<tt class="docutils literal"><span class="pre">FFTW_array_slicer</span></tt>.</p>
+<p>These arguments represent 2 slicers: <tt class="docutils literal"><span class="pre">input_array_slicer</span></tt> slices
+the input array that is passed in during a call to instances of this
+class, and <tt class="docutils literal"><span class="pre">FFTW_array_slicer</span></tt> slices the internal array.</p>
+<p>The arrays that are returned from both of these slicing operations
+should be the same size. The data is then copied from the sliced
+input array into the sliced internal array.</p>
+<dl class="method">
+<dt id="pyfftw.builders._utils._FFTWWrapper.__call__">
+<tt class="descname">__call__</tt><big>(</big><em>input_array=None</em>, <em>output_array=None</em>, <em>normalise_idft=True</em><big>)</big><a class="headerlink" href="#pyfftw.builders._utils._FFTWWrapper.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrap <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW.__call__" title="pyfftw.FFTW.__call__"><tt class="xref py py-meth docutils literal"><span class="pre">pyfftw.FFTW.__call__()</span></tt></a> by firstly slicing the 
+passed-in input array and then copying it into a sliced version
+of the internal array. These slicers are set at instantiation.</p>
+<p>When input array is not <tt class="docutils literal"><span class="pre">None</span></tt>, this method always results in
+a copy. Consequently, the alignment and dtype are maintained in
+the internal array.</p>
+<p><tt class="docutils literal"><span class="pre">output_array</span></tt> and <tt class="docutils literal"><span class="pre">normalise_idft</span></tt> are passed through to
+<a class="reference internal" href="../pyfftw.html#pyfftw.FFTW.__call__" title="pyfftw.FFTW.__call__"><tt class="xref py py-meth docutils literal"><span class="pre">pyfftw.FFTW.__call__()</span></tt></a> untouched.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.builders._utils._Xfftn">
+<tt class="descclassname">pyfftw.builders._utils.</tt><tt class="descname">_Xfftn</tt><big>(</big><em>a</em>, <em>s</em>, <em>axes</em>, <em>overwrite_input</em>, <em>planner_effort</em>, <em>threads</em>, <em>auto_align_input</em>, <em>auto_contiguous</em>, <em>avoid_copy</em>, <em>inverse</em>, <em>real</em><big>)</big><a class="headerlink" href="#pyfftw.builders._utils._Xfftn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generic transform interface for all the transforms. No
+defaults exist. The transform must be specified exactly.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.builders._utils._setup_input_slicers">
+<tt class="descclassname">pyfftw.builders._utils.</tt><tt class="descname">_setup_input_slicers</tt><big>(</big><em>a_shape</em>, <em>input_shape</em><big>)</big><a class="headerlink" href="#pyfftw.builders._utils._setup_input_slicers" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function returns two slicers that are to be used to
+copy the data from the input array to the FFTW object internal
+array, which can then be passed to _FFTWWrapper:</p>
+<p><tt class="docutils literal"><span class="pre">(update_input_array_slicer,</span> <span class="pre">FFTW_array_slicer)</span></tt></p>
+<p>On calls to <a class="reference internal" href="#pyfftw.builders._utils._FFTWWrapper" title="pyfftw.builders._utils._FFTWWrapper"><tt class="xref py py-class docutils literal"><span class="pre">_FFTWWrapper</span></tt></a> objects, 
+the input array is copied in as:</p>
+<p><tt class="docutils literal"><span class="pre">FFTW_array[FFTW_array_slicer]</span> <span class="pre">=</span> <span class="pre">input_array[update_input_array_slicer]</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.builders._utils._compute_array_shapes">
+<tt class="descclassname">pyfftw.builders._utils.</tt><tt class="descname">_compute_array_shapes</tt><big>(</big><em>a</em>, <em>s</em>, <em>axes</em>, <em>inverse</em>, <em>real</em><big>)</big><a class="headerlink" href="#pyfftw.builders._utils._compute_array_shapes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a passed in array <tt class="docutils literal"><span class="pre">a</span></tt>, and the rest of the arguments
+(that have been fleshed out with 
+<a class="reference internal" href="#pyfftw.builders._utils._cook_nd_args" title="pyfftw.builders._utils._cook_nd_args"><tt class="xref py py-func docutils literal"><span class="pre">_cook_nd_args()</span></tt></a>), compute
+the shape the input and output arrays need to be in order 
+to satisfy all the requirements for the transform. The input
+shape <em>may</em> be different to the shape of a.</p>
+<p>returns:
+<tt class="docutils literal"><span class="pre">(input_shape,</span> <span class="pre">output_shape)</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.builders._utils._precook_1d_args">
+<tt class="descclassname">pyfftw.builders._utils.</tt><tt class="descname">_precook_1d_args</tt><big>(</big><em>a</em>, <em>n</em>, <em>axis</em><big>)</big><a class="headerlink" href="#pyfftw.builders._utils._precook_1d_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turn <tt class="docutils literal"><span class="pre">*(n,</span> <span class="pre">axis)</span></tt> into <tt class="docutils literal"><span class="pre">(s,</span> <span class="pre">axes)</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.builders._utils._cook_nd_args">
+<tt class="descclassname">pyfftw.builders._utils.</tt><tt class="descname">_cook_nd_args</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=None</em>, <em>invreal=False</em><big>)</big><a class="headerlink" href="#pyfftw.builders._utils._cook_nd_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Similar to <tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fftpack._cook_nd_args()</span></tt>.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="builders.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">pyfftw.builders</span></tt> - Get <tt class="docutils literal"><span class="pre">FFTW</span></tt> objects using a <tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt> like interface</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../interfaces/interfaces.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">pyfftw.interfaces</span></tt> - Drop in replacements for other FFT implementations</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/pyfftw/builders/_utils.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../interfaces/interfaces.html" title="pyfftw.interfaces - Drop in replacements for other FFT implementations"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="builders.html" title="pyfftw.builders - Get FFTW objects using a numpy.fft like interface"
+             >previous</a> |</li>
+        <li><a href="../../sphinx/index.html">pyFFTW 0.9.0 documentation</a> &raquo;</li>
+          <li><a href="../../sphinx/api.html" >API Reference</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Henry Gomersall.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

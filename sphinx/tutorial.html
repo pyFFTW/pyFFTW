@@ -1,0 +1,507 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Overview and A Short Tutorial &mdash; pyFFTW 0.9.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.9.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="pyFFTW 0.9.0 documentation" href="../index.html" />
+    <link rel="next" title="API Reference" href="api.html" />
+    <link rel="prev" title="Welcome to pyFFTW’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="API Reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to pyFFTW’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyFFTW 0.9.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="overview-and-a-short-tutorial">
+<h1>Overview and A Short Tutorial<a class="headerlink" href="#overview-and-a-short-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>Before we begin, we assume that you are already familiar with the
+<a class="reference external" href="http://en.wikipedia.org/wiki/Discrete_Fourier_transform">discrete Fourier transform</a>,
+and why you want a faster library to perform your FFTs for you.</p>
+<p><a class="reference external" href="http://www.fftw.org/">FFTW</a> is a very fast FFT C library. The way it
+is designed to work is by planning <em>in advance</em> the fastest way to
+perform a particular transform.  It does this by trying lots of
+different techniques and measuring the fastest way, so called
+<em>planning</em>.</p>
+<p>One consequence of this is that the user needs to specify in advance
+exactly what transform is needed, including things like the data type,
+the array shapes and strides and the precision. This is quite
+different to how one uses, for example, the <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> module.</p>
+<p>The purpose of this library is to provide a simple and pythonic way
+to interact with FFTW, benefiting from the substantial speed-ups it
+offers. In addition to the method of using FFTW as described above,
+a convenient series of functions are included through <a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a>
+that make using <a class="reference internal" href="../pyfftw/pyfftw.html#module-pyfftw" title="pyfftw"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw</span></tt></a> almost equivalent to <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>.</p>
+<p>This tutorial is split into three parts. A quick introduction to the
+<a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a> module is <a class="reference internal" href="#interfaces-tutorial"><em>given</em></a>, the
+most simple and direct way to use <a class="reference internal" href="../pyfftw/pyfftw.html#module-pyfftw" title="pyfftw"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw</span></tt></a>. Secondly an
+<a class="reference internal" href="#fftw-tutorial"><em>overview</em></a> is given of <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>, the core
+of the library. Finally, the <a class="reference internal" href="../pyfftw/builders/builders.html#module-pyfftw.builders" title="pyfftw.builders"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.builders</span></tt></a> helper functions are
+<a class="reference internal" href="#builders-tutorial"><em>introduced</em></a>, which ease the creation of
+<a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> objects.</p>
+<div class="section" id="quick-and-easy-the-pyfftw-interfaces-module">
+<span id="interfaces-tutorial"></span><h2>Quick and easy: the <a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a> module<a class="headerlink" href="#quick-and-easy-the-pyfftw-interfaces-module" title="Permalink to this headline">¶</a></h2>
+<p>The easiest way to begin using <a class="reference internal" href="../pyfftw/pyfftw.html#module-pyfftw" title="pyfftw"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw</span></tt></a> is through the
+<a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a> module. This module implements two APIs:
+<a class="reference internal" href="../pyfftw/interfaces/numpy_fft.html#module-pyfftw.interfaces.numpy_fft" title="pyfftw.interfaces.numpy_fft"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces.numpy_fft</span></tt></a> and
+<a class="reference internal" href="../pyfftw/interfaces/scipy_fftpack.html#module-pyfftw.interfaces.scipy_fftpack" title="pyfftw.interfaces.scipy_fftpack"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces.scipy_fftpack</span></tt></a> which are (apart from a small
+caveat <a class="footnote-reference" href="#caveat" id="id1">[1]</a>) drop in replacements for <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> and
+<a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/fftpack.html#scipy.fftpack" title="(in SciPy v0.11)"><tt class="xref py py-mod docutils literal"><span class="pre">scipy.fftpack</span></tt></a> respectively.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyfftw</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="s">&#39;complex128&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1j</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">interfaces</span><span class="o">.</span><span class="n">numpy_fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>We initially create and fill a complex array, <tt class="docutils literal"><span class="pre">a</span></tt>, of length 128.
+<a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.n_byte_align_empty" title="pyfftw.n_byte_align_empty"><tt class="xref py py-func docutils literal"><span class="pre">pyfftw.n_byte_align_empty()</span></tt></a> is a helper function that works like
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.empty.html#numpy.empty" title="(in NumPy v1.6)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.empty()</span></tt></a> but returns the array aligned to a particular number of
+bytes in memory, in this case 16. Having byte aligned arrays allows FFTW to
+performed vector operations, potentially speeding up the FFT (a similar
+<a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.n_byte_align" title="pyfftw.n_byte_align"><tt class="xref py py-func docutils literal"><span class="pre">pyfftw.n_byte_align()</span></tt></a> exists to align a pre-existing array as
+necessary).</p>
+<p>Calling <a class="reference internal" href="../pyfftw/interfaces/numpy_fft.html#pyfftw.interfaces.numpy_fft.fft" title="pyfftw.interfaces.numpy_fft.fft"><tt class="xref py py-func docutils literal"><span class="pre">pyfftw.interfaces.numpy_fft.fft()</span></tt></a> on <tt class="docutils literal"><span class="pre">a</span></tt> gives the same
+output (to numerical precision) as calling <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fft.html#numpy.fft.fft" title="(in NumPy v1.6)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fft()</span></tt></a> on <tt class="docutils literal"><span class="pre">a</span></tt>.</p>
+<p>If you wanted to modify existing code that uses <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> to use
+<a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a>, this is done simply by replacing all instances of
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> with <a class="reference internal" href="../pyfftw/interfaces/numpy_fft.html#module-pyfftw.interfaces.numpy_fft" title="pyfftw.interfaces.numpy_fft"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces.numpy_fft</span></tt></a> (similarly for
+<a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/fftpack.html#scipy.fftpack" title="(in SciPy v0.11)"><tt class="xref py py-mod docutils literal"><span class="pre">scipy.fftpack</span></tt></a> and <a class="reference internal" href="../pyfftw/interfaces/scipy_fftpack.html#module-pyfftw.interfaces.scipy_fftpack" title="pyfftw.interfaces.scipy_fftpack"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces.scipy_fftpack</span></tt></a>), and then,
+optionally, enabling the cache (see below).</p>
+<p>The first call for a given transform size and shape and dtype and so on
+may be slow, this is down to FFTW needing to plan the transform for the first
+time. Once this has been done, subsequent equivalent transforms during the
+same session are much faster. It&#8217;s possible to export and save the internal
+knowledge (the <em>wisdom</em>) about how the transform is done. This is described
+<a class="reference internal" href="#wisdom-tutorial"><em>below</em></a>.</p>
+<p>Even after the first transform of a given specification has been performed,
+subsequent transforms are never as fast as using <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> objects
+directly, and in many cases are substantially slower. This is because of the
+internal overhead of creating a new <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object on every call.
+For this reason, a cache is provided, which is recommended to be used whenever
+<a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a> is used. Turn the cache on using
+<a class="reference internal" href="../pyfftw/interfaces/interfaces.html#pyfftw.interfaces.cache.enable" title="pyfftw.interfaces.cache.enable"><tt class="xref py py-func docutils literal"><span class="pre">pyfftw.interfaces.cache.enable()</span></tt></a>. This function turns the cache on
+globally. Note that using the cache invokes the threading module.</p>
+<p>The cache temporarily stores a copy of any interim <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>
+objects that are created. If they are not used for some period of time,
+which can be set with <a class="reference internal" href="../pyfftw/interfaces/interfaces.html#pyfftw.interfaces.cache.set_keepalive_time" title="pyfftw.interfaces.cache.set_keepalive_time"><tt class="xref py py-func docutils literal"><span class="pre">pyfftw.interfaces.cache.set_keepalive_time()</span></tt></a>,
+then they are removed from the cache (liberating any associated memory).
+The default keepalive time is 0.1 seconds.</p>
+<p><strong>Monkey patching 3rd party libraries</strong></p>
+<p>Since <a class="reference internal" href="../pyfftw/interfaces/numpy_fft.html#module-pyfftw.interfaces.numpy_fft" title="pyfftw.interfaces.numpy_fft"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces.numpy_fft</span></tt></a> and
+<a class="reference internal" href="../pyfftw/interfaces/scipy_fftpack.html#module-pyfftw.interfaces.scipy_fftpack" title="pyfftw.interfaces.scipy_fftpack"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces.scipy_fftpack</span></tt></a> are drop-in replacements for their
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> and <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/fftpack.html#scipy.fftpack" title="(in SciPy v0.11)"><tt class="xref py py-mod docutils literal"><span class="pre">scipy.fftpack</span></tt></a> libraries respectively, it is
+possible use them as replacements at run-time through monkey patching.</p>
+<p>The following code demonstrates <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.fftconvolve.html#scipy.signal.fftconvolve" title="(in SciPy v0.11)"><tt class="xref py py-func docutils literal"><span class="pre">scipy.signal.fftconvolve()</span></tt></a> being monkey
+patched in order to speed it up.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">pyfftw</span>
+<span class="kn">import</span> <span class="nn">scipy.signal</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">Timer</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">((</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="mi">16</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;complex128&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">((</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="mi">16</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;complex128&#39;</span><span class="p">)</span>
+
+<span class="n">a</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1j</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="n">b</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1j</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Timer</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">fftconvolve</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">&#39;Time with scipy.fftpack: </span><span class="si">%1.3f</span><span class="s"> seconds&#39;</span> <span class="o">%</span> <span class="n">t</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>
+
+<span class="c"># Monkey patch in fftn and ifftn from pyfftw.interfaces.scipy_fftpack</span>
+<span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">signaltools</span><span class="o">.</span><span class="n">fftn</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">interfaces</span><span class="o">.</span><span class="n">scipy_fftpack</span><span class="o">.</span><span class="n">fftn</span>
+<span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">signaltools</span><span class="o">.</span><span class="n">ifftn</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">interfaces</span><span class="o">.</span><span class="n">scipy_fftpack</span><span class="o">.</span><span class="n">ifftn</span>
+<span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">fftconvolve</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="c"># We cheat a bit by doing the planning first</span>
+
+<span class="c"># Turn on the cache for optimum performance</span>
+<span class="n">pyfftw</span><span class="o">.</span><span class="n">interfaces</span><span class="o">.</span><span class="n">cache</span><span class="o">.</span><span class="n">enable</span><span class="p">()</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">&#39;Time with monkey patched scipy_fftpack: </span><span class="si">%1.3f</span><span class="s"> seconds&#39;</span> <span class="o">%</span>
+       <span class="n">t</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>which outputs something like:</p>
+<div class="highlight-none"><div class="highlight"><pre>Time with scipy.fftpack: 0.598 seconds
+Time with monkey patched scipy_fftpack: 0.251 seconds
+</pre></div>
+</div>
+</div>
+<div class="section" id="the-workhorse-pyfftw-fftw-class">
+<span id="fftw-tutorial"></span><h2>The workhorse <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> class<a class="headerlink" href="#the-workhorse-pyfftw-fftw-class" title="Permalink to this headline">¶</a></h2>
+<p>The core of this library is provided through the <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>
+class. FFTW is fully encapsulated within this class.</p>
+<p>The following gives an overview of the <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> class, but
+the easiest way to of dealing with it is through the
+<a class="reference internal" href="../pyfftw/builders/builders.html#module-pyfftw.builders" title="pyfftw.builders"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.builders</span></tt></a> helper functions, also
+<a class="reference internal" href="#builders-tutorial"><em>discussed in this tutorial</em></a>.</p>
+<p>For users that already have some experience of FFTW, there is no
+interface distinction between any of the supported data types, shapes
+or transforms, and operating on arbitrarily strided arrays (which are
+common when using <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/index.html#numpy" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt></a>) is fully supported with no copies
+necessary.</p>
+<p>In its simplest form, a <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object is created with
+a pair of complementary <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/index.html#numpy" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt></a> arrays: an input array and an
+output array.  They are complementary insomuch as the data types and the
+array sizes together define exactly what transform should be performed.
+We refer to a valid transform as a <a class="reference internal" href="../pyfftw/pyfftw.html#fftw-schemes"><em>scheme</em></a>.</p>
+<p>Internally, three precisions of FFT are supported. These correspond
+to single precision floating point, double precision floating point
+and long double precision floating
+point, which correspond to <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/index.html#numpy" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt></a>&#8216;s <tt class="docutils literal"><span class="pre">float32</span></tt>, <tt class="docutils literal"><span class="pre">float64</span></tt>
+and <tt class="docutils literal"><span class="pre">longdouble</span></tt> dtypes respectively (and the corresponding
+complex types). The precision is decided by the relevant scheme,
+which is specified by the dtype of the input array.</p>
+<p>Various schemes are supported by <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>. The scheme
+that is used depends on the data types of the input array and output
+arrays, the shape of the arrays and the direction flag. For a full
+discussion of the schemes available, see the API documentation for
+<a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>.</p>
+<p><strong>One-Dimensional Transforms</strong></p>
+<p>We will first consider creating a simple one-dimensional transform of
+a one-dimensional complex array:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">pyfftw</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="s">&#39;complex128&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="s">&#39;complex128&#39;</span><span class="p">)</span>
+
+<span class="n">fft_object</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this case, we create 2 complex arrays, <tt class="docutils literal"><span class="pre">a</span></tt> and <tt class="docutils literal"><span class="pre">b</span></tt> each of
+length 128. As before, we use <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.n_byte_align_empty" title="pyfftw.n_byte_align_empty"><tt class="xref py py-func docutils literal"><span class="pre">pyfftw.n_byte_align_empty()</span></tt></a> to
+make sure the array is aligned.</p>
+<p>Given these 2 arrays, the only transform that makes sense is a
+1D complex DFT. The direction in this case is the default, which is
+forward, and so that is the transform that is <em>planned</em>. The
+returned <tt class="docutils literal"><span class="pre">fft_object</span></tt> represents such a transform.</p>
+<p>In general, the creation of the <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object clears the
+contents of the arrays, so the arrays should be filled or updated
+after creation.</p>
+<p>Similarly, to plan the inverse:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">c</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="s">&#39;complex128&#39;</span><span class="p">)</span>
+<span class="n">ifft_object</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s">&#39;FFTW_BACKWARD&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this case, the direction argument is given as <tt class="docutils literal"><span class="pre">'FFTW_BACKWARD'</span></tt>
+(to override the default of <tt class="docutils literal"><span class="pre">'FFTW_FORWARD'</span></tt>).</p>
+<p>The actual FFT is performed by calling the returned objects:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c"># Generate some data</span>
+<span class="n">ar</span><span class="p">,</span> <span class="n">ai</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+<span class="n">a</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ar</span> <span class="o">+</span> <span class="mi">1j</span><span class="o">*</span><span class="n">ai</span>
+
+<span class="n">fft_a</span> <span class="o">=</span> <span class="n">fft_object</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Note that calling the object like this performs the FFT and returns
+the result in an array. This is the <em>same</em> array as <tt class="docutils literal"><span class="pre">b</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fft_a</span> <span class="ow">is</span> <span class="n">b</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>This is particularly useful when using <a class="reference internal" href="../pyfftw/builders/builders.html#module-pyfftw.builders" title="pyfftw.builders"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.builders</span></tt></a> to
+generate the <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> objects.</p>
+<p>Calling the FFT object followed by the inverse FFT object yields
+an output that is numerically the same as the original <tt class="docutils literal"><span class="pre">a</span></tt>
+(within numerical accuracy).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fft_a</span> <span class="o">=</span> <span class="n">fft_object</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ifft_b</span> <span class="o">=</span> <span class="n">ifft_object</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ifft_b</span> <span class="ow">is</span> <span class="n">c</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="ow">is</span> <span class="n">c</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>In this case, the normalisation of the DFT is performed automatically
+by the inverse FFTW object (<tt class="docutils literal"><span class="pre">ifft_object</span></tt>). This can be disabled
+by setting the <tt class="docutils literal"><span class="pre">normalise_idft=False</span></tt> argument.</p>
+<p>It is possible to change the data on which a <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>
+operates. The <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW.__call__" title="pyfftw.FFTW.__call__"><tt class="xref py py-meth docutils literal"><span class="pre">pyfftw.FFTW.__call__()</span></tt></a> accepts both an
+<tt class="docutils literal"><span class="pre">input_array</span></tt> and and <tt class="docutils literal"><span class="pre">output_array</span></tt> argument to update the
+arrays. The arrays should be compatible with the arrays with which
+the <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object was originally created. Please read the
+API docs on <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW.__call__" title="pyfftw.FFTW.__call__"><tt class="xref py py-meth docutils literal"><span class="pre">pyfftw.FFTW.__call__()</span></tt></a> to fully understand the
+requirements for updating the array.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="s">&#39;complex128&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">e</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="s">&#39;complex128&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="s">&#39;complex128&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fft_object</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fft_object</span><span class="o">.</span><span class="n">get_input_array</span><span class="p">()</span> <span class="ow">is</span> <span class="n">d</span> <span class="c"># get the input array from the object</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span> <span class="c"># Add some data to f</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fft_object</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="go">array([ 10.+0.j,  -2.+2.j,  -2.+0.j,  -2.-2.j])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fft_object</span><span class="o">.</span><span class="n">get_input_array</span><span class="p">()</span> <span class="ow">is</span> <span class="n">d</span> <span class="c"># No longer true!</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fft_object</span><span class="o">.</span><span class="n">get_input_array</span><span class="p">()</span> <span class="ow">is</span> <span class="n">f</span> <span class="c"># It has been updated with f :)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>If the new input array is of the wrong dtype or wrongly strided,
+<a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW.__call__" title="pyfftw.FFTW.__call__"><tt class="xref py py-meth docutils literal"><span class="pre">pyfftw.FFTW.__call__()</span></tt></a> method will copy the new array into the
+internal array, if necessary changing it&#8217;s dtype in the process.</p>
+<p>It should be made clear that the <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW.__call__" title="pyfftw.FFTW.__call__"><tt class="xref py py-meth docutils literal"><span class="pre">pyfftw.FFTW.__call__()</span></tt></a> method
+is simply a helper routine around the other methods of the object.
+Though it is expected that most of the time
+<a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW.__call__" title="pyfftw.FFTW.__call__"><tt class="xref py py-meth docutils literal"><span class="pre">pyfftw.FFTW.__call__()</span></tt></a> will be sufficient, all the FFTW
+functionality can be accessed through other methods at a slightly
+lower level.</p>
+<p><strong>Multi-Dimensional Transforms</strong></p>
+<p>Arrays of more than one dimension are easily supported as well.
+In this case, the <tt class="docutils literal"><span class="pre">axes</span></tt> argument specifies over which axes the
+transform is to be taken.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">pyfftw</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">((</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="mi">16</span><span class="p">,</span> <span class="s">&#39;complex128&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">((</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="mi">16</span><span class="p">,</span> <span class="s">&#39;complex128&#39;</span><span class="p">)</span>
+
+<span class="c"># Plan an fft over the last axis</span>
+<span class="n">fft_object_a</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+<span class="c"># Over the first axis</span>
+<span class="n">fft_object_b</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,))</span>
+
+<span class="c"># Over the both axes</span>
+<span class="n">fft_object_c</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">FFTW</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>For further information on all the supported transforms, including
+real transforms, as well as full documentaion on all the
+instantiation arguments, see the <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> documentation.</p>
+<p id="wisdom-tutorial"><strong>Wisdom</strong></p>
+<p>When creating a <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object, it is possible to instruct
+FFTW how much effort it should put into finding the fastest possible
+method for computing the DFT. This is done by specifying a suitable
+planner flag in <tt class="docutils literal"><span class="pre">flags</span></tt> argument to <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>. Some
+of the planner flags can take a very long time to complete which can
+be problematic.</p>
+<p>When the a particular transform has been created, distinguished by
+things like the data type, the shape, the stridings and the flags,
+FFTW keeps a record of the fastest way to compute such a transform in
+future. This is referred to as
+<a class="reference external" href="http://www.fftw.org/fftw3_doc/Wisdom.html">wisdom</a>. When
+the program is completed, the wisdom that has been accumulated is
+forgotten.</p>
+<p>It is possible to output the accumulated wisdom using the
+<a class="reference internal" href="../pyfftw/pyfftw.html#wisdom-functions"><em>wisdom output routines</em></a>.
+<a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.export_wisdom" title="pyfftw.export_wisdom"><tt class="xref py py-func docutils literal"><span class="pre">pyfftw.export_wisdom()</span></tt></a> exports and returns the wisdom as a tuple
+of strings that can be easily written to file. To load the wisdom back
+in, use the <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.import_wisdom" title="pyfftw.import_wisdom"><tt class="xref py py-func docutils literal"><span class="pre">pyfftw.import_wisdom()</span></tt></a> function which takes as its
+argument that same tuple of strings that was returned from
+<a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.export_wisdom" title="pyfftw.export_wisdom"><tt class="xref py py-func docutils literal"><span class="pre">pyfftw.export_wisdom()</span></tt></a>.</p>
+<p>If for some reason you wish to forget the accumulated wisdom, call
+<a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.forget_wisdom" title="pyfftw.forget_wisdom"><tt class="xref py py-func docutils literal"><span class="pre">pyfftw.forget_wisdom()</span></tt></a>.</p>
+</div>
+<div class="section" id="the-pyfftw-builders-functions">
+<span id="builders-tutorial"></span><h2>The <a class="reference internal" href="../pyfftw/builders/builders.html#module-pyfftw.builders" title="pyfftw.builders"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.builders</span></tt></a> functions<a class="headerlink" href="#the-pyfftw-builders-functions" title="Permalink to this headline">¶</a></h2>
+<p>If you absolutely need the flexibility of dealing with
+<a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> directly, an easier option than constructing valid
+arrays and so on is to use the convenient <a class="reference internal" href="../pyfftw/builders/builders.html#module-pyfftw.builders" title="pyfftw.builders"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.builders</span></tt></a> package.
+These functions take care of much of the difficulty in specifying the
+exact size and dtype requirements to produce a valid scheme.</p>
+<p>The <a class="reference internal" href="../pyfftw/builders/builders.html#module-pyfftw.builders" title="pyfftw.builders"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.builders</span></tt></a> functions are a series of helper functions
+that provide an interface very much like that provided by
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, only instead of returning the result of the
+transform, a <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object (or in some cases a wrapper
+around <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>) is returned.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">pyfftw</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">((</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="mi">16</span><span class="p">,</span> <span class="s">&#39;complex128&#39;</span><span class="p">)</span>
+
+<span class="c"># Generate some data</span>
+<span class="n">ar</span><span class="p">,</span> <span class="n">ai</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+<span class="n">a</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ar</span> <span class="o">+</span> <span class="mi">1j</span><span class="o">*</span><span class="n">ai</span>
+
+<span class="n">fft_object</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">builders</span><span class="o">.</span><span class="n">fft</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">fft_object</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">fft_object</span></tt> is an instance of <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>, <tt class="docutils literal"><span class="pre">b</span></tt> is
+the result of the DFT.</p>
+<p>Note that in this example, unlike creating a <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>
+object using the direct interface, we can fill the array in advance.
+This is because by default all the functions in <a class="reference internal" href="../pyfftw/builders/builders.html#module-pyfftw.builders" title="pyfftw.builders"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.builders</span></tt></a>
+keep a copy of the input array during creation (though this can
+be disabled).</p>
+<p>The <a class="reference internal" href="../pyfftw/builders/builders.html#module-pyfftw.builders" title="pyfftw.builders"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.builders</span></tt></a> functions construct an output array of
+the correct size and type. In the case of the regular DFTs, this
+always creates an output array of the same size as the input array.
+In the case of the real transform, the output array is the right
+shape to satisfy the scheme requirements.</p>
+<p>The precision of the transform is determined by the dtype of the
+input array. If the input array is a floating point array, then
+the precision of the floating point is used. If the input array
+is not a float point array then a double precision transform is used.
+Any calls made to the resultant object with an array of the same
+size will then be copied into the internal array of the object,
+changing the dtype in the process.</p>
+<p>Like <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, it is possible to specify a length (in the
+one-dimensional case) or a shape (in the multi-dimensional case) that
+may be different to the array that is passed in. In such a case,
+a wrapper object of type
+<a class="reference internal" href="../pyfftw/builders/_utils.html#pyfftw.builders._utils._FFTWWrapper" title="pyfftw.builders._utils._FFTWWrapper"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.builders._utils._FFTWWrapper</span></tt></a> is returned. From an
+interface perspective, this is identical to <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>. The
+difference is in the way calls to the object are handled. With
+<a class="reference internal" href="../pyfftw/builders/_utils.html#pyfftw.builders._utils._FFTWWrapper" title="pyfftw.builders._utils._FFTWWrapper"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.builders._utils._FFTWWrapper</span></tt></a> objects, an array that
+is passed as an argument when calling the object is <em>copied</em> into the
+internal array. This is done by a suitable slicing of the new
+passed-in array and the internal array and is done precisely because
+the shape of the transform is different to the shape of the input
+array.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">a</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">n_byte_align_empty</span><span class="p">((</span><span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span> <span class="mi">16</span><span class="p">,</span> <span class="s">&#39;complex128&#39;</span><span class="p">)</span>
+
+<span class="n">fft_wrapper_object</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">builders</span><span class="o">.</span><span class="n">fftn</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">256</span><span class="p">))</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">fft_wrapper_object</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Inspecting these objects gives us their shapes:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(32, 256)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fft_wrapper_object</span><span class="o">.</span><span class="n">get_input_array</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(32, 256)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(128, 64)</span>
+</pre></div>
+</div>
+<p>It is only possible to call <tt class="docutils literal"><span class="pre">fft_wrapper_object</span></tt> with an array
+that is the same shape as <tt class="docutils literal"><span class="pre">a</span></tt>. In this case, the first axis of <tt class="docutils literal"><span class="pre">a</span></tt>
+is sliced to include only the first 32 elements, and the second axis
+of the internal array is sliced to include only the last 64 elements.
+This way, shapes are made consistent for copying.</p>
+<p>Understanding <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, these functions are largely
+self-explanatory. We point the reader to the <a class="reference internal" href="../pyfftw/builders/builders.html#module-pyfftw.builders" title="pyfftw.builders"><tt class="xref py py-mod docutils literal"><span class="pre">API</span> <span class="pre">docs</span></tt></a> for more information.</p>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="caveat" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a> deals with repeated values in the
+<tt class="docutils literal"><span class="pre">axes</span></tt> argument differently to <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> (and probably to
+<a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/fftpack.html#scipy.fftpack" title="(in SciPy v0.11)"><tt class="xref py py-mod docutils literal"><span class="pre">scipy.fftpack</span></tt></a> to, but that&#8217;s not documented clearly).
+Specifically, <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> takes the transform along a given axis
+as many times as it appears in the <tt class="docutils literal"><span class="pre">axes</span></tt> argument.
+<a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a> takes the transform only once along each
+axis that appears, regardless of how many times it appears. This is
+deemed to be such a fringe corner case that it is ignored.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Overview and A Short Tutorial</a><ul>
+<li><a class="reference internal" href="#quick-and-easy-the-pyfftw-interfaces-module">Quick and easy: the <tt class="docutils literal"><span class="pre">pyfftw.interfaces</span></tt> module</a></li>
+<li><a class="reference internal" href="#the-workhorse-pyfftw-fftw-class">The workhorse <tt class="docutils literal"><span class="pre">pyfftw.FFTW</span></tt> class</a></li>
+<li><a class="reference internal" href="#the-pyfftw-builders-functions">The <tt class="docutils literal"><span class="pre">pyfftw.builders</span></tt> functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to pyFFTW&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="api.html"
+                        title="next chapter">API Reference</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/sphinx/tutorial.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api.html" title="API Reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to pyFFTW’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">pyFFTW 0.9.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Henry Gomersall.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

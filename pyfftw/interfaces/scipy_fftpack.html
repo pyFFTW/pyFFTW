@@ -1,0 +1,189 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>scipy.fftpack interface &mdash; pyFFTW 0.9.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.9.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="pyFFTW 0.9.0 documentation" href="../../index.html" />
+    <link rel="up" title="pyfftw.interfaces - Drop in replacements for other FFT implementations" href="interfaces.html" />
+    <link rel="prev" title="numpy.fft interface" href="numpy_fft.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="numpy_fft.html" title="numpy.fft interface"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../sphinx/index.html">pyFFTW 0.9.0 documentation</a> &raquo;</li>
+          <li><a href="../../sphinx/api.html" >API Reference</a> &raquo;</li>
+          <li><a href="interfaces.html" accesskey="U"><tt class="docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">pyfftw.interfaces</span></tt> - Drop in replacements for other FFT implementations</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pyfftw.interfaces.scipy_fftpack">
+<span id="scipy-fftpack-interface"></span><h1><a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/fftpack.html#scipy.fftpack" title="(in SciPy v0.11)"><tt class="xref py py-mod docutils literal"><span class="pre">scipy.fftpack</span></tt></a> interface<a class="headerlink" href="#module-pyfftw.interfaces.scipy_fftpack" title="Permalink to this headline">¶</a></h1>
+<p>This module implements those functions that replace aspects of the
+<a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/fftpack.html#scipy.fftpack" title="(in SciPy v0.11)"><tt class="xref py py-mod docutils literal"><span class="pre">scipy.fftpack</span></tt></a> module. This module <em>provides</em> the entire documented
+namespace of <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/fftpack.html#scipy.fftpack" title="(in SciPy v0.11)"><tt class="xref py py-mod docutils literal"><span class="pre">scipy.fftpack</span></tt></a>, but those functions that are not included
+here are imported directly from <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/fftpack.html#scipy.fftpack" title="(in SciPy v0.11)"><tt class="xref py py-mod docutils literal"><span class="pre">scipy.fftpack</span></tt></a>.</p>
+<dl class="function">
+<dt id="pyfftw.interfaces.scipy_fftpack.fft">
+<tt class="descclassname">pyfftw.interfaces.scipy_fftpack.</tt><tt class="descname">fft</tt><big>(</big><em>x</em>, <em>n=None</em>, <em>axis=-1</em>, <em>overwrite_x=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.scipy_fftpack.fft" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a 1D FFT.</p>
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.fftpack.fft.html#scipy.fftpack.fft" title="(in SciPy v0.11)"><tt class="xref py py-func docutils literal"><span class="pre">scipy.fftpack.fft()</span></tt></a>; 
+the rest of the arguments are documented 
+in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional argument docs</em></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.interfaces.scipy_fftpack.ifft">
+<tt class="descclassname">pyfftw.interfaces.scipy_fftpack.</tt><tt class="descname">ifft</tt><big>(</big><em>x</em>, <em>n=None</em>, <em>axis=-1</em>, <em>overwrite_x=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.scipy_fftpack.ifft" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a 1D inverse FFT.</p>
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.fftpack.ifft.html#scipy.fftpack.ifft" title="(in SciPy v0.11)"><tt class="xref py py-func docutils literal"><span class="pre">scipy.fftpack.ifft()</span></tt></a>; 
+the rest of the arguments are documented 
+in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional argument docs</em></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.interfaces.scipy_fftpack.fftn">
+<tt class="descclassname">pyfftw.interfaces.scipy_fftpack.</tt><tt class="descname">fftn</tt><big>(</big><em>x</em>, <em>shape=None</em>, <em>axes=None</em>, <em>overwrite_x=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.scipy_fftpack.fftn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform an n-D FFT.</p>
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.fftpack.fftn.html#scipy.fftpack.fftn" title="(in SciPy v0.11)"><tt class="xref py py-func docutils literal"><span class="pre">scipy.fftpack.fftn()</span></tt></a>; 
+the rest of the arguments are documented 
+in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional argument docs</em></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.interfaces.scipy_fftpack.ifftn">
+<tt class="descclassname">pyfftw.interfaces.scipy_fftpack.</tt><tt class="descname">ifftn</tt><big>(</big><em>x</em>, <em>shape=None</em>, <em>axes=None</em>, <em>overwrite_x=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.scipy_fftpack.ifftn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform an n-D inverse FFT.</p>
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.fftpack.ifftn.html#scipy.fftpack.ifftn" title="(in SciPy v0.11)"><tt class="xref py py-func docutils literal"><span class="pre">scipy.fftpack.ifftn()</span></tt></a>; 
+the rest of the arguments are documented 
+in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional argument docs</em></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.interfaces.scipy_fftpack.rfft">
+<tt class="descclassname">pyfftw.interfaces.scipy_fftpack.</tt><tt class="descname">rfft</tt><big>(</big><em>x</em>, <em>n=None</em>, <em>axis=-1</em>, <em>overwrite_x=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.scipy_fftpack.rfft" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a 1D real FFT.</p>
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.fftpack.rfft.html#scipy.fftpack.rfft" title="(in SciPy v0.11)"><tt class="xref py py-func docutils literal"><span class="pre">scipy.fftpack.rfft()</span></tt></a>; 
+the rest of the arguments are documented 
+in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional argument docs</em></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.interfaces.scipy_fftpack.irfft">
+<tt class="descclassname">pyfftw.interfaces.scipy_fftpack.</tt><tt class="descname">irfft</tt><big>(</big><em>x</em>, <em>n=None</em>, <em>axis=-1</em>, <em>overwrite_x=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.scipy_fftpack.irfft" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a 1D real inverse FFT.</p>
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.fftpack.irfft.html#scipy.fftpack.irfft" title="(in SciPy v0.11)"><tt class="xref py py-func docutils literal"><span class="pre">scipy.fftpack.irfft()</span></tt></a>; 
+the rest of the arguments are documented 
+in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional argument docs</em></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.interfaces.scipy_fftpack.fft2">
+<tt class="descclassname">pyfftw.interfaces.scipy_fftpack.</tt><tt class="descname">fft2</tt><big>(</big><em>x</em>, <em>shape=None</em>, <em>axes=(-2</em>, <em>-1)</em>, <em>overwrite_x=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.scipy_fftpack.fft2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a 2D FFT.</p>
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.fftpack.fft2.html#scipy.fftpack.fft2" title="(in SciPy v0.11)"><tt class="xref py py-func docutils literal"><span class="pre">scipy.fftpack.fft2()</span></tt></a>; 
+the rest of the arguments are documented 
+in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional argument docs</em></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.interfaces.scipy_fftpack.ifft2">
+<tt class="descclassname">pyfftw.interfaces.scipy_fftpack.</tt><tt class="descname">ifft2</tt><big>(</big><em>x</em>, <em>shape=None</em>, <em>axes=(-2</em>, <em>-1)</em>, <em>overwrite_x=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.scipy_fftpack.ifft2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a 2D inverse FFT.</p>
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.fftpack.ifft2.html#scipy.fftpack.ifft2" title="(in SciPy v0.11)"><tt class="xref py py-func docutils literal"><span class="pre">scipy.fftpack.ifft2()</span></tt></a>; 
+the rest of the arguments are documented in the
+<a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional argument docs</em></a>.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="numpy_fft.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">numpy.fft</span></tt> interface</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../../_sources/pyfftw/interfaces/scipy_fftpack.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="numpy_fft.html" title="numpy.fft interface"
+             >previous</a> |</li>
+        <li><a href="../../sphinx/index.html">pyFFTW 0.9.0 documentation</a> &raquo;</li>
+          <li><a href="../../sphinx/api.html" >API Reference</a> &raquo;</li>
+          <li><a href="interfaces.html" ><tt class="docutils literal docutils literal docutils literal docutils literal docutils literal"><span class="pre">pyfftw.interfaces</span></tt> - Drop in replacements for other FFT implementations</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Henry Gomersall.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
