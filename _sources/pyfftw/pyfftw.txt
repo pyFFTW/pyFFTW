@@ -14,6 +14,8 @@ FFTW Class
 
    .. autoattribute:: pyfftw.FFTW.input_alignment
 
+   .. autoattribute:: pyfftw.FFTW.output_alignment
+
    .. autoattribute:: pyfftw.FFTW.flags
 
    .. automethod:: pyfftw.FFTW.__call__

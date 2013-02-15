@@ -327,6 +327,15 @@ interface is used.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyfftw.FFTW.output_alignment">
+<tt class="descname">output_alignment</tt><a class="headerlink" href="#pyfftw.FFTW.output_alignment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the byte alignment of the output arrays for which the
+<a class="reference internal" href="#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">FFTW</span></tt></a> object was created.</p>
+<p>Output array updates with arrays that are not aligned on this
+byte boundary will result in a ValueError being raised.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pyfftw.FFTW.flags">
 <tt class="descname">flags</tt><a class="headerlink" href="#pyfftw.FFTW.flags" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return which flags were used to construct the FFTW object.</p>
