@@ -13,6 +13,9 @@ Wisdom import and export now works fairly reliably.
 
 Operating FFTW in multithreaded mode is supported.
 
+pyFFTW implements the numpy and scipy fft interfaces in order for users to
+take advantage of the speed of FFTW with minimal code modifications.
+
 A comprehensive unittest suite can be found with the source on the github 
 repository or with the source distribution on PyPI.
 
@@ -23,6 +26,7 @@ index page is `here <http://pypi.python.org/pypi/pyFFTW>`_.
 
 Requirements (i.e. what it was designed for)
 --------------------------------------------
+- Python 2.7 or greater (Python 3 is supported)
 - Numpy 1.6
 - FFTW 3.2 or higher (lower versions *may* work)
 - Cython 0.15 or higher (though the source release on PyPI loses this 
