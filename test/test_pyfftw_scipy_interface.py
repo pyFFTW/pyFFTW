@@ -17,7 +17,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from pyfftw.interfaces import scipy_fftpack
+import pyfftw
+import numpy
+import scipy
 import scipy.fftpack
+import scipy.signal
 
 import unittest
 from .test_pyfftw_base import run_test_suites
@@ -46,6 +50,31 @@ class InterfacesScipyFFTPackTestFFT(unittest.TestCase):
     ''' A really simple test suite to check simple implementation.
     '''
 
+    def test_scipy_overwrite(self):
+        scipy_fftn = scipy.signal.signaltools.fftn
+        scipy_ifftn = scipy.signal.signaltools.ifftn
+
+        a = pyfftw.n_byte_align_empty((128, 64), 16, dtype='complex128')
+        b = pyfftw.n_byte_align_empty((128, 64), 16, dtype='complex128')
+
+        a[:] = (numpy.random.randn(*a.shape) + 
+                1j*numpy.random.randn(*a.shape))
+        b[:] = (numpy.random.randn(*b.shape) + 
+                1j*numpy.random.randn(*b.shape))
+
+
+        scipy_c = scipy.signal.fftconvolve(a, b)
+
+        scipy.signal.signaltools.fftn = scipy_fftpack.fftn
+        scipy.signal.signaltools.ifftn = scipy_fftpack.ifftn
+
+        scipy_replaced_c = scipy.signal.fftconvolve(a, b)
+
+        self.assertTrue(numpy.allclose(scipy_c, scipy_replaced_c))
+
+        scipy.signal.signaltools.fftn = scipy_fftn
+        scipy.signal.signaltools.ifftn = scipy_ifftn
+
     def test_funcs(self):
 
         for each_func in funcs:
@@ -59,7 +88,7 @@ class InterfacesScipyFFTPackTestFFT(unittest.TestCase):
             args = tuple(args)
 
             try:
-                setattr(scipy_fftpack.numpy_fft, each_func, 
+                setattr(scipy_fftpack, each_func, 
                         numpy_fft_replacement)
 
                 return_args = getattr(scipy_fftpack, each_func)(*args)
@@ -71,11 +100,11 @@ class InterfacesScipyFFTPackTestFFT(unittest.TestCase):
                 raise
 
             finally:
-                setattr(scipy_fftpack.numpy_fft, each_func, 
+                setattr(scipy_fftpack, each_func, 
                         func_being_replaced)
 
     def test_acquired_names(self):
-        for each_name in acquired_names:
+        for each_name in acquired_names: 
 
             fftpack_attr = getattr(scipy.fftpack, each_name)
             acquired_attr = getattr(scipy_fftpack, each_name)

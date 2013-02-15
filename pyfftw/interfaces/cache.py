@@ -28,11 +28,25 @@ still take longer than a short transform.
 This module implements a method by which objects that are created through
 :mod:`pyfftw.interfaces` are temporarily cached. If an equivalent
 transform is then performed within a short period, the object is acquired
-from the cache rather than a new one created.
+from the cache rather than a new one created. The equivalency is quite 
+conservative and in practice means that if any of the arguments change, or
+if the properties of the array (shape, strides, dtype) change in any way, then
+the cache lookup will fail.
+
+The cache temporarily stores a copy of any interim :class:`pyfftw.FFTW`
+objects that are created. If they are not used for a short period of time,
+which can be set with :func:`pyfftw.interfaces.cache.set_keepalive_time`,
+then they are removed from the cache (liberating any associated memory).
+The default time is 0.1 seconds.
 
 Enable the cache by calling :func:`pyfftw.interfaces.cache.enable`. 
 Disable it by calling :func:`pyfftw.interfaces.cache.disable`. By default,
 the cache is disabled.
+
+Note that even with the cache enabled, there is a fixed overhead associated 
+with lookups. This means that for small transforms, the overhead may exceed
+the transform. At this point, it's worth looking at using :class:`pyfftw.FFTW`
+directly.
 
 When the cache is enabled, the module spawns a new thread to keep track
 of the objects. If :mod:`threading` is not available, then the cache
@@ -144,7 +158,11 @@ class _Cache(object):
         # Wait until the thread object has quit before
         # exiting (which it will because a reference error will
         # be raised).
-        self.__thread_object.join()
+        try:
+            self.__thread_object.join()
+        except TypeError:
+            # Not sure what's going on here, but IPython baulks on exit
+            pass
 
     def __contains__(self, key):
         return key in self.__cache_dict

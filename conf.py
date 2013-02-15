@@ -45,7 +45,7 @@ master_doc = os.path.join('sphinx','index')
 
 # General information about the project.
 project = u'pyFFTW'
-copyright = u'2012, Henry Gomersall'
+copyright = u'2013, Henry Gomersall'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

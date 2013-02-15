@@ -26,6 +26,11 @@ This core interface can be accessed directly, or through a series of helper
 functions, provided by the :mod:`pyfftw.builders` module. These helper
 functions provide an interface similar to :mod:`numpy.fft` for ease of use.
 
+In addition to using :class:`pyfftw.FFTW`, a convenient series of functions
+are included through :mod:`pyfftw.interfaces` that make using :mod:`pyfftw`
+almost equivalent to :mod:`numpy.fft` or :mod:`scipy.fftpack`.
+
+
 The source can be found in `github <https://github.com/hgomersall/pyFFTW>`_ and
 its page in the python package index is `here
 <http://pypi.python.org/pypi/pyFFTW>`_.

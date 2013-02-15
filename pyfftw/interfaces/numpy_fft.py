@@ -24,6 +24,10 @@ This module implements those functions that replace aspects of the
 of :mod:`numpy.fft`, but those functions that are not included here are imported
 directly from :mod:`numpy.fft`.
 
+The precision of the transform that is used is selected from the array that 
+is passed in, defaulting to double precision if any type conversion is 
+required.
+
 One known caveat is that repeated axes are handled differently to
 :mod:`numpy.fft`; axes that are repeated in the axes argument are considered
 only once, as compared to :mod:`numpy.fft` in which repeated axes results in

@@ -18,16 +18,131 @@ the array shapes and strides and the precision. This is quite
 different to how one uses, for example, the :mod:`numpy.fft` module.
 
 The purpose of this library is to provide a simple and pythonic way
-to, firstly, handle the necessary logic of working out what kind of
-FFTW plan should be created for a given data type, and secondly, 
-provide a simple way of generating those plans which is akin, from
-the users perspective, to the way in which the widely used 
-:mod:`numpy.fft` module is used.
+to interact with FFTW, benefiting from the substantial speed-ups it 
+offers. In addition to the method of using FFTW as described above,
+a convenient series of functions are included through :mod:`pyfftw.interfaces`
+that make using :mod:`pyfftw` almost equivalent to :mod:`numpy.fft`.
 
-This tutorial is split into two parts. Firstly an 
-:ref:`overview <FFTW_tutorial>` is given of :class:`pyfftw.FFTW`, 
-the core of the library. Secondly, the :mod:`pyfftw.builders` helper
-functions are :ref:`introduced <builders_tutorial>`.
+This tutorial is split into three parts. A quick introduction to the
+:mod:`pyfftw.interfaces` module is :ref:`given <interfaces_tutorial>`, the
+most simple and direct way to use :mod:`pyfftw`. Secondly an
+:ref:`overview <FFTW_tutorial>` is given of :class:`pyfftw.FFTW`, the core
+of the library. Finally, the :mod:`pyfftw.builders` helper functions are
+:ref:`introduced <builders_tutorial>`, which ease the creation of
+:class:`pyfftw.FFTW` objects.
+
+.. _interfaces_tutorial:
+
+Quick and easy: the :mod:`pyfftw.interfaces` module
+---------------------------------------------------
+
+The easiest way to begin using :mod:`pyfftw` is through the
+:mod:`pyfftw.interfaces` module. This module implements two APIs:
+:mod:`pyfftw.interfaces.numpy_fft` and
+:mod:`pyfftw.interfaces.scipy_fftpack` which are (apart from a small
+caveat [#caveat]_) drop in replacements for :mod:`numpy.fft` and
+:mod:`scipy.fftpack` respectively.
+
+.. doctest::
+
+   >>> import pyfftw
+   >>> import numpy
+   >>> a = pyfftw.n_byte_align_empty(128, 16, 'complex128')
+   >>> a[:] = numpy.random.randn(128) + 1j*numpy.random.randn(128)
+   >>> b = pyfftw.interfaces.numpy_fft.fft(a)
+   >>> c = numpy.fft.fft(a)
+   >>> numpy.allclose(b, c)
+   True
+
+We initially create and fill a complex array, ``a``, of length 128.
+:func:`pyfftw.n_byte_align_empty` is a helper function that works like
+:func:`numpy.empty` but returns the array aligned to a particular number of
+bytes in memory, in this case 16. Having byte aligned arrays allows FFTW to
+performed vector operations, potentially speeding up the FFT (a similar
+:func:`pyfftw.n_byte_align` exists to align a pre-existing array as
+necessary).
+
+Calling :func:`pyfftw.interfaces.numpy_fft.fft` on ``a`` gives the same
+output (to numerical precision) as calling :func:`numpy.fft.fft` on ``a``.
+
+If you wanted to modify existing code that uses :mod:`numpy.fft` to use
+:mod:`pyfftw.interfaces`, this is done simply by replacing all instances of
+:mod:`numpy.fft` with :mod:`pyfftw.interfaces.numpy_fft` (similarly for
+:mod:`scipy.fftpack` and :mod:`pyfftw.interfaces.scipy_fftpack`), and then,
+optionally, enabling the cache (see below).
+
+The first call for a given transform size and shape and dtype and so on
+may be slow, this is down to FFTW needing to plan the transform for the first
+time. Once this has been done, subsequent equivalent transforms during the
+same session are much faster. It's possible to export and save the internal
+knowledge (the *wisdom*) about how the transform is done. This is described
+:ref:`below <wisdom_tutorial>`.
+
+Even after the first transform of a given specification has been performed,
+subsequent transforms are never as fast as using :class:`pyfftw.FFTW` objects
+directly, and in many cases are substantially slower. This is because of the
+internal overhead of creating a new :class:`pyfftw.FFTW` object on every call.
+For this reason, a cache is provided, which is recommended to be used whenever
+:mod:`pyfftw.interfaces` is used. Turn the cache on using
+:func:`pyfftw.interfaces.cache.enable`. This function turns the cache on
+globally. Note that using the cache invokes the threading module.
+
+The cache temporarily stores a copy of any interim :class:`pyfftw.FFTW`
+objects that are created. If they are not used for some period of time,
+which can be set with :func:`pyfftw.interfaces.cache.set_keepalive_time`,
+then they are removed from the cache (liberating any associated memory).
+The default keepalive time is 0.1 seconds.
+
+**Monkey patching 3rd party libraries**
+
+Since :mod:`pyfftw.interfaces.numpy_fft` and
+:mod:`pyfftw.interfaces.scipy_fftpack` are drop-in replacements for their
+:mod:`numpy.fft` and :mod:`scipy.fftpack` libraries respectively, it is
+possible use them as replacements at run-time through monkey patching.
+
+The following code demonstrates :func:`scipy.signal.fftconvolve` being monkey
+patched in order to speed it up.
+
+.. testcode::
+
+   import pyfftw
+   import scipy.signal
+   import numpy
+   from timeit import Timer
+   
+   a = pyfftw.n_byte_align_empty((128, 64), 16, dtype='complex128')
+   b = pyfftw.n_byte_align_empty((128, 64), 16, dtype='complex128')
+   
+   a[:] = numpy.random.randn(128, 64) + 1j*numpy.random.randn(128, 64)
+   b[:] = numpy.random.randn(128, 64) + 1j*numpy.random.randn(128, 64)
+   
+   t = Timer(lambda: scipy.signal.fftconvolve(a, b))
+   
+   print('Time with scipy.fftpack: %1.3f seconds' % t.timeit(number=100))
+   
+   # Monkey patch in fftn and ifftn from pyfftw.interfaces.scipy_fftpack
+   scipy.signal.signaltools.fftn = pyfftw.interfaces.scipy_fftpack.fftn
+   scipy.signal.signaltools.ifftn = pyfftw.interfaces.scipy_fftpack.ifftn
+   scipy.signal.fftconvolve(a, b) # We cheat a bit by doing the planning first
+   
+   # Turn on the cache for optimum performance
+   pyfftw.interfaces.cache.enable()
+   
+   print('Time with monkey patched scipy_fftpack: %1.3f seconds' % 
+          t.timeit(number=100))
+
+.. testoutput::
+   :hide:
+
+   ...
+   ...
+
+which outputs something like:
+
+.. code-block:: none
+
+   Time with scipy.fftpack: 0.598 seconds
+   Time with monkey patched scipy_fftpack: 0.251 seconds
 
 .. _FFTW_tutorial:
 
@@ -83,12 +198,8 @@ a one-dimensional complex array:
    fft_object = pyfftw.FFTW(a, b)
 
 In this case, we create 2 complex arrays, ``a`` and ``b`` each of
-length 128. :func:`pyfftw.n_byte_align_empty` is a helper function 
-that works like :func:`numpy.empty` but returns the array aligned to
-a particular number of bytes in memory, in this case 16. Having byte
-aligned arrays allows FFTW to performed vector operations, potentially
-speeding up the FFT (a similar :func:`pyfftw.n_byte_align` exists to
-align a pre-existing array as necessary).
+length 128. As before, we use :func:`pyfftw.n_byte_align_empty` to 
+make sure the array is aligned.
 
 Given these 2 arrays, the only transform that makes sense is a 
 1D complex DFT. The direction in this case is the default, which is
@@ -212,6 +323,8 @@ For further information on all the supported transforms, including
 real transforms, as well as full documentaion on all the 
 instantiation arguments, see the :class:`pyfftw.FFTW` documentation.
 
+.. _wisdom_tutorial:
+
 **Wisdom**
 
 When creating a :class:`pyfftw.FFTW` object, it is possible to instruct
@@ -245,10 +358,11 @@ If for some reason you wish to forget the accumulated wisdom, call
 The :mod:`pyfftw.builders` functions
 ------------------------------------
 
-The easiest way to begin working with this package is by using the 
-convenient :mod:`pyfftw.builders` package. These functions take care
-of much of the difficulty in specifying the exact size and dtype
-requirements to produce a valid scheme.
+If you absolutely need the flexibility of dealing with 
+:class:`pyfftw.FFTW` directly, an easier option than constructing valid
+arrays and so on is to use the convenient :mod:`pyfftw.builders` package.
+These functions take care of much of the difficulty in specifying the
+exact size and dtype requirements to produce a valid scheme.
 
 The :mod:`pyfftw.builders` functions are a series of helper functions
 that provide an interface very much like that provided by 
@@ -335,3 +449,13 @@ This way, shapes are made consistent for copying.
 Understanding :mod:`numpy.fft`, these functions are largely
 self-explanatory. We point the reader to the :mod:`API docs <pyfftw.builders>` for more information.
 
+.. rubric:: Footnotes
+
+.. [#caveat] :mod:`pyfftw.interfaces` deals with repeated values in the 
+   ``axes`` argument differently to :mod:`numpy.fft` (and probably to 
+   :mod:`scipy.fftpack` to, but that's not documented clearly). 
+   Specifically, :mod:`numpy.fft` takes the transform along a given axis
+   as many times as it appears in the ``axes`` argument.
+   :mod:`pyfftw.interfaces` takes the transform only once along each
+   axis that appears, regardless of how many times it appears. This is
+   deemed to be such a fringe corner case that it is ignored.

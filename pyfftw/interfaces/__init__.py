@@ -19,32 +19,62 @@ amount of the flexibility compared to accessing the :class:`pyfftw.FFTW`
 object directly, but implements a reasonable set of defaults and optional
 tweaks that should satisfy most situations.
 
-There may be a slight slow-down in using :mod:`pyfftw.interfaces`, but this
-is largely alleviated by enabling the :mod:`pyfftw.interfaces.cache`
-functionality, and potentially extra copies might be made.  
-If speed or memory conservation is of absolutely paramount importance, the
-suggestion is to use :mod:`pyfftw.FFTW` (which provides better control over
-copies and so on), either directly or through :mod:`pyfftw.builders`.
+The precision of the transform that is used is selected from the array that 
+is passed in, defaulting to double precision if any type conversion is 
+required.
 
 This module works by generating a :class:`pyfftw.FFTW` object behind the
 scenes using the :mod:`pyfftw.builders` interface, which is then executed.
 There is therefore a potentially substantial overhead when a new plan needs
-to be created. This overhead is down to FFTW's internal planner process.
+to be created. This is down to FFTW's internal planner process.
 After a specific transform has been planned once, subsequent calls in which
-the input array is equivalent will be fast.
+the input array is equivalent will be much faster, though still not without
+potentially significant overhead. *This* overhead can be largely alleviated by
+enabling the :mod:`pyfftw.interfaces.cache` functionality. However, even when
+the cache is used, very small transforms may suffer a significant relative
+slow-down not present when accessing :mod:`pyfftw.FFTW` directly (because the
+transform time can be negligibly small compared to the fixed
+:mod:`pyfftw.interfaces` overhead).
+
+In addition, potentially extra copies of the input array might be made.
+
+If speed or memory conservation is of absolutely paramount importance, the
+suggestion is to use :mod:`pyfftw.FFTW` (which provides better control over
+copies and so on), either directly or through :mod:`pyfftw.builders`. As
+always, experimentation is the best guide to optimisation.
 
 In practice, this means something like the following (taking
 :mod:`~pyfftw.interfaces.numpy_fft` as an example):
 
 .. doctest::
 
-    >>> import pyfftw
-    >>> a = pyfftw.n_byte_align_empty(128, 16)
-    >>> fft_a = pyfftw.interfaces.numpy_fft.fft(a) # Will need to plan
-    >>> b = pyfftw.n_byte_align_empty(128, 16)
-    >>> fft_b = pyfftw.interfaces.numpy_fft.fft(b) # Already planned, so fast
-    >>> c = pyfftw.n_byte_align_empty(132, 16)
+    >>> import pyfftw, numpy
+    >>> a = pyfftw.n_byte_align_empty((128, 64), 16, dtype='complex64')
+    >>> a[:] = numpy.random.randn(*a.shape) + 1j*numpy.random.randn(*a.shape)
+    >>> fft_a = pyfftw.interfaces.numpy_fft.fft2(a) # Will need to plan
+
+.. doctest::
+
+    >>> b = pyfftw.n_byte_align_empty((128, 64), 16, dtype='complex64')
+    >>> b[:] = a
+    >>> fft_b = pyfftw.interfaces.numpy_fft.fft2(b) # Already planned, so faster
+
+.. doctest::
+
+    >>> c = pyfftw.n_byte_align_empty(132, 16, dtype='complex128')
     >>> fft_c = pyfftw.interfaces.numpy_fft.fft(c) # Needs a new plan
+    >>> c[:] = numpy.random.randn(*c.shape) + 1j*numpy.random.randn(*c.shape)
+
+.. doctest::
+
+    >>> pyfftw.interfaces.cache.enable()
+    >>> fft_a = pyfftw.interfaces.numpy_fft.fft2(a) # still planned
+    >>> fft_b = pyfftw.interfaces.numpy_fft.fft2(b) # much faster, from the cache
+
+The usual wisdom import and export functions work well for the case where
+the initial plan might be prohibitively expensive. Just use
+:func:pyfftw.export_wisdom` and :func:pyfftw.import_wisdom` as needed after
+having performed the transform once.
 
 Implemented Functions
 ---------------------

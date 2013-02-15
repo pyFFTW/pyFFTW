@@ -52,7 +52,8 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
                 auto_align_input, auto_contiguous)
     
     if cache.is_enabled():
-        key = (calling_func, a.shape, a.strides, args[1:])
+        key = (calling_func, a.shape, a.strides, a.dtype, s.__hash__(), 
+                axes.__hash__(), args[3:])
 
     if not cache.is_enabled() or key not in cache._fftw_cache:
 
