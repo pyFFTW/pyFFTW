@@ -213,5 +213,14 @@ different defaults.
 
 from . import (
         numpy_fft,
-        scipy_fftpack,
         cache,)
+
+try:
+    raise ImportError
+    import scipy.fftpack
+except ImportError:
+    pass
+else:
+    del scipy.fftpack
+    from . import scipy_fftpack
+

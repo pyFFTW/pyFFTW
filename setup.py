@@ -98,7 +98,7 @@ setup_args = {
             'Topic :: Scientific/Engineering :: Mathematics',
             'Topic :: Multimedia :: Sound/Audio :: Analysis',
             ],
-        'packages':['pyfftw', 'pyfftw.builders'],
+        'packages':['pyfftw', 'pyfftw.builders', 'pyfftw.interfaces'],
         'ext_modules': ext_modules,
         'include_dirs': include_dirs,
         'package_data': package_data,
