@@ -27,7 +27,7 @@
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="top" title="pyFFTW 0.9.0 documentation" href="../index.html" />
     <link rel="next" title="API Reference" href="api.html" />
-    <link rel="prev" title="Welcome to pyFFTW’s documentation!" href="index.html" /> 
+    <link rel="prev" title="Welcome to pyFFTW’s documentation!" href="../index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -43,9 +43,9 @@
           <a href="api.html" title="API Reference"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="Welcome to pyFFTW’s documentation!"
+          <a href="../index.html" title="Welcome to pyFFTW’s documentation!"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">pyFFTW 0.9.0 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">pyFFTW 0.9.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -67,12 +67,12 @@ different techniques and measuring the fastest way, so called
 <p>One consequence of this is that the user needs to specify in advance
 exactly what transform is needed, including things like the data type,
 the array shapes and strides and the precision. This is quite
-different to how one uses, for example, the <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> module.</p>
+different to how one uses, for example, the <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> module.</p>
 <p>The purpose of this library is to provide a simple and pythonic way
 to interact with FFTW, benefiting from the substantial speed-ups it
 offers. In addition to the method of using FFTW as described above,
 a convenient series of functions are included through <a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a>
-that make using <a class="reference internal" href="../pyfftw/pyfftw.html#module-pyfftw" title="pyfftw"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw</span></tt></a> almost equivalent to <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>.</p>
+that make using <a class="reference internal" href="../pyfftw/pyfftw.html#module-pyfftw" title="pyfftw"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw</span></tt></a> almost equivalent to <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>.</p>
 <p>This tutorial is split into three parts. A quick introduction to the
 <a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a> module is <a class="reference internal" href="#interfaces-tutorial"><em>given</em></a>, the
 most simple and direct way to use <a class="reference internal" href="../pyfftw/pyfftw.html#module-pyfftw" title="pyfftw"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw</span></tt></a>. Secondly an
@@ -86,7 +86,7 @@ of the library. Finally, the <a class="reference internal" href="../pyfftw/build
 <a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a> module. This module implements two APIs:
 <a class="reference internal" href="../pyfftw/interfaces/numpy_fft.html#module-pyfftw.interfaces.numpy_fft" title="pyfftw.interfaces.numpy_fft"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces.numpy_fft</span></tt></a> and
 <a class="reference internal" href="../pyfftw/interfaces/scipy_fftpack.html#module-pyfftw.interfaces.scipy_fftpack" title="pyfftw.interfaces.scipy_fftpack"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces.scipy_fftpack</span></tt></a> which are (apart from a small
-caveat <a class="footnote-reference" href="#caveat" id="id1">[1]</a>) drop in replacements for <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> and
+caveat <a class="footnote-reference" href="#caveat" id="id1">[1]</a>) drop in replacements for <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> and
 <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/fftpack.html#scipy.fftpack" title="(in SciPy v0.11)"><tt class="xref py py-mod docutils literal"><span class="pre">scipy.fftpack</span></tt></a> respectively.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyfftw</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
@@ -100,16 +100,16 @@ caveat <a class="footnote-reference" href="#caveat" id="id1">[1]</a>) drop in re
 </div>
 <p>We initially create and fill a complex array, <tt class="docutils literal"><span class="pre">a</span></tt>, of length 128.
 <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.n_byte_align_empty" title="pyfftw.n_byte_align_empty"><tt class="xref py py-func docutils literal"><span class="pre">pyfftw.n_byte_align_empty()</span></tt></a> is a helper function that works like
-<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.empty.html#numpy.empty" title="(in NumPy v1.6)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.empty()</span></tt></a> but returns the array aligned to a particular number of
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.empty.html#numpy.empty" title="(in NumPy v1.7)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.empty()</span></tt></a> but returns the array aligned to a particular number of
 bytes in memory, in this case 16. Having byte aligned arrays allows FFTW to
 performed vector operations, potentially speeding up the FFT (a similar
 <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.n_byte_align" title="pyfftw.n_byte_align"><tt class="xref py py-func docutils literal"><span class="pre">pyfftw.n_byte_align()</span></tt></a> exists to align a pre-existing array as
 necessary).</p>
 <p>Calling <a class="reference internal" href="../pyfftw/interfaces/numpy_fft.html#pyfftw.interfaces.numpy_fft.fft" title="pyfftw.interfaces.numpy_fft.fft"><tt class="xref py py-func docutils literal"><span class="pre">pyfftw.interfaces.numpy_fft.fft()</span></tt></a> on <tt class="docutils literal"><span class="pre">a</span></tt> gives the same
-output (to numerical precision) as calling <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fft.html#numpy.fft.fft" title="(in NumPy v1.6)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fft()</span></tt></a> on <tt class="docutils literal"><span class="pre">a</span></tt>.</p>
-<p>If you wanted to modify existing code that uses <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> to use
+output (to numerical precision) as calling <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fft.html#numpy.fft.fft" title="(in NumPy v1.7)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fft()</span></tt></a> on <tt class="docutils literal"><span class="pre">a</span></tt>.</p>
+<p>If you wanted to modify existing code that uses <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> to use
 <a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a>, this is done simply by replacing all instances of
-<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> with <a class="reference internal" href="../pyfftw/interfaces/numpy_fft.html#module-pyfftw.interfaces.numpy_fft" title="pyfftw.interfaces.numpy_fft"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces.numpy_fft</span></tt></a> (similarly for
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> with <a class="reference internal" href="../pyfftw/interfaces/numpy_fft.html#module-pyfftw.interfaces.numpy_fft" title="pyfftw.interfaces.numpy_fft"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces.numpy_fft</span></tt></a> (similarly for
 <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/fftpack.html#scipy.fftpack" title="(in SciPy v0.11)"><tt class="xref py py-mod docutils literal"><span class="pre">scipy.fftpack</span></tt></a> and <a class="reference internal" href="../pyfftw/interfaces/scipy_fftpack.html#module-pyfftw.interfaces.scipy_fftpack" title="pyfftw.interfaces.scipy_fftpack"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces.scipy_fftpack</span></tt></a>), and then,
 optionally, enabling the cache (see below).</p>
 <p>The first call for a given transform size and shape and dtype and so on
@@ -134,7 +134,7 @@ The default keepalive time is 0.1 seconds.</p>
 <p><strong>Monkey patching 3rd party libraries</strong></p>
 <p>Since <a class="reference internal" href="../pyfftw/interfaces/numpy_fft.html#module-pyfftw.interfaces.numpy_fft" title="pyfftw.interfaces.numpy_fft"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces.numpy_fft</span></tt></a> and
 <a class="reference internal" href="../pyfftw/interfaces/scipy_fftpack.html#module-pyfftw.interfaces.scipy_fftpack" title="pyfftw.interfaces.scipy_fftpack"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces.scipy_fftpack</span></tt></a> are drop-in replacements for their
-<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> and <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/fftpack.html#scipy.fftpack" title="(in SciPy v0.11)"><tt class="xref py py-mod docutils literal"><span class="pre">scipy.fftpack</span></tt></a> libraries respectively, it is
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> and <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/fftpack.html#scipy.fftpack" title="(in SciPy v0.11)"><tt class="xref py py-mod docutils literal"><span class="pre">scipy.fftpack</span></tt></a> libraries respectively, it is
 possible use them as replacements at run-time through monkey patching.</p>
 <p>The following code demonstrates <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.fftconvolve.html#scipy.signal.fftconvolve" title="(in SciPy v0.11)"><tt class="xref py py-func docutils literal"><span class="pre">scipy.signal.fftconvolve()</span></tt></a> being monkey
 patched in order to speed it up.</p>
@@ -182,17 +182,17 @@ the easiest way to of dealing with it is through the
 <p>For users that already have some experience of FFTW, there is no
 interface distinction between any of the supported data types, shapes
 or transforms, and operating on arbitrarily strided arrays (which are
-common when using <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/index.html#numpy" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt></a>) is fully supported with no copies
+common when using <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/index.html#numpy" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt></a>) is fully supported with no copies
 necessary.</p>
 <p>In its simplest form, a <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object is created with
-a pair of complementary <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/index.html#numpy" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt></a> arrays: an input array and an
+a pair of complementary <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/index.html#numpy" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt></a> arrays: an input array and an
 output array.  They are complementary insomuch as the data types and the
 array sizes together define exactly what transform should be performed.
 We refer to a valid transform as a <a class="reference internal" href="../pyfftw/pyfftw.html#fftw-schemes"><em>scheme</em></a>.</p>
 <p>Internally, three precisions of FFT are supported. These correspond
 to single precision floating point, double precision floating point
 and long double precision floating
-point, which correspond to <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/index.html#numpy" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt></a>&#8216;s <tt class="docutils literal"><span class="pre">float32</span></tt>, <tt class="docutils literal"><span class="pre">float64</span></tt>
+point, which correspond to <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/index.html#numpy" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy</span></tt></a>&#8216;s <tt class="docutils literal"><span class="pre">float32</span></tt>, <tt class="docutils literal"><span class="pre">float64</span></tt>
 and <tt class="docutils literal"><span class="pre">longdouble</span></tt> dtypes respectively (and the corresponding
 complex types). The precision is decided by the relevant scheme,
 which is specified by the dtype of the input array.</p>
@@ -349,7 +349,7 @@ These functions take care of much of the difficulty in specifying the
 exact size and dtype requirements to produce a valid scheme.</p>
 <p>The <a class="reference internal" href="../pyfftw/builders/builders.html#module-pyfftw.builders" title="pyfftw.builders"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.builders</span></tt></a> functions are a series of helper functions
 that provide an interface very much like that provided by
-<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, only instead of returning the result of the
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, only instead of returning the result of the
 transform, a <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object (or in some cases a wrapper
 around <a class="reference internal" href="../pyfftw/pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a>) is returned.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">pyfftw</span>
@@ -384,7 +384,7 @@ is not a float point array then a double precision transform is used.
 Any calls made to the resultant object with an array of the same
 size will then be copied into the internal array of the object,
 changing the dtype in the process.</p>
-<p>Like <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, it is possible to specify a length (in the
+<p>Like <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, it is possible to specify a length (in the
 one-dimensional case) or a shape (in the multi-dimensional case) that
 may be different to the array that is passed in. In such a case,
 a wrapper object of type
@@ -418,16 +418,16 @@ that is the same shape as <tt class="docutils literal"><span class="pre">a</span
 is sliced to include only the first 32 elements, and the second axis
 of the internal array is sliced to include only the last 64 elements.
 This way, shapes are made consistent for copying.</p>
-<p>Understanding <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, these functions are largely
+<p>Understanding <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, these functions are largely
 self-explanatory. We point the reader to the <a class="reference internal" href="../pyfftw/builders/builders.html#module-pyfftw.builders" title="pyfftw.builders"><tt class="xref py py-mod docutils literal"><span class="pre">API</span> <span class="pre">docs</span></tt></a> for more information.</p>
 <p class="rubric">Footnotes</p>
 <table class="docutils footnote" frame="void" id="caveat" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
 <tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td><a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a> deals with repeated values in the
-<tt class="docutils literal"><span class="pre">axes</span></tt> argument differently to <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> (and probably to
+<tt class="docutils literal"><span class="pre">axes</span></tt> argument differently to <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> (and probably to
 <a class="reference external" href="http://docs.scipy.org/doc/scipy/reference/fftpack.html#scipy.fftpack" title="(in SciPy v0.11)"><tt class="xref py py-mod docutils literal"><span class="pre">scipy.fftpack</span></tt></a> to, but that&#8217;s not documented clearly).
-Specifically, <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.6)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> takes the transform along a given axis
+Specifically, <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#numpy.fft" title="(in NumPy v1.7)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> takes the transform along a given axis
 as many times as it appears in the <tt class="docutils literal"><span class="pre">axes</span></tt> argument.
 <a class="reference internal" href="../pyfftw/interfaces/interfaces.html#module-pyfftw.interfaces" title="pyfftw.interfaces"><tt class="xref py py-mod docutils literal"><span class="pre">pyfftw.interfaces</span></tt></a> takes the transform only once along each
 axis that appears, regardless of how many times it appears. This is
@@ -443,7 +443,7 @@ deemed to be such a fringe corner case that it is ignored.</td></tr>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Overview and A Short Tutorial</a><ul>
 <li><a class="reference internal" href="#quick-and-easy-the-pyfftw-interfaces-module">Quick and easy: the <tt class="docutils literal"><span class="pre">pyfftw.interfaces</span></tt> module</a></li>
@@ -454,7 +454,7 @@ deemed to be such a fringe corner case that it is ignored.</td></tr>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="index.html"
+  <p class="topless"><a href="../index.html"
                         title="previous chapter">Welcome to pyFFTW&#8217;s documentation!</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="api.html"
@@ -494,9 +494,9 @@ deemed to be such a fringe corner case that it is ignored.</td></tr>
           <a href="api.html" title="API Reference"
              >next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="Welcome to pyFFTW’s documentation!"
+          <a href="../index.html" title="Welcome to pyFFTW’s documentation!"
              >previous</a> |</li>
-        <li><a href="index.html">pyFFTW 0.9.0 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">pyFFTW 0.9.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
