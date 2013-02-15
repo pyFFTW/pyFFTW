@@ -216,7 +216,6 @@ from . import (
         cache,)
 
 try:
-    raise ImportError
     import scipy.fftpack
 except ImportError:
     pass
