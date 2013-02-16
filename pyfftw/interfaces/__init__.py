@@ -73,7 +73,7 @@ In practice, this means something like the following (taking
 
 The usual wisdom import and export functions work well for the case where
 the initial plan might be prohibitively expensive. Just use
-:func:pyfftw.export_wisdom` and :func:pyfftw.import_wisdom` as needed after
+:func:`pyfftw.export_wisdom` and :func:`pyfftw.import_wisdom` as needed after
 having performed the transform once.
 
 Implemented Functions
