@@ -130,7 +130,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
 
         input_array = array_type(test_shape, dtype)
         orig_input_array = input_array.copy()
-        
+
         if input_array.dtype == 'clongdouble':
             np_input_array = numpy.complex128(input_array)
 
@@ -172,6 +172,8 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 not kwargs['overwrite_input']):
             self.assertTrue(numpy.allclose(input_array,
                 orig_input_array))
+
+        return output_array
 
     def axes_from_kwargs(self, kwargs):
         

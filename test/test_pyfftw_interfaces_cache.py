@@ -42,8 +42,10 @@ class InterfacesNumpyFFTCacheTestFFT(InterfacesNumpyFFTTestFFT):
 
         # Do it with the cache
         interfaces.cache.enable()        
-        self._validate(array_type, test_shape, dtype, s, kwargs)
-        self._validate(array_type, test_shape, dtype, s, kwargs)
+        output = self._validate(array_type, test_shape, dtype, s, kwargs)
+        output2 = self._validate(array_type, test_shape, dtype, s, kwargs)
+
+        self.assertIsNot(output, output2) 
 
         # Turn it off to finish
         interfaces.cache.disable()

@@ -73,15 +73,17 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
 
         if cache.is_enabled():
             cache._fftw_cache.insert(FFTW_object, key)
+            output_array = FFTW_object().copy()
+        else:
+            output_array = FFTW_object()
 
-        output_array = FFTW_object()
     else:
         if reload_after_transform:
             a_copy = a.copy()
 
         FFTW_object = cache._fftw_cache.lookup(key)
 
-        output_array = FFTW_object(a)
+        output_array = FFTW_object(a).copy()
     
     if reload_after_transform:
         a[:] = a_copy
