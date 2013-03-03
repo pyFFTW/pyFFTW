@@ -23,6 +23,7 @@ Utility functions for the interfaces routines
 '''
 
 import pyfftw.builders as builders
+import pyfftw
 from . import cache
 
 def _Xfftn(a, s, axes, overwrite_input, planner_effort,
@@ -73,9 +74,8 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
 
         if cache.is_enabled():
             cache._fftw_cache.insert(FFTW_object, key)
-            output_array = FFTW_object().copy()
-        else:
-            output_array = FFTW_object()
+        
+        output_array = FFTW_object()
 
     else:
         if reload_after_transform:
@@ -83,7 +83,15 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
 
         FFTW_object = cache._fftw_cache.lookup(key)
 
-        output_array = FFTW_object(a).copy()
+        orig_output_array = FFTW_object.get_output_array()
+        output_shape = orig_output_array.shape
+        output_dtype = orig_output_array.dtype
+        output_alignment = FFTW_object.output_alignment
+
+        output_array = pyfftw.n_byte_align_empty(output_shape, 
+                output_alignment, output_dtype)
+
+        FFTW_object(input_array=a, output_array=output_array)
     
     if reload_after_transform:
         a[:] = a_copy
