@@ -122,33 +122,33 @@ class _Cache(object):
 
     @property
     def keepalive_time(self):
-        return self.__keepalive_time
+        return self._keepalive_time
 
     def __init__(self, keepalive_time=0.1):
 
-        self.__cache_dict = {}
+        self._cache_dict = {}
         self.set_keepalive_time(keepalive_time)
 
         # A set of objects to be kept alive during the next cull
-        self.__keepalive_set = set()
+        self._keepalive_set = set()
 
-        self.__cull_lock = _threading.Lock()
-        self.__keepalive_set_lock = _threading.Lock()
+        self._cull_lock = _threading.Lock()
+        self._keepalive_set_lock = _threading.Lock()
 
         self.initialised = _threading.Event()
 
-        self.__parent_thread = _threading.current_thread()
+        self._parent_thread = _threading.current_thread()
 
-        self.__initialised = _threading.Event()
-        self.__initialised.clear() # Explicitly clear it for clarity
+        self._initialised = _threading.Event()
+        self._initialised.clear() # Explicitly clear it for clarity
         
-        self.__thread_object = _threading.Thread(target=_Cache._run,
+        self._thread_object = _threading.Thread(target=_Cache._run,
                 args=(weakref.proxy(self), ))
 
-        self.__thread_object.daemon = True
-        self.__thread_object.start()
+        self._thread_object.daemon = True
+        self._thread_object.start()
 
-        while not self.__initialised.is_set():
+        while not self._initialised.is_set():
             # This loop is necessary to stop the main thread doing 
             # anything until the exception handler in _run can deal with 
             # the object being deleted.
@@ -159,49 +159,49 @@ class _Cache(object):
         # exiting (which it will because a reference error will
         # be raised).
         try:
-            self.__thread_object.join()
+            self._thread_object.join()
         except TypeError:
             # Not sure what's going on here, but IPython baulks on exit
             pass
 
     def __contains__(self, key):
-        return key in self.__cache_dict
+        return key in self._cache_dict
 
     def _run(self):
-
-        self.__initialised.set()
 
         last_cull_time = time.time()
 
         try:
+            self._initialised.set()
+
             while True:
-                if not self.__parent_thread.is_alive():
+                if not self._parent_thread.is_alive():
                     break
 
-                if time.time() - last_cull_time > self.__keepalive_time:
+                if time.time() - last_cull_time > self._keepalive_time:
                     # Perform a cull
                     last_cull_time = time.time()
 
-                    with self.__cull_lock:
+                    with self._cull_lock:
                         # Operate on a copy of the cache dict
                         # so lookups continue.
-                        new_cache_dict = self.__cache_dict.copy()
+                        new_cache_dict = self._cache_dict.copy()
 
-                        with self.__keepalive_set_lock:
+                        with self._keepalive_set_lock:
                             # Work out which should be culled
                             cull_set = set(new_cache_dict).difference(
-                                    self.__keepalive_set)
+                                    self._keepalive_set)
 
-                            self.__keepalive_set = set()
+                            self._keepalive_set = set()
 
                         for each_key in cull_set:
                             del new_cache_dict[each_key]
 
                         # Necessarily atomic, so no problem with
                         # the lookups continuing
-                        self.__cache_dict = new_cache_dict
+                        self._cache_dict = new_cache_dict
 
-                time.sleep(self.__wakeup_time)
+                time.sleep(self._wakeup_time)
 
         except ReferenceError:
             pass
@@ -214,32 +214,32 @@ class _Cache(object):
         practice, it may be up to twice as long before the object is
         deleted from the cache (due to implementational details).
         '''
-        self.__keepalive_time = float(keepalive_time)
+        self._keepalive_time = float(keepalive_time)
 
-        if self.__keepalive_time/2 > 0.1:
-            self.__wakeup_time = 0.1
+        if self._keepalive_time/2 > 0.1:
+            self._wakeup_time = 0.1
         else:
-            self.__wakeup_time = self.__keepalive_time/2
+            self._wakeup_time = self._keepalive_time/2
 
-    def __refresh(self, key):
+    def _refresh(self, key):
         '''Refresh the object referenced by key to stop it being culled
         on the next round.
         '''
-        with self.__keepalive_set_lock:
-            self.__keepalive_set.add(key)
+        with self._keepalive_set_lock:
+            self._keepalive_set.add(key)
 
     def insert(self, obj, key):
         '''Insert the passed object into the cache, referenced by key, 
         a hashable.
         '''
-        with self.__cull_lock:
-            self.__cache_dict[key] = obj
-            self.__refresh(key)
+        with self._cull_lock:
+            self._cache_dict[key] = obj
+            self._refresh(key)
 
     def lookup(self, key):
         '''Lookup the object referenced by key and return it, refreshing
         the cache at the same time.
         '''
-        self.__refresh(key)        
-        return self.__cache_dict[key]
+        self._refresh(key)        
+        return self._cache_dict[key]
 
