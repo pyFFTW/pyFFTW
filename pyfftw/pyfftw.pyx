@@ -434,14 +434,18 @@ scheme_directions = {
         ('c2r', '32'): ['FFTW_BACKWARD'],
         ('c2r', 'ld'): ['FFTW_BACKWARD']}
 
+# In the following, -1 denotes using the default. A segfault has been
+# reported on some systems when this is set to None. It seems 
+# sufficiently trivial to use -1 in place of None, especially given 
+# that scheme_functions is an internal cdef object.
 cdef object scheme_functions
 scheme_functions = {
     ('c2c', '64'): {'planner': 0, 'executor':0, 'generic_precision':0,
-        'validator':None, 'fft_shape_lookup': None},
+        'validator': -1, 'fft_shape_lookup': -1},
     ('c2c', '32'): {'planner':1, 'executor':1, 'generic_precision':1,
-        'validator':None, 'fft_shape_lookup': None},
+        'validator': -1, 'fft_shape_lookup': -1},
     ('c2c', 'ld'): {'planner':2, 'executor':2, 'generic_precision':2,
-        'validator':None, 'fft_shape_lookup': None},
+        'validator': -1, 'fft_shape_lookup': -1},
     ('r2c', '64'): {'planner':3, 'executor':3, 'generic_precision':0,
         'validator': 0, 
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
@@ -846,7 +850,7 @@ cdef class FFTW:
         # Now we can validate the array shapes
         cdef validator _validator
 
-        if functions['validator'] == None:
+        if functions['validator'] == -1:
             if not (output_array.shape == input_array.shape):
                 raise ValueError('Invalid shapes: '
                         'The output array should be the same shape as the '
@@ -922,7 +926,7 @@ cdef class FFTW:
                         'less than ', str(limits.INT_MAX))
 
         fft_shape_lookup = functions['fft_shape_lookup']
-        if fft_shape_lookup == None:
+        if fft_shape_lookup == -1:
             fft_shape = self.__input_shape
         else:
             fft_shape = fft_shape_lookup(input_array, output_array)
