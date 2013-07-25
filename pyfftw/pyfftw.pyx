@@ -24,6 +24,9 @@ from libc cimport limits
 
 include 'utils.pxi'
 
+cdef extern from *:
+    int Py_AtExit(void (*callback)()) 
+
 cdef object directions
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
         'FFTW_BACKWARD': FFTW_BACKWARD}
@@ -480,15 +483,15 @@ fftwf_init_threads()
 fftwl_init_threads()
 
 # Set the cleanup routine
-import atexit
-@atexit.register
-def _cleanup():
+cdef void _cleanup():
     fftw_cleanup()
     fftwf_cleanup()
     fftwl_cleanup()
     fftw_cleanup_threads()
     fftwf_cleanup_threads()
     fftwl_cleanup_threads()
+
+Py_AtExit(_cleanup)
 
 # Helper functions
 cdef void make_axes_unique(int64_t *axes, int64_t axes_length, 
