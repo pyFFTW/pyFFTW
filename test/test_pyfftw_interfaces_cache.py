@@ -25,6 +25,7 @@ from .test_pyfftw_numpy_interface import InterfacesNumpyFFTTestFFT
 
 import threading
 import time
+import types
 
 '''Test the caching functionality of the interfaces package.
 '''
@@ -49,6 +50,46 @@ class InterfacesNumpyFFTCacheTestFFT(InterfacesNumpyFFTTestFFT):
 
         # Turn it off to finish
         interfaces.cache.disable()
+
+class CacheSpecificInterfacesUtils(unittest.TestCase):
+
+    def test_slow_lookup_no_race_condition(self):
+        '''Checks that lookups in _utils longer than the keepalive time are ok.
+        '''
+        # Any old size, it doesn't matter
+        data_shape = (128,)
+
+        # Monkey patch the module with a custom _Cache object
+        _Cache_class = interfaces.cache._Cache        
+        class _SlowLookupCache(interfaces.cache._Cache):
+
+            def _lookup(self, key):
+                return _Cache_class.lookup(self, key)
+
+            def lookup(self, key):
+                time.sleep(0.1)
+                return self._lookup(key)
+
+        interfaces.cache._Cache = _SlowLookupCache
+
+        interfaces.cache.enable()
+
+        # something shortish
+        interfaces.cache.set_keepalive_time(0.001)
+
+        ar, ai = numpy.random.randn(*(2,) + data_shape)
+        a = ar + 1j*ai
+
+        # Both the following should work without exception
+        # (even if it fails to get from the cache)
+        interfaces.numpy_fft.fft(a)
+        interfaces.numpy_fft.fft(a)
+
+        interfaces.cache.disable()
+
+        # Revert the monkey patching
+        interfaces.cache._Cache = _Cache_class
+    
 
 class InterfacesCacheTest(unittest.TestCase):
     
@@ -275,6 +316,7 @@ class InterfacesNumpyFFTCacheTestIRFFTN(InterfacesNumpyFFTCacheTestFFTN):
 test_cases = (
         CacheTest,
         InterfacesCacheTest,
+        CacheSpecificInterfacesUtils,
         InterfacesNumpyFFTCacheTestFFT,
         InterfacesNumpyFFTCacheTestIFFT,
         InterfacesNumpyFFTCacheTestRFFT,
@@ -287,7 +329,7 @@ test_cases = (
         InterfacesNumpyFFTCacheTestIFFTN,
         InterfacesNumpyFFTCacheTestRFFTN,
         InterfacesNumpyFFTCacheTestIRFFTN,)
- 
+
 test_set = None
 
 if __name__ == '__main__':

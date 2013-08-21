@@ -56,7 +56,18 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         key = (calling_func, a.shape, a.strides, a.dtype, s.__hash__(), 
                 axes.__hash__(), args[3:])
 
-    if not cache.is_enabled() or key not in cache._fftw_cache:
+        try:
+            if key in cache._fftw_cache:
+                FFTW_object = cache._fftw_cache.lookup(key)
+            else:
+                FFTW_object = None
+
+        except KeyError:
+            # This occurs if the object has fallen out of the cache between
+            # the check and the lookup
+            FFTW_object = None
+
+    if not cache.is_enabled() or FFTW_object is None:
 
         # If we're going to create a new FFTW object, we need to copy
         # the input array to preserve it, otherwise we can't actually
@@ -80,8 +91,6 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
     else:
         if reload_after_transform:
             a_copy = a.copy()
-
-        FFTW_object = cache._fftw_cache.lookup(key)
 
         orig_output_array = FFTW_object.get_output_array()
         output_shape = orig_output_array.shape

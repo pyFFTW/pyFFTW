@@ -109,7 +109,7 @@ def set_keepalive_time(keepalive_time):
 
     The time is not precise, and sets a minimum time to be alive. In 
     practice, it may be up to twice as long before the object is
-    deleted from the cache (due to implmentational details).
+    deleted from the cache (due to implementational details).
     '''
     global _fftw_cache
     
