@@ -25,7 +25,6 @@ from .test_pyfftw_numpy_interface import InterfacesNumpyFFTTestFFT
 
 import threading
 import time
-import types
 
 '''Test the caching functionality of the interfaces package.
 '''
