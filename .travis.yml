@@ -14,6 +14,6 @@ before_install:
  - cython pyfftw/pyfftw.pyx
  - cython pyfftw/utils.pxi
 
-install: pip install requirements.txt
+install: pip install -r requirements.txt --use-mirrors
 
 script: python setup.py test
