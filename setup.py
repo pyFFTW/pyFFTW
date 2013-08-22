@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from distutils.core import setup
+from distutils.core import setup, Command
 from distutils.extension import Extension
 from distutils.util import get_platform
 
@@ -78,6 +78,21 @@ The documentation can be found
 is on `github <https://github.com/hgomersall/pyFFTW>`_.
 '''
 
+class TestCommand(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import sys, subprocess
+        errno = subprocess.call([sys.executable, '-m', 'unittest', 
+            'discover'])
+        raise SystemExit(errno)
+
 setup_args = {
         'name': 'pyFFTW',
         'version': version,
@@ -102,6 +117,7 @@ setup_args = {
         'ext_modules': ext_modules,
         'include_dirs': include_dirs,
         'package_data': package_data,
+        'cmdclass': {'test': TestCommand},
   }
 
 if __name__ == '__main__':

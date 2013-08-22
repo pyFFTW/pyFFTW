@@ -1,0 +1,4 @@
+pyFFTW
+numpy>=2.7
+scipy>=0.12.0
+cython>=0.15
