@@ -8,7 +8,8 @@ python:
 
 before_install:
  - sudo apt-get update -qq
- - sudo apt-get install -qq libfftw3-dev cython
+ - sudo apt-get install -qq libfftw3-dev
+ - pip install cython
  - python cython_setup.py build_ext --inplace
 
 install: pip install -r requirements.txt
