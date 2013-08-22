@@ -11,7 +11,8 @@ virtualenv:
 before_install:
  - sudo apt-get update -qq
  - sudo apt-get install -qq libfftw3-dev cython python-numpy python-scipy python3-numpy python3-scipy
- - python cython_setup.py build_ext --inplace
+ - cython pyfftw/pyfftw.pyx
+ - cython pyfftw/utils.pxi
 
 install: pip install requirements.txt
 
