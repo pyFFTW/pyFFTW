@@ -32,8 +32,15 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
 
     reload_after_transform = False
 
-    s = tuple(s)
-    axes = tuple(axes)
+    try:
+        s = tuple(s)
+    except TypeError:
+        pass
+
+    try:
+        axes = tuple(axes)
+    except TypeError:
+        pass
 
     if calling_func in ('irfft2', 'irfftn'):
         # overwrite_input is not an argument to irfft2 or irfftn

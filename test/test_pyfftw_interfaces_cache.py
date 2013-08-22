@@ -60,7 +60,7 @@ class CacheSpecificInterfacesUtils(unittest.TestCase):
 
         # Monkey patch the module with a custom _Cache object
         _Cache_class = interfaces.cache._Cache        
-        class _SlowLookupCache(interfaces.cache._Cache):
+        class _SlowLookupCache(_Cache_class):
 
             def _lookup(self, key):
                 return _Cache_class.lookup(self, key)
@@ -69,25 +69,27 @@ class CacheSpecificInterfacesUtils(unittest.TestCase):
                 time.sleep(0.1)
                 return self._lookup(key)
 
-        interfaces.cache._Cache = _SlowLookupCache
+        try:
+            interfaces.cache._Cache = _SlowLookupCache
 
-        interfaces.cache.enable()
+            interfaces.cache.enable()
 
-        # something shortish
-        interfaces.cache.set_keepalive_time(0.001)
+            # something shortish
+            interfaces.cache.set_keepalive_time(0.001)
 
-        ar, ai = numpy.random.randn(*(2,) + data_shape)
-        a = ar + 1j*ai
+            ar, ai = numpy.random.randn(*(2,) + data_shape)
+            a = ar + 1j*ai
 
-        # Both the following should work without exception
-        # (even if it fails to get from the cache)
-        interfaces.numpy_fft.fft(a)
-        interfaces.numpy_fft.fft(a)
+            # Both the following should work without exception
+            # (even if it fails to get from the cache)
+            interfaces.numpy_fft.fft(a)
+            interfaces.numpy_fft.fft(a)
 
-        interfaces.cache.disable()
+            interfaces.cache.disable()
 
-        # Revert the monkey patching
-        interfaces.cache._Cache = _Cache_class
+        finally:
+            # Revert the monkey patching
+            interfaces.cache._Cache = _Cache_class
     
 
 class InterfacesCacheTest(unittest.TestCase):
