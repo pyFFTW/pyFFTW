@@ -1,3 +1,2 @@
-pyFFTW
-numpy>=2.7
+numpy>=1.6
 scipy>=0.12.0
