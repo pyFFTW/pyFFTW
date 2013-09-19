@@ -25,6 +25,8 @@ import os
 import numpy
 import sys
 
+from pyfftw import version
+
 try:
     from Cython.Distutils import build_ext as build_ext
     sources = [os.path.join('pyfftw', 'pyfftw.pyx')]
@@ -64,8 +66,6 @@ ext_modules = [Extension('pyfftw.pyfftw',
     libraries=libraries,
     library_dirs=library_dirs,
     include_dirs=include_dirs)]
-
-version = '0.9.1'
 
 long_description = '''
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the

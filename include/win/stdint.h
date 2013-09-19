@@ -1,0 +1,1 @@
+/* A fake stdint.h for the windows SDK to be happy */
