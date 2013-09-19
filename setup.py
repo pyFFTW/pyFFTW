@@ -19,28 +19,48 @@
 from distutils.core import setup, Command
 from distutils.extension import Extension
 from distutils.util import get_platform
+from distutils.ccompiler import get_default_compiler
 
 import os
 import numpy
 import sys
 
+try:
+    from Cython.Distutils import build_ext as build_ext
+    sources = [os.path.join('pyfftw', 'pyfftw.pyx')]
+except ImportError:
+    # We can't cythonize, but that might have been done already in a
+    # source distribution, so carry on and see...
+    from distutils.command.build_ext import build_ext
+    sources = [os.path.join('pyfftw', 'pyfftw.c')]
+
 include_dirs = [numpy.get_include()]
 library_dirs = []
 package_data = {}
 
-if get_platform() == 'win32':
-    libraries = ['fftw3-3', 'fftw3f-3', 'fftw3l-3', 'm']
-    include_dirs.append('pyfftw')
+if get_platform() in ('win32', 'win-amd64'):
+    libraries = ['fftw3-3', 'fftw3f-3', 'fftw3l-3']
+    include_dirs.append(os.path.join('include', 'win'))
     library_dirs.append(os.path.join(os.getcwd(),'pyfftw'))
     package_data['pyfftw'] = [
             'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
 else:
     libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads', 
-            'fftw3f_threads', 'fftw3l_threads', 'm']
+            'fftw3f_threads', 'fftw3l_threads']
 
+class custom_build_ext(build_ext):
+    # This might well be unnecessary, but I'm leaving it here in
+    # case it's necesssary to make compiler specific tweaks...
+    def finalize_options(self):
+        if self.compiler is None:
+            compiler = get_default_compiler()
+        else:
+            compiler = self.compiler
+
+        build_ext.finalize_options(self)
 
 ext_modules = [Extension('pyfftw.pyfftw',
-    sources=[os.path.join('pyfftw', 'pyfftw.c')],
+    sources=sources,
     libraries=libraries,
     library_dirs=library_dirs,
     include_dirs=include_dirs)]
@@ -117,7 +137,8 @@ setup_args = {
         'ext_modules': ext_modules,
         'include_dirs': include_dirs,
         'package_data': package_data,
-        'cmdclass': {'test': TestCommand},
+        'cmdclass': {'test': TestCommand,
+            'build_ext': custom_build_ext},
   }
 
 if __name__ == '__main__':
