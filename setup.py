@@ -64,15 +64,20 @@ else:
 
 class custom_build_ext(build_ext):
     def finalize_options(self):
+
+        build_ext.finalize_options(self)
+
         if self.compiler is None:
             compiler = get_default_compiler()
         else:
             compiler = self.compiler
 
-        build_ext.finalize_options(self)
-
         if compiler == 'msvc':
             # Add msvc specific hacks
+            
+            # We need to add the path to msvc includes
+            include_dirs.append(os.path.join('include', 'msvc'))
+
             # We need to prepend lib to all the library names
             _libraries = []
             for each_lib in self.libraries:

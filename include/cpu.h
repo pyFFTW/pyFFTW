@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 Knowledge Economy Developments Ltd
+ * Copyright 2013 Knowledge Economy Developments Ltd
  * 
  * Henry Gomersall
  * heng@kedevelopments.co.uk
