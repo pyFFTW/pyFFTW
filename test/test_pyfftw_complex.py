@@ -119,8 +119,14 @@ class Complex64FFTW1DTest(object):
 
         limited_time = (time.time() - t1)/runs
 
-        # Give a 2x margin 
-        self.assertTrue(limited_time < time_limit*2)
+        import sys
+        if sys.platform == 'win32':
+            # Give a 4x margin on windows. The timers are low
+            # precision and FFTW seems to take longer anyway
+            self.assertTrue(limited_time < time_limit*4)
+        else:
+            # Otherwise have a 2x margin
+            self.assertTrue(limited_time < time_limit*2)
 
     def test_invalid_planning_time_limit(self):
         in_shape = self.input_shapes['1d']
