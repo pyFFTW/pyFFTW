@@ -28,7 +28,7 @@ Requirements (i.e. what it was designed for)
 --------------------------------------------
 - Python 2.7 or greater (Python 3 is supported)
 - Numpy 1.6
-- FFTW 3.2 or higher (lower versions *may* work)
+- FFTW 3.3 or higher (lower versions *may* work)
 - Cython 0.15 or higher (though the source release on PyPI loses this 
   dependency)
 
@@ -46,11 +46,10 @@ or::
 
   easy_install pyfftw
 
-Success has been reported on building on Linux, 32-bit Windows and Mac OSX.
-It doesn't mean it won't work anywhere else, just we don't have any information
-on it.
+Installers are on the PyPI page for both 32- and 64-bit Windows, which include
+all the necessary DLLs.
 
-64-bit windows is possible but a bit of fiddling is required (see below).
+With FFTW installed, the PyPI release should install fine on Linux and Mac OSX. It doesn't mean it won't work anywhere else, just we don't have any information on it.
 
 Read on if you do want to build from source...
 
@@ -85,10 +84,17 @@ directory. The files are ``libfftw3-3.dll``, ``libfftw3l-3.dll``,
 ``libfftw3f-3.dll``. If you're using a version of FFTW other than 3.3, it may
 be necessary to copy ``fftw3.h`` into ``include\win``.
 
-The setup scripts are designed for using with MinGW. They don't work as is
-with MSVC. If you want to build for 64-bit windows, you will *have* to use
-MSVC as building python extensions for 64-bit Windows with MinGW is currently
-badly supported. This is a work in progress...
+The builds on PyPI use mingw for the 32-bit release and the Windows SDK 
+C++ compiler for the 64-bit release. The scripts should handle this 
+automatically. If you want to compile for 64-bit Windows, you have to use
+the MS Visual C++ compiler. Set up your environment as described 
+`here <http://wiki.cython.org/64BitCythonExtensionsOnWindows>`_ and then
+run `setup.py` with the version of python you wish to target and a suitable
+build command.
+
+For using the MS Visual C++ compiler, you'll need to create a set of 
+suitable `.lib` files as described on the 
+`FFTW page <http://www.fftw.org/install/windows.html>`_.
 
 Mac OSX
 ~~~~~~~
