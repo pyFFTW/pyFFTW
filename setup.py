@@ -25,7 +25,19 @@ import os
 import numpy
 import sys
 
-from pyfftw import version
+# Get the version string in rather a roundabout way.
+# We can't import it directly as the module may not yet be
+# built in pyfftw.
+import imp
+ver_file, ver_pathname, ver_description = imp.find_module(
+            '_version', ['pyfftw'])
+try:
+    _version = imp.load_module('version', ver_file, ver_pathname, 
+            ver_description)
+finally:
+    ver_file.close()
+
+version = _version.version
 
 try:
     from Cython.Distutils import build_ext as build_ext
@@ -36,23 +48,21 @@ except ImportError:
     from distutils.command.build_ext import build_ext
     sources = [os.path.join('pyfftw', 'pyfftw.c')]
 
-include_dirs = [numpy.get_include()]
+include_dirs = ['include', numpy.get_include()]
 library_dirs = []
 package_data = {}
 
 if get_platform() in ('win32', 'win-amd64'):
-    libraries = ['fftw3-3', 'fftw3f-3', 'fftw3l-3']
+    libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
     include_dirs.append(os.path.join('include', 'win'))
     library_dirs.append(os.path.join(os.getcwd(),'pyfftw'))
     package_data['pyfftw'] = [
-            'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
+            'fftw3-3.dll', 'fftw3l-3.dll', 'fftw3f-3.dll']
 else:
     libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads', 
             'fftw3f_threads', 'fftw3l_threads']
 
 class custom_build_ext(build_ext):
-    # This might well be unnecessary, but I'm leaving it here in
-    # case it's necesssary to make compiler specific tweaks...
     def finalize_options(self):
         if self.compiler is None:
             compiler = get_default_compiler()
@@ -60,6 +70,15 @@ class custom_build_ext(build_ext):
             compiler = self.compiler
 
         build_ext.finalize_options(self)
+
+        if compiler == 'msvc':
+            # Add msvc specific hacks
+            # We need to prepend lib to all the library names
+            _libraries = []
+            for each_lib in self.libraries:
+                _libraries.append('lib' + each_lib)
+
+            self.libraries = _libraries
 
 ext_modules = [Extension('pyfftw.pyfftw',
     sources=sources,

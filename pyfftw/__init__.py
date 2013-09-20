@@ -10,7 +10,8 @@ This module represents the full interface to the underlying `FFTW
 library <http://www.fftw.org/>`_. However, users may find it easier to
 use the helper routines provided in :mod:`pyfftw.builders`.
 '''
-version = '0.9.2'
+
+from ._version import version
 
 from .pyfftw import (
         FFTW,
@@ -28,4 +29,3 @@ from . import interfaces
 # clean up the namespace
 del builders.builders
 
-#from np_fft import *

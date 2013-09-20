@@ -20,6 +20,15 @@
 
 /* Small utilities for inspecting the CPU */
 
+#ifndef CPU_H
+#define CPU_H
+
+#if __STDC_VERSION__ >= 199901L
+  /* "inline" is a keyword */
+#else
+# define inline static
+#endif
+
 #if defined(__amd64__) || defined (_M_X64) || defined(__i386__) || defined(_M_IX86) || defined(_X86_)
 
   #define AVX_BYTE 2
@@ -52,7 +61,7 @@
   #endif
 
 /* Returns the byte alignment for optimum simd operations */
-int simd_alignment(void){
+inline int simd_alignment(void){
     int cpuinfo[4];
 
     /* This gets the cpuinfo (set by 1)*/
@@ -68,8 +77,9 @@ int simd_alignment(void){
 
 #else
 
-int simd_alignment(void){
+inline int simd_alignment(void){
     return 4;
 }
 #endif
 
+#endif /* Header guard */

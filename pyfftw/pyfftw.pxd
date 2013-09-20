@@ -19,9 +19,6 @@
 cimport numpy as np
 from libc.stdint cimport int64_t
 
-cdef extern from "complex.h":
-    pass
-
 ctypedef struct _fftw_iodim:
     int _n
     int _is
@@ -59,100 +56,100 @@ cdef extern from "fftw3.h":
     fftw_plan fftw_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
-            double complex *_in, double complex *_out,
+            np.npy_cdouble *_in, np.npy_cdouble *_out,
             int sign, unsigned flags)
     
     # Single precision complex planner
     fftwf_plan fftwf_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
-            float complex *_in, float complex *_out,
+            np.npy_cfloat *_in, np.npy_cfloat *_out,
             int sign, unsigned flags)
 
     # Single precision complex planner
     fftwl_plan fftwl_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
-            long double complex *_in, long double complex *_out,
+            np.npy_clongdouble *_in, np.npy_clongdouble *_out,
             int sign, unsigned flags)
     
     # Double precision real to complex planner
     fftw_plan fftw_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
-            double *_in, double complex *_out,
+            double *_in, np.npy_cdouble *_out,
             unsigned flags)
     
     # Single precision real to complex planner
     fftwf_plan fftwf_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
-            float *_in, float complex *_out,
+            float *_in, np.npy_cfloat *_out,
             unsigned flags)
 
     # Single precision real to complex planner
     fftwl_plan fftwl_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
-            long double *_in, long double complex *_out,
+            long double *_in, np.npy_clongdouble *_out,
             unsigned flags)
 
     # Double precision complex to real planner
     fftw_plan fftw_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
-            double complex *_in, double *_out,
+            np.npy_cdouble *_in, double *_out,
             unsigned flags)
     
     # Single precision complex to real planner
     fftwf_plan fftwf_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
-            float complex *_in, float *_out,
+            np.npy_cfloat *_in, float *_out,
             unsigned flags)
 
     # Single precision complex to real planner
     fftwl_plan fftwl_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
-            long double complex *_in, long double *_out,
+            np.npy_clongdouble *_in, long double *_out,
             unsigned flags)
 
     # Double precision complex new array execute
     void fftw_execute_dft(fftw_plan,
-          double complex *_in, double complex *_out) nogil
+          np.npy_cdouble *_in, np.npy_cdouble *_out) nogil
     
     # Single precision complex new array execute    
     void fftwf_execute_dft(fftwf_plan,
-          float complex *_in, float complex *_out) nogil
+          np.npy_cfloat *_in, np.npy_cfloat *_out) nogil
 
     # Long double precision complex new array execute    
     void fftwl_execute_dft(fftwl_plan,
-          long double complex *_in, long double complex *_out) nogil
+          np.npy_clongdouble *_in, np.npy_clongdouble *_out) nogil
    
     # Double precision real to complex new array execute
     void fftw_execute_dft_r2c(fftw_plan,
-          double *_in, double complex *_out) nogil
+          double *_in, np.npy_cdouble *_out) nogil
     
     # Single precision real to complex new array execute    
     void fftwf_execute_dft_r2c(fftwf_plan,
-          float *_in, float complex *_out) nogil
+          float *_in, np.npy_cfloat *_out) nogil
 
     # Long double precision real to complex new array execute    
     void fftwl_execute_dft_r2c(fftwl_plan,
-          long double *_in, long double complex *_out) nogil
+          long double *_in, np.npy_clongdouble *_out) nogil
 
     # Double precision complex to real new array execute
     void fftw_execute_dft_c2r(fftw_plan,
-          double complex *_in, double *_out) nogil
+          np.npy_cdouble *_in, double *_out) nogil
     
     # Single precision complex to real new array execute    
     void fftwf_execute_dft_c2r(fftwf_plan,
-          float complex *_in, float *_out) nogil
+          np.npy_cfloat *_in, float *_out) nogil
 
     # Long double precision complex to real new array execute    
     void fftwl_execute_dft_c2r(fftwl_plan,
-          long double complex *_in, long double *_out) nogil
+          np.npy_clongdouble *_in, long double *_out) nogil
 
     # Double precision plan destroyer
     void fftw_destroy_plan(fftw_plan)

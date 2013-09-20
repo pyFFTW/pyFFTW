@@ -62,7 +62,7 @@ cdef void* _fftw_plan_guru_dft(
 
     return <void *>fftw_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
-            <double complex *>_in, <double complex *>_out,
+            <np.npy_cdouble *>_in, <np.npy_cdouble *>_out,
             sign, flags)
 
 # Complex single precision
@@ -74,7 +74,7 @@ cdef void* _fftwf_plan_guru_dft(
 
     return <void *>fftwf_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
-            <float complex *>_in, <float complex *>_out,
+            <np.npy_cfloat *>_in, <np.npy_cfloat *>_out,
             sign, flags)
 
 # Complex long double precision
@@ -86,7 +86,7 @@ cdef void* _fftwl_plan_guru_dft(
 
     return <void *>fftwl_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
-            <long double complex *>_in, <long double complex *>_out,
+            <np.npy_clongdouble *>_in, <np.npy_clongdouble *>_out,
             sign, flags)
 
 # real to complex double precision
@@ -98,7 +98,7 @@ cdef void* _fftw_plan_guru_dft_r2c(
 
     return <void *>fftw_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
-            <double *>_in, <double complex *>_out,
+            <double *>_in, <np.npy_cdouble *>_out,
             flags)
 
 # real to complex single precision
@@ -110,7 +110,7 @@ cdef void* _fftwf_plan_guru_dft_r2c(
 
     return <void *>fftwf_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
-            <float *>_in, <float complex *>_out,
+            <float *>_in, <np.npy_cfloat *>_out,
             flags)
 
 # real to complex long double precision
@@ -122,7 +122,7 @@ cdef void* _fftwl_plan_guru_dft_r2c(
 
     return <void *>fftwl_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
-            <long double *>_in, <long double complex *>_out,
+            <long double *>_in, <np.npy_clongdouble *>_out,
             flags)
 
 # complex to real double precision
@@ -134,7 +134,7 @@ cdef void* _fftw_plan_guru_dft_c2r(
 
     return <void *>fftw_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
-            <double complex *>_in, <double *>_out,
+            <np.npy_cdouble *>_in, <double *>_out,
             flags)
 
 # complex to real single precision
@@ -146,7 +146,7 @@ cdef void* _fftwf_plan_guru_dft_c2r(
 
     return <void *>fftwf_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
-            <float complex *>_in, <float *>_out,
+            <np.npy_cfloat *>_in, <float *>_out,
             flags)
 
 # complex to real long double precision
@@ -158,7 +158,7 @@ cdef void* _fftwl_plan_guru_dft_c2r(
 
     return <void *>fftwl_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
-            <long double complex *>_in, <long double *>_out,
+            <np.npy_clongdouble *>_in, <long double *>_out,
             flags)
 
 #    Executors
@@ -168,55 +168,55 @@ cdef void* _fftwl_plan_guru_dft_c2r(
 cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out) nogil:
 
     fftw_execute_dft(<fftw_plan>_plan, 
-            <double complex *>_in, <double complex *>_out)
+            <np.npy_cdouble *>_in, <np.npy_cdouble *>_out)
 
 # Complex single precision
 cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out) nogil:
 
     fftwf_execute_dft(<fftwf_plan>_plan, 
-            <float complex *>_in, <float complex *>_out)
+            <np.npy_cfloat *>_in, <np.npy_cfloat *>_out)
 
 # Complex long double precision
 cdef void _fftwl_execute_dft(void *_plan, void *_in, void *_out) nogil:
 
     fftwl_execute_dft(<fftwl_plan>_plan, 
-            <long double complex *>_in, <long double complex *>_out)
+            <np.npy_clongdouble *>_in, <np.npy_clongdouble *>_out)
 
 # real to complex double precision
 cdef void _fftw_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
 
     fftw_execute_dft_r2c(<fftw_plan>_plan, 
-            <double *>_in, <double complex *>_out)
+            <double *>_in, <np.npy_cdouble *>_out)
 
 # real to complex single precision
 cdef void _fftwf_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
 
     fftwf_execute_dft_r2c(<fftwf_plan>_plan, 
-            <float *>_in, <float complex *>_out)
+            <float *>_in, <np.npy_cfloat *>_out)
 
 # real to complex long double precision
 cdef void _fftwl_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
 
     fftwl_execute_dft_r2c(<fftwl_plan>_plan, 
-            <long double *>_in, <long double complex *>_out)
+            <long double *>_in, <np.npy_clongdouble *>_out)
 
 # complex to real double precision
 cdef void _fftw_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
 
     fftw_execute_dft_c2r(<fftw_plan>_plan, 
-            <double complex *>_in, <double *>_out)
+            <np.npy_cdouble *>_in, <double *>_out)
 
 # complex to real single precision
 cdef void _fftwf_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
 
     fftwf_execute_dft_c2r(<fftwf_plan>_plan, 
-            <float complex *>_in, <float *>_out)
+            <np.npy_cfloat *>_in, <float *>_out)
 
 # complex to real long double precision
 cdef void _fftwl_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
 
     fftwl_execute_dft_c2r(<fftwl_plan>_plan, 
-            <long double complex *>_in, <long double *>_out)
+            <np.npy_clongdouble *>_in, <long double *>_out)
 
 #    Destroyers
 #    ==========
@@ -417,13 +417,17 @@ cdef object fftw_schemes
 fftw_schemes = {
         (np.dtype('complex128'), np.dtype('complex128')): ('c2c', '64'),
         (np.dtype('complex64'), np.dtype('complex64')): ('c2c', '32'),
-        (np.dtype('clongdouble'), np.dtype('clongdouble')): ('c2c', 'ld'),
         (np.dtype('float64'), np.dtype('complex128')): ('r2c', '64'),
         (np.dtype('float32'), np.dtype('complex64')): ('r2c', '32'),
-        (np.dtype('longdouble'), np.dtype('clongdouble')): ('r2c', 'ld'),
         (np.dtype('complex128'), np.dtype('float64')): ('c2r', '64'),
-        (np.dtype('complex64'), np.dtype('float32')): ('c2r', '32'),
-        (np.dtype('clongdouble'), np.dtype('longdouble')): ('c2r', 'ld')}
+        (np.dtype('complex64'), np.dtype('float32')): ('c2r', '32')}
+
+if np.dtype('longdouble') != np.dtype('float64'):
+    fftw_schemes.update({
+        (np.dtype('clongdouble'), np.dtype('clongdouble')): ('c2c', 'ld'),
+        (np.dtype('longdouble'), np.dtype('clongdouble')): ('r2c', 'ld'),
+        (np.dtype('clongdouble'), np.dtype('longdouble')): ('c2r', 'ld')})
+
 
 cdef object scheme_directions
 scheme_directions = {
