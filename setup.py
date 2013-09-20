@@ -57,7 +57,7 @@ if get_platform() in ('win32', 'win-amd64'):
     include_dirs.append(os.path.join('include', 'win'))
     library_dirs.append(os.path.join(os.getcwd(),'pyfftw'))
     package_data['pyfftw'] = [
-            'fftw3-3.dll', 'fftw3l-3.dll', 'fftw3f-3.dll']
+            'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
 else:
     libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads', 
             'fftw3f_threads', 'fftw3l_threads']
@@ -75,8 +75,13 @@ class custom_build_ext(build_ext):
         if compiler == 'msvc':
             # Add msvc specific hacks
             
-            # We need to add the path to msvc includes
-            include_dirs.append(os.path.join('include', 'msvc'))
+            if (sys.version_info.major, sys.version_info.minor) < (3, 3):
+                # The check above is a nasty hack. We're using the python
+                # version as a proxy for the MSVC version. 2008 doesn't
+                # have stdint.h, so is needed. 2010 does.
+                #
+                # We need to add the path to msvc includes
+                include_dirs.append(os.path.join('include', 'msvc_2008'))
 
             # We need to prepend lib to all the library names
             _libraries = []
