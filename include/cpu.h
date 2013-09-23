@@ -31,9 +31,9 @@
 
 #if defined(__amd64__) || defined (_M_X64) || defined(__i386__) || defined(_M_IX86) || defined(_X86_)
 
-  #define AVX_BYTE 2
+  #define AVX_WORD 2
   #define AVX_BIT 28
-  #define SSE_BYTE 3
+  #define SSE_WORD 3
   #define SSE_BIT 25
 
   #ifdef _MSC_VER
@@ -67,9 +67,9 @@ inline int simd_alignment(void){
     /* This gets the cpuinfo (set by 1)*/
     cpuid(1, cpuinfo);
 
-    if (cpuinfo[AVX_BYTE] & (1<<AVX_BIT))  /* AVX */
+    if (cpuinfo[AVX_WORD] & (1<<AVX_BIT))  /* AVX */
         return 32;
-    else if (cpuinfo[SSE_BYTE] & (1<<SSE_BIT))  /* SSE */
+    else if (cpuinfo[SSE_WORD] & (1<<SSE_BIT))  /* SSE */
         return 16;
     else  /* No SIMD */
         return 4;
