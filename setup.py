@@ -41,21 +41,26 @@ version = _version.version
 
 try:
     from Cython.Distutils import build_ext as build_ext
-    sources = [os.path.join('pyfftw', 'pyfftw.pyx')]
-except ImportError:
-    # We can't cythonize, but that might have been done already in a
-    # source distribution, so carry on and see...
-    from distutils.command.build_ext import build_ext
-    sources = [os.path.join('pyfftw', 'pyfftw.c')]
+    sources = [os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')]
+except ImportError as e:
+    sources = [os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.c')]
+    if not os.path.exists(sources[0]):
+        raise ImportError(str(e) + '. ' +
+                'Cython is required to build the initial .c file.')
 
-include_dirs = ['include', numpy.get_include()]
+    # We can't cythonize, but that's ok as it's been done already.
+    from distutils.command.build_ext import build_ext
+
+include_dirs = [os.path.join(os.getcwd(), 'include'), 
+        os.path.join(os.getcwd(), 'pyfftw'),
+        numpy.get_include()]
 library_dirs = []
 package_data = {}
 
 if get_platform() in ('win32', 'win-amd64'):
     libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
-    include_dirs.append(os.path.join('include', 'win'))
-    library_dirs.append(os.path.join(os.getcwd(),'pyfftw'))
+    include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
+    library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
     package_data['pyfftw'] = [
             'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
 else:
@@ -81,7 +86,8 @@ class custom_build_ext(build_ext):
                 # have stdint.h, so is needed. 2010 does.
                 #
                 # We need to add the path to msvc includes
-                include_dirs.append(os.path.join('include', 'msvc_2008'))
+                include_dirs.append(os.path.join(os.getcwd(), 
+                    'include', 'msvc_2008'))
 
             # We need to prepend lib to all the library names
             _libraries = []
