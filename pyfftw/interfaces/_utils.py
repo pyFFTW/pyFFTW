@@ -24,6 +24,7 @@ Utility functions for the interfaces routines
 
 import pyfftw.builders as builders
 import pyfftw
+import numpy
 from . import cache
 
 def _Xfftn(a, s, axes, overwrite_input, planner_effort,
@@ -31,6 +32,8 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         calling_func):
 
     reload_after_transform = False
+
+    a = numpy.asanyarray(a)
 
     try:
         s = tuple(s)

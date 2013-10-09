@@ -25,6 +25,7 @@ import numpy
 from numpy import fft as np_fft
 import inspect
 import warnings
+import copy
 warnings.filterwarnings('always')
 
 complex_dtypes = (numpy.complex64, numpy.complex128, numpy.clongdouble)
@@ -129,23 +130,23 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             s, kwargs):
 
         input_array = array_type(test_shape, dtype)
-        orig_input_array = input_array.copy()
+        orig_input_array = copy.copy(input_array)
 
-        if input_array.dtype == 'clongdouble':
+        np_input_array = numpy.asarray(input_array)
+        
+        if np_input_array.dtype == 'clongdouble':
             np_input_array = numpy.complex128(input_array)
 
-        elif input_array.dtype == 'longdouble':
+        elif np_input_array.dtype == 'longdouble':
             np_input_array = numpy.float64(input_array)
 
-        else:
-            np_input_array = input_array
 
         with warnings.catch_warnings(record=True) as w:
             # We catch the warnings so as to pick up on when
             # a complex array is turned into a real array
 
             output_array = getattr(interfaces.numpy_fft, self.func)(
-                    input_array.copy(), s, **kwargs)
+                    copy.copy(input_array), s, **kwargs)
 
             if 'axes' in kwargs:
                 axes = {'axes': kwargs['axes']}
@@ -155,7 +156,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 axes = {}
 
             test_out_array = getattr(np_fft, self.func)(
-                    np_input_array.copy(), s, **axes)
+                    copy.copy(np_input_array), s, **axes)
 
             if (functions[self.func] == 'r2c'):
                 if numpy.iscomplexobj(input_array):
@@ -251,6 +252,19 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 s = None
 
                 self.validate(dtype_tuple[1], 
+                        test_shape, dtype, s, kwargs)
+
+    def test_on_non_numpy_array(self):
+        dtype_tuple = io_dtypes[functions[self.func]]
+        
+        array_type = (lambda test_shape, dtype: 
+                dtype_tuple[1](test_shape, dtype).tolist())
+
+        for dtype in dtype_tuple[0]:
+            for test_shape, s, kwargs in self.test_data:
+                s = None
+
+                self.validate(array_type, 
                         test_shape, dtype, s, kwargs)
 
 
@@ -558,7 +572,7 @@ test_cases = (
         InterfacesNumpyFFTTestRFFTN,
         InterfacesNumpyFFTTestIRFFTN)
 
-#test_set = {'InterfacesNumpyFFTTestIRFFT2': ('test_bigger_s',)}
+#test_set = {'InterfacesNumpyFFTTestFFT': ('test_on_non_numpy_array',)}
 test_set = None
 
 if __name__ == '__main__':
