@@ -180,7 +180,7 @@ def irfft(x, n=None, axis=-1, overwrite_x=False,
     xm = x[...,1:-1].flatten().view('complex%i' % ctype).reshape(shapem)
     xn = x[...,-1:] + 0.j
     x = concatenate([x1, xm, xn], axis=-1)
-    f = numpy_fft.irfft(x, n, axis, overwrite_x, planner_effort,
+    f = numpy_fft.irfft(x, n, -1, overwrite_x, planner_effort,
                         threads, auto_align_input, auto_contiguous)
     if swap:
         f = f.swapaxes(axis, -1)
