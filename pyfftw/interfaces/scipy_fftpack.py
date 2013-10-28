@@ -128,10 +128,27 @@ def rfft(x, n=None, axis=-1, overwrite_x=False,
     The first three arguments are as per :func:`scipy.fftpack.rfft`; 
     the rest of the arguments are documented 
     in the :ref:`additional argument docs<interfaces_additional_args>`.
-    '''
 
-    return numpy_fft.rfft(x, n, axis, overwrite_x, planner_effort,
-            threads, auto_align_input, auto_contiguous)
+    Note: scipy outputs in a different format than numpy and fftw:
+    http://mail.scipy.org/pipermail/numpy-discussion/2006-September/022977.html
+    http://comments.gmane.org/gmane.comp.python.scientific.user/19691
+    We convert the output to scipy format:
+    re[0], re[1], im[1], ..., re[n/2-1], im[n/2-1], re[n/2]
+    '''
+    from numpy import concatenate
+    dtype = x.dtype
+    # rfft works best on last dim
+    if (axis != -1) or (axis != x.ndim - 1):
+        swap = True
+        x = x.swapaxes(axis, -1)
+    else:
+        swap = False
+    f = numpy_fft.rfft(x, n, -1, overwrite_x, planner_effort,
+            threads, auto_align_input, auto_contiguous).view(dtype)
+    f = concatenate([f[...,:1], f[...,2:-1]], axis=-1)
+    if swap:
+        f = f.swapaxes(axis, -1)
+    return f
 
 def irfft(x, n=None, axis=-1, overwrite_x=False,
         planner_effort='FFTW_MEASURE', threads=1,
@@ -141,8 +158,31 @@ def irfft(x, n=None, axis=-1, overwrite_x=False,
     The first three arguments are as per :func:`scipy.fftpack.irfft`; 
     the rest of the arguments are documented 
     in the :ref:`additional argument docs<interfaces_additional_args>`.
+    
+    Note: scipy expects array of form:
+    re[0], re[1], im[1], ..., re[n/2-1], im[n/2-1], re[n/2]
+    we need to convert it to the numpy/fftw3 format
+    re[0] + 0.j, re[1] + im[1], ..., re[n/2-1] + im[n/2-1], re[n/2] + 0.j
     '''
-
-    return numpy_fft.irfft(x, n, axis, overwrite_x, planner_effort,
-            threads, auto_align_input, auto_contiguous)
+    from numpy import concatenate
+    dtype = x.dtype
+    ctype = 2*int(dtype.__str__().replace('float',''))
+    # irfft works best on last dim
+    if (axis != -1) or (axis != x.ndim - 1):
+        swap = True
+        x = x.swapaxes(axis, -1)
+    else:
+        swap = False
+    
+    x1 = x[...,:1]+0j
+    shapem = list(x[...,1:-1].shape)
+    shapem[-1] /= 2
+    xm = x[...,1:-1].flatten().view('complex%i' % ctype).reshape(shapem)
+    xn = x[...,-1:] + 0.j
+    x = concatenate([x1, xm, xn], axis=-1)
+    f = numpy_fft.irfft(x, n, -1, overwrite_x, planner_effort,
+                        threads, auto_align_input, auto_contiguous)
+    if swap:
+        f = f.swapaxes(axis, -1)
+    return f
 
