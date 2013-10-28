@@ -1,4 +1,4 @@
-.. image:: https://travis-ci.org/hgomersall/pyFFTW.png?branch=v0.9.2
+.. image:: https://travis-ci.org/hgomersall/pyFFTW.png?branch=master
    :target: https://travis-ci.org/hgomersall/pyFFTW
 
 PyFFTW
