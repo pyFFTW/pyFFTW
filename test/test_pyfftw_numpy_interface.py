@@ -28,6 +28,11 @@ import warnings
 import copy
 warnings.filterwarnings('always')
 
+if numpy.version.version <= '1.6.2':
+    # We overwrite the broken _cook_nd_args with a fixed version.
+    from ._cook_nd_args import _cook_nd_args
+    numpy.fft.fftpack._cook_nd_args = _cook_nd_args
+
 complex_dtypes = (numpy.complex64, numpy.complex128, numpy.clongdouble)
 real_dtypes = (numpy.float32, numpy.float64, numpy.longdouble)
 

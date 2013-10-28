@@ -5,6 +5,9 @@ Notable exceptions are fftw3.h and stdint.h in include/win/, the licenses,
 which are given inside the files, are the BSD 2- and 3-clause licenses
 respectively.
 
+Also, _cook_nd_args.py in test/ is licensed under the 3-clause BSD license
+as an extraction from numpy/fft/fftpack.py.
+
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
