@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/hgomersall/pyFFTW.png?branch=v0.9.2
+   :target: https://travis-ci.org/hgomersall/pyFFTW
+
 PyFFTW
 ======
 
