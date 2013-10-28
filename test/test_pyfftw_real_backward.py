@@ -253,8 +253,6 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
         self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
-    @unittest.skipIf(numpy.version.version <= '1.6.2',
-            'numpy.fft <= 1.6.2 has a bug that causes this test to fail.')
     def test_non_contiguous_2d_in_3d(self):
         in_shape = (256, 4, 1025)
         out_shape = (256, 4, 2048)
@@ -276,8 +274,6 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         
         self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
-    @unittest.skipIf(numpy.version.version <= '1.6.2',
-            'numpy.fft <= 1.6.2 has a bug that causes this test to fail.')
     def test_non_monotonic_increasing_axes(self):
         super(RealBackwardDoubleFFTWTest, 
                 self).test_non_monotonic_increasing_axes()
