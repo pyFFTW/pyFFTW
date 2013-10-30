@@ -24,17 +24,23 @@ This module implements those functions that replace aspects of the
 of :mod:`numpy.fft`, but those functions that are not included here are imported
 directly from :mod:`numpy.fft`.
 
-The precision of the transform that is used is selected from the array that 
-is passed in, defaulting to double precision if any type conversion is 
-required.
+
+It is notable that unlike :mod:`numpy.fftpack`, these functions will 
+generally return an output array with the same precision as the input
+array, and the transform that is chosen is chosen based on the precision
+of the input array. That is, if the input array is 32-bit floating point,
+then the transform will be 32-bit floating point and so will the returned
+array. If any type conversion is required, the default will be double
+precision.
 
 One known caveat is that repeated axes are handled differently to
 :mod:`numpy.fft`; axes that are repeated in the axes argument are considered
 only once, as compared to :mod:`numpy.fft` in which repeated axes results in
 the DFT being taken along that axes as many times as the axis occurs.
 
-The exceptions raised by each of these functions are as per their
-equivalents in :mod:`numpy.fft`.
+The exceptions raised by each of these functions are mostly as per their
+equivalents in :mod:`numpy.fft`, though there are some corner cases in
+which this may not be true.
 '''
 
 from ._utils import _Xfftn

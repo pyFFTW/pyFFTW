@@ -1,4 +1,4 @@
-# Copyright 2012 Knowledge Economy Developments Ltd
+# Copyright 2013 Knowledge Economy Developments Ltd
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
@@ -25,7 +25,7 @@ import scipy.signal
 
 import unittest
 from .test_pyfftw_base import run_test_suites
-
+import test_pyfftw_numpy_interface
 
 '''pyfftw.interfaces.scipy_fftpack just wraps pyfftw.interfaces.numpy_fft.
 
@@ -40,13 +40,33 @@ acquired_names = ('dct', 'idct', 'diff', 'tilbert', 'itilbert', 'hilbert',
         'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve', 
         '_fftpack')
 
+def make_complex_data(shape, dtype):
+    ar, ai = dtype(numpy.random.randn(2, *shape))
+    return ar + 1j*ai
+
+def make_r2c_real_data(shape, dtype):
+    return dtype(numpy.random.randn(*shape))
+
+def make_c2r_real_data(shape, dtype):
+    return dtype(numpy.random.randn(*shape))
+
+make_complex_data = test_pyfftw_numpy_interface.make_complex_data
+
+complex_dtypes = test_pyfftw_numpy_interface.complex_dtypes
+real_dtypes = test_pyfftw_numpy_interface.real_dtypes
+
 def numpy_fft_replacement(a, s, axes, overwrite_input, planner_effort, 
         threads, auto_align_input, auto_contiguous):
 
     return (a, s, axes, overwrite_input, planner_effort, 
         threads, auto_align_input, auto_contiguous)
 
-class InterfacesScipyFFTPackTestFFT(unittest.TestCase):
+io_dtypes = {
+        'complex': (complex_dtypes, make_complex_data),
+        'r2c': (real_dtypes, make_r2c_real_data),
+        'c2r': (real_dtypes, make_c2r_real_data)}
+
+class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
     ''' A really simple test suite to check simple implementation.
     '''
 
@@ -112,10 +132,34 @@ class InterfacesScipyFFTPackTestFFT(unittest.TestCase):
             self.assertIs(fftpack_attr, acquired_attr)
 
 
+# Construct all the test classes automatically.
+built_classes = []
+for each_func in funcs:
+
+    class_name = 'InterfacesScipyFFTPackTest' + each_func.upper()
+
+    parent_class_name = 'InterfacesNumpyFFTTest' + each_func.upper()
+    parent_class = getattr(test_pyfftw_numpy_interface, parent_class_name)
+
+    class_dict = {'validator_module': scipy.fftpack, 
+                'test_interface': scipy_fftpack,
+                'io_dtypes': io_dtypes,
+                'overwrite_input_flag': 'overwrite_x',
+                'default_s_from_shape_slicer': slice(None)}
+
+    globals()[class_name] = type(class_name,
+            (parent_class,), class_dict)
+
+    built_classes.append(globals()[class_name])
+
+built_classes = tuple(built_classes)
+
 test_cases = (
-        InterfacesScipyFFTPackTestFFT,)
+        InterfacesScipyFFTPackTestSimple,) + built_classes
 
 test_set = None
+#test_set = {'InterfacesScipyFFTPackTestIFFTN': ['test_auto_align_input']}
+
 
 if __name__ == '__main__':
 
