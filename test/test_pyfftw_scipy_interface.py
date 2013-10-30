@@ -25,7 +25,7 @@ import scipy.signal
 
 import unittest
 from .test_pyfftw_base import run_test_suites
-import test_pyfftw_numpy_interface
+from . import test_pyfftw_numpy_interface
 
 '''pyfftw.interfaces.scipy_fftpack just wraps pyfftw.interfaces.numpy_fft.
 
