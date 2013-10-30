@@ -178,8 +178,11 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 try:
                     getattr(self.test_interface, self.func)(
                             copy.copy(input_array), s, **kwargs)
-                except Exception as interface_exception:
-                    pass
+                except Exception as _interface_exception:
+                    # It's necessary to assign the exception to the
+                    # already defined variable in Python 3.
+                    # See http://www.python.org/dev/peps/pep-3110/#semantic-changes
+                    interface_exception = _interface_exception
 
                 # If the test interface raised, so must this.
                 self.assertEqual(type(interface_exception), type(e),
