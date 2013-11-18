@@ -50,6 +50,8 @@ functions = {
         'rfft': 'r2c',
         'irfft': 'c2r',
         'rfftn': 'r2c',
+        'hfft': 'c2r',
+        'ihfft': 'r2c',
         'irfftn': 'c2r',
         'rfft2': 'r2c',
         'irfft2': 'c2r',
@@ -58,7 +60,7 @@ functions = {
         'fftn': 'complex',
         'ifftn': 'complex'}
 
-acquired_names = ('hfft', 'ihfft', 'fftfreq', 'fftshift', 'ifftshift')
+acquired_names = ('fftfreq', 'fftshift', 'ifftshift')
 
 class InterfacesNumpyFFTTestModule(unittest.TestCase):
     ''' A really simple test suite to check the module works as expected.
@@ -550,7 +552,14 @@ class InterfacesNumpyFFTTestRFFT(InterfacesNumpyFFTTestFFT):
 
 class InterfacesNumpyFFTTestIRFFT(InterfacesNumpyFFTTestFFT):
     func = 'irfft'
-    realinv = True    
+    realinv = True
+
+class InterfacesNumpyFFTTestHFFT(InterfacesNumpyFFTTestFFT):
+    func = 'hfft'
+    realinv = True
+
+class InterfacesNumpyFFTTestIHFFT(InterfacesNumpyFFTTestFFT):
+    func = 'ihfft'
 
 class InterfacesNumpyFFTTestFFT2(InterfacesNumpyFFTTestFFT):
     axes_kw = 'axes'    
@@ -616,13 +625,14 @@ class InterfacesNumpyFFTTestIRFFTN(InterfacesNumpyFFTTestFFTN):
     func = 'irfftn'
     realinv = True    
 
-
 test_cases = (
         InterfacesNumpyFFTTestModule,
         InterfacesNumpyFFTTestFFT,
         InterfacesNumpyFFTTestIFFT,
         InterfacesNumpyFFTTestRFFT,
         InterfacesNumpyFFTTestIRFFT,
+        InterfacesNumpyFFTTestHFFT,
+        InterfacesNumpyFFTTestIHFFT,
         InterfacesNumpyFFTTestFFT2,
         InterfacesNumpyFFTTestIFFT2,
         InterfacesNumpyFFTTestRFFT2,
@@ -630,10 +640,9 @@ test_cases = (
         InterfacesNumpyFFTTestFFTN,
         InterfacesNumpyFFTTestIFFTN,
         InterfacesNumpyFFTTestRFFTN,
-        InterfacesNumpyFFTTestIRFFTN)
+        InterfacesNumpyFFTTestIRFFTN,)
 
-#test_set = {'InterfacesNumpyFFTTestFFT': ('test_auto_align_input',)}
-
+#test_set = {'InterfacesNumpyFFTTestHFFT': ('test_valid',)}
 test_set = None
 
 if __name__ == '__main__':

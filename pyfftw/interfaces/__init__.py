@@ -113,6 +113,8 @@ being taken along that axes as many times as the axis occurs.
 * :func:`pyfftw.interfaces.numpy_fft.irfft2`
 * :func:`pyfftw.interfaces.numpy_fft.rfftn`
 * :func:`pyfftw.interfaces.numpy_fft.irfftn`
+* :func:`pyfftw.interfaces.numpy_fft.hfft`
+* :func:`pyfftw.interfaces.numpy_fft.ihfft`
 
 :mod:`~pyfftw.interfaces.scipy_fftpack`
 """""""""""""""""""""""""""""""""""""""

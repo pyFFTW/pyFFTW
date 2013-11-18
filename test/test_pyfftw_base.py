@@ -183,6 +183,8 @@ def run_test_suites(test_suites, run_tests=None):
             else:
                 this_suite_run = set()
 
+            print run_tests
+
             if 'all' in run_tests:
                 this_suite_run = this_suite_run.union(run_tests['all'])
 

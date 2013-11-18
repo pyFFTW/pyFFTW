@@ -46,7 +46,8 @@ which this may not be true.
 from ._utils import _Xfftn
 
 # Complete the namespace (these are not actually used in this module)
-from numpy.fft import hfft, ihfft, fftfreq, fftshift, ifftshift
+from numpy.fft import fftfreq, fftshift, ifftshift
+import numpy
 
 __all__ = ['fft','ifft', 'fft2', 'ifft2', 'fftn', 'ifftn', 
            'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn', 'irfftn',
@@ -236,4 +237,55 @@ def irfftn(a, s=None, axes=None, overwrite_input=False,
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous, 
             calling_func)
+
+def hfft(a, n=None, axis=-1, overwrite_input=False,
+        planner_effort='FFTW_MEASURE', threads=1,
+        auto_align_input=True, auto_contiguous=True):
+    '''Perform a 1D FFT of a signal with hermitian symmetry.
+    This yields a real output spectrum. See :func:`numpy.fft.hfft`
+    for more information.
+
+    The first three arguments are as per :func:`numpy.fft.hfft`; 
+    the rest of the arguments are documented 
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    '''
+
+    # The hermitian symmetric transform is equivalent to the 
+    # irfft of the conjugate of the input (do the maths!) without
+    # any normalisation of the result (so normalise_idft is set to 
+    # False).
+    a = numpy.conjugate(a)
+
+    calling_func = 'irfft'
+
+    return _Xfftn(a, n, axis, overwrite_input, planner_effort,
+            threads, auto_align_input, auto_contiguous, 
+            calling_func, normalise_idft=False)
+
+def ihfft(a, n=None, axis=-1, overwrite_input=False,
+        planner_effort='FFTW_MEASURE', threads=1,
+        auto_align_input=True, auto_contiguous=True):
+    '''Perform a 1D inverse FFT of a real-spectrum, yielding
+    a signal with hermitian symmetry. See :func:`numpy.fft.ihfft`
+    for more information.
+    
+    The first three arguments are as per :func:`numpy.fft.ihfft`; 
+    the rest of the arguments are documented 
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    '''
+
+    # Result is equivalent to the conjugate of the output of
+    # the rfft of a.
+    # It is necessary to perform the inverse scaling, as this
+    # is not done by rfft.
+    if n is None:
+        if not isinstance(a, numpy.ndarray):
+            a = numpy.asarray(a)
+
+        n = a.shape[axis]
+
+    scaling = 1.0/n
+
+    return scaling * rfft(a, n, axis, overwrite_input, planner_effort,
+            threads, auto_align_input, auto_contiguous).conj()
 

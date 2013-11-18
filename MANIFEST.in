@@ -1,3 +1,4 @@
+include ChangeLog
 include COPYING.txt
 include LICENSE.txt
 include requirements.txt
