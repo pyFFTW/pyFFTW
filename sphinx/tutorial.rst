@@ -264,7 +264,7 @@ by setting the ``normalise_idft=False`` argument.
 
 It is possible to change the data on which a :class:`pyfftw.FFTW` 
 operates. The :meth:`pyfftw.FFTW.__call__` accepts both an 
-``input_array`` and and ``output_array`` argument to update the
+``input_array`` and an ``output_array`` argument to update the
 arrays. The arrays should be compatible with the arrays with which
 the :class:`pyfftw.FFTW` object was originally created. Please read the
 API docs on :meth:`pyfftw.FFTW.__call__` to fully understand the
