@@ -103,7 +103,8 @@ def _Xfftn(a, s, axes, overwrite_input,
     if not avoid_copy:
         a_copy = a.copy()
 
-    output_array = pyfftw.n_byte_align_empty(output_shape, 16, output_dtype)
+    output_array = pyfftw.n_byte_align_empty(output_shape, 
+            pyfftw.simd_alignment, output_dtype)
 
     flags = [planner_effort]
 
@@ -127,7 +128,8 @@ def _Xfftn(a, s, axes, overwrite_input,
 
         # Also, the input array will be a different shape to the shape of 
         # `a`, so we need to create a new array.
-        input_array = pyfftw.n_byte_align_empty(input_shape, 16, a.dtype)
+        input_array = pyfftw.n_byte_align_empty(input_shape, 
+                pyfftw.simd_alignment, a.dtype)
 
         FFTW_object = _FFTWWrapper(input_array, output_array, axes, direction,
                 flags, threads, input_array_slicer=update_input_array_slicer,
@@ -153,17 +155,20 @@ def _Xfftn(a, s, axes, overwrite_input,
                             'The input array is not contiguous and '
                             'auto_contiguous is set. (from avoid_copy flag)')
 
-                input_array = pyfftw.n_byte_align_empty(a.shape, 16, a.dtype)
+                input_array = pyfftw.n_byte_align_empty(a.shape, 
+                        pyfftw.simd_alignment, a.dtype)
 
         if (auto_align_input and 
-                not pyfftw.is_n_byte_aligned(input_array, 16)):
+                not pyfftw.is_n_byte_aligned(input_array, 
+                    pyfftw.simd_alignment)):
 
             if avoid_copy:
                 raise ValueError('Cannot avoid copy: '
                         'The input array is not aligned and '
                         'auto_align is set. (from avoid_copy flag)')
 
-            input_array = pyfftw.n_byte_align(input_array, 16)
+            input_array = pyfftw.n_byte_align(input_array, 
+                    pyfftw.simd_alignment)
 
         FFTW_object = pyfftw.FFTW(input_array, output_array, axes, direction,
                 flags, threads)
