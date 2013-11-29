@@ -402,7 +402,7 @@ shape to satisfy the scheme requirements.
 The precision of the transform is determined by the dtype of the
 input array. If the input array is a floating point array, then
 the precision of the floating point is used. If the input array 
-is not a float point array then a double precision transform is used.
+is not a floating point array then a double precision transform is used.
 Any calls made to the resultant object with an array of the same 
 size will then be copied into the internal array of the object, 
 changing the dtype in the process.
