@@ -175,14 +175,12 @@ def _Xfftn(a, s, axes, overwrite_input,
         print('Testing the alignment...')
         print('pyfftw.is_n_byte_aligned reports:')
         print('input_array', pyfftw.is_n_byte_aligned(input_array, 
-                    pyfftw.simd_alignment))
-        print('output_array', pyfftw.is_n_byte_aligned(input_array, 
-                    pyfftw.simd_alignment))
-        print('.ctypes.data%pyfftw.simd_alignment reports:')
-        print('input_array', input_array.ctypes.data%pyfftw.simd_alignment)
-        print('output_array', output_array.ctypes.data%pyfftw.simd_alignment)
+                    input_array.dtype.alignment))
+
+        print('input_array.dtype.alignment', input_array.dtype.alignment)
 
         print('flags:', flags)
+
         FFTW_object = pyfftw.FFTW(input_array, output_array, axes, direction,
                 flags, threads)
 
