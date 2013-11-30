@@ -430,8 +430,10 @@ class BuildersTestFFT(unittest.TestCase):
                 # Firstly check the unaligned case (for both
                 # FFTW and _FFTWWrapper)
                 _kwargs['auto_align_input'] = False
+                print('Entering the problematic line', dtype, test_shape, s, kwargs)
                 FFTW_object = getattr(builders, self.func)(
                         input_array.copy(), s1, **_kwargs)
+                print('Exited the problematic line')
 
                 self.assertFalse(FFTW_object.simd_aligned)
 
@@ -1245,8 +1247,8 @@ test_cases = (
         BuildersTestRFFTN,
         BuildersTestIRFFTN)
 
-#test_set = {'BuildersTestRFFTN': ['test_dtype_coercian']}
-test_set = None
+test_set = {'BuildersTestFFT': ['test_auto_align_input']}
+#test_set = None
 
 
 if __name__ == '__main__':
