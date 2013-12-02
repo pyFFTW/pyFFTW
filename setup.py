@@ -144,8 +144,8 @@ class TestCommand(Command):
 
     def run(self):
         import sys, subprocess
-        errno = subprocess.call([sys.executable, '-m', 'unittest', 
-            'discover'])
+        errno = subprocess.call([sys.executable, '-m', 
+            'unittest', 'discover'])
         raise SystemExit(errno)
 
 setup_args = {

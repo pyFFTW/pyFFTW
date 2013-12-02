@@ -170,6 +170,7 @@ def _Xfftn(a, s, axes, overwrite_input,
             input_array = pyfftw.n_byte_align(input_array, 
                     pyfftw.simd_alignment)
 
+
         FFTW_object = pyfftw.FFTW(input_array, output_array, axes, direction,
                 flags, threads)
 
