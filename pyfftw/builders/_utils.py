@@ -103,8 +103,18 @@ def _Xfftn(a, s, axes, overwrite_input,
     if not avoid_copy:
         a_copy = a.copy()
 
-    output_array = pyfftw.n_byte_align_empty(output_shape, 
-            pyfftw.simd_alignment, output_dtype)
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings('error')
+        try:
+            output_array = pyfftw.n_byte_align_empty(output_shape, 
+                    pyfftw.simd_alignment, output_dtype)
+        except Warning:
+            print('Warning raised.')
+            print('args:')
+            print('output_shape: ' + str(output_shape))
+            print('simd_alignment: ' + str(pyfftw.simd_alignment))
+            print('output_dtype: ' + str(output_dtype))
 
     flags = [planner_effort]
 

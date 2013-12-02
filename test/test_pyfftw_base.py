@@ -50,10 +50,10 @@ class FFTWBaseTest(unittest.TestCase):
         return
 
     def get_input_dtype_alignment(self):
-        return numpy.dtype(self.input_dtype).alignment
+        return self.input_dtype([]).real.dtype.alignment
 
     def get_output_dtype_alignment(self):
-        return numpy.dtype(self.output_dtype).alignment
+        return self.input_dtype([]).real.dtype.alignment
 
     def make_shapes(self):
         self.input_shapes = {
