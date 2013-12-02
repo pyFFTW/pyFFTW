@@ -145,7 +145,7 @@ class TestCommand(Command):
     def run(self):
         import sys, subprocess
         errno = subprocess.call([sys.executable, '-m', 
-            'test.test_pyfftw_builders'])
+            'unittest', 'discover'])
         raise SystemExit(errno)
 
 setup_args = {
