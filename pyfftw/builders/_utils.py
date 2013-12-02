@@ -202,13 +202,13 @@ class _FFTWWrapper(pyfftw.FFTW):
         input array into the sliced internal array.
         '''
 
-        self.__input_array_slicer = kwargs.pop('input_array_slicer')
-        self.__FFTW_array_slicer = kwargs.pop('FFTW_array_slicer')
+        self._input_array_slicer = kwargs.pop('input_array_slicer')
+        self._FFTW_array_slicer = kwargs.pop('FFTW_array_slicer')
 
         if 'FFTW_DESTROY_INPUT' in flags:
-            self.__input_destroyed = True
+            self._input_destroyed = True
         else:
-            self.__input_destroyed = False
+            self._input_destroyed = False
 
         super(_FFTWWrapper, self).__init__(input_array, output_array, 
                 axes, direction, flags, threads, *args, **kwargs)
@@ -234,11 +234,11 @@ class _FFTWWrapper(pyfftw.FFTW):
             internal_input_array = self.get_input_array()
             input_array = numpy.asanyarray(input_array)
 
-            if self.__input_destroyed:
+            if self._input_destroyed:
                 internal_input_array[:] = 0
 
-            sliced_internal = internal_input_array[self.__FFTW_array_slicer]
-            sliced_input = input_array[self.__input_array_slicer]
+            sliced_internal = internal_input_array[self._FFTW_array_slicer]
+            sliced_input = input_array[self._input_array_slicer]
 
             if sliced_internal.shape != sliced_input.shape:
                 raise ValueError('Invalid input shape: '
