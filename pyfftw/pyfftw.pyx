@@ -750,13 +750,20 @@ cdef class FFTW:
         cdef fftw_generic_set_timelimit set_timelimit_func = (
                 set_timelimit_funcs[functions['generic_precision']])
 
+        # We're interested in the natural alignment on the real type, not
+        # necessarily on the complex type At least one bug was found where
+        # numpy reported an alignment on a complex dtype that was different
+        # to that on the real type.
+        cdef int natural_input_alignment = input_array.real.dtype.alignment
+        cdef int natural_output_alignment = output_array.real.dtype.alignment
+
         # If either of the arrays is not aligned on a 16-byte boundary,
         # we set the FFTW_UNALIGNED flag. This disables SIMD.
         # (16 bytes is assumed to be the minimal alignment)
         if 'FFTW_UNALIGNED' in flags:
             self.__simd_allowed = False
-            self.__input_array_alignment = self.__input_dtype.alignment
-            self.__output_array_alignment = self.__output_dtype.alignment
+            self.__input_array_alignment = natural_input_alignment
+            self.__output_array_alignment = natural_output_alignment
 
         else:
 
@@ -782,9 +789,9 @@ cdef class FFTW:
                 self.__simd_allowed = False
 
                 self.__input_array_alignment = (
-                        self.__input_dtype.alignment)
+                        natural_input_alignment)
                 self.__output_array_alignment = (
-                        self.__output_dtype.alignment)
+                        natural_output_alignment)
                 flags.append('FFTW_UNALIGNED')
 
         if (not (<intptr_t>np.PyArray_DATA(input_array)
