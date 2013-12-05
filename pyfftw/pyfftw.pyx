@@ -635,7 +635,7 @@ cdef class FFTW:
     cdef int64_t *_axes
     cdef int64_t *_not_axes
 
-    cdef int _N
+    cdef int64_t _N
     def _get_N(self):
         '''
         The product of the lengths of the DFT over all DFT axes.
