@@ -625,7 +625,7 @@ cdef class FFTW:
     cdef object _output_dtype
     cdef object _flags_used
 
-    cdef float _normalisation_scaling
+    cdef double _normalisation_scaling
 
     cdef int _rank
     cdef _fftw_iodim *_dims
