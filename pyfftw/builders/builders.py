@@ -52,7 +52,7 @@ When the internal input array is bigger along any axis than the input
 array that is passed in (due to ``s`` dictating a larger size), then the
 extra entries are padded with zeros. This is a one time action. If the
 internal input array is then extracted using
-:meth:`pyfftw.FFTW.get_input_array`, it is possible to
+:attr:`pyfftw.FFTW.input_array`, it is possible to
 persistently fill the padding space with whatever the user desires, so
 subsequent calls with a new input only overwrite the values that aren't
 padding (even if the array that is used for the call is bigger than the
@@ -73,7 +73,7 @@ Although the array that is internal to the :class:`pyfftw.FFTW` object
 will be correctly loaded with the values within the input array, it is
 not necessarily the case that the internal array *is* the input array.
 The actual internal input array can always be retrieved with 
-:meth:`pyfftw.FFTW.get_input_array`.
+:attr:`pyfftw.FFTW.input_array`.
 
 **Example:**
 
@@ -178,7 +178,7 @@ following additional keyword arguments:
   :func:`pyfftw.n_byte_align`). If and only if a realignment is 
   necessary is a new array created. If a new array *is* created, it is 
   up to the calling code to acquire that new input array using 
-  :func:`pyfftw.FFTW.get_input_array`.
+  :attr:`pyfftw.FFTW.input_array`.
 
   The resultant :class:`pyfftw.FFTW` object that is created will be
   designed to operate on arrays that are aligned. If the object is
@@ -207,7 +207,7 @@ following additional keyword arguments:
 
   Like ``auto_align_input``, If a new array is created, it is 
   up to the calling code to acquire that new input array using 
-  :func:`pyfftw.FFTW.get_input_array`.
+  :attr:`pyfftw.FFTW.input_array`.
 
 * ``avoid_copy``: By default, these functions will always create a copy 
   (and sometimes more than one) of the passed in input array. This is 

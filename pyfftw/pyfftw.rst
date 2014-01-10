@@ -17,6 +17,22 @@ FFTW Class
    .. autoattribute:: pyfftw.FFTW.output_alignment
 
    .. autoattribute:: pyfftw.FFTW.flags
+   
+   .. autoattribute:: pyfftw.FFTW.input_array
+
+   .. autoattribute:: pyfftw.FFTW.output_array
+
+   .. autoattribute:: pyfftw.FFTW.input_shape
+
+   .. autoattribute:: pyfftw.FFTW.output_shape
+
+   .. autoattribute:: pyfftw.FFTW.input_strides
+
+   .. autoattribute:: pyfftw.FFTW.output_strides
+
+   .. autoattribute:: pyfftw.FFTW.input_dtype
+
+   .. autoattribute:: pyfftw.FFTW.output_dtype
 
    .. automethod:: pyfftw.FFTW.__call__
 

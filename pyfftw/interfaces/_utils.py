@@ -87,7 +87,7 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
     
         # Only copy if the input array is what was actually used
         # (otherwise it shouldn't be overwritten)
-        if FFTW_object.get_input_array() is a:
+        if FFTW_object.input_array is a:
             a[:] = a_copy
 
         if cache.is_enabled():
@@ -99,7 +99,7 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         if reload_after_transform:
             a_copy = a.copy()
 
-        orig_output_array = FFTW_object.get_output_array()
+        orig_output_array = FFTW_object.output_array
         output_shape = orig_output_array.shape
         output_dtype = orig_output_array.dtype
         output_alignment = FFTW_object.output_alignment

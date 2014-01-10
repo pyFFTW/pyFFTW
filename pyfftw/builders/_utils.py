@@ -136,7 +136,7 @@ def _Xfftn(a, s, axes, overwrite_input,
                 FFTW_array_slicer=FFTW_array_slicer)
 
         # We copy the data back into the internal FFTW object array
-        internal_array = FFTW_object.get_input_array()
+        internal_array = FFTW_object.input_array
         internal_array[:] = 0
         internal_array[FFTW_array_slicer] = (
                 a_copy[update_input_array_slicer])
@@ -176,7 +176,7 @@ def _Xfftn(a, s, axes, overwrite_input,
 
         if not avoid_copy:
             # Copy the data back into the (likely) destroyed array
-            FFTW_object.get_input_array()[:] = a_copy
+            FFTW_object.input_array[:] = a_copy
     
     return FFTW_object
 
@@ -231,7 +231,7 @@ class _FFTWWrapper(pyfftw.FFTW):
             # Do the update here (which is a copy, so it's alignment
             # safe etc).
 
-            internal_input_array = self.get_input_array()
+            internal_input_array = self.input_array
             input_array = numpy.asanyarray(input_array)
 
             if self._input_destroyed:

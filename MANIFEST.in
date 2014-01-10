@@ -11,4 +11,4 @@ include pyfftw/utils.pxi
 include test/test_*.py
 include test/__init__.py
 recursive-include include *.h
-recursive-include docs *.html *.css *.png *.js
+recursive-include docs *.html *.css *.png *.js *.rst

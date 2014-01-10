@@ -22,6 +22,8 @@ from libc.stdlib cimport calloc, malloc, free
 from libc.stdint cimport intptr_t, int64_t
 from libc cimport limits
 
+import warnings
+
 include 'utils.pxi'
 
 cdef extern from *:
@@ -615,10 +617,10 @@ cdef class FFTW:
     cdef int _output_array_alignment    
     cdef bint _use_threads
 
+    cdef object _input_item_strides
     cdef object _input_strides
-    cdef object _input_byte_strides
+    cdef object _output_item_strides
     cdef object _output_strides
-    cdef object _output_byte_strides
     cdef object _input_shape
     cdef object _output_shape
     cdef object _input_dtype
@@ -690,6 +692,72 @@ cdef class FFTW:
         return tuple(self._flags_used)
 
     flags = property(_get_flags_used)
+
+    def _get_input_array(self):
+        '''
+        Return the input array that is associated with the FFTW 
+        instance.
+        '''
+        return self._input_array
+
+    input_array = property(_get_input_array)
+
+    def _get_output_array(self):
+        '''
+        Return the output array that is associated with the FFTW 
+        instance.
+        '''
+        return self._output_array
+
+    output_array = property(_get_output_array)
+
+    def _get_input_strides(self):
+        '''
+        Return the strides of the input array for which the FFT is planned.
+        '''
+        return self._input_strides
+    
+    input_strides = property(_get_input_strides)
+
+    def _get_output_strides(self):
+        '''
+        Return the strides of the output array for which the FFT is planned.
+        '''
+        return self._output_strides
+    
+    output_strides = property(_get_output_strides)
+
+    def _get_input_shape(self):
+        '''
+        Return the shape of the input array for which the FFT is planned.
+        '''
+        return self._input_shape
+    
+    input_shape = property(_get_input_shape)
+
+    def _get_output_shape(self):
+        '''
+        Return the shape of the output array for which the FFT is planned.
+        '''
+        return self._output_shape
+    
+    output_shape = property(_get_output_shape)
+
+    def _get_input_dtype(self):
+        '''
+        Return the dtype of the input array for which the FFT is planned.
+        '''
+        return self._input_dtype
+    
+    input_dtype = property(_get_input_dtype)
+
+    def _get_output_dtype(self):
+        '''
+        Return the shape of the output array for which the FFT is planned.
+        '''
+        return self._output_dtype
+    
+    output_dtype = property(_get_output_dtype)
 
     def __cinit__(self, input_array, output_array, axes=(-1,),
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
@@ -909,12 +977,12 @@ cdef class FFTW:
             raise MemoryError
 
         # Find the strides for all the axes of both arrays in terms of the 
-        # number of elements (as opposed to the number of bytes).
-        self._input_byte_strides = input_array.strides        
-        self._input_strides = tuple([stride/input_array.itemsize 
+        # number of items (as opposed to the number of bytes).
+        self._input_strides = input_array.strides        
+        self._input_item_strides = tuple([stride/input_array.itemsize 
             for stride in input_array.strides])
-        self._output_byte_strides = output_array.strides
-        self._output_strides = tuple([stride/output_array.itemsize 
+        self._output_strides = output_array.strides
+        self._output_item_strides = tuple([stride/output_array.itemsize 
             for stride in output_array.strides])
 
         # Make sure that the arrays are not too big for fftw
@@ -926,7 +994,7 @@ cdef class FFTW:
                 raise ValueError('Dimensions of the input array must be ' +
                         'less than ', str(limits.INT_MAX))
 
-            if self._input_strides[i] >= <Py_ssize_t> limits.INT_MAX:
+            if self._input_item_strides[i] >= <Py_ssize_t> limits.INT_MAX:
                 raise ValueError('Strides of the input array must be ' +
                         'less than ', str(limits.INT_MAX))
 
@@ -935,7 +1003,7 @@ cdef class FFTW:
                 raise ValueError('Dimensions of the output array must be ' +
                         'less than ', str(limits.INT_MAX))
 
-            if self._output_strides[i] >= <Py_ssize_t> limits.INT_MAX:
+            if self._output_item_strides[i] >= <Py_ssize_t> limits.INT_MAX:
                 raise ValueError('Strides of the output array must be ' +
                         'less than ', str(limits.INT_MAX))
 
@@ -946,8 +1014,8 @@ cdef class FFTW:
             fft_shape = fft_shape_lookup(input_array, output_array)
 
         # Fill in the stride and shape information
-        input_strides_array = self._input_strides
-        output_strides_array = self._output_strides
+        input_strides_array = self._input_item_strides
+        output_strides_array = self._output_item_strides
         for i in range(0, self._rank):
             self._dims[i]._n = fft_shape[self._axes[i]]
             self._dims[i]._is = input_strides_array[self._axes[i]]
@@ -1264,7 +1332,7 @@ cdef class FFTW:
                 copy_needed = True
             elif (not input_array.dtype == self._input_dtype):
                 copy_needed = True
-            elif (not input_array.strides == self._input_byte_strides):
+            elif (not input_array.strides == self._input_strides):
                 copy_needed = True
             elif not (<intptr_t>np.PyArray_DATA(input_array) 
                     % self.input_alignment == 0):
@@ -1374,12 +1442,12 @@ cdef class FFTW:
                     'The new output array should be the same shape as '
                     'the output array used to instantiate the object.')
         
-        if not new_input_strides == self._input_byte_strides:
+        if not new_input_strides == self._input_strides:
             raise ValueError('Invalid input striding: '
                     'The strides should be identical for the new '
                     'input array as for the old.')
         
-        if not new_output_strides == self._output_byte_strides:
+        if not new_output_strides == self._output_strides:
             raise ValueError('Invalid output striding: '
                     'The strides should be identical for the new '
                     'output array as for the old.')
@@ -1399,7 +1467,14 @@ cdef class FFTW:
 
         Return the input array that is associated with the FFTW 
         instance.
+
+        *Deprecated since 0.10. Consider using the* :attr:`FFTW.input_array` 
+        *property instead.*
         '''
+        warnings.warn('get_input_array is deprecated. '
+                'Consider using the input_array property instead.', 
+                DeprecationWarning)
+
         return self._input_array
 
     def get_output_array(self):
@@ -1407,16 +1482,23 @@ cdef class FFTW:
 
         Return the output array that is associated with the FFTW
         instance.
+
+        *Deprecated since 0.10. Consider using the* :attr:`FFTW.output_array` 
+        *property instead.*
         '''
+        warnings.warn('get_output_array is deprecated. '
+                'Consider using the output_array property instead.', 
+                DeprecationWarning)
+        
         return self._output_array
 
     cpdef execute(self):
         '''execute()
 
         Execute the planned operation, taking the correct kind of FFT of
-        the input array (what is returned by :meth:`get_input_array`), 
-        and putting the result in the output array (what is returned by
-        :meth:`get_output_array`).
+        the input array (i.e. :attr:`FFTW.input_array`), 
+        and putting the result in the output array (i.e.
+        :attr:`FFTW.output_array`).
         '''
         cdef void *input_pointer = (
                 <void *>np.PyArray_DATA(self._input_array))

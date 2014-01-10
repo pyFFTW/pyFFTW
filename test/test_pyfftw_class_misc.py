@@ -21,6 +21,7 @@ from .test_pyfftw_base import run_test_suites
 
 import unittest
 import numpy
+import warnings
 
 # FFTW tests that don't seem to fit anywhere else
 
@@ -191,14 +192,110 @@ class FFTWMiscTest(unittest.TestCase):
     def test_get_input_array(self):
         '''Test to see the get_input_array method returns the correct thing
         '''
+        with warnings.catch_warnings(record=True) as w:
+            # This method is deprecated, so check the deprecation warning
+            # is raised.
+            warnings.simplefilter("always")
+            input_array = self.fft.get_input_array()
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
 
-        self.assertIs(self.input_array, self.fft.get_input_array())
+        self.assertIs(self.input_array, input_array)
 
     def test_get_output_array(self):
         '''Test to see the get_output_array method returns the correct thing
         '''
+        with warnings.catch_warnings(record=True) as w:
+            # This method is deprecated, so check the deprecation warning
+            # is raised.
+            warnings.simplefilter("always")
+            output_array = self.fft.get_output_array()
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[-1].category, DeprecationWarning))
 
-        self.assertIs(self.output_array, self.fft.get_output_array())
+        self.assertIs(self.output_array, output_array)
+
+    def test_input_array(self):
+        '''Test to see the input_array property returns the correct thing
+        '''
+        self.assertIs(self.input_array, self.fft.input_array)
+
+    def test_output_array(self):
+        '''Test to see the output_array property returns the correct thing
+        '''
+        self.assertIs(self.output_array, self.fft.output_array)
+
+    def test_input_strides(self):
+        '''Test to see if the input_strides property returns the correct thing
+        '''
+        self.assertEqual(self.fft.input_strides, self.input_array.strides)
+
+        new_input_array = self.input_array[::2, ::4]
+        new_output_array = self.output_array[::2, ::4]
+
+        new_fft = FFTW(new_input_array, new_output_array)
+
+        self.assertEqual(new_fft.input_strides, new_input_array.strides)
+
+    def test_output_strides(self):
+        '''Test to see if the output_strides property returns the correct thing
+        '''
+        self.assertEqual(self.fft.output_strides, self.output_array.strides)
+
+        new_input_array = self.output_array[::2, ::4]
+        new_output_array = self.output_array[::2, ::4]
+
+        new_fft = FFTW(new_input_array, new_output_array)
+
+        self.assertEqual(new_fft.output_strides, new_output_array.strides)
+
+    def test_input_shape(self):
+        '''Test to see if the input_shape property returns the correct thing
+        '''
+        self.assertEqual(self.fft.input_shape, self.input_array.shape)
+
+        new_input_array = self.input_array[::2, ::4]
+        new_output_array = self.output_array[::2, ::4]
+
+        new_fft = FFTW(new_input_array, new_output_array)
+
+        self.assertEqual(new_fft.input_shape, new_input_array.shape)
+
+    def test_output_strides(self):
+        '''Test to see if the output_shape property returns the correct thing
+        '''
+        self.assertEqual(self.fft.output_shape, self.output_array.shape)
+
+        new_input_array = self.output_array[::2, ::4]
+        new_output_array = self.output_array[::2, ::4]
+
+        new_fft = FFTW(new_input_array, new_output_array)
+
+        self.assertEqual(new_fft.output_shape, new_output_array.shape)
+
+    def test_input_dtype(self):
+        '''Test to see if the input_dtype property returns the correct thing
+        '''
+        self.assertEqual(self.fft.input_dtype, self.input_array.dtype)
+
+        new_input_array = numpy.complex64(self.input_array)
+        new_output_array = numpy.complex64(self.output_array)
+
+        new_fft = FFTW(new_input_array, new_output_array)
+
+        self.assertEqual(new_fft.input_dtype, new_input_array.dtype)
+
+    def test_output_dtype(self):
+        '''Test to see if the output_dtype property returns the correct thing
+        '''
+        self.assertEqual(self.fft.output_dtype, self.output_array.dtype)
+
+        new_input_array = numpy.complex64(self.input_array)
+        new_output_array = numpy.complex64(self.output_array)
+
+        new_fft = FFTW(new_input_array, new_output_array)
+
+        self.assertEqual(new_fft.output_dtype, new_output_array.dtype)
 
 test_cases = (
         FFTWMiscTest,)

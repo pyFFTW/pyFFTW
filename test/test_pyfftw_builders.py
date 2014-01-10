@@ -377,7 +377,7 @@ class BuildersTestFFT(unittest.TestCase):
                 FFTW_object = getattr(builders, self.func)(
                         input_array, s1, **_kwargs)
 
-                internal_input_array = FFTW_object.get_input_array()
+                internal_input_array = FFTW_object.input_array
                 flags = internal_input_array.flags
                 self.assertTrue(input_array is internal_input_array)
                 self.assertFalse(flags['C_CONTIGUOUS'] or 
@@ -386,7 +386,7 @@ class BuildersTestFFT(unittest.TestCase):
                 FFTW_object = getattr(builders, self.func)(
                         input_array, s2, **_kwargs)
 
-                internal_input_array = FFTW_object.get_input_array()
+                internal_input_array = FFTW_object.input_array
                 flags = internal_input_array.flags
                 # We actually expect the _FFTWWrapper to be C_CONTIGUOUS
                 self.assertTrue(flags['C_CONTIGUOUS'])
@@ -397,7 +397,7 @@ class BuildersTestFFT(unittest.TestCase):
                 FFTW_object = getattr(builders, self.func)(
                         input_array, s1, **_kwargs)
 
-                internal_input_array = FFTW_object.get_input_array()
+                internal_input_array = FFTW_object.input_array
                 flags = internal_input_array.flags
                 self.assertTrue(flags['C_CONTIGUOUS'] or 
                     flags['F_CONTIGUOUS'])
@@ -405,7 +405,7 @@ class BuildersTestFFT(unittest.TestCase):
                 FFTW_object = getattr(builders, self.func)(
                         input_array, s2, **_kwargs)
 
-                internal_input_array = FFTW_object.get_input_array()
+                internal_input_array = FFTW_object.input_array
                 flags = internal_input_array.flags
                 # as above
                 self.assertTrue(flags['C_CONTIGUOUS'])
@@ -498,7 +498,7 @@ class BuildersTestFFT(unittest.TestCase):
                 FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
                         test_shape, dtype, s, kwargs)
 
-                internal_array = FFTW_object.get_input_array()
+                internal_array = FFTW_object.input_array
                 padding = internal_array[padding_slicer]
 
                 # Fill the padding with garbage
@@ -509,7 +509,7 @@ class BuildersTestFFT(unittest.TestCase):
                 # Now confirm that nothing is done to the padding
                 FFTW_object()
 
-                final_padding = FFTW_object.get_input_array()[padding_slicer]
+                final_padding = FFTW_object.input_array[padding_slicer]
 
                 self.assertTrue(numpy.all(final_padding == initial_padding))
 
@@ -606,7 +606,7 @@ class BuildersTestFFT(unittest.TestCase):
                 FFTW_object = getattr(
                         builders, self.func)(input_array, s, **kwargs)
 
-                final_input_array = FFTW_object.get_input_array()
+                final_input_array = FFTW_object.input_array
 
                 self.assertTrue(
                         numpy.alltrue(input_array == final_input_array))
@@ -670,7 +670,7 @@ class BuildersTestFFT(unittest.TestCase):
 
                 # A catch all to make sure the internal array
                 # is not a copy
-                self.assertTrue(FFTW_object.get_input_array() is
+                self.assertTrue(FFTW_object.input_array is
                         _input_array)
 
 
@@ -776,8 +776,8 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         '''Does what the internal update arrays does for an FFTW
         object but with a reslicing.
         '''
-        internal_input_array = self.fft.get_input_array()
-        internal_output_array = self.fft.get_output_array()
+        internal_input_array = self.fft.input_array
+        internal_output_array = self.fft.output_array
 
         internal_input_array[self.FFTW_array_slicer] = (
                 input_array[self.input_array_slicer])

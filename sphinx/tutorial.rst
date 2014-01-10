@@ -276,14 +276,14 @@ requirements for updating the array.
    >>> e = pyfftw.n_byte_align_empty(4, 16, 'complex128')   
    >>> f = pyfftw.n_byte_align_empty(4, 16, 'complex128')
    >>> fft_object = pyfftw.FFTW(d, e)
-   >>> fft_object.get_input_array() is d # get the input array from the object
+   >>> fft_object.input_array is d # get the input array from the object
    True
    >>> f[:] = [1, 2, 3, 4] # Add some data to f
    >>> fft_object(f)
    array([ 10.+0.j,  -2.+2.j,  -2.+0.j,  -2.-2.j])
-   >>> fft_object.get_input_array() is d # No longer true!
+   >>> fft_object.input_array is d # No longer true!
    False
-   >>> fft_object.get_input_array() is f # It has been updated with f :)
+   >>> fft_object.input_array is f # It has been updated with f :)
    True
 
 If the new input array is of the wrong dtype or wrongly strided, 
@@ -435,7 +435,7 @@ Inspecting these objects gives us their shapes:
    
    >>> b.shape
    (32, 256)
-   >>> fft_wrapper_object.get_input_array().shape
+   >>> fft_wrapper_object.input_array.shape
    (32, 256)
    >>> a.shape
    (128, 64)
