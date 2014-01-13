@@ -33,6 +33,10 @@ cdef object directions
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
         'FFTW_BACKWARD': FFTW_BACKWARD}
 
+cdef object directions_lookup
+directions_lookup = {FFTW_FORWARD: 'FFTW_FORWARD',
+        FFTW_BACKWARD: 'FFTW_BACKWARD'}
+
 cdef object flag_dict
 flag_dict = {'FFTW_MEASURE': FFTW_MEASURE,
         'FFTW_EXHAUSTIVE': FFTW_EXHAUSTIVE,
@@ -564,6 +568,7 @@ cdef void make_axes_unique(int64_t *axes, int64_t axes_length,
 
     return
 
+
 # The External Interface
 # ======================
 #
@@ -758,6 +763,29 @@ cdef class FFTW:
         return self._output_dtype
     
     output_dtype = property(_get_output_dtype)
+
+    def _get_direction(self):
+        '''
+        Return the planned FFT direction. Either `'FFTW_FORWARD'` or 
+        `'FFTW_BACKWARD'`.
+        '''
+        return directions_lookup[self._direction]
+    
+    direction = property(_get_direction)
+
+    def _get_axes(self):
+        '''
+        Return the axes for the planned FFT in canonical form. That is, as
+        a tuple of positive integers. The order in which they were passed
+        is maintained.
+        '''
+        axes = []
+        for i in range(self._rank):
+            axes.append(self._axes[i])
+
+        return tuple(axes)
+    
+    axes = property(_get_axes)
 
     def __cinit__(self, input_array, output_array, axes=(-1,),
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 

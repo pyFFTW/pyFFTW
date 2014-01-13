@@ -34,6 +34,10 @@ FFTW Class
 
    .. autoattribute:: pyfftw.FFTW.output_dtype
 
+   .. autoattribute:: pyfftw.FFTW.direction
+
+   .. autoattribute:: pyfftw.FFTW.axes
+
    .. automethod:: pyfftw.FFTW.__call__
 
    .. automethod:: pyfftw.FFTW.update_arrays

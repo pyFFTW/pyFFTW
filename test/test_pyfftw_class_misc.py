@@ -297,6 +297,36 @@ class FFTWMiscTest(unittest.TestCase):
 
         self.assertEqual(new_fft.output_dtype, new_output_array.dtype)
 
+    def test_direction_property(self):
+        '''Test to see if the direction property returns the correct thing
+        '''
+        self.assertEqual(self.fft.direction, 'FFTW_FORWARD')
+
+        new_fft = FFTW(self.input_array, self.output_array, 
+                direction='FFTW_BACKWARD')
+
+        self.assertEqual(new_fft.direction, 'FFTW_BACKWARD')
+
+    def test_axes_property(self):
+        '''Test to see if the axes property returns the correct thing
+        '''
+        self.assertEqual(self.fft.axes, (1,))
+
+        new_fft = FFTW(self.input_array, self.output_array, axes=(-1, -2))
+        self.assertEqual(new_fft.axes, (1, 0))
+
+        new_fft = FFTW(self.input_array, self.output_array, axes=(-2, -1))
+        self.assertEqual(new_fft.axes, (0, 1))
+
+        new_fft = FFTW(self.input_array, self.output_array, axes=(1, 0))
+        self.assertEqual(new_fft.axes, (1, 0))
+
+        new_fft = FFTW(self.input_array, self.output_array, axes=(1,))
+        self.assertEqual(new_fft.axes, (1,))
+
+        new_fft = FFTW(self.input_array, self.output_array, axes=(0,))
+        self.assertEqual(new_fft.axes, (0,))
+
 test_cases = (
         FFTWMiscTest,)
 
