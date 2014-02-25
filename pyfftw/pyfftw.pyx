@@ -1,7 +1,8 @@
 # cython: language_level=3
 #
 # Copyright 2015 Knowledge Economy Developments Ltd
-#
+# Copyright 2014 David Wells
+
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -91,11 +92,27 @@ ELSE:
 
 cdef object directions
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
-        'FFTW_BACKWARD': FFTW_BACKWARD}
+        'FFTW_BACKWARD': FFTW_BACKWARD,
+        'FFTW_REDFT00': FFTW_REDFT00,
+        'FFTW_REDFT10': FFTW_REDFT10,
+        'FFTW_REDFT01': FFTW_REDFT01,
+        'FFTW_REDFT11': FFTW_REDFT11,
+        'FFTW_RODFT00': FFTW_RODFT00,
+        'FFTW_RODFT10': FFTW_RODFT10,
+        'FFTW_RODFT01': FFTW_RODFT01,
+        'FFTW_RODFT11': FFTW_RODFT11}
 
 cdef object directions_lookup
 directions_lookup = {FFTW_FORWARD: 'FFTW_FORWARD',
-        FFTW_BACKWARD: 'FFTW_BACKWARD'}
+        FFTW_BACKWARD: 'FFTW_BACKWARD',
+        FFTW_REDFT00: 'FFTW_REDFT00',
+        FFTW_REDFT10: 'FFTW_REDFT10',
+        FFTW_REDFT01: 'FFTW_REDFT01',
+        FFTW_REDFT11: 'FFTW_REDFT11',
+        FFTW_RODFT00: 'FFTW_RODFT00',
+        FFTW_RODFT10: 'FFTW_RODFT10',
+        FFTW_RODFT01: 'FFTW_RODFT01',
+        FFTW_RODFT11: 'FFTW_RODFT11'}
 
 cdef object flag_dict
 flag_dict = {'FFTW_MEASURE': FFTW_MEASURE,
@@ -124,6 +141,7 @@ cdef object plan_lock = threading.Lock()
 #     Planners
 #     ========
 #
+
 cdef void* _fftw_plan_null(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
@@ -169,6 +187,18 @@ IF HAVE_DOUBLE:
                 <cdouble *>_in, <double *>_out,
                 flags)
 
+    # real to real double precision
+    cdef void* _fftw_plan_guru_r2r(
+                int rank, fftw_iodim *dims,
+                int howmany_rank, fftw_iodim *howmany_dims,
+                void *_in, void *_out,
+                int *direction, int flags):
+
+        return <void *>fftw_plan_guru_r2r(rank, dims,
+                howmany_rank, howmany_dims,
+                <double *>_in, <double *>_out,
+                direction, flags)
+
 IF HAVE_SINGLE:
     # Complex single precision
     cdef void* _fftwf_plan_guru_dft(
@@ -206,6 +236,18 @@ IF HAVE_SINGLE:
                 <cfloat *>_in, <float *>_out,
                 flags)
 
+    # real to real single precision
+    cdef void* _fftwf_plan_guru_r2r(
+                int rank, fftw_iodim *dims,
+                int howmany_rank, fftw_iodim *howmany_dims,
+                void *_in, void *_out,
+                int *direction, int flags):
+
+        return <void *>fftwf_plan_guru_r2r(rank, dims,
+                howmany_rank, howmany_dims,
+                <float *>_in, <float *>_out,
+                direction, flags)
+
 IF HAVE_LONG:
     # Complex long double precision
     cdef void* _fftwl_plan_guru_dft(
@@ -242,6 +284,18 @@ IF HAVE_LONG:
                 howmany_rank, howmany_dims,
                 <clongdouble *>_in, <long double *>_out,
                 flags)
+
+    # real to real long double precision
+    cdef void* _fftwl_plan_guru_r2r(
+                int rank, fftw_iodim *dims,
+                int howmany_rank, fftw_iodim *howmany_dims,
+                void *_in, void *_out,
+                int *direction, int flags):
+
+        return <void *>fftwl_plan_guru_r2r(rank, dims,
+                howmany_rank, howmany_dims,
+                <long double *>_in, <long double *>_out,
+                direction, flags)
 
 #    Executors
 #    =========
@@ -308,6 +362,21 @@ IF HAVE_LONG:
         fftwl_execute_dft_c2r(<fftwl_plan>_plan,
                 <clongdouble *>_in, <long double *>_out)
 
+# real to real double precision
+cdef void _fftw_execute_r2r(void *_plan, void *_in, void *_out) nogil:
+
+    fftw_execute_r2r(<fftw_plan>_plan, <double *>_in, <double *>_out)
+
+# real to real single precision
+cdef void _fftwf_execute_r2r(void *_plan, void *_in, void *_out) nogil:
+
+    fftwf_execute_r2r(<fftwf_plan>_plan, <float *>_in, <float *>_out)
+
+# real to real long double precision
+cdef void _fftwl_execute_r2r(void *_plan, void *_in, void *_out) nogil:
+
+    fftwl_execute_r2r(<fftwl_plan>_plan, <long double *>_in, <long double *>_out)
+
 #    Destroyers
 #    ==========
 #
@@ -336,45 +405,52 @@ IF HAVE_LONG:
 # Function lookup tables
 # ======================
 
+
 # Planner table (of size the number of planners).
-cdef fftw_generic_plan_guru planners[9]
+cdef fftw_generic_plan_guru planners[12]
 
 cdef fftw_generic_plan_guru * _build_planner_list():
-    for i in range(9):
+    for i in range(12):
         planners[i] = <fftw_generic_plan_guru>&_fftw_plan_null
 
     IF HAVE_DOUBLE:
         planners[0] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft
         planners[3] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft_r2c
         planners[6] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft_c2r
+        planners[9] = <fftw_generic_plan_guru>&_fftw_plan_guru_r2r
     IF HAVE_SINGLE:
         planners[1] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft
         planners[4] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft_r2c
         planners[7] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft_c2r
+        planners[10] = <fftw_generic_plan_guru>&_fftwf_plan_guru_r2r
     IF HAVE_LONG:
         planners[2] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft
         planners[5] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft_r2c
         planners[8] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft_c2r
+        planners[11] = <fftw_generic_plan_guru>&_fftwl_plan_guru_r2r
 
 # Executor table (of size the number of executors)
-cdef fftw_generic_execute executors[9]
+cdef fftw_generic_execute executors[12]
 
 cdef fftw_generic_execute * _build_executor_list():
-    for i in range(9):
+    for i in range(12):
         executors[i] = <fftw_generic_execute>&_fftw_execute_null
 
     IF HAVE_DOUBLE:
         executors[0] = <fftw_generic_execute>&_fftw_execute_dft
         executors[3] = <fftw_generic_execute>&_fftw_execute_dft_r2c
         executors[6] = <fftw_generic_execute>&_fftw_execute_dft_c2r
+        executors[9] = <fftw_generic_execute>&_fftw_execute_r2r
     IF HAVE_SINGLE:
         executors[1] = <fftw_generic_execute>&_fftwf_execute_dft
         executors[4] = <fftw_generic_execute>&_fftwf_execute_dft_r2c
         executors[7] = <fftw_generic_execute>&_fftwf_execute_dft_c2r
+        executors[10] = <fftw_generic_execute>&_fftwf_execute_r2r
     IF HAVE_LONG:
         executors[2] = <fftw_generic_execute>&_fftwl_execute_dft
         executors[5] = <fftw_generic_execute>&_fftwl_execute_dft_r2c
         executors[8] = <fftw_generic_execute>&_fftwl_execute_dft_c2r
+        executors[11] = <fftw_generic_execute>&_fftwl_execute_r2r
 
 # Destroyer table (of size the number of destroyers)
 cdef fftw_generic_destroy_plan destroyers[3]
@@ -550,7 +626,9 @@ fftw_schemes = {
         (np.dtype('float64'), np.dtype('complex128')): ('r2c', '64'),
         (np.dtype('float32'), np.dtype('complex64')): ('r2c', '32'),
         (np.dtype('complex128'), np.dtype('float64')): ('c2r', '64'),
-        (np.dtype('complex64'), np.dtype('float32')): ('c2r', '32')}
+        (np.dtype('complex64'), np.dtype('float32')): ('c2r', '32'),
+        (np.dtype('float32'), np.dtype('float32')): ('r2r', '32'),
+        (np.dtype('float64'), np.dtype('float64')): ('r2r', '64')}
 
 cdef object fftw_default_output
 fftw_default_output = {
@@ -563,7 +641,8 @@ if np.dtype('longdouble') != np.dtype('float64'):
     fftw_schemes.update({
         (np.dtype('clongdouble'), np.dtype('clongdouble')): ('c2c', 'ld'),
         (np.dtype('longdouble'), np.dtype('clongdouble')): ('r2c', 'ld'),
-        (np.dtype('clongdouble'), np.dtype('longdouble')): ('c2r', 'ld')})
+        (np.dtype('clongdouble'), np.dtype('longdouble')): ('c2r', 'ld'),
+        (np.dtype('longdouble'), np.dtype('longdouble')): ('r2r', 'ld')})
 
     fftw_default_output.update({
         np.dtype('longdouble'): np.dtype('clongdouble'),
@@ -579,7 +658,16 @@ scheme_directions = {
         ('r2c', 'ld'): ['FFTW_FORWARD'],
         ('c2r', '64'): ['FFTW_BACKWARD'],
         ('c2r', '32'): ['FFTW_BACKWARD'],
-        ('c2r', 'ld'): ['FFTW_BACKWARD']}
+        ('c2r', 'ld'): ['FFTW_BACKWARD'],
+        ('r2r', '64'): ['FFTW_REDFT00', 'FFTW_REDFT10', 'FFTW_REDFT01',
+                        'FFTW_REDFT11', 'FFTW_RODFT00', 'FFTW_RODFT10',
+                        'FFTW_RODFT01', 'FFTW_RODFT11'],
+        ('r2r', '32'): ['FFTW_REDFT00', 'FFTW_REDFT10', 'FFTW_REDFT01',
+                        'FFTW_REDFT11', 'FFTW_RODFT00', 'FFTW_RODFT10',
+                        'FFTW_RODFT01', 'FFTW_RODFT11'],
+        ('r2r', 'ld'): ['FFTW_REDFT00', 'FFTW_REDFT10', 'FFTW_REDFT01',
+                        'FFTW_REDFT11', 'FFTW_RODFT00', 'FFTW_RODFT10',
+                        'FFTW_RODFT01', 'FFTW_RODFT11']}
 
 # In the following, -1 denotes using the default. A segfault has been
 # reported on some systems when this is set to None. It seems
@@ -595,7 +683,9 @@ IF HAVE_DOUBLE:
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     ('c2r', '64'): {'planner':6, 'executor':6, 'generic_precision':0,
         'validator': 1,
-        'fft_shape_lookup': _lookup_shape_c2r_arrays}})
+        'fft_shape_lookup': _lookup_shape_c2r_arrays},
+    ('r2r', '64'): {'planner': 9, 'executor':9, 'generic_precision':0,
+        'validator': -1, 'fft_shape_lookup': -1}})
 IF HAVE_SINGLE:
     _scheme_functions.update({
     ('c2c', '32'): {'planner':1, 'executor':1, 'generic_precision':1,
@@ -605,7 +695,9 @@ IF HAVE_SINGLE:
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     ('c2r', '32'): {'planner':7, 'executor':7, 'generic_precision':1,
         'validator': 1,
-        'fft_shape_lookup': _lookup_shape_c2r_arrays}})
+        'fft_shape_lookup': _lookup_shape_c2r_arrays},
+    ('r2r', '32'): {'planner':10, 'executor':10, 'generic_precision':1,
+        'validator': -1, 'fft_shape_lookup': -1}})
 IF HAVE_LONG:
     _scheme_functions.update({
     ('c2c', 'ld'): {'planner':2, 'executor':2, 'generic_precision':2,
@@ -615,7 +707,9 @@ IF HAVE_LONG:
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     ('c2r', 'ld'): {'planner':8, 'executor':8, 'generic_precision':2,
         'validator': 1,
-        'fft_shape_lookup': _lookup_shape_c2r_arrays}})
+        'fft_shape_lookup': _lookup_shape_c2r_arrays},
+    ('r2r', 'ld'): {'planner':11, 'executor':11, 'generic_precision':2,
+        'validator': -1, 'fft_shape_lookup': -1}})
 
 def scheme_functions(scheme):
     if scheme in _scheme_functions:
@@ -772,7 +866,7 @@ cdef class FFTW:
 
     cdef np.ndarray _input_array
     cdef np.ndarray _output_array
-    cdef int _direction
+    cdef int *_direction
     cdef unsigned _flags
 
     cdef bint _simd_allowed
@@ -929,10 +1023,22 @@ cdef class FFTW:
 
     def _get_direction(self):
         '''
-        Return the planned FFT direction. Either `'FFTW_FORWARD'` or
-        `'FFTW_BACKWARD'`.
+        Return the planned FFT direction. Either `'FFTW_FORWARD'`,
+        `'FFTW_BACKWARD'`, or a list of real transform codes of the form
+        `['FFTW_R*DFT**']`.
         '''
-        return directions_lookup[self._direction]
+        cdef int i
+        transform_directions = list()
+        if self._direction[0] in [FFTW_FORWARD, FFTW_BACKWARD]:
+            # It would be nice to return a length-one list here (so that the
+            # return type is always [str]). This is an annoying type difference,
+            # but is backwards compatible.
+            return directions_lookup[self._direction[0]]
+        else:
+            for i in range(self._rank):
+                transform_directions.append(directions_lookup[
+                        self._direction[i]])
+        return transform_directions
 
     direction = property(_get_direction)
 
@@ -973,6 +1079,11 @@ cdef class FFTW:
                   bint normalise_idft=True, bint ortho=False,
                   *args, **kwargs):
 
+        if isinstance(direction, str):
+            given_directions = [direction]
+        else:
+            given_directions = list(direction)
+
         # Initialise the pointers that need to be freed
         self._plan = NULL
         self._dims = NULL
@@ -980,6 +1091,7 @@ cdef class FFTW:
 
         self._axes = NULL
         self._not_axes = NULL
+        self._direction = NULL
 
         self._normalise_idft = normalise_idft
         self._ortho = ortho
@@ -1089,12 +1201,32 @@ cdef class FFTW:
                     'The output array is expected to lie on a %d '
                     'byte boundary.' % self._output_array_alignment)
 
-        if not direction in scheme_directions[scheme]:
-            raise ValueError('Invalid direction: '
-                    'The direction is not valid for the scheme. '
-                    'Try setting it explicitly if it is not already.')
+        for direction in given_directions:
+            if direction not in scheme_directions[scheme]:
+                raise ValueError('Invalid direction: '
+                        'The direction is not valid for the scheme. '
+                        'Try setting it explicitly if it is not already.')
 
-        self._direction = directions[direction]
+        self._direction = <int *>malloc(len(axes)*sizeof(int))
+
+        real_transforms = True
+        cdef int i
+        if given_directions[0] in ['FFTW_FORWARD', 'FFTW_BACKWARD']:
+            self._direction[0] = directions[given_directions[0]]
+            real_transforms = False
+        else:
+            if len(axes) != len(given_directions):
+                raise ValueError('For real-to-real transforms, there must '
+                        'be exactly one specified transform for each '
+                        'transformed axis.')
+            for i in range(len(axes)):
+                if given_directions[0] in ['FFTW_FORWARD', 'FFTW_BACKWARD']:
+                    raise ValueError('Heterogeneous transforms cannot be '
+                            'assigned with \'FFTW_FORWARD\' or '
+                            '\'FFTW_BACKWARD\'.')
+                else:
+                    self._direction[i] = directions[given_directions[i]]
+
         self._input_shape = input_array.shape
         self._output_shape = output_array.shape
 
@@ -1136,10 +1268,18 @@ cdef class FFTW:
                     'The input array should have no zero length'
                     'axes over which the FFT is to be taken')
 
-            if self._direction == FFTW_FORWARD:
-                total_N *= self._input_shape[self._axes[n]]
+            if real_transforms:
+                if self._direction[n] == FFTW_RODFT00:
+                    total_N *= 2*(self._input_shape[self._axes[n]] + 1)
+                elif self._direction[n] == FFTW_REDFT00:
+                    total_N *= 2*(self._input_shape[self._axes[n]] - 1)
+                else:
+                    total_N *= 2*self._input_shape[self._axes[n]]
             else:
-                total_N *= self._output_shape[self._axes[n]]
+                if self._direction[0] == FFTW_FORWARD:
+                    total_N *= self._input_shape[self._axes[n]]
+                else:
+                    total_N *= self._output_shape[self._axes[n]]
 
         self._total_size = total_N
         self._normalisation_scaling = 1/float(self.N)
@@ -1204,7 +1344,6 @@ cdef class FFTW:
         # Make sure that the arrays are not too big for fftw
         # This is hard to test, so we cross our fingers and hope for the
         # best (any suggestions, please get in touch).
-        cdef int i
         for i in range(0, len(self._input_shape)):
             if self._input_shape[i] >= <Py_ssize_t> limits.INT_MAX:
                 raise ValueError('Dimensions of the input array must be ' +
@@ -1267,12 +1406,11 @@ cdef class FFTW:
         cdef fftw_iodim *howmany_dims = <fftw_iodim *>self._howmany_dims
         cdef void *_in = <void *>np.PyArray_DATA(self._input_array)
         cdef void *_out = <void *>np.PyArray_DATA(self._output_array)
-        cdef int sign = self._direction
         cdef unsigned c_flags = self._flags
 
         with plan_lock, nogil:
             plan = fftw_planner(rank, dims, howmany_rank, howmany_dims,
-                                _in, _out, sign, c_flags)
+                                _in, _out, self._direction, c_flags)
         self._plan = plan
 
         if self._plan == NULL:
@@ -1510,6 +1648,9 @@ cdef class FFTW:
         if not self._howmany_dims == NULL:
             free(self._howmany_dims)
 
+        if not self._direction == NULL:
+            free(self._direction)
+
     def __call__(self, input_array=None, output_array=None,
             normalise_idft=None, ortho=None):
         '''__call__(input_array=None, output_array=None, normalise_idft=True,
@@ -1635,7 +1776,8 @@ cdef class FFTW:
 
         if ortho == True:
             self._output_array *= self._sqrt_normalisation_scaling
-        elif self._direction == FFTW_BACKWARD and normalise_idft:
+
+        if self._direction[0] == FFTW_BACKWARD and normalise_idft:
             self._output_array *= self._normalisation_scaling
 
         return self._output_array
