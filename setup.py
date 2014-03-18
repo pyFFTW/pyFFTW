@@ -1,5 +1,7 @@
+#! /usr/bin/env python
+
 # Copyright 2012 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -22,6 +24,7 @@ from distutils.util import get_platform
 from distutils.ccompiler import get_default_compiler
 
 import os
+import mpi4py
 import numpy
 import sys
 
@@ -32,7 +35,7 @@ import imp
 ver_file, ver_pathname, ver_description = imp.find_module(
             '_version', ['pyfftw'])
 try:
-    _version = imp.load_module('version', ver_file, ver_pathname, 
+    _version = imp.load_module('version', ver_file, ver_pathname,
             ver_description)
 finally:
     ver_file.close()
@@ -51,9 +54,11 @@ except ImportError as e:
     # We can't cythonize, but that's ok as it's been done already.
     from distutils.command.build_ext import build_ext
 
-include_dirs = [os.path.join(os.getcwd(), 'include'), 
+include_dirs = [os.path.join(os.getcwd(), 'include'),
         os.path.join(os.getcwd(), 'pyfftw'),
-        numpy.get_include()]
+        numpy.get_include(),
+        mpi4py.get_include()]
+#        '/usr/lib/openmpi/include', '/usr/lib/openmpi/include/openmpi'] # todo this is not portable at all
 library_dirs = []
 package_data = {}
 
@@ -64,8 +69,9 @@ if get_platform() in ('win32', 'win-amd64'):
     package_data['pyfftw'] = [
             'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
 else:
-    libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads', 
-            'fftw3f_threads', 'fftw3l_threads']
+    libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads',
+            'fftw3f_threads', 'fftw3l_threads',
+            'fftw3_mpi', 'fftw3f_mpi', 'fftw3l_mpi']
 
 class custom_build_ext(build_ext):
     def finalize_options(self):
@@ -79,14 +85,14 @@ class custom_build_ext(build_ext):
 
         if compiler == 'msvc':
             # Add msvc specific hacks
-            
+
             if (sys.version_info.major, sys.version_info.minor) < (3, 3):
                 # The check above is a nasty hack. We're using the python
                 # version as a proxy for the MSVC version. 2008 doesn't
                 # have stdint.h, so is needed. 2010 does.
                 #
                 # We need to add the path to msvc includes
-                include_dirs.append(os.path.join(os.getcwd(), 
+                include_dirs.append(os.path.join(os.getcwd(),
                     'include', 'msvc_2008'))
 
             # We need to prepend lib to all the library names
@@ -100,7 +106,8 @@ ext_modules = [Extension('pyfftw.pyfftw',
     sources=sources,
     libraries=libraries,
     library_dirs=library_dirs,
-    include_dirs=include_dirs)]
+    include_dirs=include_dirs,
+    depends=[os.path.join('pyfftw', 'pyfftw.pxd')])]
 
 long_description = '''
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
@@ -109,18 +116,18 @@ the possible transforms that FFTW can perform.
 
 Both the complex DFT and the real DFT are supported, as well as arbitrary
 axes of abitrary shaped and strided arrays, which makes it almost
-feature equivalent to standard and real FFT functions of ``numpy.fft`` 
+feature equivalent to standard and real FFT functions of ``numpy.fft``
 (indeed, it supports the ``clongdouble`` dtype which ``numpy.fft`` does not).
 
 Operating FFTW in multithreaded mode is supported.
 
-A comprehensive unittest suite can be found with the source on the github 
+A comprehensive unittest suite can be found with the source on the github
 repository.
 
 To build for windows from source, download the fftw dlls for your system
 and the header file from here (they're in a zip file):
 http://www.fftw.org/install/windows.html and place them in the pyfftw
-directory. The files are libfftw3-3.dll, libfftw3l-3.dll, libfftw3f-3.dll 
+directory. The files are libfftw3-3.dll, libfftw3l-3.dll, libfftw3f-3.dll
 and libfftw3.h.
 
 Under linux, to build from source, the FFTW library must be installed already.
@@ -128,7 +135,7 @@ This should probably work for OSX, though I've not tried it.
 
 Numpy is a dependency for both.
 
-The documentation can be found 
+The documentation can be found
 `here <http://hgomersall.github.com/pyFFTW/>`_, and the source
 is on `github <https://github.com/hgomersall/pyFFTW>`_.
 '''
@@ -144,7 +151,7 @@ class TestCommand(Command):
 
     def run(self):
         import sys, subprocess
-        errno = subprocess.call([sys.executable, '-m', 
+        errno = subprocess.call([sys.executable, '-m',
             'unittest', 'discover'])
         raise SystemExit(errno)
 

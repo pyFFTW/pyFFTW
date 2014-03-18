@@ -1,5 +1,5 @@
 # Copyright 2012 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -25,13 +25,13 @@ ctypedef struct _fftw_iodim:
     int _os
 
 cdef extern from 'pyfftw_complex.h':
-    
+
     ctypedef float cfloat[2]
     ctypedef double cdouble[2]
     ctypedef long double clongdouble[2]
 
 cdef extern from 'fftw3.h':
-    
+
     # Double precision plans
     ctypedef struct fftw_plan_struct:
         pass
@@ -57,14 +57,14 @@ cdef extern from 'fftw3.h':
     # we ignore the distinction in order to simplify the code.
     ctypedef struct fftw_iodim:
         pass
-    
+
     # Double precision complex planner
     fftw_plan fftw_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             cdouble *_in, cdouble *_out,
             int sign, unsigned flags)
-    
+
     # Single precision complex planner
     fftwf_plan fftwf_plan_guru_dft(
             int rank, fftw_iodim *dims,
@@ -78,14 +78,14 @@ cdef extern from 'fftw3.h':
             int howmany_rank, fftw_iodim *howmany_dims,
             clongdouble *_in, clongdouble *_out,
             int sign, unsigned flags)
-    
+
     # Double precision real to complex planner
     fftw_plan fftw_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             double *_in, cdouble *_out,
             unsigned flags)
-    
+
     # Single precision real to complex planner
     fftwf_plan fftwf_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
@@ -106,7 +106,7 @@ cdef extern from 'fftw3.h':
             int howmany_rank, fftw_iodim *howmany_dims,
             cdouble *_in, double *_out,
             unsigned flags)
-    
+
     # Single precision complex to real planner
     fftwf_plan fftwf_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
@@ -124,36 +124,36 @@ cdef extern from 'fftw3.h':
     # Double precision complex new array execute
     void fftw_execute_dft(fftw_plan,
           cdouble *_in, cdouble *_out) nogil
-    
-    # Single precision complex new array execute    
+
+    # Single precision complex new array execute
     void fftwf_execute_dft(fftwf_plan,
           cfloat *_in, cfloat *_out) nogil
 
-    # Long double precision complex new array execute    
+    # Long double precision complex new array execute
     void fftwl_execute_dft(fftwl_plan,
           clongdouble *_in, clongdouble *_out) nogil
-   
+
     # Double precision real to complex new array execute
     void fftw_execute_dft_r2c(fftw_plan,
           double *_in, cdouble *_out) nogil
-    
-    # Single precision real to complex new array execute    
+
+    # Single precision real to complex new array execute
     void fftwf_execute_dft_r2c(fftwf_plan,
           float *_in, cfloat *_out) nogil
 
-    # Long double precision real to complex new array execute    
+    # Long double precision real to complex new array execute
     void fftwl_execute_dft_r2c(fftwl_plan,
           long double *_in, clongdouble *_out) nogil
 
     # Double precision complex to real new array execute
     void fftw_execute_dft_c2r(fftw_plan,
           cdouble *_in, double *_out) nogil
-    
-    # Single precision complex to real new array execute    
+
+    # Single precision complex to real new array execute
     void fftwf_execute_dft_c2r(fftwf_plan,
           cfloat *_in, float *_out) nogil
 
-    # Long double precision complex to real new array execute    
+    # Long double precision complex to real new array execute
     void fftwl_execute_dft_c2r(fftwl_plan,
           clongdouble *_in, long double *_out) nogil
 
@@ -219,9 +219,206 @@ cdef extern from 'fftw3.h':
 
     double FFTW_NO_TIMELIMIT
 
+from libc.stddef cimport ptrdiff_t
+# cdef extern from 'stddef.h':
+#     ptrdiff_t
+
+# ctypedef struct _fftw_mpi_ddim:
+#     int _n
+#     int _ib
+#     int _ob
+
+# mpi4py is a cython wrapper of MPI. This helps a lot
+from mpi4py.libmpi cimport MPI_Comm
+
+cdef extern from 'fftw3-mpi.h':
+    # ctypedef struct fftw_iodim:
+    #     pass
+
+
+     # Double precision complex new array execute
+    void fftw_mpi_execute_dft(fftw_plan,
+          cdouble *_in, cdouble *_out)
+
+    # Single precision complex new array execute
+    void fftwf_mpi_execute_dft(fftwf_plan,
+          cfloat *_in, cfloat *_out)
+
+    # Long double precision complex new array execute
+    void fftwl_mpi_execute_dft(fftwl_plan,
+          clongdouble *_in, clongdouble *_out)
+
+    # Double precision real to complex new array execute
+    void fftw_mpi_execute_dft_r2c(fftw_plan,
+          double *_in, cdouble *_out)
+
+    # Single precision real to complex new array execute
+    void fftwf_mpi_execute_dft_r2c(fftwf_plan,
+          float *_in, cfloat *_out)
+
+    # Long double precision real to complex new array execute
+    void fftwl_mpi_execute_dft_r2c(fftwl_plan,
+          long double *_in, clongdouble *_out)
+
+    # Double precision complex to real new array execute
+    void fftw_mpi_execute_dft_c2r(fftw_plan,
+          cdouble *_in, double *_out)
+
+    # Single precision complex to real new array execute
+    void fftwf_mpi_execute_dft_c2r(fftwf_plan,
+          cfloat *_in, float *_out)
+
+    # Long double precision complex to real new array execute
+    void fftwl_mpi_execute_dft_c2r(fftwl_plan,
+          clongdouble *_in, long double *_out)
+
+    # Initialization
+
+    # Double precision
+    void fftw_mpi_init()
+
+    # Single precision
+    void fftwf_mpi_init()
+
+    # Long double precision
+    void fftwl_mpi_init()
+
+    # cleanup routines
+    void fftw_mpi_cleanup()
+    void fftwf_mpi_cleanup()
+    void fftwl_mpi_cleanup()
+
+    # data distribution
+    # todo support FFTW_MPI_TRANSPOSED_[IN,OUT] 6.4.3
+    ptrdiff_t fftw_mpi_local_size_2d(ptrdiff_t n0, ptrdiff_t n1, MPI_Comm comm,
+                                     ptrdiff_t *local_n0, ptrdiff_t *local_0_start)
+    ptrdiff_t fftw_mpi_local_size_3d(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                     MPI_Comm comm,
+                                     ptrdiff_t *local_n0, ptrdiff_t *local_0_start)
+    ptrdiff_t fftw_mpi_local_size(int rnk, const ptrdiff_t *n, MPI_Comm comm,
+                                  ptrdiff_t *local_n0, ptrdiff_t *local_0_start)
+
+    ptrdiff_t fftw_mpi_local_size_2d_transposed(ptrdiff_t n0, ptrdiff_t n1, MPI_Comm comm,
+                                                ptrdiff_t *local_n0, ptrdiff_t *local_0_start,
+                                                ptrdiff_t *local_n1, ptrdiff_t *local_1_start)
+    ptrdiff_t fftw_mpi_local_size_3d_transposed(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                                MPI_Comm comm,
+                                                ptrdiff_t *local_n0, ptrdiff_t *local_0_start,
+                                                ptrdiff_t *local_n1, ptrdiff_t *local_1_start)
+    ptrdiff_t fftw_mpi_local_size_transposed(int rnk, const ptrdiff_t *n, MPI_Comm comm,
+                                             ptrdiff_t *local_n0, ptrdiff_t *local_0_start,
+                                             ptrdiff_t *local_n1, ptrdiff_t *local_1_start)
+
+    ptrdiff_t fftwf_mpi_local_size_2d(ptrdiff_t n0, ptrdiff_t n1, MPI_Comm comm,
+                                     ptrdiff_t *local_n0, ptrdiff_t *local_0_start)
+    ptrdiff_t fftwf_mpi_local_size_3d(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                     MPI_Comm comm,
+                                     ptrdiff_t *local_n0, ptrdiff_t *local_0_start)
+    ptrdiff_t fftwf_mpi_local_size(int rnk, const ptrdiff_t *n, MPI_Comm comm,
+                                  ptrdiff_t *local_n0, ptrdiff_t *local_0_start)
+
+    ptrdiff_t fftwf_mpi_local_size_2d_transposed(ptrdiff_t n0, ptrdiff_t n1, MPI_Comm comm,
+                                                ptrdiff_t *local_n0, ptrdiff_t *local_0_start,
+                                                ptrdiff_t *local_n1, ptrdiff_t *local_1_start)
+    ptrdiff_t fftwf_mpi_local_size_3d_transposed(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                                MPI_Comm comm,
+                                                ptrdiff_t *local_n0, ptrdiff_t *local_0_start,
+                                                ptrdiff_t *local_n1, ptrdiff_t *local_1_start)
+    ptrdiff_t fftwf_mpi_local_size_transposed(int rnk, const ptrdiff_t *n, MPI_Comm comm,
+                                             ptrdiff_t *local_n0, ptrdiff_t *local_0_start,
+                                             ptrdiff_t *local_n1, ptrdiff_t *local_1_start)
+
+    ptrdiff_t fftwl_mpi_local_size_2d(ptrdiff_t n0, ptrdiff_t n1, MPI_Comm comm,
+                                     ptrdiff_t *local_n0, ptrdiff_t *local_0_start)
+    ptrdiff_t fftwl_mpi_local_size_3d(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                     MPI_Comm comm,
+                                     ptrdiff_t *local_n0, ptrdiff_t *local_0_start)
+    ptrdiff_t fftwl_mpi_local_size(int rnk, const ptrdiff_t *n, MPI_Comm comm,
+                                  ptrdiff_t *local_n0, ptrdiff_t *local_0_start)
+
+    ptrdiff_t fftwl_mpi_local_size_2d_transposed(ptrdiff_t n0, ptrdiff_t n1, MPI_Comm comm,
+                                                ptrdiff_t *local_n0, ptrdiff_t *local_0_start,
+                                                ptrdiff_t *local_n1, ptrdiff_t *local_1_start)
+    ptrdiff_t fftwl_mpi_local_size_3d_transposed(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                                MPI_Comm comm,
+                                                ptrdiff_t *local_n0, ptrdiff_t *local_0_start,
+                                                ptrdiff_t *local_n1, ptrdiff_t *local_1_start)
+    ptrdiff_t fftwl_mpi_local_size_transposed(int rnk, const ptrdiff_t *n, MPI_Comm comm,
+                                             ptrdiff_t *local_n0, ptrdiff_t *local_0_start,
+                                             ptrdiff_t *local_n1, ptrdiff_t *local_1_start)
+
+    # todo support FFTW_MPI_DEFAULT_BLOCK
+    ptrdiff_t fftw_mpi_local_size_many(int rnk, const ptrdiff_t *n, ptrdiff_t howmany,
+                                       ptrdiff_t block0, MPI_Comm comm,
+                                       ptrdiff_t *local_n0, ptrdiff_t *local_0_start)
+    ptrdiff_t fftw_mpi_local_size_many_transposed(int rnk, const ptrdiff_t *n, ptrdiff_t howmany,
+                                                  ptrdiff_t block0, ptrdiff_t block1, MPI_Comm comm,
+                                                  ptrdiff_t *local_n0, ptrdiff_t *local_0_start,
+                                                  ptrdiff_t *local_n1, ptrdiff_t *local_1_start)
+
+    # todo support FFTW_MPI_SCRAMBLED_[IN,OUT] 6.4.4
+    ptrdiff_t fftw_mpi_local_size_1d(ptrdiff_t n0, MPI_Comm comm, int sign, unsigned flags,
+                                     ptrdiff_t *local_ni, ptrdiff_t *local_i_start,
+                                     ptrdiff_t *local_no, ptrdiff_t *local_o_start)
+    ptrdiff_t fftw_mpi_local_size_many_1d(ptrdiff_t n0, ptrdiff_t howmany,
+                                          MPI_Comm comm, int sign, unsigned flags,
+                                          ptrdiff_t *local_ni, ptrdiff_t *local_i_start,
+                                          ptrdiff_t *local_no, ptrdiff_t *local_o_start)
+
+    # plan creation
+
+    # complex to complex
+    fftw_plan fftw_mpi_plan_dft_1d(ptrdiff_t n0, cdouble *_in, cdouble *out,
+                               MPI_Comm comm, int sign, unsigned flags)
+    fftw_plan fftw_mpi_plan_dft_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                   cdouble *_in, cdouble *out,
+                                   MPI_Comm comm, int sign, unsigned flags)
+    fftw_plan fftw_mpi_plan_dft_3d(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                   cdouble *_in, cdouble *out,
+                                   MPI_Comm comm, int sign, unsigned flags)
+    fftw_plan fftw_mpi_plan_dft(int rnk, const ptrdiff_t *n,
+                                cdouble *_in, cdouble *out,
+                                MPI_Comm comm, int sign, unsigned flags)
+    fftw_plan fftw_mpi_plan_many_dft(int rnk, const ptrdiff_t *n,
+                                     ptrdiff_t howmany, ptrdiff_t block, ptrdiff_t tblock,
+                                     cdouble *_in, cdouble *out,
+                                     MPI_Comm comm, int sign, unsigned flags)
+
+    # real to complex
+    fftw_plan fftw_mpi_plan_dft_r2c_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                       double *_in, cdouble *out,
+                                       MPI_Comm comm, unsigned flags)
+    fftw_plan fftw_mpi_plan_dft_r2c_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                       double *_in, cdouble *out,
+                                       MPI_Comm comm, unsigned flags)
+    fftw_plan fftw_mpi_plan_dft_r2c_3d(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                       double *_in, cdouble *out,
+                                       MPI_Comm comm, unsigned flags)
+    fftw_plan fftw_mpi_plan_dft_r2c(int rnk, const ptrdiff_t *n,
+                                    double *_in, cdouble *out,
+                                    MPI_Comm comm, unsigned flags)
+    fftw_plan fftw_mpi_plan_dft_c2r_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                       cdouble *_in, double *out,
+                                       MPI_Comm comm, unsigned flags)
+    fftw_plan fftw_mpi_plan_dft_c2r_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                       cdouble *_in, double *out,
+                                       MPI_Comm comm, unsigned flags)
+    fftw_plan fftw_mpi_plan_dft_c2r_3d(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                       cdouble *_in, double *out,
+                                       MPI_Comm comm, unsigned flags)
+    fftw_plan fftw_mpi_plan_dft_c2r(int rnk, const ptrdiff_t *n,
+                                    cdouble *_in, double *out,
+                                    MPI_Comm comm, unsigned flags)
+
+    # real to real not supported
+
+    # wisdom functions
+    void fftw_mpi_gather_wisdom(MPI_Comm comm)
+    void fftw_mpi_broadcast_wisdom(MPI_Comm comm)
+
 # Define function pointers that can act as a placeholder
 # for whichever dtype is used (the problem being that fftw
-# has different function names and signatures for all the 
+# has different function names and signatures for all the
 # different precisions and dft types).
 ctypedef void * (*fftw_generic_plan_guru)(
         int rank, fftw_iodim *dims,
@@ -239,8 +436,8 @@ ctypedef void (*fftw_generic_plan_with_nthreads)(int n)
 
 ctypedef void (*fftw_generic_set_timelimit)(double seconds)
 
-ctypedef bint (*validator)(np.ndarray input_array, 
-        np.ndarray output_array, int64_t *axes, int64_t *not_axes, 
+ctypedef bint (*validator)(np.ndarray input_array,
+        np.ndarray output_array, int64_t *axes, int64_t *not_axes,
         int64_t axes_length)
 
 # Direction enum
@@ -259,3 +456,12 @@ cdef enum:
     FFTW_PATIENT = 32
     FFTW_ESTIMATE = 64
 
+# MPI-specific flags
+cdef enum:
+    FFTW_MPI_DEFAULT_BLOCK = 0
+
+cdef enum:
+    FFTW_MPI_SCRAMBLED_IN   =  67108864
+    FFTW_MPI_SCRAMBLED_OUT  = 134217728
+    FFTW_MPI_TRANSPOSED_IN  = 268435456
+    FFTW_MPI_TRANSPOSED_OUT = 536870912

@@ -1,5 +1,5 @@
 # Copyright 2012 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -27,7 +27,7 @@ import warnings
 include 'utils.pxi'
 
 cdef extern from *:
-    int Py_AtExit(void (*callback)()) 
+    int Py_AtExit(void (*callback)())
 
 cdef object directions
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
@@ -52,7 +52,7 @@ _flag_dict = flag_dict.copy()
 # All of these have the same signature as the fftw_generic functions
 # defined in the .pxd file. The arguments and return values are
 # cast as required in order to call the actual fftw functions.
-# 
+#
 # The wrapper function names are simply the fftw names prefixed
 # with a single underscore.
 
@@ -173,55 +173,55 @@ cdef void* _fftwl_plan_guru_dft_c2r(
 # Complex double precision
 cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out) nogil:
 
-    fftw_execute_dft(<fftw_plan>_plan, 
+    fftw_execute_dft(<fftw_plan>_plan,
             <cdouble *>_in, <cdouble *>_out)
 
 # Complex single precision
 cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out) nogil:
 
-    fftwf_execute_dft(<fftwf_plan>_plan, 
+    fftwf_execute_dft(<fftwf_plan>_plan,
             <cfloat *>_in, <cfloat *>_out)
 
 # Complex long double precision
 cdef void _fftwl_execute_dft(void *_plan, void *_in, void *_out) nogil:
 
-    fftwl_execute_dft(<fftwl_plan>_plan, 
+    fftwl_execute_dft(<fftwl_plan>_plan,
             <clongdouble *>_in, <clongdouble *>_out)
 
 # real to complex double precision
 cdef void _fftw_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
 
-    fftw_execute_dft_r2c(<fftw_plan>_plan, 
+    fftw_execute_dft_r2c(<fftw_plan>_plan,
             <double *>_in, <cdouble *>_out)
 
 # real to complex single precision
 cdef void _fftwf_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
 
-    fftwf_execute_dft_r2c(<fftwf_plan>_plan, 
+    fftwf_execute_dft_r2c(<fftwf_plan>_plan,
             <float *>_in, <cfloat *>_out)
 
 # real to complex long double precision
 cdef void _fftwl_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
 
-    fftwl_execute_dft_r2c(<fftwl_plan>_plan, 
+    fftwl_execute_dft_r2c(<fftwl_plan>_plan,
             <long double *>_in, <clongdouble *>_out)
 
 # complex to real double precision
 cdef void _fftw_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
 
-    fftw_execute_dft_c2r(<fftw_plan>_plan, 
+    fftw_execute_dft_c2r(<fftw_plan>_plan,
             <cdouble *>_in, <double *>_out)
 
 # complex to real single precision
 cdef void _fftwf_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
 
-    fftwf_execute_dft_c2r(<fftwf_plan>_plan, 
+    fftwf_execute_dft_c2r(<fftwf_plan>_plan,
             <cfloat *>_in, <float *>_out)
 
 # complex to real long double precision
 cdef void _fftwl_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
 
-    fftwl_execute_dft_c2r(<fftwl_plan>_plan, 
+    fftwl_execute_dft_c2r(<fftwl_plan>_plan,
             <clongdouble *>_in, <long double *>_out)
 
 #    Destroyers
@@ -318,8 +318,8 @@ cdef validator * _build_validators_list():
 
 # Validator functions
 # ===================
-cdef bint _validate_r2c_arrays(np.ndarray input_array, 
-        np.ndarray output_array, int64_t *axes, int64_t *not_axes, 
+cdef bint _validate_r2c_arrays(np.ndarray input_array,
+        np.ndarray output_array, int64_t *axes, int64_t *not_axes,
         int64_t axes_length):
     ''' Validates the input and output array to check for
     a valid real to complex transform.
@@ -335,8 +335,8 @@ cdef bint _validate_r2c_arrays(np.ndarray input_array,
     for n in range(axes_length - 1):
         if not out_shape[axes[n]] == in_shape[axes[n]]:
             return False
-    
-    # The critical axis is the last of those over which the 
+
+    # The critical axis is the last of those over which the
     # FFT is taken.
     if not (out_shape[axes[axes_length-1]]
             == in_shape[axes[axes_length-1]]//2 + 1):
@@ -349,8 +349,8 @@ cdef bint _validate_r2c_arrays(np.ndarray input_array,
     return True
 
 
-cdef bint _validate_c2r_arrays(np.ndarray input_array, 
-        np.ndarray output_array, int64_t *axes, int64_t *not_axes, 
+cdef bint _validate_c2r_arrays(np.ndarray input_array,
+        np.ndarray output_array, int64_t *axes, int64_t *not_axes,
         int64_t axes_length):
     ''' Validates the input and output array to check for
     a valid complex to real transform.
@@ -367,10 +367,10 @@ cdef bint _validate_c2r_arrays(np.ndarray input_array,
     for n in range(axes_length - 1):
         if not in_shape[axes[n]] == out_shape[axes[n]]:
             return False
-    
-    # The critical axis is the last of those over which the 
+
+    # The critical axis is the last of those over which the
     # FFT is taken.
-    if not (in_shape[axes[axes_length-1]] 
+    if not (in_shape[axes[axes_length-1]]
             == out_shape[axes[axes_length-1]]//2 + 1):
         return False
 
@@ -393,11 +393,11 @@ def _lookup_shape_c2r_arrays(input_array, output_array):
 # which are a tuple of the string representation of numpy
 # dtypes to a scheme name.
 #
-# scheme_functions is a dictionary of functions, either 
-# an index to the array of functions in the case of 
+# scheme_functions is a dictionary of functions, either
+# an index to the array of functions in the case of
 # 'planner', 'executor' and 'generic_precision' or a callable
 # in the case of 'validator' (generic_precision is a catchall for
-# functions that only change based on the precision changing - 
+# functions that only change based on the precision changing -
 # i.e the prefix fftw, fftwl and fftwf is the only bit that changes).
 #
 # The array indices refer to the relevant functions for each scheme,
@@ -409,12 +409,12 @@ def _lookup_shape_c2r_arrays(input_array, output_array):
 # and checks that the arrays are a valid pair. If it is set to None,
 # then the default check is applied, which confirms that the arrays
 # have the same shape.
-# 
+#
 # The 'fft_shape_lookup' function is a callable for returning the
-# FFT shape - that is, an array that describes the length of the 
+# FFT shape - that is, an array that describes the length of the
 # fft along each axis. It has the following signature:
-# fft_shape = fft_shape_lookup(in_array, out_array) 
-# (note that this does not correspond to the lengths of the FFT that is 
+# fft_shape = fft_shape_lookup(in_array, out_array)
+# (note that this does not correspond to the lengths of the FFT that is
 # actually taken, it's the lengths of the FFT that *could* be taken
 # along each axis. It's necessary because the real FFT has a length
 # that is different to the length of the input array).
@@ -448,8 +448,8 @@ scheme_directions = {
         ('c2r', 'ld'): ['FFTW_BACKWARD']}
 
 # In the following, -1 denotes using the default. A segfault has been
-# reported on some systems when this is set to None. It seems 
-# sufficiently trivial to use -1 in place of None, especially given 
+# reported on some systems when this is set to None. It seems
+# sufficiently trivial to use -1 in place of None, especially given
 # that scheme_functions is an internal cdef object.
 cdef object scheme_functions
 scheme_functions = {
@@ -460,27 +460,27 @@ scheme_functions = {
     ('c2c', 'ld'): {'planner':2, 'executor':2, 'generic_precision':2,
         'validator': -1, 'fft_shape_lookup': -1},
     ('r2c', '64'): {'planner':3, 'executor':3, 'generic_precision':0,
-        'validator': 0, 
+        'validator': 0,
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     ('r2c', '32'): {'planner':4, 'executor':4, 'generic_precision':1,
-        'validator': 0, 
+        'validator': 0,
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
     ('r2c', 'ld'): {'planner':5, 'executor':5, 'generic_precision':2,
-        'validator': 0, 
+        'validator': 0,
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
-    ('c2r', '64'): {'planner':6, 'executor':6, 'generic_precision':0, 
-        'validator': 1, 
+    ('c2r', '64'): {'planner':6, 'executor':6, 'generic_precision':0,
+        'validator': 1,
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
-    ('c2r', '32'): {'planner':7, 'executor':7, 'generic_precision':1, 
-        'validator': 1, 
+    ('c2r', '32'): {'planner':7, 'executor':7, 'generic_precision':1,
+        'validator': 1,
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
     ('c2r', 'ld'): {'planner':8, 'executor':8, 'generic_precision':2,
-        'validator': 1, 
+        'validator': 1,
         'fft_shape_lookup': _lookup_shape_c2r_arrays}}
 
 # Initialize the module
 
-# Define the functions        
+# Define the functions
 _build_planner_list()
 _build_destroyer_list()
 _build_executor_list()
@@ -504,11 +504,11 @@ cdef void _cleanup():
 Py_AtExit(_cleanup)
 
 # Helper functions
-cdef void make_axes_unique(int64_t *axes, int64_t axes_length, 
-        int64_t **unique_axes, int64_t **not_axes, int64_t dimensions, 
+cdef void make_axes_unique(int64_t *axes, int64_t axes_length,
+        int64_t **unique_axes, int64_t **not_axes, int64_t dimensions,
         int64_t *unique_axes_length):
     ''' Takes an array of axes and makes that array unique, returning
-    the unique array in unique_axes. It also creates and fills another 
+    the unique array in unique_axes. It also creates and fills another
     array, not_axes, with those axes that are not included in unique_axes.
 
     unique_axes_length is updated with the length of unique_axes.
@@ -568,6 +568,18 @@ cdef void make_axes_unique(int64_t *axes, int64_t axes_length,
 
     return
 
+cdef class Beaujean:
+    cdef int age
+
+cdef class Fred(Beaujean):
+    cdef double nose
+
+    def __cinit__(self, double nose, age=23):
+        self.age = age
+        self.nose = nose
+
+    def harr(self):
+        print(self.nose, self.age)
 
 # The External Interface
 # ======================
@@ -575,8 +587,8 @@ cdef void make_axes_unique(int64_t *axes, int64_t axes_length,
 cdef class FFTW:
     '''
     FFTW is a class for computing the complex N-Dimensional DFT or
-    inverse DFT of an array using the FFTW library. The interface is 
-    designed to be somewhat pythonic, with the correct transform being 
+    inverse DFT of an array using the FFTW library. The interface is
+    designed to be somewhat pythonic, with the correct transform being
     inferred from the dtypes of the passed arrays.
 
     On instantiation, the dtypes and relative shapes of the input array and
@@ -585,10 +597,10 @@ cdef class FFTW:
     corresponds to that scheme is created, operating on the arrays that are
     passed in. If no scheme can be created, then ``ValueError`` is raised.
 
-    The actual FFT or iFFT is performed by calling the 
+    The actual FFT or iFFT is performed by calling the
     :meth:`~pyfftw.FFTW.execute` method.
-    
-    The arrays can be updated by calling the 
+
+    The arrays can be updated by calling the
     :meth:`~pyfftw.FFTW.update_arrays` method.
 
     The created instance of the class is itself callable, and can perform
@@ -596,9 +608,9 @@ cdef class FFTW:
     the result of the FFT. Unlike calling the :meth:`~pyfftw.FFTW.execute`
     method, calling the class instance will also optionally normalise the
     output as necessary. Additionally, calling with an input array update
-    will also coerce that array to be the correct dtype. 
-    
-    See the documentation on the :meth:`~pyfftw.FFTW.__call__` method 
+    will also coerce that array to be the correct dtype.
+
+    See the documentation on the :meth:`~pyfftw.FFTW.__call__` method
     for more information.
     '''
     # Each of these function pointers simply
@@ -619,8 +631,9 @@ cdef class FFTW:
 
     cdef bint _simd_allowed
     cdef int _input_array_alignment
-    cdef int _output_array_alignment    
+    cdef int _output_array_alignment
     cdef bint _use_threads
+    cdef bint _use_mpi
 
     cdef object _input_item_strides
     cdef object _input_strides
@@ -646,7 +659,7 @@ cdef class FFTW:
     def _get_N(self):
         '''
         The product of the lengths of the DFT over all DFT axes.
-        1/N is the normalisation constant. For any input array A, 
+        1/N is the normalisation constant. For any input array A,
         and for any set of axes, 1/N * ifft(fft(A)) = A
         '''
         return self._N
@@ -669,7 +682,7 @@ cdef class FFTW:
 
         Input array updates with arrays that are not aligned on this
         byte boundary will result in a ValueError being raised, or
-        a copy being made if the :meth:`~pyfftw.FFTW.__call__` 
+        a copy being made if the :meth:`~pyfftw.FFTW.__call__`
         interface is used.
         '''
         return self._input_array_alignment
@@ -691,7 +704,7 @@ cdef class FFTW:
     def _get_flags_used(self):
         '''
         Return which flags were used to construct the FFTW object.
-        
+
         This includes flags that were added during initialisation.
         '''
         return tuple(self._flags_used)
@@ -700,7 +713,7 @@ cdef class FFTW:
 
     def _get_input_array(self):
         '''
-        Return the input array that is associated with the FFTW 
+        Return the input array that is associated with the FFTW
         instance.
         '''
         return self._input_array
@@ -709,7 +722,7 @@ cdef class FFTW:
 
     def _get_output_array(self):
         '''
-        Return the output array that is associated with the FFTW 
+        Return the output array that is associated with the FFTW
         instance.
         '''
         return self._output_array
@@ -721,7 +734,7 @@ cdef class FFTW:
         Return the strides of the input array for which the FFT is planned.
         '''
         return self._input_strides
-    
+
     input_strides = property(_get_input_strides)
 
     def _get_output_strides(self):
@@ -729,7 +742,7 @@ cdef class FFTW:
         Return the strides of the output array for which the FFT is planned.
         '''
         return self._output_strides
-    
+
     output_strides = property(_get_output_strides)
 
     def _get_input_shape(self):
@@ -737,7 +750,7 @@ cdef class FFTW:
         Return the shape of the input array for which the FFT is planned.
         '''
         return self._input_shape
-    
+
     input_shape = property(_get_input_shape)
 
     def _get_output_shape(self):
@@ -745,7 +758,7 @@ cdef class FFTW:
         Return the shape of the output array for which the FFT is planned.
         '''
         return self._output_shape
-    
+
     output_shape = property(_get_output_shape)
 
     def _get_input_dtype(self):
@@ -753,7 +766,7 @@ cdef class FFTW:
         Return the dtype of the input array for which the FFT is planned.
         '''
         return self._input_dtype
-    
+
     input_dtype = property(_get_input_dtype)
 
     def _get_output_dtype(self):
@@ -761,16 +774,16 @@ cdef class FFTW:
         Return the shape of the output array for which the FFT is planned.
         '''
         return self._output_dtype
-    
+
     output_dtype = property(_get_output_dtype)
 
     def _get_direction(self):
         '''
-        Return the planned FFT direction. Either `'FFTW_FORWARD'` or 
+        Return the planned FFT direction. Either `'FFTW_FORWARD'` or
         `'FFTW_BACKWARD'`.
         '''
         return directions_lookup[self._direction]
-    
+
     direction = property(_get_direction)
 
     def _get_axes(self):
@@ -784,14 +797,14 @@ cdef class FFTW:
             axes.append(self._axes[i])
 
         return tuple(axes)
-    
+
     axes = property(_get_axes)
 
     def __cinit__(self, input_array, output_array, axes=(-1,),
-            direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
-            unsigned int threads=1, planning_timelimit=None,
+            direction='FFTW_FORWARD', flags=('FFTW_MEASURE',),
+            unsigned int threads=1, planning_timelimit=None, comm=None,
             *args, **kwargs):
-        
+
         # Initialise the pointers that need to be freed
         self._plan = NULL
         self._dims = NULL
@@ -833,9 +846,9 @@ cdef class FFTW:
 
         self._input_dtype = input_dtype
         self._output_dtype = output_dtype
-        
+
         functions = scheme_functions[scheme]
-        
+
         self._fftw_planner = planners[functions['planner']]
         self._fftw_execute = executors[functions['executor']]
         self._fftw_destroy = destroyers[functions['generic_precision']]
@@ -867,9 +880,9 @@ cdef class FFTW:
             self._output_array_alignment = -1
 
             for each_alignment in _valid_simd_alignments:
-                if (<intptr_t>np.PyArray_DATA(input_array) % 
+                if (<intptr_t>np.PyArray_DATA(input_array) %
                         each_alignment == 0 and
-                        <intptr_t>np.PyArray_DATA(output_array) % 
+                        <intptr_t>np.PyArray_DATA(output_array) %
                         each_alignment == 0):
 
                     self._simd_allowed = True
@@ -910,7 +923,7 @@ cdef class FFTW:
         self._direction = directions[direction]
         self._input_shape = input_array.shape
         self._output_shape = output_array.shape
-        
+
         self._input_array = input_array
         self._output_array = output_array
 
@@ -933,7 +946,7 @@ cdef class FFTW:
         cdef int64_t unique_axes_length
         cdef int64_t *unique_axes
         cdef int64_t *not_axes
-        
+
         make_axes_unique(self._axes, len(axes), &unique_axes,
                 &not_axes, array_dimension, &unique_axes_length)
 
@@ -967,7 +980,7 @@ cdef class FFTW:
                         'input array for the given array dtypes.')
         else:
             _validator = validators[functions['validator']]
-            if not _validator(input_array, output_array, 
+            if not _validator(input_array, output_array,
                     self._axes, self._not_axes, unique_axes_length):
                 raise ValueError('Invalid shapes: '
                         'The input array and output array are invalid '
@@ -975,7 +988,7 @@ cdef class FFTW:
 
         self._rank = unique_axes_length
         self._howmany_rank = self._input_array.ndim - unique_axes_length
-        
+
         self._flags = 0
         self._flags_used = []
         for each_flag in flags:
@@ -983,17 +996,17 @@ cdef class FFTW:
                 self._flags |= flag_dict[each_flag]
                 self._flags_used.append(each_flag)
             except KeyError:
-                raise ValueError('Invalid flag: ' + '\'' + 
+                raise ValueError('Invalid flag: ' + '\'' +
                         each_flag + '\' is not a valid planner flag.')
 
-        
+
         if ('FFTW_DESTROY_INPUT' not in flags) and (
                 (scheme[0] != 'c2r') or not self._rank > 1):
             # The default in all possible cases is to preserve the input
             # This is not possible for r2c arrays with rank > 1
             self._flags |= FFTW_PRESERVE_INPUT
 
-        # Set up the arrays of structs for holding the stride shape 
+        # Set up the arrays of structs for holding the stride shape
         # information
         self._dims = <_fftw_iodim *>malloc(
                 self._rank * sizeof(_fftw_iodim))
@@ -1004,17 +1017,17 @@ cdef class FFTW:
             # Not much else to do than raise an exception
             raise MemoryError
 
-        # Find the strides for all the axes of both arrays in terms of the 
+        # Find the strides for all the axes of both arrays in terms of the
         # number of items (as opposed to the number of bytes).
-        self._input_strides = input_array.strides        
-        self._input_item_strides = tuple([stride/input_array.itemsize 
+        self._input_strides = input_array.strides
+        self._input_item_strides = tuple([stride/input_array.itemsize
             for stride in input_array.strides])
         self._output_strides = output_array.strides
-        self._output_item_strides = tuple([stride/output_array.itemsize 
+        self._output_item_strides = tuple([stride/output_array.itemsize
             for stride in output_array.strides])
 
         # Make sure that the arrays are not too big for fftw
-        # This is hard to test, so we cross our fingers and hope for the 
+        # This is hard to test, so we cross our fingers and hope for the
         # best (any suggestions, please get in touch).
         cdef int i
         for i in range(0, len(self._input_shape)):
@@ -1054,14 +1067,23 @@ cdef class FFTW:
             self._howmany_dims[i]._is = input_strides_array[self._not_axes[i]]
             self._howmany_dims[i]._os = output_strides_array[self._not_axes[i]]
 
+        # parallel execution
+        self._use_threads = (threads > 1)
+        self._use_mpi = (comm is not None)
+
+        if self._use_threads and self._use_mpi:
+            raise ValueError('Combination of threads and MPI not supported (yet)')
+
         ## Point at which FFTW calls are made
         ## (and none should be made before this)
-        if threads > 1:
-            self._use_threads = True
-            self._nthreads_plan_setter(threads)
+        if self._use_mpi:
+            # performs inititialization (no threads I guess)
+            from mpi4py import MPI
+
+            fftw_mpi_init()
+
         else:
-            self._use_threads = False
-            self._nthreads_plan_setter(1)
+            self._nthreads_plan_setter(threads)
 
         # Set the timelimit
         set_timelimit_func(_planning_timelimit)
@@ -1078,67 +1100,67 @@ cdef class FFTW:
             raise RuntimeError('The data has an uncaught error that led '+
                     'to the planner returning NULL. This is a bug.')
 
-    def __init__(self, input_array, output_array, axes=(-1,), 
-            direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
-            int threads=1, planning_timelimit=None, 
+    def __init__(self, input_array, output_array, axes=(-1,),
+            direction='FFTW_FORWARD', flags=('FFTW_MEASURE',),
+            int threads=1, planning_timelimit=None, comm=None,
             *args, **kwargs):
         '''
         **Arguments**:
 
         * ``input_array`` and ``output_array`` should be numpy arrays.
-          The contents of these arrays will be destroyed by the planning 
-          process during initialisation. Information on supported 
+          The contents of these arrays will be destroyed by the planning
+          process during initialisation. Information on supported
           dtypes for the arrays is :ref:`given below <scheme_table>`.
-        
+
         * ``axes`` describes along which axes the DFT should be taken.
-          This should be a valid list of axes. Repeated axes are 
-          only transformed once. Invalid axes will raise an ``IndexError`` 
+          This should be a valid list of axes. Repeated axes are
+          only transformed once. Invalid axes will raise an ``IndexError``
           exception. This argument is equivalent to the same
           argument in :func:`numpy.fft.fftn`, except for the fact that
           the behaviour of repeated axes is different (``numpy.fft``
           will happily take the fft of the same axis if it is repeated
           in the ``axes`` argument). Rudimentary testing has suggested
-          this is down to the underlying FFTW library and so unlikely 
+          this is down to the underlying FFTW library and so unlikely
           to be fixed in these wrappers.
 
-        * ``direction`` should be a string and one of ``'FFTW_FORWARD'`` 
+        * ``direction`` should be a string and one of ``'FFTW_FORWARD'``
           or ``'FFTW_BACKWARD'``, which dictate whether to take the
-          DFT (forwards) or the inverse DFT (backwards) respectively 
-          (specifically, it dictates the sign of the exponent in the 
+          DFT (forwards) or the inverse DFT (backwards) respectively
+          (specifically, it dictates the sign of the exponent in the
           DFT formulation).
 
           Note that only the Complex schemes allow a free choice
-          for ``direction``. The direction *must* agree with the 
-          the :ref:`table below <scheme_table>` if a Real scheme 
+          for ``direction``. The direction *must* agree with the
+          the :ref:`table below <scheme_table>` if a Real scheme
           is used, otherwise a ``ValueError`` is raised.
 
         .. _FFTW_flags:
 
-        * ``flags`` is a list of strings and is a subset of the 
+        * ``flags`` is a list of strings and is a subset of the
           flags that FFTW allows for the planners:
 
-          * ``'FFTW_ESTIMATE'``, ``'FFTW_MEASURE'``, ``'FFTW_PATIENT'`` and 
-            ``'FFTW_EXHAUSTIVE'`` are supported. These describe the 
-            increasing amount of effort spent during the planning 
-            stage to create the fastest possible transform. 
+          * ``'FFTW_ESTIMATE'``, ``'FFTW_MEASURE'``, ``'FFTW_PATIENT'`` and
+            ``'FFTW_EXHAUSTIVE'`` are supported. These describe the
+            increasing amount of effort spent during the planning
+            stage to create the fastest possible transform.
             Usually ``'FFTW_MEASURE'`` is a good compromise. If no flag
             is passed, the default ``'FFTW_MEASURE'`` is used.
-          * ``'FFTW_UNALIGNED'`` is supported. 
-            This tells FFTW not to assume anything about the 
-            alignment of the data and disabling any SIMD capability 
+          * ``'FFTW_UNALIGNED'`` is supported.
+            This tells FFTW not to assume anything about the
+            alignment of the data and disabling any SIMD capability
             (see below).
           * ``'FFTW_DESTROY_INPUT'`` is supported.
             This tells FFTW that the input array can be destroyed during
             the transform, sometimes allowing a faster algorithm to be
             used. The default behaviour is, if possible, to preserve the
-            input. In the case of the 1D Backwards Real transform, this 
+            input. In the case of the 1D Backwards Real transform, this
             may result in a performance hit. In the case of a backwards
             real transform for greater than one dimension, it is not
             possible to preserve the input, making this flag implicit
-            in that case. A little more on this is given 
+            in that case. A little more on this is given
             :ref:`below<scheme_table>`.
 
-          The `FFTW planner flags documentation 
+          The `FFTW planner flags documentation
           <http://www.fftw.org/fftw3_doc/Planner-Flags.html#Planner-Flags>`_
           has more information about the various flags and their impact.
           Note that only the flags documented here are supported.
@@ -1148,7 +1170,7 @@ cdef class FFTW:
           of threads is greater than 1, then the GIL is released
           by necessity.
 
-        * ``planning_timelimit`` is a floating point number that 
+        * ``planning_timelimit`` is a floating point number that
           indicates to the underlying FFTW planner the maximum number of
           seconds it should spend planning the FFT. This is a rough
           estimate and corresponds to calling of ``fftw_set_timelimit()``
@@ -1197,7 +1219,7 @@ cdef class FFTW:
         of the transform is 1, the default is to preserve the input array.
         This is different from the default in the underlying library, and
         some speed gain may be achieved by allowing the input array to
-        be destroyed by passing the ``'FFTW_DESTROY_INPUT'`` 
+        be destroyed by passing the ``'FFTW_DESTROY_INPUT'``
         :ref:`flag <FFTW_flags>`.
 
         ``clongdouble`` typically maps directly to ``complex256``
@@ -1207,21 +1229,21 @@ cdef class FFTW:
         The relative shapes of the arrays should be as follows:
 
         * For a Complex transform, ``output_array.shape == input_array.shape``
-        * For a Real transform in the Forwards direction, both the following 
+        * For a Real transform in the Forwards direction, both the following
           should be true:
 
           * ``output_array.shape[axes][-1] == input_array.shape[axes][-1]//2 + 1``
           * All the other axes should be equal in length.
 
-        * For a Real transform in the Backwards direction, both the following 
+        * For a Real transform in the Backwards direction, both the following
           should be true:
 
           * ``input_array.shape[axes][-1] == output_array.shape[axes][-1]//2 + 1``
           * All the other axes should be equal in length.
 
-        In the above expressions for the Real transform, the ``axes`` 
+        In the above expressions for the Real transform, the ``axes``
         arguments denotes the unique set of axes on which we are taking
-        the FFT, in the order passed. It is the last of these axes that 
+        the FFT, in the order passed. It is the last of these axes that
         is subject to the special case shown.
 
         The shapes for the real transforms corresponds to those
@@ -1234,11 +1256,11 @@ cdef class FFTW:
         or the output. The user should not have to worry about this
         and any valid numpy array should work just fine.
 
-        What is calculated is exactly what FFTW calculates. 
-        Notably, this is an unnormalized transform so should 
-        be scaled as necessary (fft followed by ifft will scale 
+        What is calculated is exactly what FFTW calculates.
+        Notably, this is an unnormalized transform so should
+        be scaled as necessary (fft followed by ifft will scale
         the input by N, the product of the dimensions along which
-        the DFT is taken). For further information, see the 
+        the DFT is taken). For further information, see the
         `FFTW documentation
         <http://www.fftw.org/fftw3_doc/What-FFTW-Really-Computes.html>`_.
 
@@ -1251,8 +1273,8 @@ cdef class FFTW:
         instructions can be explicitly disabled by setting the
         FFTW_UNALIGNED flags, to allow for updates with unaligned
         data.
-        
-        :func:`~pyfftw.n_byte_align` and 
+
+        :func:`~pyfftw.n_byte_align` and
         :func:`~pyfftw.n_byte_align_empty` are two methods
         included with this module for producing aligned arrays.
 
@@ -1290,56 +1312,60 @@ cdef class FFTW:
         if not self._howmany_dims == NULL:
             free(self._howmany_dims)
 
-    def __call__(self, input_array=None, output_array=None, 
+        if self._use_mpi:
+            # todo wrap to call the right clean up version
+            fftw_mpi_cleanup()
+
+    def __call__(self, input_array=None, output_array=None,
             normalise_idft=True):
         '''__call__(input_array=None, output_array=None, normalise_idft=True)
 
         Calling the class instance (optionally) updates the arrays, then
-        calls :meth:`~pyfftw.FFTW.execute`, before optionally normalising 
+        calls :meth:`~pyfftw.FFTW.execute`, before optionally normalising
         the output and returning the output array.
 
         It has some built-in helpers to make life simpler for the calling
         functions (as distinct from manually updating the arrays and
         calling :meth:`~pyfftw.FFTW.execute`).
 
-        If ``normalise_idft`` is ``True`` (the default), then the output from 
+        If ``normalise_idft`` is ``True`` (the default), then the output from
         an inverse DFT (i.e. when the direction flag is ``'FFTW_BACKWARD'``) is
         scaled by 1/N, where N is the product of the lengths of input array on
         which the FFT is taken. If the direction is ``'FFTW_FORWARD'``, this
         flag makes no difference to the output array.
-        
+
         When ``input_array`` is something other than None, then the passed in
         array is coerced to be the same dtype as the input array used when the
         class was instantiated, the byte-alignment of the passed in array is
-        made consistent with the expected byte-alignment and the striding is 
-        made consistent with the expected striding. All this may, but not 
+        made consistent with the expected byte-alignment and the striding is
+        made consistent with the expected striding. All this may, but not
         necessarily, require a copy to be made.
 
-        As noted in the :ref:`scheme table<scheme_table>`, if the FFTW 
+        As noted in the :ref:`scheme table<scheme_table>`, if the FFTW
         instance describes a backwards real transform of more than one
         dimension, the contents of the input array will be destroyed. It is
         up to the calling function to make a copy if it is necessary to
         maintain the input array.
 
-        ``output_array`` is always used as-is if possible. If the dtype, the 
+        ``output_array`` is always used as-is if possible. If the dtype, the
         alignment or the striding is incorrect for the FFTW object, then a
         ``ValueError`` is raised.
-        
-        The coerced input array and the output array (as appropriate) are 
+
+        The coerced input array and the output array (as appropriate) are
         then passed as arguments to
         :meth:`~pyfftw.FFTW.update_arrays`, after which
         :meth:`~pyfftw.FFTW.execute` is called, and then normalisation
         is applied to the output array if that is desired.
-        
+
         Note that it is possible to pass some data structure that can be
         converted to an array, such as a list, so long as it fits the data
         requirements of the class instance, such as array shape.
 
-        Other than the dtype and the alignment of the passed in arrays, the 
+        Other than the dtype and the alignment of the passed in arrays, the
         rest of the requirements on the arrays mandated by
         :meth:`~pyfftw.FFTW.update_arrays` are enforced.
 
-        A ``None`` argument to either keyword means that that array is not 
+        A ``None`` argument to either keyword means that that array is not
         updated.
 
         The result of the FFT is returned. This is the same array that is used
@@ -1362,7 +1388,7 @@ cdef class FFTW:
                 copy_needed = True
             elif (not input_array.strides == self._input_strides):
                 copy_needed = True
-            elif not (<intptr_t>np.PyArray_DATA(input_array) 
+            elif not (<intptr_t>np.PyArray_DATA(input_array)
                     % self.input_alignment == 0):
                 copy_needed = True
             else:
@@ -1378,9 +1404,9 @@ cdef class FFTW:
                             'The new input array should be the same shape '
                             'as the input array used to instantiate the '
                             'object.')
-                
+
                 self._input_array[:] = input_array
-                
+
                 if output_array is not None:
                     # No point wasting time if no update is necessary
                     # (which the copy above may have avoided)
@@ -1397,7 +1423,7 @@ cdef class FFTW:
 
         return self._output_array
 
-    cpdef update_arrays(self, 
+    cpdef update_arrays(self,
             new_input_array, new_output_array):
         '''update_arrays(new_input_array, new_output_array)
 
@@ -1409,7 +1435,7 @@ cdef class FFTW:
         (e.g. by being aligned on a 16-byte boundary), then the new array must
         also be aligned so as to allow SIMD instructions (assuming, of
         course, that the ``FFTW_UNALIGNED`` flag was not enabled).
-        
+
         The byte alignment requirement extends to requiring natural
         alignment in the non-SIMD cases as well, but this is much less
         stringent as it simply means avoiding arrays shifted by, say,
@@ -1417,7 +1443,7 @@ cdef class FFTW:
         achieve!).
 
         If all these conditions are not met, a ``ValueError`` will
-        be raised and the data will *not* be updated (though the 
+        be raised and the data will *not* be updated (though the
         object will still be in a sane state).
         '''
         if not isinstance(new_input_array, np.ndarray):
@@ -1430,14 +1456,14 @@ cdef class FFTW:
                     'The new output array needs to be an instance '
                     'of numpy.ndarray')
 
-        if not (<intptr_t>np.PyArray_DATA(new_input_array) % 
+        if not (<intptr_t>np.PyArray_DATA(new_input_array) %
                 self.input_alignment == 0):
             raise ValueError('Invalid input alignment: '
                     'The original arrays were %d-byte aligned. It is '
                     'necessary that the update input array is similarly '
                     'aligned.' % self.input_alignment)
 
-        if not (<intptr_t>np.PyArray_DATA(new_output_array) % 
+        if not (<intptr_t>np.PyArray_DATA(new_output_array) %
                 self.output_alignment == 0):
             raise ValueError('Invalid output alignment: '
                     'The original arrays were %d-byte aligned. It is '
@@ -1469,12 +1495,12 @@ cdef class FFTW:
             raise ValueError('Invalid output shape: '
                     'The new output array should be the same shape as '
                     'the output array used to instantiate the object.')
-        
+
         if not new_input_strides == self._input_strides:
             raise ValueError('Invalid input striding: '
                     'The strides should be identical for the new '
                     'input array as for the old.')
-        
+
         if not new_output_strides == self._output_strides:
             raise ValueError('Invalid output striding: '
                     'The strides should be identical for the new '
@@ -1482,7 +1508,7 @@ cdef class FFTW:
 
         self._update_arrays(new_input_array, new_output_array)
 
-    cdef _update_arrays(self, 
+    cdef _update_arrays(self,
             np.ndarray new_input_array, np.ndarray new_output_array):
         ''' A C interface to the update_arrays method that does not
         perform any checks on strides being correct and so on.
@@ -1493,14 +1519,14 @@ cdef class FFTW:
     def get_input_array(self):
         '''get_input_array()
 
-        Return the input array that is associated with the FFTW 
+        Return the input array that is associated with the FFTW
         instance.
 
-        *Deprecated since 0.10. Consider using the* :attr:`FFTW.input_array` 
+        *Deprecated since 0.10. Consider using the* :attr:`FFTW.input_array`
         *property instead.*
         '''
         warnings.warn('get_input_array is deprecated. '
-                'Consider using the input_array property instead.', 
+                'Consider using the input_array property instead.',
                 DeprecationWarning)
 
         return self._input_array
@@ -1511,20 +1537,20 @@ cdef class FFTW:
         Return the output array that is associated with the FFTW
         instance.
 
-        *Deprecated since 0.10. Consider using the* :attr:`FFTW.output_array` 
+        *Deprecated since 0.10. Consider using the* :attr:`FFTW.output_array`
         *property instead.*
         '''
         warnings.warn('get_output_array is deprecated. '
-                'Consider using the output_array property instead.', 
+                'Consider using the output_array property instead.',
                 DeprecationWarning)
-        
+
         return self._output_array
 
     cpdef execute(self):
         '''execute()
 
         Execute the planned operation, taking the correct kind of FFT of
-        the input array (i.e. :attr:`FFTW.input_array`), 
+        the input array (i.e. :attr:`FFTW.input_array`),
         and putting the result in the output array (i.e.
         :attr:`FFTW.output_array`).
         '''
@@ -1532,10 +1558,10 @@ cdef class FFTW:
                 <void *>np.PyArray_DATA(self._input_array))
         cdef void *output_pointer = (
                 <void *>np.PyArray_DATA(self._output_array))
-        
+
         cdef void *plan = self._plan
         cdef fftw_generic_execute fftw_execute = self._fftw_execute
-        
+
         if self._use_threads:
             with nogil:
                 fftw_execute(plan, input_pointer, output_pointer)
@@ -1553,11 +1579,11 @@ cdef void write_char_to_string(char c, void *string_location_ptr):
     '''
     Write the passed character c to the memory location
     pointed to by the contents of string_location_ptr (i.e. a pointer
-    to a pointer), then increment the contents of string_location_ptr 
+    to a pointer), then increment the contents of string_location_ptr
     (i.e. move to the next byte in memory).
 
     In other words, for every character that is passed, we write that
-    to a string that is referenced by the dereferenced value of 
+    to a string that is referenced by the dereferenced value of
     string_location_ptr.
 
     If the derefenced value of string_location points to an
@@ -1575,8 +1601,8 @@ def export_wisdom():
     Return the FFTW wisdom as a tuple of strings.
 
     The first string in the tuple is the string for the double
-    precision wisdom. The second string in the tuple is the string 
-    for the single precision wisdom. The third string in the tuple 
+    precision wisdom. The second string in the tuple is the string
+    for the single precision wisdom. The third string in the tuple
     is the string for the long double precision wisdom.
 
     The tuple that is returned from this function can be used as the
@@ -1635,15 +1661,15 @@ def import_wisdom(wisdom):
     of strings.
 
     The first string in the tuple is the string for the double
-    precision wisdom. The second string in the tuple is the string 
-    for the single precision wisdom. The third string in the tuple 
+    precision wisdom. The second string in the tuple is the string
+    for the single precision wisdom. The third string in the tuple
     is the string for the long double precision wisdom.
 
     The tuple that is returned from :func:`~pyfftw.export_wisdom`
     can be used as the argument to this function.
 
     This function returns a tuple of boolean values indicating
-    the success of loading each of the wisdom types (double, float 
+    the success of loading each of the wisdom types (double, float
     and long double, in that order).
     '''
 
@@ -1659,22 +1685,22 @@ def import_wisdom(wisdom):
 
 #def export_wisdom_to_files(
 #        double_wisdom_file=None,
-#        single_wisdom_file=None, 
+#        single_wisdom_file=None,
 #        long_double_wisdom_file=None):
 #    '''export_wisdom_to_file(double_wisdom_file=None, single_wisdom_file=None, long_double_wisdom_file=None)
 #
 #    Export the wisdom to the passed files.
 #
-#    The double precision wisdom is written to double_wisdom_file. 
+#    The double precision wisdom is written to double_wisdom_file.
 #    The single precision wisdom is written to single_wisdom_file.
-#    The long double precision wisdom is written to 
+#    The long double precision wisdom is written to
 #    long_double_wisdom_file.
 #
 #    If any of the arguments are None, then nothing is done for that
 #    file.
 #
 #    This function returns a tuple of boolean values indicating
-#    the success of storing each of the wisdom types (double, float 
+#    the success of storing each of the wisdom types (double, float
 #    and long double, in that order).
 #    '''
 #    cdef bint success = True
@@ -1703,22 +1729,22 @@ def import_wisdom(wisdom):
 #
 #def import_wisdom_to_files(
 #        double_wisdom_file=None,
-#        single_wisdom_file=None, 
+#        single_wisdom_file=None,
 #        long_double_wisdom_file=None):
 #    '''import_wisdom_to_file(double_wisdom_file=None, single_wisdom_file=None, long_double_wisdom_file=None)
 #
 #    import the wisdom to the passed files.
 #
-#    The double precision wisdom is imported from double_wisdom_file. 
+#    The double precision wisdom is imported from double_wisdom_file.
 #    The single precision wisdom is imported from single_wisdom_file.
-#    The long double precision wisdom is imported from 
+#    The long double precision wisdom is imported from
 #    long_double_wisdom_file.
 #
 #    If any of the arguments are None, then nothing is done for that
 #    file.
 #
 #    This function returns a tuple of boolean values indicating
-#    the success of loading each of the wisdom types (double, float 
+#    the success of loading each of the wisdom types (double, float
 #    and long double, in that order).
 #    '''
 #    cdef bint success = True
@@ -1752,5 +1778,3 @@ def forget_wisdom():
     fftw_forget_wisdom()
     fftwf_forget_wisdom()
     fftwl_forget_wisdom()
-
-
