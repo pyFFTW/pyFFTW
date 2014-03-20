@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # The pyfftw namespace
 
-''' The core of ``pyfftw`` consists of the :class:`FFTW` class, 
+''' The core of ``pyfftw`` consists of the :class:`FFTW` class,
 :ref:`wisdom functions <wisdom_functions>` and a couple of
 :ref:`utility functions <utility_functions>` for dealing with aligned
 arrays.
@@ -15,6 +15,8 @@ from ._version import version
 
 from .pyfftw import (
         FFTW,
+        FFTW_MPI,
+        local_size,
         export_wisdom,
         import_wisdom,
         forget_wisdom,

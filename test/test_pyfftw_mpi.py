@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pyfftw import FFTW, FFTW_MPI, n_byte_align_empty, simd_alignment
+from pyfftw import FFTW_MPI, local_size, n_byte_align_empty, simd_alignment
 from mpi4py import MPI
 import numpy
 import unittest
@@ -51,13 +51,31 @@ class MPITest(unittest.TestCase):
         create_data(a)
 
         # get local size
-        local_size, local_n0, local_0_start = FFTW_MPI.local_size(a, comm=comm)
-        b = n_byte_align_empty(local_size, simd_alignment, dtype=output_dtype)
+        res = local_size(a, comm=comm)
+        self.assertEqual(len(res), 3)
+
+        # assume equal distribution if no remainder
+        total_size = self.N**len(self.input_shape)
+        if total_size % comm.Get_size() == 0:
+            # integer division
+            balanced = total_size // comm.Get_size()
+            self.assertEqual(res[0], balanced)
+        if self.N % comm.Get_size() == 0:
+            self.assertEqual(res[1], self.N // comm.Get_size())
+        if master:
+            print('local_size returns')
+            print(res)
+        return
+        b = n_byte_align_empty(n, simd_alignment, dtype=output_dtype)
         c = a.copy()
 
-        fft_object = pyfftw.FFTW(a, b, direction='FFTW_FORWARD',  flags=('FFTW_ESTIMATE', 'FFTW_MPI_TRANSPOSED_OUT'), comm=comm)
-        fft_back   = pyfftw.FFTW(b, c, direction='FFTW_BACKWARD', flags=('FFTW_ESTIMATE', 'FFTW_MPI_TRANSPOSED_IN'), comm=comm)
+        fft_object = pyfftw.FFTW_MPI(a, b, direction='FFTW_FORWARD',  flags=('FFTW_ESTIMATE', 'FFTW_MPI_TRANSPOSED_OUT'), comm=comm)
+        fft_back   = pyfftw.FFTW_MPI(b, c, direction='FFTW_BACKWARD', flags=('FFTW_ESTIMATE', 'FFTW_MPI_TRANSPOSED_IN'), comm=comm)
 
         fft_object()
         fft_back(normalise_idft=True)
         np.testing.assert_allclose(a, c)
+
+if __name__ == '__main__':
+    '''Start as mpirun -n 4 python test_pyfftw_mpi.py'''
+    unittest.main()

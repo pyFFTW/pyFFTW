@@ -440,6 +440,13 @@ ctypedef bint (*validator)(np.ndarray input_array,
         np.ndarray output_array, int64_t *axes, int64_t *not_axes,
         int64_t axes_length)
 
+ctypedef object (*fftw_mpi_generic_local_size)(
+                    int rnk, const ptrdiff_t *n, ptrdiff_t howmany,
+                    ptrdiff_t block0, ptrdiff_t block1, MPI_Comm comm,
+                    ptrdiff_t *local_n0, ptrdiff_t *local_0_start,
+                    ptrdiff_t *local_n1, ptrdiff_t *local_1_start,
+                    int sign, unsigned int flags)
+
 # Direction enum
 cdef enum:
     FFTW_FORWARD = -1
