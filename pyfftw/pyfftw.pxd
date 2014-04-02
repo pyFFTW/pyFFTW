@@ -235,42 +235,43 @@ cdef extern from 'fftw3-mpi.h':
     # ctypedef struct fftw_iodim:
     #     pass
 
+    # TODO Are fftw_mpi_execute_* even needed? Can call fftw_execute_* instead
 
-     # Double precision complex new array execute
-    void fftw_mpi_execute_dft(fftw_plan,
-          cdouble *_in, cdouble *_out)
+    #  # Double precision complex new array execute
+    # void fftw_mpi_execute_dft(fftw_plan,
+    #       cdouble *_in, cdouble *_out)
 
-    # Single precision complex new array execute
-    void fftwf_mpi_execute_dft(fftwf_plan,
-          cfloat *_in, cfloat *_out)
+    # # Single precision complex new array execute
+    # void fftwf_mpi_execute_dft(fftwf_plan,
+    #       cfloat *_in, cfloat *_out)
 
-    # Long double precision complex new array execute
-    void fftwl_mpi_execute_dft(fftwl_plan,
-          clongdouble *_in, clongdouble *_out)
+    # # Long double precision complex new array execute
+    # void fftwl_mpi_execute_dft(fftwl_plan,
+    #       clongdouble *_in, clongdouble *_out)
 
-    # Double precision real to complex new array execute
-    void fftw_mpi_execute_dft_r2c(fftw_plan,
-          double *_in, cdouble *_out)
+    # # Double precision real to complex new array execute
+    # void fftw_mpi_execute_dft_r2c(fftw_plan,
+    #       double *_in, cdouble *_out)
 
-    # Single precision real to complex new array execute
-    void fftwf_mpi_execute_dft_r2c(fftwf_plan,
-          float *_in, cfloat *_out)
+    # # Single precision real to complex new array execute
+    # void fftwf_mpi_execute_dft_r2c(fftwf_plan,
+    #       float *_in, cfloat *_out)
 
-    # Long double precision real to complex new array execute
-    void fftwl_mpi_execute_dft_r2c(fftwl_plan,
-          long double *_in, clongdouble *_out)
+    # # Long double precision real to complex new array execute
+    # void fftwl_mpi_execute_dft_r2c(fftwl_plan,
+    #       long double *_in, clongdouble *_out)
 
-    # Double precision complex to real new array execute
-    void fftw_mpi_execute_dft_c2r(fftw_plan,
-          cdouble *_in, double *_out)
+    # # Double precision complex to real new array execute
+    # void fftw_mpi_execute_dft_c2r(fftw_plan,
+    #       cdouble *_in, double *_out)
 
-    # Single precision complex to real new array execute
-    void fftwf_mpi_execute_dft_c2r(fftwf_plan,
-          cfloat *_in, float *_out)
+    # # Single precision complex to real new array execute
+    # void fftwf_mpi_execute_dft_c2r(fftwf_plan,
+    #       cfloat *_in, float *_out)
 
-    # Long double precision complex to real new array execute
-    void fftwl_mpi_execute_dft_c2r(fftwl_plan,
-          clongdouble *_in, long double *_out)
+    # # Long double precision complex to real new array execute
+    # void fftwl_mpi_execute_dft_c2r(fftwl_plan,
+    #       clongdouble *_in, long double *_out)
 
     # Initialization
 
@@ -369,7 +370,7 @@ cdef extern from 'fftw3-mpi.h':
 
     # complex to complex
     fftw_plan fftw_mpi_plan_dft_1d(ptrdiff_t n0, cdouble *_in, cdouble *out,
-                               MPI_Comm comm, int sign, unsigned flags)
+                                   MPI_Comm comm, int sign, unsigned flags)
     fftw_plan fftw_mpi_plan_dft_2d(ptrdiff_t n0, ptrdiff_t n1,
                                    cdouble *_in, cdouble *out,
                                    MPI_Comm comm, int sign, unsigned flags)
@@ -380,9 +381,43 @@ cdef extern from 'fftw3-mpi.h':
                                 cdouble *_in, cdouble *out,
                                 MPI_Comm comm, int sign, unsigned flags)
     fftw_plan fftw_mpi_plan_many_dft(int rnk, const ptrdiff_t *n,
-                                     ptrdiff_t howmany, ptrdiff_t block, ptrdiff_t tblock,
+                                     ptrdiff_t howmany, ptrdiff_t block,
+                                     ptrdiff_t tblock,
                                      cdouble *_in, cdouble *out,
                                      MPI_Comm comm, int sign, unsigned flags)
+
+    fftw_plan fftwf_mpi_plan_dft_1d(ptrdiff_t n0, cfloat *_in, cfloat *out,
+                                    MPI_Comm comm, int sign, unsigned flags)
+    fftw_plan fftwf_mpi_plan_dft_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                    cfloat *_in, cfloat *out,
+                                    MPI_Comm comm, int sign, unsigned flags)
+    fftw_plan fftwf_mpi_plan_dft_3d(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                    cfloat *_in, cfloat *out,
+                                    MPI_Comm comm, int sign, unsigned flags)
+    fftw_plan fftwf_mpi_plan_dft(int rnk, const ptrdiff_t *n,
+                                 cfloat *_in, cfloat *out,
+                                 MPI_Comm comm, int sign, unsigned flags)
+    fftw_plan fftwf_mpi_plan_many_dft(int rnk, const ptrdiff_t *n,
+                                      ptrdiff_t howmany, ptrdiff_t block,
+                                      ptrdiff_t tblock,
+                                      cfloat *_in, cfloat *out,
+                                      MPI_Comm comm, int sign, unsigned flags)
+
+    fftw_plan fftwl_mpi_plan_dft_1d(ptrdiff_t n0, clongdouble *_in, clongdouble *out,
+                                    MPI_Comm comm, int sign, unsigned flags)
+    fftw_plan fftwl_mpi_plan_dft_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                    clongdouble *_in, clongdouble *out,
+                                    MPI_Comm comm, int sign, unsigned flags)
+    fftw_plan fftwl_mpi_plan_dft_3d(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                    clongdouble *_in, clongdouble *out,
+                                    MPI_Comm comm, int sign, unsigned flags)
+    fftw_plan fftwl_mpi_plan_dft(int rnk, const ptrdiff_t *n,
+                                 clongdouble *_in, clongdouble *out,
+                                 MPI_Comm comm, int sign, unsigned flags)
+    fftw_plan fftwl_mpi_plan_many_dft(int rnk, const ptrdiff_t *n,
+                                      ptrdiff_t howmany, ptrdiff_t block, ptrdiff_t tblock,
+                                      clongdouble *_in, clongdouble *out,
+                                      MPI_Comm comm, int sign, unsigned flags)
 
     # real to complex
     fftw_plan fftw_mpi_plan_dft_r2c_2d(ptrdiff_t n0, ptrdiff_t n1,
@@ -397,6 +432,49 @@ cdef extern from 'fftw3-mpi.h':
     fftw_plan fftw_mpi_plan_dft_r2c(int rnk, const ptrdiff_t *n,
                                     double *_in, cdouble *out,
                                     MPI_Comm comm, unsigned flags)
+    fftw_plan fftw_mpi_plan_many_dft_r2c(int rnk, const ptrdiff_t *n,
+                                         ptrdiff_t howmany,
+                                         ptrdiff_t iblock, ptrdiff_t oblock,
+                                         double *_in, cdouble *out,
+                                         MPI_Comm comm, unsigned flags)
+
+    fftw_plan fftwf_mpi_plan_dft_r2c_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                        float *_in, cfloat *out,
+                                        MPI_Comm comm, unsigned flags)
+    fftw_plan fftwf_mpi_plan_dft_r2c_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                        float *_in, cfloat *out,
+                                        MPI_Comm comm, unsigned flags)
+    fftw_plan fftwf_mpi_plan_dft_r2c_3d(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                        float *_in, cfloat *out,
+                                        MPI_Comm comm, unsigned flags)
+    fftw_plan fftwf_mpi_plan_dft_r2c(int rnk, const ptrdiff_t *n,
+                                     float *_in, cfloat *out,
+                                     MPI_Comm comm, unsigned flags)
+    fftw_plan fftwf_mpi_plan_many_dft_r2c(int rnk, const ptrdiff_t *n,
+                                          ptrdiff_t howmany,
+                                          ptrdiff_t iblock, ptrdiff_t oblock,
+                                          float *_in, cfloat *out,
+                                          MPI_Comm comm, unsigned flags)
+
+    fftw_plan fftwl_mpi_plan_dft_r2c_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                        long double *_in, clongdouble *out,
+                                        MPI_Comm comm, unsigned flags)
+    fftw_plan fftwl_mpi_plan_dft_r2c_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                        long double *_in, clongdouble *out,
+                                        MPI_Comm comm, unsigned flags)
+    fftw_plan fftwl_mpi_plan_dft_r2c_3d(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                        long double *_in, clongdouble *out,
+                                        MPI_Comm comm, unsigned flags)
+    fftw_plan fftwl_mpi_plan_dft_r2c(int rnk, const ptrdiff_t *n,
+                                     long double *_in, clongdouble *out,
+                                     MPI_Comm comm, unsigned flags)
+    fftw_plan fftwl_mpi_plan_many_dft_r2c(int rnk, const ptrdiff_t *n,
+                                          ptrdiff_t howmany,
+                                          ptrdiff_t iblock, ptrdiff_t oblock,
+                                          long double *_in, clongdouble *out,
+                                          MPI_Comm comm, unsigned flags)
+
+    # complex to real
     fftw_plan fftw_mpi_plan_dft_c2r_2d(ptrdiff_t n0, ptrdiff_t n1,
                                        cdouble *_in, double *out,
                                        MPI_Comm comm, unsigned flags)
@@ -409,8 +487,77 @@ cdef extern from 'fftw3-mpi.h':
     fftw_plan fftw_mpi_plan_dft_c2r(int rnk, const ptrdiff_t *n,
                                     cdouble *_in, double *out,
                                     MPI_Comm comm, unsigned flags)
+    fftw_plan fftw_mpi_plan_many_dft_c2r(int rnk, const ptrdiff_t *n,
+                                         ptrdiff_t howmany,
+                                         ptrdiff_t iblock, ptrdiff_t oblock,
+                                         cdouble *_in, double *out,
+                                         MPI_Comm comm, unsigned flags)
+
+    fftw_plan fftwf_mpi_plan_dft_c2r_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                        cfloat *_in, float *out,
+                                        MPI_Comm comm, unsigned flags)
+    fftw_plan fftwf_mpi_plan_dft_c2r_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                        cfloat *_in, float *out,
+                                        MPI_Comm comm, unsigned flags)
+    fftw_plan fftwf_mpi_plan_dft_c2r_3d(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                        cfloat *_in, float *out,
+                                        MPI_Comm comm, unsigned flags)
+    fftw_plan fftwf_mpi_plan_dft_c2r(int rnk, const ptrdiff_t *n,
+                                     cfloat *_in, float *out,
+                                     MPI_Comm comm, unsigned flags)
+    fftw_plan fftwf_mpi_plan_many_dft_c2r(int rnk, const ptrdiff_t *n,
+                                          ptrdiff_t howmany,
+                                          ptrdiff_t iblock, ptrdiff_t oblock,
+                                          cfloat *_in, float *out,
+                                          MPI_Comm comm, unsigned flags)
+
+    fftw_plan fftwl_mpi_plan_dft_c2r_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                        clongdouble *_in, long double *out,
+                                        MPI_Comm comm, unsigned flags)
+    fftw_plan fftwl_mpi_plan_dft_c2r_2d(ptrdiff_t n0, ptrdiff_t n1,
+                                        clongdouble *_in, long double *out,
+                                        MPI_Comm comm, unsigned flags)
+    fftw_plan fftwl_mpi_plan_dft_c2r_3d(ptrdiff_t n0, ptrdiff_t n1, ptrdiff_t n2,
+                                        clongdouble *_in, long double *out,
+                                        MPI_Comm comm, unsigned flags)
+    fftw_plan fftwl_mpi_plan_dft_c2r(int rnk, const ptrdiff_t *n,
+                                     clongdouble *_in, long double *out,
+                                     MPI_Comm comm, unsigned flags)
+    fftw_plan fftwl_mpi_plan_many_dft_c2r(int rnk, const ptrdiff_t *n,
+                                          ptrdiff_t howmany,
+                                          ptrdiff_t iblock, ptrdiff_t oblock,
+                                          clongdouble *_in, long double *out,
+                                          MPI_Comm comm, unsigned flags)
 
     # real to real not supported
+
+    # transposition
+    fftw_plan fftw_mpi_plan_transpose(ptrdiff_t n0, ptrdiff_t n1,
+                                       double *_in, double *out,
+                                       MPI_Comm comm, unsigned flags)
+    fftw_plan fftw_mpi_plan_many_transpose(ptrdiff_t n0, ptrdiff_t n1,
+                                           ptrdiff_t howmany,
+                                           ptrdiff_t block0, ptrdiff_t block1,
+                                           double *_in, double *out,
+                                           MPI_Comm comm, unsigned flags)
+
+    fftw_plan fftwf_mpi_plan_transpose(ptrdiff_t n0, ptrdiff_t n1,
+                                       float *_in, float *out,
+                                       MPI_Comm comm, unsigned flags)
+    fftw_plan fftwf_mpi_plan_many_transpose(ptrdiff_t n0, ptrdiff_t n1,
+                                           ptrdiff_t howmany,
+                                           ptrdiff_t block0, ptrdiff_t block1,
+                                           float *_in, float *out,
+                                           MPI_Comm comm, unsigned flags)
+
+    fftw_plan fftwl_mpi_plan_transpose(ptrdiff_t n0, ptrdiff_t n1,
+                                       long double *_in, long double *out,
+                                       MPI_Comm comm, unsigned flags)
+    fftw_plan fftwl_mpi_plan_many_transpose(ptrdiff_t n0, ptrdiff_t n1,
+                                           ptrdiff_t howmany,
+                                           ptrdiff_t block0, ptrdiff_t block1,
+                                           long double *_in, long double *out,
+                                           MPI_Comm comm, unsigned flags)
 
     # wisdom functions
     void fftw_mpi_gather_wisdom(MPI_Comm comm)
@@ -446,6 +593,22 @@ ctypedef object (*fftw_mpi_generic_local_size)(
                     ptrdiff_t *local_n0, ptrdiff_t *local_0_start,
                     ptrdiff_t *local_n1, ptrdiff_t *local_1_start,
                     int sign, unsigned int flags)
+
+ctypedef fftw_plan (*fftw_mpi_generic_plan)(
+                    int rank, ptrdiff_t *n,
+                    ptrdiff_t howmany,
+                    ptrdiff_t block0, ptrdiff_t block1,
+                    void *_in, void *_out,
+                    MPI_Comm comm,
+                    int sign, unsigned int flags)
+# TODO do we need them?
+# ctypedef void (*fftw_mpi_generic_init)()
+
+# ctypedef void (*fftw_mpi_generic_cleanup)()
+
+ctypedef void (*fftw_mpi_generic_execute)(void *_plan, void *_in, void *_out)
+
+ctypedef void (*fftw_mpi_generic_wisdom)(MPI_Comm comm)
 
 # Direction enum
 cdef enum:

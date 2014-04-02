@@ -494,6 +494,11 @@ fftw_init_threads()
 fftwf_init_threads()
 fftwl_init_threads()
 
+# TODO tight coupling with non-MPI code
+fftw_mpi_init()
+fftwf_mpi_init()
+fftwl_mpi_init()
+
 # Set the cleanup routine
 cdef void _cleanup():
     fftw_cleanup()
@@ -502,6 +507,11 @@ cdef void _cleanup():
     fftw_cleanup_threads()
     fftwf_cleanup_threads()
     fftwl_cleanup_threads()
+
+    # TODO tight coupling with non-MPI code
+    fftw_mpi_cleanup()
+    fftwf_mpi_cleanup()
+    fftwl_mpi_cleanup()
 
 Py_AtExit(_cleanup)
 
@@ -569,19 +579,6 @@ cdef void make_axes_unique(int64_t *axes, int64_t axes_length,
     unique_axes_length[0] = unique_axes_count
 
     return
-
-cdef class Beaujean:
-    cdef int age
-
-cdef class Fred(Beaujean):
-    cdef double nose
-
-    def __cinit__(self, double nose, age=23):
-        self.age = age
-        self.nose = nose
-
-    def harr(self):
-        print(self.nose, self.age)
 
 # The External Interface
 # ======================
@@ -1620,6 +1617,178 @@ cdef object _fftw_mpi_local_size_many_1d(
 
     return local_size, local_ni[0], local_i_start[0], local_no[0], local_o_start[0]
 
+#     Planners
+#     ========
+#
+# Complex double precision
+cdef void* _fftw_mpi_plan_many_dft(int rank, const ptrdiff_t *n, ptrdiff_t howmany,
+                                   ptrdiff_t block0, ptrdiff_t block1,
+                                   void * _in, void * _out,
+                                   MPI_Comm comm,
+                                   int sign, unsigned int flags):
+
+    return <void *> fftw_mpi_plan_many_dft(rank, n, howmany, block0, block1,
+                                           <cdouble *> _in, <cdouble *> _out,
+                                           comm, sign, flags)
+
+# Complex single precision
+cdef void* _fftwf_mpi_plan_many_dft(int rank, const ptrdiff_t *n, ptrdiff_t howmany,
+                                    ptrdiff_t block0, ptrdiff_t block1,
+                                    void * _in, void * _out,
+                                    MPI_Comm comm,
+                                    int sign, unsigned int flags):
+
+    return <void *> fftwf_mpi_plan_many_dft(rank, n, howmany, block0, block1,
+                                            <cfloat *> _in, <cfloat *> _out,
+                                            comm, sign, flags)
+
+# Complex long double precision
+cdef void* _fftwl_mpi_plan_many_dft(int rank, const ptrdiff_t *n, ptrdiff_t howmany,
+                                    ptrdiff_t block0, ptrdiff_t block1,
+                                    void * _in, void * _out,
+                                    MPI_Comm comm,
+                                    int sign, unsigned int flags):
+
+    return <void *> fftwl_mpi_plan_many_dft(rank, n, howmany, block0, block1,
+                                            <clongdouble *> _in, <clongdouble *> _out,
+                                            comm, sign, flags)
+
+# real to complex double precision
+cdef void* _fftw_mpi_plan_many_dft_r2c(int rank, const ptrdiff_t *n,
+                                       ptrdiff_t howmany,
+                                       ptrdiff_t block0, ptrdiff_t block1,
+                                       void * _in, void * _out,
+                                       MPI_Comm comm,
+                                       int sign, unsigned int flags):
+
+    return <void *> fftw_mpi_plan_many_dft_r2c(rank, n, howmany, block0, block1,
+                                               <double *> _in, <cdouble *> _out,
+                                               comm, flags)
+
+# real to complex single precision
+cdef void* _fftwf_mpi_plan_many_dft_r2c(int rank, const ptrdiff_t *n,
+                                        ptrdiff_t howmany,
+                                        ptrdiff_t block0, ptrdiff_t block1,
+                                        void * _in, void * _out,
+                                        MPI_Comm comm,
+                                        int sign, unsigned int flags):
+
+    return <void *> fftwf_mpi_plan_many_dft_r2c(rank, n, howmany, block0, block1,
+                                                <float *> _in, <cfloat *> _out,
+                                                comm, flags)
+
+# real to complex long double precision
+cdef void* _fftwl_mpi_plan_many_dft_r2c(int rank, const ptrdiff_t *n,
+                                        ptrdiff_t howmany,
+                                        ptrdiff_t block0, ptrdiff_t block1,
+                                        void * _in, void * _out,
+                                        MPI_Comm comm,
+                                        int sign, unsigned int flags):
+
+    return <void *> fftwl_mpi_plan_many_dft_r2c(rank, n, howmany, block0, block1,
+                                                <long double *> _in,
+                                                <clongdouble *> _out,
+                                                comm, flags)
+
+# complex to real double precision
+cdef void* _fftw_mpi_plan_many_dft_c2r(int rank, const ptrdiff_t *n,
+                                       ptrdiff_t howmany,
+                                       ptrdiff_t block0, ptrdiff_t block1,
+                                       void * _in, void * _out,
+                                       MPI_Comm comm,
+                                       int sign, unsigned int flags):
+
+    return <void *> fftw_mpi_plan_many_dft_c2r(rank, n, howmany, block0, block1,
+                                               <cdouble *> _in, <double *> _out,
+                                               comm, flags)
+
+# complex to real single precision
+cdef void* _fftwf_mpi_plan_many_dft_c2r(int rank, const ptrdiff_t *n,
+                                        ptrdiff_t howmany,
+                                        ptrdiff_t block0, ptrdiff_t block1,
+                                        void * _in, void * _out,
+                                        MPI_Comm comm,
+                                        int sign, unsigned int flags):
+
+    return <void *> fftwf_mpi_plan_many_dft_c2r(rank, n, howmany, block0, block1,
+                                                <cfloat *> _in, <float *> _out,
+                                                comm, flags)
+
+# complex to real long double precision
+cdef void* _fftwl_mpi_plan_many_dft_c2r(int rank, const ptrdiff_t *n,
+                                        ptrdiff_t howmany,
+                                        ptrdiff_t block0, ptrdiff_t block1,
+                                        void * _in, void * _out,
+                                        MPI_Comm comm,
+                                        int sign, unsigned int flags):
+
+    return <void *> fftwl_mpi_plan_many_dft_c2r(rank, n, howmany, block0, block1,
+                                                <clongdouble *> _in,
+                                                <long double *> _out,
+                                                comm, flags)
+
+# transpose double
+cdef void* _fftw_mpi_plan_many_transpose(int rank, const ptrdiff_t *n,
+                                         ptrdiff_t howmany,
+                                         ptrdiff_t block0, ptrdiff_t block1,
+                                         void * _in, void * _out,
+                                         MPI_Comm comm,
+                                         int sign, unsigned int flags):
+
+    return <void *> fftw_mpi_plan_many_transpose(n[0], n[1], howmany,
+                                                 block0, block1,
+                                                 <double *> _in, <double *> _out,
+                                                 comm, flags)
+
+# transpose float
+cdef void* _fftwf_mpi_plan_many_transpose(int rank, const ptrdiff_t *n,
+                                        ptrdiff_t howmany,
+                                        ptrdiff_t block0, ptrdiff_t block1,
+                                        void * _in, void * _out,
+                                        MPI_Comm comm,
+                                        int sign, unsigned int flags):
+
+    return <void *> fftwf_mpi_plan_many_transpose(n[0], n[1], howmany,
+                                                 block0, block1,
+                                                 <float *> _in, <float *> _out,
+                                                 comm, flags)
+
+# transpose long double
+cdef void* _fftwl_mpi_plan_many_transpose(int rank, const ptrdiff_t *n,
+                                        ptrdiff_t howmany,
+                                        ptrdiff_t block0, ptrdiff_t block1,
+                                        void * _in, void * _out,
+                                        MPI_Comm comm,
+                                        int sign, unsigned int flags):
+
+    return <void *> fftwl_mpi_plan_many_transpose(n[0], n[1], howmany,
+                                                  block0, block1,
+                                                  <long double *> _in,
+                                                  <long double *> _out,
+                                                  comm, flags)
+
+# Function lookup tables
+# ======================
+
+# Planner table (of size the number of planners).
+cdef fftw_mpi_generic_plan mpi_planners[12]
+
+# TODO When to call the builder?
+cdef fftw_mpi_generic_plan * _build_mpi_planner_list():
+
+    mpi_planners[0]  = <fftw_mpi_generic_plan> &_fftw_mpi_plan_many_dft
+    mpi_planners[1]  = <fftw_mpi_generic_plan> &_fftwf_mpi_plan_many_dft
+    mpi_planners[2]  = <fftw_mpi_generic_plan> &_fftwl_mpi_plan_many_dft
+    mpi_planners[3]  = <fftw_mpi_generic_plan> &_fftw_mpi_plan_many_dft_r2c
+    mpi_planners[4]  = <fftw_mpi_generic_plan> &_fftwf_mpi_plan_many_dft_r2c
+    mpi_planners[5]  = <fftw_mpi_generic_plan> &_fftwl_mpi_plan_many_dft_r2c
+    mpi_planners[6]  = <fftw_mpi_generic_plan> &_fftw_mpi_plan_many_dft_c2r
+    mpi_planners[7]  = <fftw_mpi_generic_plan> &_fftwf_mpi_plan_many_dft_c2r
+    mpi_planners[8]  = <fftw_mpi_generic_plan> &_fftwl_mpi_plan_many_dft_c2r
+    mpi_planners[9]  = <fftw_mpi_generic_plan> &_fftw_mpi_plan_many_transpose
+    mpi_planners[10] = <fftw_mpi_generic_plan> &_fftwf_mpi_plan_many_transpose
+    mpi_planners[11] = <fftw_mpi_generic_plan> &_fftwl_mpi_plan_many_transpose
+
 cdef fftw_mpi_generic_local_size distributors[3]
 
 cdef fftw_mpi_generic_local_size * _build_distributor_list():
@@ -1628,18 +1797,17 @@ cdef fftw_mpi_generic_local_size * _build_distributor_list():
     distributors[1] = <fftw_mpi_generic_local_size> &_fftw_mpi_local_size_many_transposed
     distributors[2] = <fftw_mpi_generic_local_size> &_fftw_mpi_local_size_many_1d
 
-# cdef object mpi_flag_dict
-# mpi_flag_dict =
-#        {'FFTW_MPI_DEFAULT_BLOCK': FFTW_MPI_DEFAULT_BLOCK,
-#         'FFTW_MPI_SCRAMBLED_IN': FFTW_MPI_SCRAMBLED_IN,
-#         'FFTW_MPI_SCRAMBLED_OUT': FFTW_MPI_SCRAMBLED_OUT,
-#         'FFTW_MPI_TRANSPOSED_IN': FFTW_MPI_TRANSPOSED_IN,
-#         'FFTW_MPI_TRANSPOSED_OUT': FFTW_MPI_TRANSPOSED_OUT}
+cdef object mpi_flag_dict
+mpi_flag_dict = {'FFTW_MPI_DEFAULT_BLOCK': FFTW_MPI_DEFAULT_BLOCK,
+                 'FFTW_MPI_SCRAMBLED_IN': FFTW_MPI_SCRAMBLED_IN,
+                 'FFTW_MPI_SCRAMBLED_OUT': FFTW_MPI_SCRAMBLED_OUT,
+                 'FFTW_MPI_TRANSPOSED_IN': FFTW_MPI_TRANSPOSED_IN,
+                 'FFTW_MPI_TRANSPOSED_OUT': FFTW_MPI_TRANSPOSED_OUT}
 
-# _mpi_flag_dict = mpi_flag_dict.copy()
+_mpi_flag_dict = mpi_flag_dict.copy()
 
 cdef class SomeMemory:
-
+    '''Wrapper around a small chunk of memory.'''
     cdef ptrdiff_t* data
 
     def __cinit__(self, number):
@@ -1656,7 +1824,7 @@ cdef class SomeMemory:
         if not mem:
             raise MemoryError()
         # Only overwrite the pointer if the memory was really reallocated.
-        # On error (mem is NULL), the originally memory has not been freed.
+        # On error (mem is NULL), the original memory has not been freed.
         self.data = mem
 
     def __dealloc__(self):
@@ -1685,7 +1853,8 @@ def local_size(input_array, howmany=1, block0=0, block1=0, flags=0,
         MPI communicator; default to the world communicator.
     '''
     ###
-    #  todo argument validation
+    # TODO argument validation, flags
+    # TODO How to ensure that same flags passed to creating the plan? Merge into one object?
     ###
 
     if not isinstance(input_array, np.ndarray):
@@ -1743,12 +1912,11 @@ def local_size(input_array, howmany=1, block0=0, block1=0, flags=0,
         # fftw_mpi_local_size_many(...)
         f = distributors[0]
         # return 3 numbers
-    res = f(_rank, _n.data, _howmany,
+    return f(_rank, _n.data, _howmany,
              _block0, _block1, _comm,
              &_local_n0, &_local_0_start,
              &_local_n1, &_local_1_start,
              _sign, _flags)
-    return res
 
 cdef class FFTW_MPI:
     '''
@@ -1779,49 +1947,50 @@ cdef class FFTW_MPI:
     See the documentation on the :meth:`~pyfftw.FFTW.__call__` method
     for more information.
     '''
-    # Each of these function pointers simply
-    # points to a chosen fftw wrapper function
-    cdef fftw_generic_plan_guru _fftw_planner
-    cdef fftw_generic_execute _fftw_execute
-    cdef fftw_generic_destroy_plan _fftw_destroy
-    cdef fftw_generic_plan_with_nthreads _nthreads_plan_setter
 
-    # The plan is typecast when it is created or used
-    # within the wrapper functions
-    cdef void *_plan
+    cdef:
+        # Each of these function pointers simply
+        # points to a chosen fftw wrapper function
+        fftw_generic_plan_guru _fftw_planner
+        fftw_generic_execute _fftw_execute
+        fftw_generic_destroy_plan _fftw_destroy
+        fftw_generic_plan_with_nthreads _nthreads_plan_setter
 
-    cdef np.ndarray _input_array
-    cdef np.ndarray _output_array
-    cdef int _direction
-    cdef int _flags
+        # The plan is typecast when it is created or used
+        # within the wrapper functions
+        void *_plan
 
-    cdef bint _simd_allowed
-    cdef int _input_array_alignment
-    cdef int _output_array_alignment
-    cdef bint _use_threads
-    cdef bint _use_mpi
+        np.ndarray _input_array
+        np.ndarray _output_array
+        int _direction
+        int _flags
 
-    cdef object _input_item_strides
-    cdef object _input_strides
-    cdef object _output_item_strides
-    cdef object _output_strides
-    cdef object _input_shape
-    cdef object _output_shape
-    cdef object _input_dtype
-    cdef object _output_dtype
-    cdef object _flags_used
+        bint _simd_allowed
+        int _input_array_alignment
+        int _output_array_alignment
+        bint _use_threads
+        bint _use_mpi
 
-    cdef double _normalisation_scaling
+        object _input_item_strides
+        object _input_strides
+        object _output_item_strides
+        object _output_strides
+        object _input_shape
+        object _output_shape
+        object _input_dtype
+        object _output_dtype
+        object _flags_used
 
-    cdef int _rank
-    cdef _fftw_iodim *_dims
-    cdef int _howmany_rank
-    cdef _fftw_iodim *_howmany_dims
+        double _normalisation_scaling
 
-    cdef int64_t *_axes
-    cdef int64_t *_not_axes
+        int _rank
+        int _howmany_rank
 
-    cdef int64_t _N
+        int64_t *_axes
+        int64_t *_not_axes
+
+        int64_t _N
+
     def _get_N(self):
         '''
         The product of the lengths of the DFT over all DFT axes.
@@ -1971,10 +2140,10 @@ cdef class FFTW_MPI:
             planning_timelimit=None, comm=None,
             *args, **kwargs):
 
+        # TODO Check or warn about prime n0
+
         # Initialise the pointers that need to be freed
         self._plan = NULL
-        self._dims = NULL
-        self._howmany_dims = NULL
 
         self._axes = NULL
         self._not_axes = NULL
@@ -2136,52 +2305,49 @@ cdef class FFTW_MPI:
         self._N = total_N
         self._normalisation_scaling = 1/float(self.N)
 
-        # Now we can validate the array shapes
-        cdef validator _validator
-
-        if functions['validator'] == -1:
-            if not (output_array.shape == input_array.shape):
-                raise ValueError('Invalid shapes: '
-                        'The output array should be the same shape as the '
-                        'input array for the given array dtypes.')
-        else:
-            _validator = validators[functions['validator']]
-            if not _validator(input_array, output_array,
-                    self._axes, self._not_axes, unique_axes_length):
-                raise ValueError('Invalid shapes: '
-                        'The input array and output array are invalid '
-                        'complementary shapes for their dtypes.')
+        # TODO can we still know about proper shape with MPI?
+#         # Now we can validate the array shapes
+#         cdef validator _validator
+#
+#         if functions['validator'] == -1:
+#             if not (output_array.shape == input_array.shape):
+#                 raise ValueError('Invalid shapes: '
+#                         'The output array should be the same shape as the '
+#                         'input array for the given array dtypes.')
+#         else:
+#             _validator = validators[functions['validator']]
+#             if not _validator(input_array, output_array,
+#                     self._axes, self._not_axes, unique_axes_length):
+#                 raise ValueError('Invalid shapes: '
+#                         'The input array and output array are invalid '
+#                         'complementary shapes for their dtypes.')
 
         self._rank = unique_axes_length
         self._howmany_rank = self._input_array.ndim - unique_axes_length
 
+        # valid flags extended by MPI flags
         self._flags = 0
         self._flags_used = []
         for each_flag in flags:
-            try:
-                self._flags |= flag_dict[each_flag]
-                self._flags_used.append(each_flag)
-            except KeyError:
-                raise ValueError('Invalid flag: ' + '\'' +
-                        each_flag + '\' is not a valid planner flag.')
+           try:
+               flag = flag_dict.get(each_flag)
+               if flag is None:
+                   flag = mpi_flag_dict[each_flag]
+               self._flags |= flag
+               self._flags_used.append(each_flag)
+           except KeyError:
+               raise ValueError('Invalid flag: ' + '\'' +
+                                each_flag + '\' is not a valid planner flag.')
 
+        if ('FFTW_MPI_SCRAMBLED_IN' in flags or
+           'FFTW_MPI_SCRAMBLED_OUT' in flags) and self._rank == 1:
+            raise ValueError('Invalid flag: FFTW_MPI_SCRAMBLED_* applies only in 1d')
 
         if ('FFTW_DESTROY_INPUT' not in flags) and (
                 (scheme[0] != 'c2r') or not self._rank > 1):
             # The default in all possible cases is to preserve the input
             # This is not possible for r2c arrays with rank > 1
             self._flags |= FFTW_PRESERVE_INPUT
-
-        # Set up the arrays of structs for holding the stride shape
-        # information
-        self._dims = <_fftw_iodim *>malloc(
-                self._rank * sizeof(_fftw_iodim))
-        self._howmany_dims = <_fftw_iodim *>malloc(
-                self._howmany_rank * sizeof(_fftw_iodim))
-
-        if self._dims == NULL or self._howmany_dims == NULL:
-            # Not much else to do than raise an exception
-            raise MemoryError
 
         # Find the strides for all the axes of both arrays in terms of the
         # number of items (as opposed to the number of bytes).
@@ -2219,19 +2385,6 @@ cdef class FFTW_MPI:
             fft_shape = self._input_shape
         else:
             fft_shape = fft_shape_lookup(input_array, output_array)
-
-        # Fill in the stride and shape information
-        input_strides_array = self._input_item_strides
-        output_strides_array = self._output_item_strides
-        for i in range(0, self._rank):
-            self._dims[i]._n = fft_shape[self._axes[i]]
-            self._dims[i]._is = input_strides_array[self._axes[i]]
-            self._dims[i]._os = output_strides_array[self._axes[i]]
-
-        for i in range(0, self._howmany_rank):
-            self._howmany_dims[i]._n = fft_shape[self._not_axes[i]]
-            self._howmany_dims[i]._is = input_strides_array[self._not_axes[i]]
-            self._howmany_dims[i]._os = output_strides_array[self._not_axes[i]]
 
         # parallel execution
         # self._use_threads = (threads > 1)
@@ -2468,12 +2621,6 @@ cdef class FFTW_MPI:
 
         if not self._plan == NULL:
             self._fftw_destroy(self._plan)
-
-        if not self._dims == NULL:
-            free(self._dims)
-
-        if not self._howmany_dims == NULL:
-            free(self._howmany_dims)
 
         if self._use_mpi:
             # todo wrap to call the right clean up version
