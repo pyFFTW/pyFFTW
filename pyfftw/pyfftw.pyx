@@ -22,11 +22,22 @@ from libc.stdlib cimport calloc, malloc, free
 from libc.stdint cimport intptr_t, int64_t
 from libc cimport limits
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
-from mpi4py cimport libmpi as mpi
+from mpi4py import MPI
+from mpi4py cimport MPI
+from mpi4py.MPI cimport Comm
+from mpi4py cimport libmpi
 
 import warnings
 
 include 'utils.pxi'
+
+# To avoid
+#
+# error: unknown type name ‘MPI_Message’
+#    MPI_Message ob_mpi;
+#
+# see also https://bitbucket.org/mpi4py/mpi4py/issue/1
+cdef extern from 'mpi-compat.h': pass
 
 cdef extern from *:
     int Py_AtExit(void (*callback)())
@@ -482,6 +493,16 @@ scheme_functions = {
 
 # Initialize the module
 
+cdef mpi_init():
+    fftw_mpi_init()
+    fftwf_mpi_init()
+    fftwl_mpi_init()
+
+    _build_distributor_list()
+    _build_mpi_executor_list
+    _build_mpi_planner_list
+    _build_mpi_wisdom_list
+
 # Define the functions
 _build_planner_list()
 _build_destroyer_list()
@@ -495,23 +516,22 @@ fftwf_init_threads()
 fftwl_init_threads()
 
 # TODO tight coupling with non-MPI code
-fftw_mpi_init()
-fftwf_mpi_init()
-fftwl_mpi_init()
+mpi_init()
 
 # Set the cleanup routine
 cdef void _cleanup():
+    # TODO tight coupling with non-MPI code
+    # mpi_cleanup() includes serial clean up
+    fftw_mpi_cleanup()
+    fftwf_mpi_cleanup()
+    fftwl_mpi_cleanup()
+
     fftw_cleanup()
     fftwf_cleanup()
     fftwl_cleanup()
     fftw_cleanup_threads()
     fftwf_cleanup_threads()
     fftwl_cleanup_threads()
-
-    # TODO tight coupling with non-MPI code
-    fftw_mpi_cleanup()
-    fftwf_mpi_cleanup()
-    fftwl_mpi_cleanup()
 
 Py_AtExit(_cleanup)
 
@@ -632,7 +652,6 @@ cdef class FFTW:
     cdef int _input_array_alignment
     cdef int _output_array_alignment
     cdef bint _use_threads
-    cdef bint _use_mpi
 
     cdef object _input_item_strides
     cdef object _input_strides
@@ -1068,21 +1087,10 @@ cdef class FFTW:
 
         # parallel execution
         self._use_threads = (threads > 1)
-        self._use_mpi = (comm is not None)
-
-        if self._use_threads and self._use_mpi:
-            raise ValueError('Combination of threads and MPI not supported (yet)')
 
         ## Point at which FFTW calls are made
         ## (and none should be made before this)
-        if self._use_mpi:
-            # performs inititialization (no threads I guess)
-            from mpi4py import MPI
-
-            fftw_mpi_init()
-
-        else:
-            self._nthreads_plan_setter(threads)
+        self._nthreads_plan_setter(threads)
 
         # Set the timelimit
         set_timelimit_func(_planning_timelimit)
@@ -1310,10 +1318,6 @@ cdef class FFTW:
 
         if not self._howmany_dims == NULL:
             free(self._howmany_dims)
-
-        if self._use_mpi:
-            # todo wrap to call the right clean up version
-            fftw_mpi_cleanup()
 
     def __call__(self, input_array=None, output_array=None,
             normalise_idft=True):
@@ -1575,6 +1579,7 @@ import mpi4py
 # adapter functions with uniform set of arguments
 # but covariant return type
 
+# (d>1) dimensional
 cdef  _fftw_mpi_local_size_many(
             int rank, const ptrdiff_t *n, ptrdiff_t howmany,
             ptrdiff_t block0, ptrdiff_t block1, MPI_Comm comm,
@@ -1582,11 +1587,13 @@ cdef  _fftw_mpi_local_size_many(
             ptrdiff_t *local_n1, ptrdiff_t *local_1_start,
             int sign, unsigned int flags):
 
-    cdef ptrdiff_t local_size = fftw_mpi_local_size_many(rank, n, howmany, block0, comm,
+    cdef ptrdiff_t local_size = fftw_mpi_local_size_many(rank, n, howmany,
+                                                         block0, comm,
                                                          local_n0, local_0_start)
 
     return local_size, local_n0[0], local_0_start[0]
 
+# (d>1) dimensional transposed
 cdef _fftw_mpi_local_size_many_transposed(
             int rank, const ptrdiff_t *n, ptrdiff_t howmany,
             ptrdiff_t block0, ptrdiff_t block1, MPI_Comm comm,
@@ -1599,9 +1606,9 @@ cdef _fftw_mpi_local_size_many_transposed(
            block0, block1, comm,
            local_n0, local_0_start,
            local_n1, local_1_start)
-
     return local_size, local_n0[0], local_0_start[0], local_n1[0], local_1_start[0]
 
+# one dimensional
 cdef object _fftw_mpi_local_size_many_1d(
             int rank, const ptrdiff_t *n, ptrdiff_t howmany,
             ptrdiff_t block0, ptrdiff_t block1, MPI_Comm comm,
@@ -1767,8 +1774,74 @@ cdef void* _fftwl_mpi_plan_many_transpose(int rank, const ptrdiff_t *n,
                                                   <long double *> _out,
                                                   comm, flags)
 
+#    Executors
+#    =========
+#
+# Complex double precision
+cdef void _fftw_mpi_execute_dft(void *_plan, void *_in, void *_out) nogil:
+
+    fftw_mpi_execute_dft(<fftw_plan>_plan,
+            <cdouble *>_in, <cdouble *>_out)
+
+# Complex single precision
+cdef void _fftwf_mpi_execute_dft(void *_plan, void *_in, void *_out) nogil:
+
+    fftwf_mpi_execute_dft(<fftwf_plan>_plan,
+            <cfloat *>_in, <cfloat *>_out)
+
+# Complex long double precision
+cdef void _fftwl_mpi_execute_dft(void *_plan, void *_in, void *_out) nogil:
+
+    fftwl_mpi_execute_dft(<fftwl_plan>_plan,
+            <clongdouble *>_in, <clongdouble *>_out)
+
+# real to complex double precision
+cdef void _fftw_mpi_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
+
+    fftw_mpi_execute_dft_r2c(<fftw_plan>_plan,
+            <double *>_in, <cdouble *>_out)
+
+# real to complex single precision
+cdef void _fftwf_mpi_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
+
+    fftwf_mpi_execute_dft_r2c(<fftwf_plan>_plan,
+            <float *>_in, <cfloat *>_out)
+
+# real to complex long double precision
+cdef void _fftwl_mpi_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
+
+    fftwl_mpi_execute_dft_r2c(<fftwl_plan>_plan,
+            <long double *>_in, <clongdouble *>_out)
+
+# complex to real double precision
+cdef void _fftw_mpi_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
+
+    fftw_mpi_execute_dft_c2r(<fftw_plan>_plan,
+            <cdouble *>_in, <double *>_out)
+
+# complex to real single precision
+cdef void _fftwf_mpi_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
+
+    fftwf_mpi_execute_dft_c2r(<fftwf_plan>_plan,
+            <cfloat *>_in, <float *>_out)
+
+# complex to real long double precision
+cdef void _fftwl_mpi_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
+
+    fftwl_mpi_execute_dft_c2r(<fftwl_plan>_plan,
+            <clongdouble *>_in, <long double *>_out)
+
+
 # Function lookup tables
 # ======================
+
+cdef fftw_mpi_generic_local_size distributors[3]
+
+cdef fftw_mpi_generic_local_size * _build_distributor_list():
+
+    distributors[0] = <fftw_mpi_generic_local_size> &_fftw_mpi_local_size_many
+    distributors[1] = <fftw_mpi_generic_local_size> &_fftw_mpi_local_size_many_transposed
+    distributors[2] = <fftw_mpi_generic_local_size> &_fftw_mpi_local_size_many_1d
 
 # Planner table (of size the number of planners).
 cdef fftw_mpi_generic_plan mpi_planners[12]
@@ -1789,13 +1862,32 @@ cdef fftw_mpi_generic_plan * _build_mpi_planner_list():
     mpi_planners[10] = <fftw_mpi_generic_plan> &_fftwf_mpi_plan_many_transpose
     mpi_planners[11] = <fftw_mpi_generic_plan> &_fftwl_mpi_plan_many_transpose
 
-cdef fftw_mpi_generic_local_size distributors[3]
+# Executor table (of size the number of executors)
+cdef fftw_generic_execute mpi_executors[9]
 
-cdef fftw_mpi_generic_local_size * _build_distributor_list():
+cdef fftw_generic_execute * _build_mpi_executor_list():
 
-    distributors[0] = <fftw_mpi_generic_local_size> &_fftw_mpi_local_size_many
-    distributors[1] = <fftw_mpi_generic_local_size> &_fftw_mpi_local_size_many_transposed
-    distributors[2] = <fftw_mpi_generic_local_size> &_fftw_mpi_local_size_many_1d
+    mpi_executors[0] = <fftw_generic_execute>&_fftw_mpi_execute_dft
+    mpi_executors[1] = <fftw_generic_execute>&_fftwf_mpi_execute_dft
+    mpi_executors[2] = <fftw_generic_execute>&_fftwl_mpi_execute_dft
+    mpi_executors[3] = <fftw_generic_execute>&_fftw_mpi_execute_dft_r2c
+    mpi_executors[4] = <fftw_generic_execute>&_fftwf_mpi_execute_dft_r2c
+    mpi_executors[5] = <fftw_generic_execute>&_fftwl_mpi_execute_dft_r2c
+    mpi_executors[6] = <fftw_generic_execute>&_fftw_mpi_execute_dft_c2r
+    mpi_executors[7] = <fftw_generic_execute>&_fftwf_mpi_execute_dft_c2r
+    mpi_executors[8] = <fftw_generic_execute>&_fftwl_mpi_execute_dft_c2r
+
+cdef fftw_mpi_generic_wisdom mpi_wisdom[6]
+
+# TODO doesn't have a return value?
+cdef fftw_mpi_generic_wisdom * _build_mpi_wisdom_list():
+
+    mpi_wisdom[0] = <fftw_mpi_generic_wisdom> &fftw_mpi_gather_wisdom
+    mpi_wisdom[1] = <fftw_mpi_generic_wisdom> &fftwf_mpi_gather_wisdom
+    mpi_wisdom[2] = <fftw_mpi_generic_wisdom> &fftwl_mpi_gather_wisdom
+    mpi_wisdom[3] = <fftw_mpi_generic_wisdom> &fftw_mpi_broadcast_wisdom
+    mpi_wisdom[4] = <fftw_mpi_generic_wisdom> &fftwf_mpi_broadcast_wisdom
+    mpi_wisdom[5] = <fftw_mpi_generic_wisdom> &fftwl_mpi_broadcast_wisdom
 
 cdef object mpi_flag_dict
 mpi_flag_dict = {'FFTW_MPI_DEFAULT_BLOCK': FFTW_MPI_DEFAULT_BLOCK,
@@ -1830,19 +1922,114 @@ cdef class SomeMemory:
     def __dealloc__(self):
         PyMem_Free(self.data)     # no-op if self.data is NULL
 
-# local_size, local_n0, local_0_start = FFTW_MPI.local_size(a, comm=comm)
-def local_size(input_array, howmany=1, block0=0, block1=0, flags=0,
-               sign='FFTW_FORWARD', transposed=False, comm=None):
+cdef libmpi.MPI_Comm extract_communicator(Comm comm=None):
+    '''Extract the C struct from a mpi4py.MPI.Comm object. Default to
+    COMM_WORLD.
+
     '''
-    Determine size of memory needed for the output array and possibly extra
-    memory for transposition.
+    if comm is None:
+        return libmpi.MPI_COMM_WORLD
+
+    # see mpi4py/src/MPI/Comm.pyx and mpi4py/demo/cython/helloworld.pyx
+    cdef libmpi.MPI_Comm _comm = comm.ob_mpi
+    if _comm is NULL:
+        raise ValueError('Invalid MPI communicator')
+    return _comm
+
+cdef object validate_mpi_flags(flags):
+    '''Check that only valid flags that can be passed to
+    ``fftw_mpi_local_size_many_1d`` and ``fftw_mpi_plan_many_dft_*``
+    are contained in ``flags``, a list of strings.
+
+    Return the combination of flags in binary format.
+
+    '''
+    cdef:
+        unsigned int _flags = 0
+        object _flags_used = []
+
+    for each_flag in flags:
+           try:
+               flag = flag_dict.get(each_flag)
+               if flag is None:
+                   flag = mpi_flag_dict[each_flag]
+               _flags |= flag
+               _flags_used.append(each_flag)
+           except KeyError:
+               raise ValueError('Invalid flag: ' + '\'' +
+                                each_flag + '\' is not a valid planner flag.')
+
+    return _flags, _flags_used
+
+cdef ptrdiff_t validate_block(block) except -1:
+    '''Validate the block size assigned to an MPI rank.
+
+    ``block`` can be either the string ``DEFAULT_BLOCK`` or a
+    non-negative number.
+
+    '''
+    cdef ptrdiff_t iblock
+
+    if block == 'DEFAULT_BLOCK':
+        return FFTW_MPI_DEFAULT_BLOCK
+
+    v = ValueError('Invalid block size: %s' % block)
+    try:
+        iblock = block
+    except TypeError:
+        raise v
+    # block could have been a float
+    if int(block) != float(block):
+        raise v
+
+    # a valid integer value?
+    if iblock >= 0:
+        return iblock
+
+    raise v
+
+cdef int validate_direction(direction) except 0:
+    '''Wrap dict access for a more telling error message'''
+    try:
+        return directions[direction]
+    except KeyError:
+        raise ValueError('Invalid direction: %s' % direction)
+
+cdef object dtype_offset
+dtype_offset = {np.dtype('complex128'):0,
+               np.dtype('complex64'):1,
+               np.dtype('clongdouble'):2,
+               np.dtype('float64'):0,
+               np.dtype('float32'):1,
+               np.dtype('longdouble'):2,
+              }
+
+cdef unsigned int validate_dtype(dtype) except -1:
+    '''Extract offset corresponding to a numpy.dtype object:
+    0: double precision,
+    1: single precision,
+    2: long double precision.
+
+    '''
+    try:
+        return dtype_offset[dtype]
+    except KeyError:
+        raise TypeError('Invalid dtype: %s' % dtype)
+
+def local_size(input_array, ptrdiff_t howmany=1,
+               block0='DEFAULT_BLOCK', block1='DEFAULT_BLOCK',
+               flags=tuple(), direction='FFTW_FORWARD', bint transposed=False,
+               Comm comm=None):
+
+    '''Determine number of elements (float, double...) needed for the
+    output array and possibly extra elements for transposition.
 
     :param flags:
 
-        unsigned int; Applies only to 1D complex transforms. Flags need
-        to match those given when creating a plan.
+        list; Applies only to 1D complex transforms. Flags need to
+        match those given when creating a plan.
 
-    :param sign:
+    :param direction:
 
         One of ('FFTW_FORWARD', 'FFTW_BACKWARD'); Applies only to 1D
         complex transforms. Needs to match the direction given when
@@ -1850,10 +2037,20 @@ def local_size(input_array, howmany=1, block0=0, block1=0, flags=0,
 
     :param comm:
 
-        MPI communicator; default to the world communicator.
+        mpi4py.libmpi.MPI_Comm; default to the world communicator.
+
     '''
+    cdef:
+        unsigned int _flags
+        int _direction
+        int _rank
+        ptrdiff_t _local_n0, _local_0_start, _local_n1, _local_1_start
+        ptrdiff_t _block0, _block1, _howmany, i
+        SomeMemory _n
+        libmpi.MPI_Comm _comm
+
     ###
-    # TODO argument validation, flags
+    # argument validation and initialisation
     # TODO How to ensure that same flags passed to creating the plan? Merge into one object?
     ###
 
@@ -1862,61 +2059,48 @@ def local_size(input_array, howmany=1, block0=0, block1=0, flags=0,
                          'The input array needs to be an instance '
                          'of numpy.ndarray')
 
-    # data dimension
+    # input data dimension
+    validate_dtype(input_array.dtype)
     if input_array.ndim <= 0:
         raise ValueError('Invalid dimension: '
                          'The input array needs to be at least 1D')
+    _rank = input_array.ndim
 
     if howmany <= 0:
         raise ValueError('Invalid howmany: '
                          'Need at least one value')
-
-    cdef:
-        unsigned int _flags
-        int _sign
-        int64_t _rank
-        ptrdiff_t _local_n0, _local_0_start, _local_n1, _local_1_start
-        ptrdiff_t _block0, _block1, _howmany, i
-        SomeMemory _n
-        mpi.MPI_Comm _comm
-
-    ###
-    # assign data
-    ###
-    _flags = flags
-    _sign = +1
-    _rank = input_array.ndim
-    _block0 = block0
-    _block1 = block1
     _howmany = howmany
+
+    _block0 = validate_block(block0)
+    _block1 = validate_block(block1)
+
+    try:
+        flags = list(flags)
+    except TypeError:
+        raise ValueError("Expect an iterable for 'flags'")
+    _flags, _ = validate_mpi_flags(flags)
+    _direction = validate_direction(direction)
+    _comm = extract_communicator(comm)
 
     # copy over the shape
     _n = SomeMemory(_rank)
     for i in range(_rank):
         _n.data[i] = input_array.shape[i]
 
-    if comm is None:
-        _comm = mpi.MPI_COMM_WORLD
+    # compute index of data-distribution function in table
+    cdef unsigned int type_offset = 0
+    if transposed:
+        type_offset = 1
+    elif _rank == 1:
+        type_offset = 2
 
-    _build_distributor_list()
-    # cdef fftw_mpi_generic_local_size * f
-    if _rank == 1:
-        # fftw_mpi_local_size_many_1d(...)
-        f = distributors[2]
-        # return 5 numbers
-    elif transposed:
-        # fftw_mpi_local_size_many(...)
-        f = distributors[1]
-        # return 5 numbers
-    else:
-        # fftw_mpi_local_size_many(...)
-        f = distributors[0]
-        # return 3 numbers
+    f = distributors[type_offset]
+
     return f(_rank, _n.data, _howmany,
              _block0, _block1, _comm,
              &_local_n0, &_local_0_start,
              &_local_n1, &_local_1_start,
-             _sign, _flags)
+             _direction, _flags)
 
 cdef class FFTW_MPI:
     '''
@@ -1951,7 +2135,7 @@ cdef class FFTW_MPI:
     cdef:
         # Each of these function pointers simply
         # points to a chosen fftw wrapper function
-        fftw_generic_plan_guru _fftw_planner
+        fftw_mpi_generic_plan _fftw_planner
         fftw_generic_execute _fftw_execute
         fftw_generic_destroy_plan _fftw_destroy
         fftw_generic_plan_with_nthreads _nthreads_plan_setter
@@ -1962,6 +2146,8 @@ cdef class FFTW_MPI:
 
         np.ndarray _input_array
         np.ndarray _output_array
+
+        # the sign: -1 for forward, +1 for backward transform
         int _direction
         int _flags
 
@@ -1969,12 +2155,11 @@ cdef class FFTW_MPI:
         int _input_array_alignment
         int _output_array_alignment
         bint _use_threads
-        bint _use_mpi
 
-        object _input_item_strides
-        object _input_strides
-        object _output_item_strides
-        object _output_strides
+        # object _input_item_strides
+        # object _input_strides
+        # object _output_item_strides
+        # object _output_strides
         object _input_shape
         object _output_shape
         object _input_dtype
@@ -1983,8 +2168,15 @@ cdef class FFTW_MPI:
 
         double _normalisation_scaling
 
+        # FFTW: rnk
         int _rank
-        int _howmany_rank
+        # FFTW: howmany
+        # The howmany parameter specifies that the
+        # transform is of contiguous howmany-tuples rather than
+        # individual complex numbers
+        ptrdiff_t _howmany
+        # FFTW: n
+        SomeMemory _dims
 
         int64_t *_axes
         int64_t *_not_axes
@@ -2135,9 +2327,10 @@ cdef class FFTW_MPI:
 
     axes = property(_get_axes)
 
+    # TODO same args for __init__
     def __cinit__(self, input_array, output_array, axes=(-1,),
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',),
-            planning_timelimit=None, comm=None,
+            planning_timelimit=None, comm=None, n_transforms=1,
             *args, **kwargs):
 
         # TODO Check or warn about prime n0
@@ -2184,8 +2377,8 @@ cdef class FFTW_MPI:
 
         functions = scheme_functions[scheme]
 
-        self._fftw_planner = planners[functions['planner']]
-        self._fftw_execute = executors[functions['executor']]
+        self._fftw_planner = mpi_planners[functions['planner']]
+        self._fftw_execute = mpi_executors[functions['executor']]
         self._fftw_destroy = destroyers[functions['generic_precision']]
 
         self._nthreads_plan_setter = (
@@ -2289,8 +2482,10 @@ cdef class FFTW_MPI:
         free(self._axes)
         self._axes = unique_axes
         self._not_axes = not_axes
+        self._dims = SomeMemory(unique_axes_length)
 
         total_N = 1
+        this_N = 0
         for n in range(unique_axes_length):
             if self._input_shape[self._axes[n]] == 0:
                 raise ValueError('Zero length array: '
@@ -2298,9 +2493,13 @@ cdef class FFTW_MPI:
                     'axes over which the FFT is to be taken')
 
             if self._direction == FFTW_FORWARD:
-                total_N *= self._input_shape[self._axes[n]]
+                this_N = self._input_shape[self._axes[n]]
             else:
-                total_N *= self._output_shape[self._axes[n]]
+                this_N = self._output_shape[self._axes[n]]
+            total_N *= this_N
+
+            # copy over length
+            self._dims.data[n] = this_N
 
         self._N = total_N
         self._normalisation_scaling = 1/float(self.N)
@@ -2321,9 +2520,19 @@ cdef class FFTW_MPI:
 #                 raise ValueError('Invalid shapes: '
 #                         'The input array and output array are invalid '
 #                         'complementary shapes for their dtypes.')
-
         self._rank = unique_axes_length
-        self._howmany_rank = self._input_array.ndim - unique_axes_length
+#        self._howmany_rank = self._input_array.ndim - unique_axes_length
+
+        # TODO Check that total size evenly divisible by howmany
+        self._howmany = n_transforms
+        for n in range(len(input_array)):
+            if input_array.shape[n] % self._howmany != 0:
+                raise ValueError('Each input dimension must a multiple of n_transforms. '
+                                 'Dimensions are %s, n_transforms is %d' %
+                                 (input_array.shape, self._howmany))
+            # don't check output array, as it may be large due to
+            # extra space for the transpose
+
 
         # valid flags extended by MPI flags
         self._flags = 0
@@ -2386,31 +2595,27 @@ cdef class FFTW_MPI:
         else:
             fft_shape = fft_shape_lookup(input_array, output_array)
 
+        _comm = extract_communicator(comm)
+
         # parallel execution
         # self._use_threads = (threads > 1)
-        # self._use_mpi = (comm is not None)
 
         # if self._use_threads and self._use_mpi:
         #     raise ValueError('Combination of threads and MPI not supported (yet)')
 
-        ## Point at which FFTW calls are made
+        ## Point at which FFTW and MPI calls are made
         ## (and none should be made before this)
-
-        # performs inititialization (no threads I guess)
-        from mpi4py import MPI
-
-        fftw_mpi_init()
 
         # Set the timelimit
         set_timelimit_func(_planning_timelimit)
 
         # Finally, construct the plan
         self._plan = self._fftw_planner(
-            self._rank, <fftw_iodim *>self._dims,
-            self._howmany_rank, <fftw_iodim *>self._howmany_dims,
+            self._rank, self._dims.data, self._howmany,
+            self._block0, self._block1,
             <void *>np.PyArray_DATA(self._input_array),
             <void *>np.PyArray_DATA(self._output_array),
-            self._direction, self._flags)
+            _comm, self._direction, self._flags)
 
         if self._plan == NULL:
             raise RuntimeError('The data has an uncaught error that led '+
@@ -2608,6 +2813,17 @@ cdef class FFTW_MPI:
         array, and then rely on the array being copied in before the
         transform (which :class:`pyfftw.FFTW` will handle for you when
         accessed through :meth:`~pyfftw.FFTW.__call__`).
+
+        ``n_transforms`` is the number of same-size arrays to
+        transform simultaneously in one go. Suppose you have three
+        arrays x,y,z you want to Fourier transform. Then you can lay
+        them out in interleaved format such that in memory they are
+        ordered as x[0], y[0], z[0], x[1], y[1], z[1]... and specify
+        ``n_transforms=3``. So ``n_transforms`` is the number of
+        elements between the first and second element of each
+        individual array. All arrays must be of the same data type and
+        length.
+
         '''
         pass
 
@@ -2621,10 +2837,6 @@ cdef class FFTW_MPI:
 
         if not self._plan == NULL:
             self._fftw_destroy(self._plan)
-
-        if self._use_mpi:
-            # todo wrap to call the right clean up version
-            fftw_mpi_cleanup()
 
     def __call__(self, input_array=None, output_array=None,
             normalise_idft=True):

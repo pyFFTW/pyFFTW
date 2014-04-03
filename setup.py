@@ -68,6 +68,7 @@ if get_platform() in ('win32', 'win-amd64'):
     library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
     package_data['pyfftw'] = [
             'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
+    # TODO mpi support missing and untested on windows
 else:
     libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads',
             'fftw3f_threads', 'fftw3l_threads',

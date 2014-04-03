@@ -1,9 +1,13 @@
 *.pyc
 *.so
 *.c
+*.html
+*.launch
 *.swp
 *.*~
+*.*#
 build
 dist
 docs
 MANIFEST
+*.egg-info/*
