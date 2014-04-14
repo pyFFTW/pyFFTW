@@ -259,3 +259,54 @@ cdef enum:
     FFTW_PATIENT = 32
     FFTW_ESTIMATE = 64
 
+# Declare external interface here so that it is accessible from other cython
+# modules using cimport
+cdef class FFTW:
+    # Each of these function pointers simply
+    # points to a chosen fftw wrapper function
+    cdef fftw_generic_plan_guru __fftw_planner
+    cdef fftw_generic_execute __fftw_execute
+    cdef fftw_generic_destroy_plan __fftw_destroy
+    cdef fftw_generic_plan_with_nthreads __nthreads_plan_setter
+
+    # The plan is typecast when it is created or used
+    # within the wrapper functions
+    cdef void *__plan
+
+    cdef np.ndarray __input_array
+    cdef np.ndarray __output_array
+    cdef int __direction
+    cdef int __flags
+
+    cdef bint _simd_allowed
+    cdef int _input_array_alignment
+    cdef int _output_array_alignment
+    cdef bint _use_threads
+
+    cdef object _input_item_strides
+    cdef object _input_strides
+    cdef object _output_item_strides
+    cdef object _output_strides
+    cdef object _input_shape
+    cdef object _output_shape
+    cdef object _input_dtype
+    cdef object _output_dtype
+    cdef object _flags_used
+
+    cdef double _normalisation_scaling
+
+    cdef int __rank
+    cdef _fftw_iodim *__dims
+    cdef int __howmany_rank
+    cdef _fftw_iodim *__howmany_dims
+
+    cdef int64_t *_axes
+    cdef int64_t *_not_axes
+
+    cdef int64_t _N
+
+    cpdef update_arrays(self, new_input_array, new_output_array)
+
+    cdef _update_arrays(self, np.ndarray new_input_array, np.ndarray new_output_array)
+
+    cpdef execute(self)
