@@ -601,48 +601,9 @@ cdef class FFTW:
     See the documentation on the :meth:`~pyfftw.FFTW.__call__` method 
     for more information.
     '''
-    # Each of these function pointers simply
-    # points to a chosen fftw wrapper function
-    cdef fftw_generic_plan_guru _fftw_planner
-    cdef fftw_generic_execute _fftw_execute
-    cdef fftw_generic_destroy_plan _fftw_destroy
-    cdef fftw_generic_plan_with_nthreads _nthreads_plan_setter
 
-    # The plan is typecast when it is created or used
-    # within the wrapper functions
-    cdef void *_plan
+    # refer to pxd file for declarations for C attributes and methods
 
-    cdef np.ndarray _input_array
-    cdef np.ndarray _output_array
-    cdef int _direction
-    cdef int _flags
-
-    cdef bint _simd_allowed
-    cdef int _input_array_alignment
-    cdef int _output_array_alignment    
-    cdef bint _use_threads
-
-    cdef object _input_item_strides
-    cdef object _input_strides
-    cdef object _output_item_strides
-    cdef object _output_strides
-    cdef object _input_shape
-    cdef object _output_shape
-    cdef object _input_dtype
-    cdef object _output_dtype
-    cdef object _flags_used
-
-    cdef double _normalisation_scaling
-
-    cdef int _rank
-    cdef _fftw_iodim *_dims
-    cdef int _howmany_rank
-    cdef _fftw_iodim *_howmany_dims
-
-    cdef int64_t *_axes
-    cdef int64_t *_not_axes
-
-    cdef int64_t _N
     def _get_N(self):
         '''
         The product of the lengths of the DFT over all DFT axes.
