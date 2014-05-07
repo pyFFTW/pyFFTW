@@ -1,5 +1,5 @@
 # Copyright 2012 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -45,31 +45,31 @@ cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
     The alignment is given by the second argument, ``n``.
     The rest of the arguments are as per :func:`numpy.empty`.
     '''
-    
+
     itemsize = np.dtype(dtype).itemsize
 
     # Apparently there is an issue with numpy.prod wrapping around on 32-bits
-    # on Windows 64-bit. This shouldn't happen, but the following code 
+    # on Windows 64-bit. This shouldn't happen, but the following code
     # alleviates the problem.
     if not isinstance(shape, (int, np.integer)):
         array_length = 1
         for each_dimension in shape:
             array_length *= each_dimension
-    
+
     else:
         array_length = shape
 
     # Allocate a new array that will contain the aligned data
     _array_aligned = np.empty(array_length*itemsize+n, dtype='int8')
-    
-    # We now need to know how to offset _array_aligned 
+
+    # We now need to know how to offset _array_aligned
     # so it is correctly aligned
     _array_aligned_offset = (n-<intptr_t>np.PyArray_DATA(_array_aligned))%n
 
     array = np.frombuffer(
             _array_aligned[_array_aligned_offset:_array_aligned_offset-n].data,
             dtype=dtype).reshape(shape, order=order)
-    
+
     return array
 
 cpdef n_byte_align(array, n, dtype=None):
@@ -83,7 +83,7 @@ cpdef n_byte_align(array, n, dtype=None):
     ``dtype`` is an optional argument that forces the resultant array to be
     of that dtype.
     '''
-    
+
     if not isinstance(array, np.ndarray):
         raise TypeError('Invalid array: n_byte_align requires a subclass '
                 'of ndarray')
@@ -91,11 +91,11 @@ cpdef n_byte_align(array, n, dtype=None):
     if dtype is not None:
         if not array.dtype == dtype:
             update_dtype = True
-    
+
     else:
         dtype = array.dtype
         update_dtype = False
-    
+
     # See if we're already n byte aligned. If so, do nothing.
     offset = <intptr_t>np.PyArray_DATA(array) %n
 
@@ -106,7 +106,7 @@ cpdef n_byte_align(array, n, dtype=None):
         _array_aligned[:] = array
 
         array = _array_aligned.view(type=array.__class__)
-    
+
     return array
 
 cpdef is_n_byte_aligned(array, n):

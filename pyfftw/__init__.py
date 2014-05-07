@@ -16,6 +16,7 @@ from ._version import version
 from .pyfftw import (
         FFTW,
         FFTW_MPI,
+        create_mpi_plan,
         local_size,
         export_wisdom,
         import_wisdom,
@@ -30,4 +31,3 @@ from . import interfaces
 
 # clean up the namespace
 del builders.builders
-

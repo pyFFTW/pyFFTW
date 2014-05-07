@@ -361,7 +361,6 @@ cdef bint _validate_r2c_arrays(np.ndarray input_array,
 
     return True
 
-
 cdef bint _validate_c2r_arrays(np.ndarray input_array,
         np.ndarray output_array, int64_t *axes, int64_t *not_axes,
         int64_t axes_length):
@@ -499,9 +498,9 @@ cdef mpi_init():
     fftwl_mpi_init()
 
     _build_distributor_list()
-    _build_mpi_executor_list
-    _build_mpi_planner_list
-    _build_mpi_wisdom_list
+    _build_mpi_executor_list()
+    _build_mpi_planner_list()
+    _build_mpi_wisdom_list()
 
 # Define the functions
 _build_planner_list()
@@ -1608,7 +1607,7 @@ cdef _fftw_mpi_local_size_many_transposed(
            local_n1, local_1_start)
     return local_size, local_n0[0], local_0_start[0], local_n1[0], local_1_start[0]
 
-# one dimensional
+# d=1
 cdef object _fftw_mpi_local_size_many_1d(
             int rank, const ptrdiff_t *n, ptrdiff_t howmany,
             ptrdiff_t block0, ptrdiff_t block1, MPI_Comm comm,
@@ -1831,6 +1830,108 @@ cdef void _fftwl_mpi_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
     fftwl_mpi_execute_dft_c2r(<fftwl_plan>_plan,
             <clongdouble *>_in, <long double *>_out)
 
+# Validator functions
+# ===================
+def _mpi_validate_array(local_array, shape, name):
+    '''Validate that ``local_array`` (input or output) has the right shape, data
+    type, and is contiguous.
+
+    '''
+    # We first need to confirm that the dimensions of the arrays are the same
+    if local_array.ndim != len(shape):
+        raise ValueError('Mismatch in %s dimensions: expected %d, got vs. %d' %
+                         (name, len(shape), local_array.ndim))
+
+    for n, s in enumerate(local_array.shape):
+        if s < 1:
+            raise ValueError('Invalid size in %s dim. %d: %d' % (name, n, s))
+        if s != shape[n]:
+            raise ValueError('Shape mismatch in %s in dim. %d: expected %d, got %d' %
+                             (name, n, s, shape[n]))
+
+    # needs to be contiguous, FFTW imposes its own ordering
+    if not (local_array.flags['C_CONTIGUOUS'] or local_array.flags['F_CONTIGUOUS']):
+        raise ValueError('%d array is not contiguous' % name)
+
+def fftw_mpi_unsupported(msg):
+    raise NotImplementedError('FFTW with MPI does not support ' + msg)
+
+# Shape lookup functions
+# ======================
+def _mpi_local_size_input_shape(input_shape, scheme):
+    '''Return the shape of (complex) input dimensions to feed into ``local_size`` as
+    a tuple. It coincides with ``input_shape`` except if the ``scheme`` is
+    ``r2c``, in which the last dimension is converted from ``N`` to ``N / 2 +
+    1`` to account for the Hermitian symmetry.
+
+    '''
+    # need padding for r2c; cf. FFTW manual 6.5 'Multi-dimensional MPI DFTs of Real Data'
+    if scheme == 'r2c':
+        res = np.asarray(input_shape)
+        res[-1] = res[-1] // 2 + 1
+        return tuple(res)
+    else:
+        return input_shape
+
+def _mpi_local_input_output_shape_nD(input_shape, local_n0, howmany, last_in, last_out):
+    '''Generic function to compute both the input and output shape of the local
+    arrays on this MPI rank.
+
+    '''
+    _input_shape = np.asarray(input_shape)
+    _output_shape = np.asarray(input_shape)
+
+    # padding in last dimension
+    _input_shape[-1] = last_in
+    _output_shape[-1] = last_out
+
+    for s in (_input_shape, _output_shape):
+        # local portion along first dimension
+        s[0] = local_n0
+        # multiply size with number of transforms
+        s *= howmany
+
+    return tuple(_input_shape), tuple(_output_shape)
+
+def _mpi_local_input_output_shape_r2c(input_shape, local_size_result, howmany):
+    if len(input_shape) > 1:
+        # padding in last dimension
+        last_out = input_shape[-1] // 2 + 1
+        last_in = 2 * last_out
+        return _mpi_local_input_output_shape_nD(input_shape, local_size_result[1], howmany,
+                                                last_in, last_out)
+    else:
+        fftw_mpi_unsupported('r2c transforms in 1D')
+
+def _mpi_local_input_output_shape_c2r(input_shape, local_size_result, howmany):
+    if len(input_shape) > 1:
+        # padding in last dimension
+        last_in = input_shape[-1] // 2 + 1
+        last_out = 2 * last_in
+        # assume padded input, so output just same storage but real instead of complex
+        return _mpi_local_input_output_shape_nD(input_shape, local_size_result[1], howmany,
+                                                last_in, last_out)
+    else:
+         fftw_mpi_unsupported('c2r transforms in 1D')
+
+def _mpi_local_input_output_shape_c2c(input_shape, local_size_result, howmany):
+    if len(input_shape) > 1:
+        return _mpi_local_input_output_shape_nD(input_shape, local_size_result[1], howmany,
+                                                input_shape[-1], input_shape[-1])
+    else:
+        return (howmany * local_size_result[1],), (howmany * local_size_result[3],)
+
+def _mpi_output_shape_r2c(input_shape):
+    '''Conceptual output shape for global array.'''
+    output_shape = np.asarray(input_shape)
+    output_shape[-1] = input_shape[-1] // 2 + 1
+    return tuple(output_shape)
+
+def _mpi_output_shape_c2c(input_shape):
+    '''Conceptual output shape for global array. Simply the input for c2r and c2c.
+
+    '''
+    return input_shape
 
 # Function lookup tables
 # ======================
@@ -1848,7 +1949,6 @@ cdef fftw_mpi_generic_plan mpi_planners[12]
 
 # TODO When to call the builder?
 cdef fftw_mpi_generic_plan * _build_mpi_planner_list():
-
     mpi_planners[0]  = <fftw_mpi_generic_plan> &_fftw_mpi_plan_many_dft
     mpi_planners[1]  = <fftw_mpi_generic_plan> &_fftwf_mpi_plan_many_dft
     mpi_planners[2]  = <fftw_mpi_generic_plan> &_fftwl_mpi_plan_many_dft
@@ -1898,7 +1998,50 @@ mpi_flag_dict = {'FFTW_MPI_DEFAULT_BLOCK': FFTW_MPI_DEFAULT_BLOCK,
 
 _mpi_flag_dict = mpi_flag_dict.copy()
 
-cdef class SomeMemory:
+# look up shapes of local IO arrays
+cdef object mpi_local_shapes
+mpi_local_shapes = [_mpi_local_input_output_shape_r2c,
+                    _mpi_local_input_output_shape_c2r,
+                    _mpi_local_input_output_shape_c2c]
+
+# look up conceptual global output shape
+cdef object mpi_output_shape
+mpi_output_shape = [_mpi_output_shape_r2c,
+                    # yes, c2r shape just input shape
+                    _mpi_output_shape_c2c,
+                    _mpi_output_shape_c2c]
+
+cdef object mpi_scheme_functions
+mpi_scheme_functions = {
+    ('c2c', '64'): {'planner': 0, 'executor':0, 'generic_precision':0,
+                    'validator': 2, 'fft_shape_lookup': 2,
+                    'output_shape': 2},
+    ('c2c', '32'): {'planner':1, 'executor':1, 'generic_precision':1,
+                    'validator': 2, 'fft_shape_lookup': 2,
+                    'output_shape': 2},
+    ('c2c', 'ld'): {'planner':2, 'executor':2, 'generic_precision':2,
+                    'validator': 2, 'fft_shape_lookup': 2,
+                    'output_shape': 2},
+    ('r2c', '64'): {'planner':3, 'executor':3, 'generic_precision':0,
+                    'validator': 0, 'fft_shape_lookup': 0,
+                    'output_shape': 0},
+    ('r2c', '32'): {'planner':4, 'executor':4, 'generic_precision':1,
+                    'validator': 0, 'fft_shape_lookup':  0,
+                    'output_shape': 0},
+    ('r2c', 'ld'): {'planner':5, 'executor':5, 'generic_precision':2,
+                    'validator': 0, 'fft_shape_lookup':  0,
+                    'output_shape': 0},
+    ('c2r', '64'): {'planner':6, 'executor':6, 'generic_precision':0,
+                    'validator': 1, 'fft_shape_lookup': 1,
+                    'output_shape': 1},
+    ('c2r', '32'): {'planner':7, 'executor':7, 'generic_precision':1,
+                    'validator': 1, 'fft_shape_lookup': 1,
+                    'output_shape': 1},
+    ('c2r', 'ld'): {'planner':8, 'executor':8, 'generic_precision':2,
+                    'validator': 1, 'fft_shape_lookup': 1,
+                    'output_shape': 1}}
+
+cdef class IntegerArray:
     '''Wrapper around a small chunk of memory.'''
     cdef ptrdiff_t* data
 
@@ -1995,6 +2138,13 @@ cdef int validate_direction(direction) except 0:
     except KeyError:
         raise ValueError('Invalid direction: %s' % direction)
 
+cdef int validate_direction_scheme(direction, scheme) except 0:
+    if not direction in scheme_directions[scheme]:
+        raise ValueError("Invalid direction: '%s'. " % direction +
+                         'The direction is not valid for the %s scheme. ' % scheme[0] +
+                         'Try setting it explicitly if it is not already.')
+    return directions[direction]
+
 cdef object dtype_offset
 dtype_offset = {np.dtype('complex128'):0,
                np.dtype('complex64'):1,
@@ -2004,7 +2154,7 @@ dtype_offset = {np.dtype('complex128'):0,
                np.dtype('longdouble'):2,
               }
 
-cdef unsigned int validate_dtype(dtype) except -1:
+cdef int validate_dtype(dtype) except -1:
     '''Extract offset corresponding to a numpy.dtype object:
     0: double precision,
     1: single precision,
@@ -2016,13 +2166,189 @@ cdef unsigned int validate_dtype(dtype) except -1:
     except KeyError:
         raise TypeError('Invalid dtype: %s' % dtype)
 
-def local_size(input_array, ptrdiff_t howmany=1,
+def create_mpi_plan(input_shape, local_input_array=None, input_dtype=None,
+                    local_output_array=None, output_dtype=None,
+                    ptrdiff_t howmany=1,
+                    block0='DEFAULT_BLOCK', block1='DEFAULT_BLOCK',
+                    flags=tuple(), direction=None,
+                    Comm comm=None):
+    '''Create a plan to use FFTW with MPI.
+
+    Specify the global shape of the input array as ``input_shape``. This is the
+    shape of entire array that may span multiple processors. Then specify either
+    the ``input_dtype`` or an input array ``local_input_array``. If the latter
+    is given, the dtype can extracted. The conversion scheme is inferred from
+    the data type of either ``local_output_array`` or ``output_dtype``.
+
+    If the ``local_*put_array`` arguments are omitted [recommended], arrays of
+    the proper size to this MPI rank are allocated with SIMD alignment when
+    possible. Note that these arrays may need to be slightly larger than what
+    one might expect due to padding or extra memory needed in intermediate FFTW
+    steps. This depends on the transform, dimensions, fftw implementation
+    etc. Resist to guess! The arrays are accessible from the returned plan as
+    attributes ``plan.*put_array``. Note that the physical size of a memory
+    chunk may be slightly larger than what say ``plan.output_array.shape``
+    indicates. For more details, see the FFTW manual on Distributed-memory FFTW
+    with MPI.
+
+    Construct an in-place transform with ``local_output_array='INPUT'``.
+
+    All other arguments are used to allocate byte-aligned input/output arrays
+    and the appropriate FFT plan, as described in :py:func:`local_size` and
+    :py:class:`FFTW_MPI`.
+
+    The ``direction`` argument is ignored for r2c and c2r transforms, and should
+    be one of 'FFTW_FORWARD', or 'FFTW_BACKWARD' for c2c.
+
+    Return a :class:`FFTW_MPI` object ``plan``. Execute the plan as ``plan(*args,
+    *kwargs)``.
+
+    '''
+    # common arguments in function calls are checked there
+    kwargs = dict(howmany=howmany,
+                  block0=block0, block1=block1, flags=flags,
+                  comm=comm)
+
+    ###
+    # determine input and output dtype
+    ###
+    err = ValueError("Invalid input specification: use either "
+                     "'input_array' or 'input_dtype'")
+    if local_input_array is not None:
+        if input_dtype is not None:
+            raise err
+        input_dtype = local_input_array.dtype
+
+    if (input_shape is None) or (input_dtype is None):
+        raise err
+
+    err = ValueError("Invalid output specification: use either "
+                             "'local_output_array' or 'output_dtype'")
+    if local_output_array is not None:
+        if local_output_array == 'INPUT':
+            output_dtype = input_dtype
+        elif output_dtype is not None:
+            raise err
+        else:
+            output_dtype = local_output_array.dtype
+
+    if output_dtype is None:
+        raise err
+
+    # create dtype objects
+    input_dtype = np.dtype(input_dtype)
+    output_dtype = np.dtype(output_dtype)
+
+    try:
+        scheme = fftw_schemes[(input_dtype, output_dtype)]
+    except KeyError:
+        raise TypeError('Invalid scheme: '
+                         'The output array and input array dtypes '
+                         'do not correspond to a valid fftw scheme.')
+
+    # ignore argument ``direction`` for r2c, c2r and infer it from dtypes
+    if scheme[0] == 'c2c':
+        validate_direction_scheme(direction, scheme)
+    else:
+        # only one choice
+        direction = scheme_directions[scheme][0]
+    kwargs['direction'] = direction
+
+    # leave most of validation up to local_size
+    res = local_size(_mpi_local_size_input_shape(input_shape, scheme[0]),
+                     howmany, block0, block1, flags, direction, comm)
+
+    # the number of complex values to allocate
+    n_elements_in = res[0]
+
+    # the number of complex output values + possibly extra bytes for the transposition
+    n_elements_out = n_elements_in
+
+    functions = mpi_scheme_functions[scheme]
+
+    # need padding for r2c; cf. FFTW manual 6.5 'Multi-dimensional MPI DFTs of Real Data'
+    local_input_shape, local_output_shape = mpi_local_shapes[functions['fft_shape_lookup']](input_shape, res, howmany)
+    # print input_shape, local_input_shape, local_output_shape
+
+    # for r2c, need twice as many real values in input
+    # and pad last dimension
+    if scheme[0] == 'r2c':
+        n_elements_in *= 2
+    elif scheme[0] == 'c2r':
+        n_elements_out *= 2
+
+    ###
+    # Check or allocate input array
+    ###
+    # TODO replace np.prod with 64 bit version, see bug comment above for windows
+    if local_input_array is None:
+        # due to extra bytes for intermediate step, the conceptual size may
+        # differ from the actual memory accessed. The extra bytes come after the last
+        # input element
+        input_chunk = n_byte_align_empty(n_elements_in, simd_alignment, dtype=input_dtype)
+        local_input_array = np.frombuffer(input_chunk.data, dtype=input_dtype,
+                                          count=np.prod(local_input_shape), offset=0).reshape(local_input_shape)
+
+    if local_output_array is 'INPUT':
+        local_output_array = local_input_array
+    elif local_output_array is None:
+        # consider this is a 1D chunk of memory
+        output_chunk = n_byte_align_empty(n_elements_out, simd_alignment, dtype=output_dtype)
+
+        local_output_array = np.frombuffer(output_chunk.data, dtype=output_dtype,
+                                     count=np.prod(local_output_shape)).reshape(local_output_shape)
+
+    # check both input and output
+    for name in ('input', 'output'):
+        _mpi_validate_array(locals()['local_' + name + '_array'],
+                            locals()['local_' + name + '_shape'],
+                            name + ' array')
+
+    for n_expect, (name, n_found) in zip((n_elements_in, n_elements_out),
+                                         (('input', local_input_array.size), ('output', local_output_array.size))):
+        if n_expect < n_found:
+            raise ValueError('Expected at least %d elements in %s array, found %d elements.' % (n_elements_in, name, n_found))
+
+    # print 'Leaving create_mpi_plan: ', n_elements_in, n_elements_out, \
+    #     local_input_array.shape, local_output_array.shape
+
+    fftw_object = FFTW_MPI(input_shape, local_input_array, local_output_array,
+                           **kwargs)
+    return fftw_object
+
+def local_size(input_shape, ptrdiff_t howmany=1,
                block0='DEFAULT_BLOCK', block1='DEFAULT_BLOCK',
-               flags=tuple(), direction='FFTW_FORWARD', bint transposed=False,
+               flags=tuple(), direction='FFTW_FORWARD',
                Comm comm=None):
 
-    '''Determine number of elements (float, double...) needed for the
-    output array and possibly extra elements for transposition.
+    '''Determine number of elements (float, double...) needed for the output array
+    and possibly extra elements for transposition. This is a generic wrapper
+    around all ``fftw_mpi_local_size_*`` functions described in detail in
+    sec. 6.12.4 of the FFTW manual.
+
+    :param input_shape:
+
+        tuple; The full shape of the input data as it exists scattered over
+        multiple MPI ranks.
+
+    :param howmany:
+
+        To perform multiple transform of the same dimensions at once, interleave
+        the elements one after another and pass ``how_many`` to indicate the
+        stride. Example: Transform ``x`` and ``y``, then store ``x[0], y[0],
+        x[1], y[1]`` contiguosly in memory and pass ``how_many=2``.
+
+    :param block0:
+
+        The block size in the first dimension is the number of elements
+        that this MPI rank operates on during the transform. Applies only to
+        multidimensional transforms.
+
+    :param block1:
+
+        The block size in the second dimension. Useful in conjunction with the
+        flags 'FFTW_MPI_SCRAMBLED_*' and 'FFTW_MPI_TRANSPOSED_*' passed to the
+        plan. Applies only to multidimensional transforms.
 
     :param flags:
 
@@ -2039,6 +2365,19 @@ def local_size(input_array, ptrdiff_t howmany=1,
 
         mpi4py.libmpi.MPI_Comm; default to the world communicator.
 
+    Return a tuple; In all cases, the first three values are
+    1. the total number of elements to allocate for the output
+    2. the number of elements along the first input dimension that this MPI rank operates on
+    3. the starting index of the local MPI rank in the first input dimension
+
+    With the 'FFTW_MPI_TRANSPOSED_OUT' flag, return additionally the number of
+    elements and the starting index local to this MPI rank of the first
+    dimension in the transposed output, which would be the second without
+    'FFTW_MPI_TRANSPOSED_OUT'.
+
+    In one dimension, return additionally the output size and starting index
+    local to this MPI rank.
+
     '''
     cdef:
         unsigned int _flags
@@ -2046,29 +2385,26 @@ def local_size(input_array, ptrdiff_t howmany=1,
         int _rank
         ptrdiff_t _local_n0, _local_0_start, _local_n1, _local_1_start
         ptrdiff_t _block0, _block1, _howmany, i
-        SomeMemory _n
+        np.ndarray[ptrdiff_t, ndim=1] _n
         libmpi.MPI_Comm _comm
 
     ###
     # argument validation and initialisation
-    # TODO How to ensure that same flags passed to creating the plan? Merge into one object?
     ###
 
-    if not isinstance(input_array, np.ndarray):
-        raise ValueError('Invalid input array: '
-                         'The input array needs to be an instance '
-                         'of numpy.ndarray')
-
     # input data dimension
-    validate_dtype(input_array.dtype)
-    if input_array.ndim <= 0:
+    try:
+        _rank = len(input_shape)
+    except TypeError:
         raise ValueError('Invalid dimension: '
-                         'The input array needs to be at least 1D')
-    _rank = input_array.ndim
+                         'The input shape needs to be an iterable')
+    if _rank <= 0:
+        raise ValueError('Invalid dimension: '
+                         'The input shape needs to be at least 1D')
 
     if howmany <= 0:
-        raise ValueError('Invalid howmany: '
-                         'Need at least one value')
+        raise ValueError('Invalid howmany: %d. Needs to be >= 1' % howmany)
+
     _howmany = howmany
 
     _block0 = validate_block(block0)
@@ -2082,26 +2418,28 @@ def local_size(input_array, ptrdiff_t howmany=1,
     _direction = validate_direction(direction)
     _comm = extract_communicator(comm)
 
-    # copy over the shape
-    _n = SomeMemory(_rank)
-    for i in range(_rank):
-        _n.data[i] = input_array.shape[i]
+    # copy over the shape, rely on np.intp == ptrdiff_t
+    _n = np.empty(_rank, dtype=np.intp)
+    _n[:] = input_shape
 
     # compute index of data-distribution function in table
     cdef unsigned int type_offset = 0
-    if transposed:
-        type_offset = 1
-    elif _rank == 1:
+    if _rank == 1:
         type_offset = 2
+    # only useful for d > 1
+    elif 'FFTW_MPI_TRANSPOSED_OUT' in flags:
+        type_offset = 1
 
     f = distributors[type_offset]
 
-    return f(_rank, _n.data, _howmany,
+    return f(_rank, <ptrdiff_t *>np.PyArray_DATA(_n), _howmany,
              _block0, _block1, _comm,
              &_local_n0, &_local_0_start,
              &_local_n1, &_local_1_start,
              _direction, _flags)
 
+# TODO store scrambled or transpose flags so user can query afterwards
+# TODO check alignment, contiguous
 cdef class FFTW_MPI:
     '''
     FFTW is a class for computing the complex N-Dimensional DFT or
@@ -2144,6 +2482,7 @@ cdef class FFTW_MPI:
         # within the wrapper functions
         void *_plan
 
+        # despite the appearance, these are C pointers to ndarrays
         np.ndarray _input_array
         np.ndarray _output_array
 
@@ -2156,10 +2495,6 @@ cdef class FFTW_MPI:
         int _output_array_alignment
         bint _use_threads
 
-        # object _input_item_strides
-        # object _input_strides
-        # object _output_item_strides
-        # object _output_strides
         object _input_shape
         object _output_shape
         object _input_dtype
@@ -2174,12 +2509,16 @@ cdef class FFTW_MPI:
         # The howmany parameter specifies that the
         # transform is of contiguous howmany-tuples rather than
         # individual complex numbers
-        ptrdiff_t _howmany
-        # FFTW: n
-        SomeMemory _dims
+        ptrdiff_t _howmany,
 
-        int64_t *_axes
-        int64_t *_not_axes
+        # variables assigned in local_size
+        ptrdiff_t _local_n_elements, _local_n0, _local_0_start, _local_n1, _local_1_start
+
+        # desired block sizes for this rank
+        ptrdiff_t _block0, _block1
+
+        # FFTW: n
+        IntegerArray _dims
 
         int64_t _N
 
@@ -2238,51 +2577,42 @@ cdef class FFTW_MPI:
 
     flags = property(_get_flags_used)
 
+    # TODO For convenience, I could present a view on the array that has the
+    #      right conceptual dimensions. It won't be C contiguous, so I can't
+    #      accept as input to the plan. Same for output.
     def _get_input_array(self):
-        '''
-        Return the input array that is associated with the FFTW
-        instance.
+        '''Return the local input array that is associated with the FFTW instance on
+        this MPI rank.
+
         '''
         return self._input_array
 
     input_array = property(_get_input_array)
 
     def _get_output_array(self):
-        '''
-        Return the output array that is associated with the FFTW
-        instance.
+        '''Return the local output array that is associated with the FFTW instance on
+        this MPI rank.
+
         '''
         return self._output_array
 
     output_array = property(_get_output_array)
 
-    def _get_input_strides(self):
-        '''
-        Return the strides of the input array for which the FFT is planned.
-        '''
-        return self._input_strides
-
-    input_strides = property(_get_input_strides)
-
-    def _get_output_strides(self):
-        '''
-        Return the strides of the output array for which the FFT is planned.
-        '''
-        return self._output_strides
-
-    output_strides = property(_get_output_strides)
-
     def _get_input_shape(self):
-        '''
-        Return the shape of the input array for which the FFT is planned.
+        '''Return the global shape of the input array that spans multiple MPI ranks for
+        which the FFT is planned. Note that this usually differs from the shape
+        of ``input_array`` local to this MPI rank.
+
         '''
         return self._input_shape
 
     input_shape = property(_get_input_shape)
 
     def _get_output_shape(self):
-        '''
-        Return the shape of the output array for which the FFT is planned.
+        '''Return the global shape of the output array that spans multiple MPI ranks for
+        which the FFT is planned. Note that this usually differs from the shape
+        of ``output_array`` local to this MPI rank.
+
         '''
         return self._output_shape
 
@@ -2313,35 +2643,67 @@ cdef class FFTW_MPI:
 
     direction = property(_get_direction)
 
-    def _get_axes(self):
+    def _get_local_n_elements(self):
+        '''Return the total number of elements, including padding and possibly extra
+        bytes for intermediate steps, that need to be allocated for input/output
+        on this MPI rank.
+
         '''
-        Return the axes for the planned FFT in canonical form. That is, as
-        a tuple of positive integers. The order in which they were passed
-        is maintained.
+        return self._local_n_elements
+
+    local_n_elements = property(_get_local_n_elements)
+
+    def _get_local_n0(self):
+        '''Return the number of elements in the first dimension this MPI rank operates
+        on.
+
         '''
-        axes = []
-        for i in range(self._rank):
-            axes.append(self._axes[i])
+        return self._local_n0
 
-        return tuple(axes)
+    local_n0 = property(_get_local_n0)
 
-    axes = property(_get_axes)
+    def _get_local_0_start(self):
+        '''Return the offset in the first dimension this MPI rank operates on.
 
-    # TODO same args for __init__
-    def __cinit__(self, input_array, output_array, axes=(-1,),
-            direction='FFTW_FORWARD', flags=('FFTW_MEASURE',),
-            planning_timelimit=None, comm=None, n_transforms=1,
-            *args, **kwargs):
+        '''
+        return self._local_0_start
+
+    local_0_start = property(_get_local_0_start)
+
+    def _get_local_n1(self):
+        '''Return the number of elements in the second dimension this MPI rank operates
+        on.
+
+        '''
+        return self._local_n1
+
+    local_n1 = property(_get_local_n1)
+
+    def _get_local_1_start(self):
+        '''Return the offset in the first dimension this MPI rank operates on.
+
+        '''
+        return self._local_1_start
+
+    local_1_start = property(_get_local_1_start)
+
+    # TODO same args for __init__, add signature to pyfft.rst once it is stable
+    def __cinit__(self, input_shape, local_input_array, local_output_array,
+                  block0='DEFAULT_BLOCK', block1='DEFAULT_BLOCK',
+                  direction='FFTW_FORWARD', flags=('FFTW_MEASURE',),
+                  planning_timelimit=None, n_transforms=1, comm=None,
+                  *args, **kwargs):
 
         # TODO Check or warn about prime n0
+        # TODO document blocks
 
         # Initialise the pointers that need to be freed
         self._plan = NULL
 
-        self._axes = NULL
-        self._not_axes = NULL
-
         flags = list(flags)
+
+        _block0 = validate_block(block0)
+        _block1 = validate_block(block1)
 
         cdef double _planning_timelimit
         if planning_timelimit is None:
@@ -2353,29 +2715,29 @@ cdef class FFTW_MPI:
                 raise TypeError('Invalid planning timelimit: '
                         'The planning timelimit needs to be a float.')
 
-        if not isinstance(input_array, np.ndarray):
-            raise ValueError('Invalid input array: '
+        if not isinstance(local_input_array, np.ndarray):
+            raise TypeError('Invalid input array: '
                     'The input array needs to be an instance '
                     'of numpy.ndarray')
 
-        if not isinstance(output_array, np.ndarray):
-            raise ValueError('Invalid output array: '
+        if not isinstance(local_output_array, np.ndarray):
+            raise TypeError('Invalid output array: '
                     'The output array needs to be an instance '
                     'of numpy.ndarray')
 
         try:
-            input_dtype = input_array.dtype
-            output_dtype = output_array.dtype
+            input_dtype = local_input_array.dtype
+            output_dtype = local_output_array.dtype
             scheme = fftw_schemes[(input_dtype, output_dtype)]
         except KeyError:
-            raise ValueError('Invalid scheme: '
+            raise TypeError('Invalid scheme: '
                     'The output array and input array dtypes '
                     'do not correspond to a valid fftw scheme.')
 
         self._input_dtype = input_dtype
         self._output_dtype = output_dtype
 
-        functions = scheme_functions[scheme]
+        functions = mpi_scheme_functions[scheme]
 
         self._fftw_planner = mpi_planners[functions['planner']]
         self._fftw_execute = mpi_executors[functions['executor']]
@@ -2388,11 +2750,11 @@ cdef class FFTW_MPI:
                 set_timelimit_funcs[functions['generic_precision']])
 
         # We're interested in the natural alignment on the real type, not
-        # necessarily on the complex type At least one bug was found where
+        # necessarily on the complex type. At least one bug was found where
         # numpy reported an alignment on a complex dtype that was different
         # to that on the real type.
-        cdef int natural_input_alignment = input_array.real.dtype.alignment
-        cdef int natural_output_alignment = output_array.real.dtype.alignment
+        cdef int natural_input_alignment = local_input_array.real.dtype.alignment
+        cdef int natural_output_alignment = local_output_array.real.dtype.alignment
 
         # If either of the arrays is not aligned on a 16-byte boundary,
         # we set the FFTW_UNALIGNED flag. This disables SIMD.
@@ -2408,9 +2770,9 @@ cdef class FFTW_MPI:
             self._output_array_alignment = -1
 
             for each_alignment in _valid_simd_alignments:
-                if (<intptr_t>np.PyArray_DATA(input_array) %
+                if (<intptr_t>np.PyArray_DATA(local_input_array) %
                         each_alignment == 0 and
-                        <intptr_t>np.PyArray_DATA(output_array) %
+                        <intptr_t>np.PyArray_DATA(local_output_array) %
                         each_alignment == 0):
 
                     self._simd_allowed = True
@@ -2431,108 +2793,66 @@ cdef class FFTW_MPI:
                         natural_output_alignment)
                 flags.append('FFTW_UNALIGNED')
 
-        if (not (<intptr_t>np.PyArray_DATA(input_array)
+        if (not (<intptr_t>np.PyArray_DATA(local_input_array)
             % self._input_array_alignment == 0)):
             raise ValueError('Invalid input alignment: '
                     'The input array is expected to lie on a %d '
                     'byte boundary.' % self._input_array_alignment)
 
-        if (not (<intptr_t>np.PyArray_DATA(output_array)
+        if (not (<intptr_t>np.PyArray_DATA(local_output_array)
             % self._output_array_alignment == 0)):
             raise ValueError('Invalid output alignment: '
                     'The output array is expected to lie on a %d '
                     'byte boundary.' % self._output_array_alignment)
 
-        if not direction in scheme_directions[scheme]:
-            raise ValueError('Invalid direction: '
-                    'The direction is not valid for the scheme. '
-                    'Try setting it explicitly if it is not already.')
+        self._direction = validate_direction_scheme(direction, scheme)
 
-        self._direction = directions[direction]
-        self._input_shape = input_array.shape
-        self._output_shape = output_array.shape
+        ###
+        # validate arrays
+        ###
 
-        self._input_array = input_array
-        self._output_array = output_array
+        # need local_size to tell us how many elements in first dimension are
+        # processed on this MPI rank to determine the right shape, and to let
+        # the user know at what offset in the global this rank is in the first
+        # dimension
+        local_size_res = local_size(_mpi_local_size_input_shape(input_shape, scheme[0]),
+                                    n_transforms, block0, block1, flags, direction, comm)
+        local_input_shape, local_output_shape = mpi_local_shapes[functions['fft_shape_lookup']]\
+                                                (input_shape, local_size_res, n_transforms)
 
-        self._axes = <int64_t *>malloc(len(axes)*sizeof(int64_t))
-        for n in range(len(axes)):
-            self._axes[n] = axes[n]
+        # Now we can validate the array shapes
+        for name in ('input', 'output'):
+            _mpi_validate_array(locals()['local_' + name + '_array'],
+                                locals()['local_' + name + '_shape'],
+                                name)
 
-        # Set the negative entries to their actual index (use the size
-        # of the shape array for this)
-        cdef int64_t array_dimension = len(self._input_shape)
-
-        for n in range(len(axes)):
-            if self._axes[n] < 0:
-                self._axes[n] = self._axes[n] + array_dimension
-
-            if self._axes[n] >= array_dimension or self._axes[n] < 0:
-                raise IndexError('Invalid axes: '
-                    'The axes list cannot contain invalid axes.')
-
-        cdef int64_t unique_axes_length
-        cdef int64_t *unique_axes
-        cdef int64_t *not_axes
-
-        make_axes_unique(self._axes, len(axes), &unique_axes,
-                &not_axes, array_dimension, &unique_axes_length)
-
-        # and assign axes and not_axes to the filled arrays
-        free(self._axes)
-        self._axes = unique_axes
-        self._not_axes = not_axes
-        self._dims = SomeMemory(unique_axes_length)
-
-        total_N = 1
-        this_N = 0
-        for n in range(unique_axes_length):
-            if self._input_shape[self._axes[n]] == 0:
-                raise ValueError('Zero length array: '
-                    'The input array should have no zero length'
-                    'axes over which the FFT is to be taken')
-
-            if self._direction == FFTW_FORWARD:
-                this_N = self._input_shape[self._axes[n]]
-            else:
-                this_N = self._output_shape[self._axes[n]]
-            total_N *= this_N
-
-            # copy over length
-            self._dims.data[n] = this_N
-
-        self._N = total_N
-        self._normalisation_scaling = 1/float(self.N)
-
-        # TODO can we still know about proper shape with MPI?
-#         # Now we can validate the array shapes
-#         cdef validator _validator
-#
-#         if functions['validator'] == -1:
-#             if not (output_array.shape == input_array.shape):
-#                 raise ValueError('Invalid shapes: '
-#                         'The output array should be the same shape as the '
-#                         'input array for the given array dtypes.')
-#         else:
-#             _validator = validators[functions['validator']]
-#             if not _validator(input_array, output_array,
-#                     self._axes, self._not_axes, unique_axes_length):
-#                 raise ValueError('Invalid shapes: '
-#                         'The input array and output array are invalid '
-#                         'complementary shapes for their dtypes.')
-        self._rank = unique_axes_length
-#        self._howmany_rank = self._input_array.ndim - unique_axes_length
-
-        # TODO Check that total size evenly divisible by howmany
+        self._rank = local_input_array.ndim
         self._howmany = n_transforms
-        for n in range(len(input_array)):
-            if input_array.shape[n] % self._howmany != 0:
-                raise ValueError('Each input dimension must a multiple of n_transforms. '
-                                 'Dimensions are %s, n_transforms is %d' %
-                                 (input_array.shape, self._howmany))
-            # don't check output array, as it may be large due to
-            # extra space for the transpose
 
+        self._input_shape = input_shape
+        self._output_shape = mpi_output_shape[functions['output_shape']](input_shape)
+
+        self._input_array = local_input_array
+        self._output_array = local_output_array
+
+        # remember local size for user attribute access
+        self._local_n_elements, self._local_n0, self._local_0_start = local_size_res[:3]
+        if len(local_size_res) > 3:
+            self._local_n1, self._local_1_start = local_size_res[3:5]
+
+        # copy shape into right format for fftw
+        self._dims = IntegerArray(self._rank)
+        for n in range(self._rank):
+            self._dims.data[n] = input_shape[n]
+
+        ###
+        # total number of elements for FFT normalization
+        ###
+        self._N = 1
+        for n in input_shape:
+            self._N *= n
+
+        self._normalisation_scaling = 1 / float(self.N)
 
         # valid flags extended by MPI flags
         self._flags = 0
@@ -2548,24 +2868,20 @@ cdef class FFTW_MPI:
                raise ValueError('Invalid flag: ' + '\'' +
                                 each_flag + '\' is not a valid planner flag.')
 
-        if ('FFTW_MPI_SCRAMBLED_IN' in flags or
-           'FFTW_MPI_SCRAMBLED_OUT' in flags) and self._rank == 1:
-            raise ValueError('Invalid flag: FFTW_MPI_SCRAMBLED_* applies only in 1d')
+        if self._rank == 1:
+            if 'FFTW_MPI_TRANSPOSED_IN'  in flags or \
+               'FFTW_MPI_TRANSPOSED_OUT' in flags:
+                raise ValueError('Invalid flag: FFTW_MPI_TRANSPOSED_* does not  apply in 1d')
+        else:
+            if 'FFTW_MPI_SCRAMBLED_IN'  in flags or \
+               'FFTW_MPI_SCRAMBLED_OUT' in flags:
+                raise ValueError('Invalid flag: FFTW_MPI_SCRAMBLED_* applies only in 1d')
 
         if ('FFTW_DESTROY_INPUT' not in flags) and (
                 (scheme[0] != 'c2r') or not self._rank > 1):
             # The default in all possible cases is to preserve the input
             # This is not possible for r2c arrays with rank > 1
             self._flags |= FFTW_PRESERVE_INPUT
-
-        # Find the strides for all the axes of both arrays in terms of the
-        # number of items (as opposed to the number of bytes).
-        self._input_strides = input_array.strides
-        self._input_item_strides = tuple([stride/input_array.itemsize
-            for stride in input_array.strides])
-        self._output_strides = output_array.strides
-        self._output_item_strides = tuple([stride/output_array.itemsize
-            for stride in output_array.strides])
 
         # Make sure that the arrays are not too big for fftw
         # This is hard to test, so we cross our fingers and hope for the
@@ -2576,24 +2892,10 @@ cdef class FFTW_MPI:
                 raise ValueError('Dimensions of the input array must be ' +
                         'less than ', str(limits.INT_MAX))
 
-            if self._input_item_strides[i] >= <Py_ssize_t> limits.INT_MAX:
-                raise ValueError('Strides of the input array must be ' +
-                        'less than ', str(limits.INT_MAX))
-
         for i in range(0, len(self._output_shape)):
             if self._output_shape[i] >= <Py_ssize_t> limits.INT_MAX:
                 raise ValueError('Dimensions of the output array must be ' +
                         'less than ', str(limits.INT_MAX))
-
-            if self._output_item_strides[i] >= <Py_ssize_t> limits.INT_MAX:
-                raise ValueError('Strides of the output array must be ' +
-                        'less than ', str(limits.INT_MAX))
-
-        fft_shape_lookup = functions['fft_shape_lookup']
-        if fft_shape_lookup == -1:
-            fft_shape = self._input_shape
-        else:
-            fft_shape = fft_shape_lookup(input_array, output_array)
 
         _comm = extract_communicator(comm)
 
@@ -2606,6 +2908,15 @@ cdef class FFTW_MPI:
         ## Point at which FFTW and MPI calls are made
         ## (and none should be made before this)
 
+        # print('Before constructing the plan')
+        # print local_input_array.shape, local_output_array.shape
+        # print self._rank, '(',
+        # for i in range(self._rank):
+        #     print self._dims.data[i],
+        # print ')'
+        # print self._howmany, self._block0, self._block1, \
+        #       self._direction, self._flags
+
         # Set the timelimit
         set_timelimit_func(_planning_timelimit)
 
@@ -2617,8 +2928,8 @@ cdef class FFTW_MPI:
             <void *>np.PyArray_DATA(self._output_array),
             _comm, self._direction, self._flags)
 
-        if self._plan == NULL:
-            raise RuntimeError('The data has an uncaught error that led '+
+        if self._plan is NULL:
+            raise RuntimeError('The data configuration has an uncaught error that led '+
                     'to the planner returning NULL. This is a bug.')
 
     def __init__(self, input_array, output_array, axes=(-1,),
@@ -2829,12 +3140,6 @@ cdef class FFTW_MPI:
 
     def __dealloc__(self):
 
-        if not self._axes == NULL:
-            free(self._axes)
-
-        if not self._not_axes == NULL:
-            free(self._not_axes)
-
         if not self._plan == NULL:
             self._fftw_destroy(self._plan)
 
@@ -2945,6 +3250,7 @@ cdef class FFTW_MPI:
 
         return self._output_array
 
+    # TODO update to MPI
     cpdef update_arrays(self,
             new_input_array, new_output_array):
         '''update_arrays(new_input_array, new_output_array)
@@ -3037,36 +3343,6 @@ cdef class FFTW_MPI:
         '''
         self._input_array = new_input_array
         self._output_array = new_output_array
-
-    def get_input_array(self):
-        '''get_input_array()
-
-        Return the input array that is associated with the FFTW
-        instance.
-
-        *Deprecated since 0.10. Consider using the* :attr:`FFTW.input_array`
-        *property instead.*
-        '''
-        warnings.warn('get_input_array is deprecated. '
-                'Consider using the input_array property instead.',
-                DeprecationWarning)
-
-        return self._input_array
-
-    def get_output_array(self):
-        '''get_output_array()
-
-        Return the output array that is associated with the FFTW
-        instance.
-
-        *Deprecated since 0.10. Consider using the* :attr:`FFTW.output_array`
-        *property instead.*
-        '''
-        warnings.warn('get_output_array is deprecated. '
-                'Consider using the output_array property instead.',
-                DeprecationWarning)
-
-        return self._output_array
 
     cpdef execute(self):
         '''execute()

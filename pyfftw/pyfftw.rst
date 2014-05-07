@@ -17,7 +17,7 @@ FFTW Class
    .. autoattribute:: pyfftw.FFTW.output_alignment
 
    .. autoattribute:: pyfftw.FFTW.flags
-   
+
    .. autoattribute:: pyfftw.FFTW.input_array
 
    .. autoattribute:: pyfftw.FFTW.output_array
@@ -48,13 +48,21 @@ FFTW Class
 
    .. automethod:: pyfftw.FFTW.get_output_array
 
+FFTW MPI
+--------
+.. autofunction:: pyfftw.create_mpi_plan
+
+.. autofunction:: pyfftw.local_size
+
+.. autoclass:: pyfftw.FFTW_MPI
+
 .. _wisdom_functions:
 
 Wisdom Functions
 ----------------
 
-Functions for dealing with FFTW's ability to export and restore plans, 
-referred to as *wisdom*. For further information, refer to the `FFTW 
+Functions for dealing with FFTW's ability to export and restore plans,
+referred to as *wisdom*. For further information, refer to the `FFTW
 wisdom documentation <http://www.fftw.org/fftw3_doc/Words-of-Wisdom_002dSaving-Plans.html#Words-of-Wisdom_002dSaving-Plans>`_.
 
 .. autofunction:: pyfftw.export_wisdom
@@ -69,11 +77,11 @@ Utility Functions
 -----------------
 
 .. data:: pyfftw.simd_alignment
-   
-   An integer giving the optimum SIMD alignment in bytes, found by 
+
+   An integer giving the optimum SIMD alignment in bytes, found by
    inspecting the CPU (e.g. if AVX is supported, its value will be 32).
 
-   This can be used as ``n`` in the arguments for :func:`n_byte_align` and 
+   This can be used as ``n`` in the arguments for :func:`n_byte_align` and
    :func:`n_byte_align_empty` to create optimally aligned arrays for
    the running platform.
 
@@ -82,4 +90,3 @@ Utility Functions
 .. autofunction:: pyfftw.n_byte_align_empty
 
 .. autofunction:: pyfftw.is_n_byte_aligned
-

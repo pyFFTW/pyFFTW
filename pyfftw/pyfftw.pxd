@@ -699,6 +699,8 @@ ctypedef fftw_plan (*fftw_mpi_generic_plan)(
                     MPI_Comm comm,
                     int sign, unsigned int flags)
 
+ctypedef int (*mpi_validator)(np.ndarray input_array, np.ndarray output_array) except -1
+
 ctypedef void (*fftw_mpi_generic_wisdom)(MPI_Comm comm)
 
 # Direction enum
@@ -722,7 +724,7 @@ cdef enum:
     FFTW_MPI_DEFAULT_BLOCK = 0
 
 cdef enum:
-    FFTW_MPI_SCRAMBLED_IN   =  67108864
-    FFTW_MPI_SCRAMBLED_OUT  = 134217728
-    FFTW_MPI_TRANSPOSED_IN  = 268435456
-    FFTW_MPI_TRANSPOSED_OUT = 536870912
+    FFTW_MPI_SCRAMBLED_IN   =  134217728
+    FFTW_MPI_SCRAMBLED_OUT  =  268435456
+    FFTW_MPI_TRANSPOSED_IN  =  536870912
+    FFTW_MPI_TRANSPOSED_OUT = 1073741824

@@ -104,11 +104,12 @@ class custom_build_ext(build_ext):
             self.libraries = _libraries
 
 ext_modules = [Extension('pyfftw.pyfftw',
-    sources=sources,
-    libraries=libraries,
-    library_dirs=library_dirs,
-    include_dirs=include_dirs,
-    depends=[os.path.join('pyfftw', 'pyfftw.pxd')])]
+                         sources=sources,
+                         libraries=libraries,
+                         library_dirs=library_dirs,
+                         include_dirs=include_dirs,
+                         extra_compile_args=['-Wno-maybe-uninitialized'],
+                         depends=[os.path.join('pyfftw', 'pyfftw.pxd')])]
 
 long_description = '''
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
