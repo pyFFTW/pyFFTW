@@ -1889,11 +1889,11 @@ def _mpi_local_input_output_shape_nD(input_shape, local_n0, howmany, last_in, la
         # local portion along first dimension
         s[0] = local_n0
         # multiply size with number of transforms
-        s *= howmany
+        s[-1] *= howmany
 
     return tuple(_input_shape), tuple(_output_shape)
 
-def _mpi_local_input_output_shape_r2c(input_shape, local_size_result, howmany):
+def _mpi_local_input_output_shape_r2c(input_shape, local_size_result, howmany, conceptual=False):
     if len(input_shape) > 1:
         # padding in last dimension
         last_out = input_shape[-1] // 2 + 1
@@ -2205,7 +2205,7 @@ def create_mpi_plan(input_shape, local_input_array=None, input_dtype=None,
 
     '''
     # common arguments in function calls are checked there
-    kwargs = dict(howmany=howmany,
+    kwargs = dict(n_transforms=howmany,
                   block0=block0, block1=block1, flags=flags,
                   comm=comm)
 
@@ -2285,6 +2285,7 @@ def create_mpi_plan(input_shape, local_input_array=None, input_dtype=None,
         # due to extra bytes for intermediate step, the conceptual size may
         # differ from the actual memory accessed. The extra bytes come after the last
         # input element
+        print 'n_elements_in', n_elements_in, 'howmany', howmany, 'in shape', local_input_shape
         input_chunk = n_byte_align_empty(n_elements_in, simd_alignment, dtype=input_dtype)
         local_input_array = np.frombuffer(input_chunk.data, dtype=input_dtype,
                                           count=np.prod(local_input_shape), offset=0).reshape(local_input_shape)
@@ -2294,6 +2295,7 @@ def create_mpi_plan(input_shape, local_input_array=None, input_dtype=None,
     elif local_output_array is None:
         # consider this is a 1D chunk of memory
         output_chunk = n_byte_align_empty(n_elements_out, simd_alignment, dtype=output_dtype)
+        print 'n_elements_out', n_elements_out, 'in shape', local_output_shape
 
         local_output_array = np.frombuffer(output_chunk.data, dtype=output_dtype,
                                      count=np.prod(local_output_shape)).reshape(local_output_shape)
@@ -2495,8 +2497,10 @@ cdef class FFTW_MPI:
         int _output_array_alignment
         bint _use_threads
 
+        # global shapes defined on all MPI ranks
         object _input_shape
         object _output_shape
+
         object _input_dtype
         object _output_dtype
         object _flags_used
@@ -2520,7 +2524,11 @@ cdef class FFTW_MPI:
         # FFTW: n
         IntegerArray _dims
 
+        # total number of elements
         int64_t _N
+
+        # keep track of where padding starts in last dimension
+        # size_t _padding_in, _padding_out
 
     def _get_N(self):
         '''
@@ -2608,7 +2616,28 @@ cdef class FFTW_MPI:
 
     input_shape = property(_get_input_shape)
 
+    def conceptual_input_array(self, transform=0):
+        '''Return a view of the input buffer with the right conceptual dimensions; i.e.,
+        the padding elements are hidden. If multiple transforms are done at
+        once, select the array using ``transform``. Default: the first array.
+
+        '''
+        if transform + 1 > self._howmany:
+            raise IndexError('Invalid index %d exceeds number of transforms %d' % (transform, self._howmany))
+        return self._input_array[..., transform:self._howmany * self._input_shape[-1]:self._howmany]
+
+    def conceptual_output_array(self, transform=0):
+        '''Return a view of the output buffer with the right conceptual dimensions; i.e.,
+        the padding elements are hidden. If multiple transforms are done at
+        once, select the array using ``transform``. Default: the first array.
+
+        '''
+        if transform + 1 > self._howmany:
+            raise IndexError('Invalid index %d exceeds number of transforms %d' % (transform, self._howmany))
+        return self._output_array[..., transform:self._howmany * self._output_shape[-1]:self._howmany]
+
     def _get_output_shape(self):
+
         '''Return the global shape of the output array that spans multiple MPI ranks for
         which the FFT is planned. Note that this usually differs from the shape
         of ``output_array`` local to this MPI rank.
@@ -2820,6 +2849,7 @@ cdef class FFTW_MPI:
         local_input_shape, local_output_shape = mpi_local_shapes[functions['fft_shape_lookup']]\
                                                 (input_shape, local_size_res, n_transforms)
 
+        print 'n_transforms', n_transforms
         # Now we can validate the array shapes
         for name in ('input', 'output'):
             _mpi_validate_array(locals()['local_' + name + '_array'],
@@ -2832,6 +2862,8 @@ cdef class FFTW_MPI:
         self._input_shape = input_shape
         self._output_shape = mpi_output_shape[functions['output_shape']](input_shape)
 
+        # now that we know the shape is right, save only a view with the right
+        # conceptual dimensions; i.e., without padded elements
         self._input_array = local_input_array
         self._output_array = local_output_array
 
@@ -2846,7 +2878,7 @@ cdef class FFTW_MPI:
             self._dims.data[n] = input_shape[n]
 
         ###
-        # total number of elements for FFT normalization
+        # total number of elements for FFT normalization (independent of howmany!)
         ###
         self._N = 1
         for n in input_shape:
@@ -3248,6 +3280,7 @@ cdef class FFTW_MPI:
         if self._direction == FFTW_BACKWARD and normalise_idft:
             self._output_array *= self._normalisation_scaling
 
+        # TODO should we still return it? Just a part if howmany > 1
         return self._output_array
 
     # TODO update to MPI

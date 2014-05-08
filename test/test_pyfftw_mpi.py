@@ -318,6 +318,65 @@ class MPITest(unittest.TestCase):
         backward_plan()
         np.testing.assert_allclose(backward_plan.output_array, forward_plan.input_array)
 
+    def test_howmany(self):
+        input_shape = (10, 5, 6)
+        dtype = 'complex128'
+
+        # complex data
+        global_data = np.array([i - 3.j * i for i in range(np.prod(input_shape))]).reshape(*input_shape)
+        global_target = np.fft.fftn(global_data)
+        # if master:
+        #     print global_target
+
+        kwargs = dict(input_dtype=dtype, output_dtype=dtype, howmany=2,
+                      direction='FFTW_FORWARD',
+                      flags=('FFTW_ESTIMATE',))
+        forward_plan = create_mpi_plan(input_shape, **kwargs)
+
+        ###
+        # copy local part
+        ###
+        local_data = forward_plan.conceptual_input_array()
+        # print local_data.shape
+        # print forward_plan.input_array.shape
+        # print forward_plan.input_shape
+
+        local_n0 = forward_plan.local_n0
+        local_0_start = forward_plan.local_0_start
+        local_data[:] = global_data[local_0_start:local_0_start + local_n0]
+
+        # second transform just a constant
+        forward_plan.conceptual_input_array(1)[:] = 1.
+
+        delta_fct = np.zeros_like(forward_plan.conceptual_output_array(1))
+        # only one rank has the delta component;
+        # everything else is zero
+        if forward_plan.local_0_start == 0:
+            delta_fct[0,0,0] = np.prod(input_shape) + 0.j
+
+        ###
+        # transform and check
+        ###
+        forward_plan()
+        local_target = global_target[local_0_start:local_0_start + local_n0]
+
+        local_result = forward_plan.conceptual_output_array(0)
+
+        if master:
+            print local_result[0,1]
+            print local_target[1,0]
+
+        # lots of near-zero numbers => fix atol
+        self.assertEqual(local_result.shape, local_target.shape)
+        np.testing.assert_allclose(local_result, local_target, atol=1e-10)
+
+        # second transform a delta function
+        self.assertEqual(forward_plan.conceptual_output_array(1).shape, delta_fct.shape)
+        np.testing.assert_allclose(forward_plan.conceptual_output_array(1), delta_fct, atol=1e-10)
+
+        ###
+        # assign second
+
 if __name__ == '__main__':
     '''Start as mpirun -n 4 python test_pyfftw_mpi.py'''
     unittest.main()
