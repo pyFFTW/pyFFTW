@@ -24,6 +24,9 @@ import unittest
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 master = (rank == 0)
+msg = dict(err_msg='Error on rank %d' % rank)
+
+np.set_printoptions(precision=3, linewidth=120)
 
 def create_data(data):
     '''Integer sequence 0...4095 in row-major order.'''
@@ -44,7 +47,6 @@ class MPITest(unittest.TestCase):
         self.dim = 3
         self.N = 16
 
-        assert self.N % comm.Get_size() == 0, 'Cannot rely on balancing if workload not divisible by number of processes'
         self.share = self.N // comm.Get_size()
 
     def test_local_size_invalid(self):
@@ -121,23 +123,22 @@ class MPITest(unittest.TestCase):
         # 3d r2c
         plan = create_mpi_plan(input_shape=(self.N, self.N, self.N), input_dtype='float64', output_dtype='complex128')
         n_out = self.N // 2 + 1
-        self.assertEqual(plan.input_array.shape, (self.share, self.N, 2 * n_out))
-        self.assertEqual(plan.output_array.shape, (self.share, self.N, n_out))
+        self.assertEqual(plan.conceptual_input_array().shape, (self.share, self.N, self.N))
+        self.assertEqual(plan.conceptual_output_array().shape, (self.share, self.N, n_out))
 
         # 3d c2r
         plan = create_mpi_plan(input_shape=(self.N, self.N, self.N), input_dtype='complex128',
                                output_dtype='float64', direction='FFTW_BACKWARD')
 
-        self.assertEqual(plan.input_array.shape, (self.share, self.N, n_out))
-        self.assertEqual(plan.output_array.shape, (self.share, self.N, 2 * n_out))
+        self.assertEqual(plan.conceptual_input_array().shape,  (self.share, self.N, n_out))
+        self.assertEqual(plan.conceptual_output_array().shape, (self.share, self.N, self.N))
 
         # 2d c2c example
         plan = create_mpi_plan(input_shape=(self.N, self.N), input_dtype='complex128',
                                output_dtype='complex128', direction='FFTW_FORWARD')
-        self.assertEqual(plan.input_array.shape, (self.share, self.N))
-        self.assertEqual(plan.output_array.shape, (self.share, self.N))
+        self.assertEqual(plan.conceptual_input_array().shape, (self.share, self.N))
+        self.assertEqual(plan.conceptual_output_array().shape, (self.share, self.N))
 
-        # TODO zero length with 8 processes
         # 1d c2c
         plan = create_mpi_plan(input_shape=(self.N,), input_dtype='complex128',
                                output_dtype='complex128', direction='FFTW_BACKWARD')
@@ -145,8 +146,8 @@ class MPITest(unittest.TestCase):
         # length N of the data should be divisible by P squared to be
         # able to divide the problem equally among the processes.
         if self.N % comm.Get_size()**2 == 0:
-            self.assertEqual(plan.input_array.shape, (self.share,))
-            self.assertEqual(plan.output_array.shape, (self.share,))
+            self.assertEqual(plan.conceptual_input_array().shape, (self.share,))
+            self.assertEqual(plan.conceptual_output_array().shape, (self.share,))
 
         # invalid complex type
         with self.assertRaises(TypeError):
@@ -228,7 +229,7 @@ class MPITest(unittest.TestCase):
 
         forward_plan()
         backward_plan()
-        np.testing.assert_equal(forward_plan.output_array, target_b)
+        np.testing.assert_equal(forward_plan.conceptual_output_array(), target_b)
 
         # no unnecessary reallocation of arrays
         self.assert_(forward_plan.output_array is backward_plan.input_array)
@@ -239,7 +240,7 @@ class MPITest(unittest.TestCase):
                                        flags=forward_flags)
         forward_plan.input_array[:] = 1.0
         forward_plan()
-        np.testing.assert_equal(forward_plan.output_array, target_b)
+        np.testing.assert_equal(forward_plan.conceptual_output_array(), target_b)
         # no unnecessary reallocation of arrays
         self.assert_(forward_plan.input_array is forward_plan.output_array)
 
@@ -249,40 +250,46 @@ class MPITest(unittest.TestCase):
         # 2d
         forward_flags = ('FFTW_ESTIMATE',)
         input_shape  = (6, 4)
-        forward_plan = create_mpi_plan(input_shape, input_dtype='float64',
-                                       output_dtype='complex128', flags=forward_flags)
+        fplan = create_mpi_plan(input_shape, input_dtype='float64',
+                                       output_dtype='complex128', flags=forward_flags,
+                                       comm=comm)
 
-        # fixed by local_n0
-        for i in range(forward_plan.local_n0):
-            # ignore the padded elements
-            for j in range(input_shape[1]):
-                forward_plan.input_array[i,j] = 1.0
+        local_n0 = fplan.local_n0
 
-        # compare with numpy, don't need padded array here
-        #        target = np.fft.rfft2(np.ones(input_shape))
-        target = np.zeros_like(forward_plan.output_array)
-        # print 'input', forward_plan.input_array
-        forward_plan()
-        # print 'output', forward_plan.output_array
-        # only one rank has the delta component;
-        # everything else is zero
-        if forward_plan.local_0_start == 0:
-            target[0,0] = np.prod(input_shape) + 0.j
-        # print 'target', target
+        target = np.zeros((6,3), dtype='complex128')
 
-        np.testing.assert_equal(forward_plan.output_array, target)
+        # both commands are equivalent
+        # 0-3 data columns; 4,5 padding
+        if fplan.local_input_shape:
+            input_data = fplan.conceptual_input_array()
+            input_data[:] = 1.0
+            print 'rank', rank, fplan.input_array.shape
+            padded_shape = (local_n0, 6)
+            np.testing.assert_equal(input_data, fplan.input_array[0:np.prod(padded_shape)].reshape(padded_shape)[..., 0:4:1],**msg)
+
+            # only one rank has the delta component;
+            # everything else is zero
+            if fplan.local_0_start == 0:
+                target[0,0] = np.prod(input_shape) + 0.j
+
+
+        fplan()
+
+        if fplan.local_output_shape:
+            np.testing.assert_equal(fplan.conceptual_output_array(), target[fplan.output_slice])
 
         backward_flags = forward_flags
         backward_plan = create_mpi_plan(input_shape,
-                                        local_input_array=forward_plan.output_array,
+                                        local_input_array=fplan.output_array,
                                         output_dtype='float64',
                                         flags=backward_flags)
 
         backward_plan()
-        # print backward_plan.output_array
-        # compare only non-padded part as padded part is arbitrary and irrelevant
-        np.testing.assert_equal(backward_plan.output_array[:, :input_shape[1]],
-                                forward_plan.input_array  [:, :input_shape[1]])
+
+        if backward_plan.local_output_shape:
+            np.testing.assert_equal(backward_plan.conceptual_output_array(), input_data)
+
+        # TODO hangs with 7 processes
 
     @unittest.skipIf(comm.Get_size() > 1, 'only for a single process')
     def test_c2c(self):
@@ -295,12 +302,12 @@ class MPITest(unittest.TestCase):
 
         for m in range(input_shape[0]):
             for n in range(input_shape[1]):
-                forward_plan.input_array[m,n] = float(m)-2.j * n
+                forward_plan.conceptual_input_array()[m,n] = float(m) - 2.j * n
 
         # compare with numpy
-        target = np.fft.fftn(forward_plan.input_array)
+        target = np.fft.fftn(forward_plan.conceptual_input_array())
         forward_plan()
-        np.testing.assert_allclose(forward_plan.output_array, target)
+        np.testing.assert_allclose(forward_plan.conceptual_output_array(), target)
 
         backward_flags = forward_flags
         backward_plan = create_mpi_plan(output_shape, local_input_array=forward_plan.output_array,
@@ -309,14 +316,14 @@ class MPITest(unittest.TestCase):
 
         backward_plan.execute()
         # unnormalized * FFT
-        target = np.prod(input_shape) * forward_plan.input_array
+        target = np.prod(input_shape) * forward_plan.conceptual_input_array()
         # print backward_plan.output_array
         # print target
-        np.testing.assert_allclose(backward_plan.output_array, target)
+        np.testing.assert_allclose(backward_plan.conceptual_output_array(), target)
 
         # automatic normalization
         backward_plan()
-        np.testing.assert_allclose(backward_plan.output_array, forward_plan.input_array)
+        np.testing.assert_allclose(backward_plan.conceptual_output_array(), forward_plan.conceptual_input_array())
 
     def test_howmany(self):
         input_shape = (10, 5, 6)
@@ -368,19 +375,98 @@ class MPITest(unittest.TestCase):
 
         # lots of near-zero numbers => fix atol
         self.assertEqual(local_result.shape, local_target.shape)
-        np.testing.assert_allclose(local_result, local_target, atol=1e-10)
+        np.testing.assert_allclose(local_result, local_target, atol=1e-10, **msg)
 
         # second transform a delta function
         self.assertEqual(forward_plan.conceptual_output_array(1).shape, delta_fct.shape)
-        np.testing.assert_allclose(forward_plan.conceptual_output_array(1), delta_fct, atol=1e-10)
+        np.testing.assert_allclose(forward_plan.conceptual_output_array(1), delta_fct, atol=1e-10, **msg)
 
         ###
         # assign second
+
+    def test_transposed(self):
+        input_shape = (6,4)
+        flags=('FFTW_ESTIMATE', 'FFTW_MPI_TRANSPOSED_OUT')
+        # res = local_size(input_shape, flags=flags)
+        # print res
+        fplan = create_mpi_plan(input_shape, input_dtype='complex128', output_dtype='complex128',
+                               direction='FFTW_FORWARD', flags=flags)
+
+        # 4 not divisible by 3, so last rank with get no output data
+        if (comm.Get_size() == 3 and rank == 2) or \
+           (comm.Get_size() > 4 and rank > 3):
+            with self.assertRaises(AttributeError) as cm:
+                fplan.conceptual_output_array()
+        else:
+            shape = fplan.conceptual_output_array().shape
+            # print 'rank', rank, 'output shape', shape
+
+            # get at least one slab, two only if comm size <= 4
+            out = 4 // comm.Get_size()
+            if comm.Get_size() == 3 or comm.Get_size() > 4:
+                out += 1
+            print 'transposed output shape', shape
+            self.assertEqual(shape[0], out)
+            # transpose, so x dimension *not* partitioned
+            self.assertEqual(shape[1], 6)
+
+        # NOTE: If run with 4 or more processes, there are extra bytes
+        # on some processors as 6 not divisible by 4(?)
+
+        ###
+        # backward transform
+        ###
+        bflags = ('FFTW_ESTIMATE', 'FFTW_MPI_TRANSPOSED_IN')
+        bplan = create_mpi_plan(input_shape, local_input_array=fplan.output_array,
+                                output_dtype='complex128',
+                                direction='FFTW_BACKWARD', flags=bflags)
+        if master:
+            print bplan.conceptual_input_array().shape
+            print bplan.conceptual_output_array().shape
+            print bplan.flags
+
+        ###
+        # enter data and do the transforms
+        ###
+        data = np.empty((input_shape), fplan.input_array.dtype)
+        for m in range(input_shape[0]):
+            for n in range(input_shape[1]):
+                data[m,n] = float(m) - 2.j * n
+
+        # cumbersome and manual attribute handling
+        try:
+            i = fplan.conceptual_input_array()
+        except AttributeError:
+            i = None
+        if i is not None:
+            # i[:] = data[fplan.local_0_start:fplan.local_0_start + fplan.local_n0]
+            i[:] = data[fplan.input_slice]
+
+        # compare with numpy
+        target = np.fft.fftn(data)
+        fplan()
+        bplan()
+
+        # get local part of data,
+        # check there is some at all
+        if fplan.local_output_shape:
+            o = fplan.conceptual_output_array()
+
+            # output is transposed, and from the input we have to get
+            # a selection of the columns, not the rows
+            # np.testing.assert_allclose(o.transpose(), target[..., fplan.local_1_start:fplan.local_1_start + o.shape[0]])
+            np.testing.assert_allclose(o.transpose(), target[..., fplan.output_slice], **msg)
+
+        if bplan.local_output_shape:
+            o = bplan.conceptual_output_array()
+
+            # now the output is back to the usual format, and *not* transposed
+            np.testing.assert_allclose(o, data[bplan.output_slice], **msg)
 
 if __name__ == '__main__':
     '''Start as mpirun -n 4 python test_pyfftw_mpi.py'''
     unittest.main()
 
 # Local Variables:
-# compile-command: "cd ../ && CC=mpicc python setup.py build_ext --inplace && mpirun -n 1 python test/test_pyfftw_mpi.py"
+# compile-command: "cd ../ && CC=mpicc python setup.py build_ext --inplace && mpirun -n 4 python test/test_pyfftw_mpi.py"
 # End:
