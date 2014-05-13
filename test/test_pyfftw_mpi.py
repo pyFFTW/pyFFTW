@@ -263,7 +263,6 @@ class MPITest(unittest.TestCase):
         if fplan.local_input_shape:
             input_data = fplan.conceptual_input_array()
             input_data[:] = 1.0
-            print 'rank', rank, fplan.input_array.shape
             padded_shape = (local_n0, 6)
             np.testing.assert_equal(input_data, fplan.input_array[0:np.prod(padded_shape)].reshape(padded_shape)[..., 0:4:1],**msg)
 
@@ -343,46 +342,42 @@ class MPITest(unittest.TestCase):
         ###
         # copy local part
         ###
-        local_data = forward_plan.conceptual_input_array()
-        # print local_data.shape
-        # print forward_plan.input_array.shape
-        # print forward_plan.input_shape
+        if forward_plan.local_input_shape:
+            local_data = forward_plan.conceptual_input_array()
+            # print local_data.shape
+            # print forward_plan.input_array.shape
+            # print forward_plan.input_shape
 
-        local_n0 = forward_plan.local_n0
-        local_0_start = forward_plan.local_0_start
-        local_data[:] = global_data[local_0_start:local_0_start + local_n0]
+            local_n0 = forward_plan.local_n0
+            local_0_start = forward_plan.local_0_start
+            local_data[:] = global_data[local_0_start:local_0_start + local_n0]
 
-        # second transform just a constant
-        forward_plan.conceptual_input_array(1)[:] = 1.
+            # second transform just a constant
+            forward_plan.conceptual_input_array(1)[:] = 1.
 
-        delta_fct = np.zeros_like(forward_plan.conceptual_output_array(1))
-        # only one rank has the delta component;
-        # everything else is zero
-        if forward_plan.local_0_start == 0:
-            delta_fct[0,0,0] = np.prod(input_shape) + 0.j
+        if forward_plan.local_output_shape:
+            print 'rank', rank, forward_plan.local_output_shape
+            delta_fct = np.zeros_like(forward_plan.conceptual_output_array(1))
+            # only one rank has the delta component;
+            # everything else is zero
+            if forward_plan.local_0_start == 0:
+                delta_fct[0,0,0] = np.prod(input_shape) + 0.j
 
         ###
         # transform and check
         ###
         forward_plan()
-        local_target = global_target[local_0_start:local_0_start + local_n0]
+        if forward_plan.local_output_shape:
+            local_target = global_target[local_0_start:local_0_start + local_n0]
+            local_result = forward_plan.conceptual_output_array(0)
 
-        local_result = forward_plan.conceptual_output_array(0)
+            # lots of near-zero numbers => fix atol
+            self.assertEqual(local_result.shape, local_target.shape)
+            np.testing.assert_allclose(local_result, local_target, atol=1e-10, **msg)
 
-        if master:
-            print local_result[0,1]
-            print local_target[1,0]
-
-        # lots of near-zero numbers => fix atol
-        self.assertEqual(local_result.shape, local_target.shape)
-        np.testing.assert_allclose(local_result, local_target, atol=1e-10, **msg)
-
-        # second transform a delta function
-        self.assertEqual(forward_plan.conceptual_output_array(1).shape, delta_fct.shape)
-        np.testing.assert_allclose(forward_plan.conceptual_output_array(1), delta_fct, atol=1e-10, **msg)
-
-        ###
-        # assign second
+            # second transform a delta function
+            self.assertEqual(forward_plan.conceptual_output_array(1).shape, delta_fct.shape)
+            np.testing.assert_allclose(forward_plan.conceptual_output_array(1), delta_fct, atol=1e-10, **msg)
 
     def test_transposed(self):
         input_shape = (6,4)
@@ -390,7 +385,7 @@ class MPITest(unittest.TestCase):
         # res = local_size(input_shape, flags=flags)
         # print res
         fplan = create_mpi_plan(input_shape, input_dtype='complex128', output_dtype='complex128',
-                               direction='FFTW_FORWARD', flags=flags)
+                                direction='FFTW_FORWARD', flags=flags)
 
         # 4 not divisible by 3, so last rank with get no output data
         if (comm.Get_size() == 3 and rank == 2) or \
@@ -405,7 +400,7 @@ class MPITest(unittest.TestCase):
             out = 4 // comm.Get_size()
             if comm.Get_size() == 3 or comm.Get_size() > 4:
                 out += 1
-            print 'transposed output shape', shape
+
             self.assertEqual(shape[0], out)
             # transpose, so x dimension *not* partitioned
             self.assertEqual(shape[1], 6)
@@ -420,10 +415,6 @@ class MPITest(unittest.TestCase):
         bplan = create_mpi_plan(input_shape, local_input_array=fplan.output_array,
                                 output_dtype='complex128',
                                 direction='FFTW_BACKWARD', flags=bflags)
-        if master:
-            print bplan.conceptual_input_array().shape
-            print bplan.conceptual_output_array().shape
-            print bplan.flags
 
         ###
         # enter data and do the transforms
@@ -462,6 +453,78 @@ class MPITest(unittest.TestCase):
 
             # now the output is back to the usual format, and *not* transposed
             np.testing.assert_allclose(o, data[bplan.output_slice], **msg)
+
+    def test_1d(self):
+        # only c2c implemented
+        N = 50
+        p = create_mpi_plan(N, input_dtype='complex128',
+                        output_dtype='complex128',
+                        direction='FFTW_FORWARD')
+
+        global_data = np.array([float(n) - 2.j * n for n in range(N)])
+        global_target = np.fft.fft(global_data)
+
+        if p.local_input_shape:
+            p.conceptual_input_array()[:] = global_data[p.input_slice]
+
+        p()
+
+        if p.local_output_shape:
+            np.testing.assert_allclose(p.conceptual_output_array(), global_target[p.output_slice], **msg)
+
+        ###
+        # backward transform
+        ###
+        b = create_mpi_plan(N, local_input_array=p.output_array,
+                            output_dtype='complex128',
+                            direction='FFTW_BACKWARD',
+                            flags=('FFTW_ESTIMATE',))
+
+        b()
+
+        # comparing zeros => nonzero atol
+        if b.local_output_shape:
+            np.testing.assert_allclose(b.conceptual_output_array(),
+                                       global_data[b.output_slice],
+                                       atol=1e-13, **msg)
+
+        ###
+        # SCRAMBLED only works with more than one process
+        ###
+        if comm.Get_size() == 1:
+            kwargs = dict(input_dtype='complex128',
+                                output_dtype='complex128',
+                                direction='FFTW_FORWARD')
+
+            for f in ('FFTW_MPI_SCRAMBLED_OUT', 'FFTW_MPI_SCRAMBLED_IN'):
+                with self.assertRaises(NotImplementedError) as cm:
+                    create_mpi_plan(N, flags=('FFTW_ESTIMATE', 'FFTW_MPI_SCRAMBLED_IN'), **kwargs)
+
+        return
+
+        p = create_mpi_plan(N, input_dtype='complex128',
+                            output_dtype='complex128',
+                            direction='FFTW_FORWARD',
+                            flags=('FFTW_ESTIMATE', 'FFTW_MPI_SCRAMBLED_OUT'))
+
+        p.conceptual_input_array()[:] = global_data[p.input_slice]
+
+        p()
+
+        # if master:
+        #     print p.conceptual_output_array()
+
+        b = create_mpi_plan(N, local_input_array=p.output_array,
+                            output_dtype='complex128',
+                            direction='FFTW_BACKWARD',
+                            flags=('FFTW_ESTIMATE', 'FFTW_MPI_SCRAMBLED_IN'))
+        b()
+
+        if b.local_output_shape:
+            np.testing.assert_allclose(b.conceptual_output_array(),
+                                       global_data[b.output_slice],
+                                       atol=1e-13, **msg)
+
 
 if __name__ == '__main__':
     '''Start as mpirun -n 4 python test_pyfftw_mpi.py'''

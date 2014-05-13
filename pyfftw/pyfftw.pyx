@@ -1867,12 +1867,30 @@ def _mpi_local_size_input_shape(input_shape, scheme):
     else:
         return input_shape
 
-def _mpi_local_input_output_shape_nD(input_shape, local_size_result, last_in, last_out, flags):
-    '''Generic function to compute both the input and output shape of the local
-    arrays on this MPI rank.
+def tuple_or_None(myfunc):
+    '''Decorator to a function that returns two iterables.
+
+    It return two values, either a tuple or ``None``. Both of
+    ``myfunc``'s return values are checked for their first element, if
+    it is 0, the iterable is converted to ``None``, else it is turned
+    into a tuple.
 
     '''
-    shapes = [np.array(input_shape), np.array(input_shape)]
+    def new_function(*args, **kwargs):
+        i,o = myfunc(*args, **kwargs)
+        i = None if i[0] == 0 else tuple(i)
+        o = None if o[0] == 0 else tuple(o)
+        return i, o
+
+    return new_function
+
+def _mpi_local_input_output_shape_nD(input_shape, local_size_result, last_in, last_out, flags):
+    '''Generic function to compute both the input and output shape of the local
+    arrays on this MPI rank as arrays. Note that this may give zero-sized arrays
+    if no input/output on this rank.
+
+    '''
+    shapes = (np.array(input_shape), np.array(input_shape))
     for s, last in zip(shapes, (last_in, last_out)):
         # local portion along first dimension
         s[0] = local_size_result[1]
@@ -1885,16 +1903,17 @@ def _mpi_local_input_output_shape_nD(input_shape, local_size_result, last_in, la
             shapes[i][0] = local_size_result[3]
             shapes[i][1] = input_shape[0]
 
-            # no output on this rank. Possible if work small and not divisible
-            # by number of processors
-            if shapes[i][0] == 0:
-                shapes[i] = None
+    # no output on this rank. Possible if work small and not divisible
+    # by number of processors
+    # if shapes[i][0] == 0:
+    #     shapes[i] = None
 
-    return shapes[0], shapes[1]
+    return shapes
 
+@tuple_or_None
 def _mpi_local_input_output_shape_r2c(input_shape, local_size_result, flags):
     if len(input_shape) > 1:
-        # padding in last dimension
+        # Hermitian symmetry in last dimension
         last_in  = input_shape[-1]
         last_out = input_shape[-1] // 2 + 1
         return _mpi_local_input_output_shape_nD(input_shape, local_size_result,
@@ -1902,17 +1921,18 @@ def _mpi_local_input_output_shape_r2c(input_shape, local_size_result, flags):
     else:
         fftw_mpi_1D_unsupported('r2c')
 
+@tuple_or_None
 def _mpi_local_input_output_shape_c2r(input_shape, local_size_result, flags):
     if len(input_shape) > 1:
-        # padding in last dimension
+        # Hermitian symmetry in last dimension
         last_in  = input_shape[-1] // 2 + 1
         last_out = input_shape[-1]
-        # assume padded input, so output just same storage but real instead of complex
         return _mpi_local_input_output_shape_nD(input_shape, local_size_result,
                                                 last_in, last_out, flags)
     else:
          fftw_mpi_1D_unsupported('c2r')
 
+@tuple_or_None
 def _mpi_local_input_output_shape_c2c(input_shape, local_size_result, flags):
     if len(input_shape) > 1:
         return _mpi_local_input_output_shape_nD(input_shape, local_size_result,
@@ -1932,18 +1952,33 @@ def _mpi_output_shape_c2c(input_shape):
     '''
     return input_shape
 
+@tuple_or_None
 def _mpi_local_input_output_shape_padded_r2c(input_shape, local_size_result, flags):
     if len(input_shape) > 1:
-        i, o = _mpi_local_input_output_shape_r2c(input_shape, local_size_result, flags)
+        last_in  = input_shape[-1]
+        last_out = input_shape[-1] // 2 + 1
+        i,o = _mpi_local_input_output_shape_nD(input_shape, local_size_result,
+                                               last_in, last_out, flags)
+        # always twice the size to allow in-place transform
         i[-1] = 2 * o[-1]
         return i, o
-# TODO 1D
+    else:
+        fftw_mpi_1D_unsupported('r2c')
 
+@tuple_or_None
 def _mpi_local_input_output_shape_padded_c2r(input_shape, local_size_result, flags):
     if len(input_shape) > 1:
-        i, o = _mpi_local_input_output_shape_c2r(input_shape, local_size_result, flags)
+        # padding in last dimension
+        last_in  = input_shape[-1] // 2 + 1
+        last_out = input_shape[-1]
+        # assume padded input, so output just same storage but real instead of complex
+        i, o = _mpi_local_input_output_shape_nD(input_shape, local_size_result,
+                                             last_in, last_out, flags)
+        # always twice the size to allow in-place transform
         o[-1] = 2 * i[-1]
         return i, o
+    else:
+        fftw_mpi_1D_unsupported('c2r')
 
 # Function lookup tables
 # ======================
@@ -2199,10 +2234,14 @@ cdef int validate_dtype(dtype) except -1:
         raise TypeError('Invalid dtype: %s' % dtype)
 
 def validate_input_shape(input_shape):
-    '''Turn into array, make sure only positive integers present.
+    '''Turn ``input_shape`` into array, make sure only positive integers present.
 
     '''
-    i = np.array(input_shape, dtype='int64')
+    dtype = 'uint64'
+    if np.iterable(input_shape):
+        i = np.array(input_shape, dtype)
+    else:
+        i = input_shape * np.ones(1, dtype)
     if not len(i) or (i <= 0).any():
         raise ValueError('Invalid input shape: %s' % input_shape)
     return i
@@ -2261,7 +2300,7 @@ def create_mpi_plan(input_shape, local_input_array=None, input_dtype=None,
             raise err
         input_dtype = local_input_array.dtype
 
-    if (input_shape is None) or (input_dtype is None):
+    if input_dtype is None:
         raise err
 
     err = ValueError("Invalid output specification: use either "
@@ -2295,6 +2334,8 @@ def create_mpi_plan(input_shape, local_input_array=None, input_dtype=None,
         # only one choice
         direction = scheme_directions[scheme][0]
     kwargs['direction'] = direction
+
+    input_shape = validate_input_shape(input_shape)
 
     # leave most of validation up to local_size
     res = local_size(_mpi_local_size_input_shape(input_shape, scheme[0]),
@@ -2820,6 +2861,7 @@ cdef class FFTW_MPI:
         '''
         return self._local_output_shape
 
+    # TODO accept single flag and convert into sequence
     # TODO same args for __init__, add signature to pyfft.rst once it is stable
     def __cinit__(self, input_shape, local_input_array, local_output_array=None,
                   block0='DEFAULT_BLOCK', block1='DEFAULT_BLOCK',
@@ -2856,8 +2898,15 @@ cdef class FFTW_MPI:
             local_output_array = local_input_array
 
         # save communicator and this process' rank
+        cdef int ierr = 0
+        cdef int comm_size = 0
         self._comm = extract_communicator(comm)
-        libmpi.MPI_Comm_rank(self._comm, &self._MPI_rank)
+        ierr = libmpi.MPI_Comm_rank(self._comm, &self._MPI_rank)
+        if ierr:
+            raise RuntimeError('MPI_Comm_rank returned %d' % ierr)
+        ierr = libmpi.MPI_Comm_size(self._comm, &comm_size)
+        if ierr:
+            raise RuntimeError('MPI_Comm_size returned %d' % ierr)
 
         # TODO still needed? ducktyping!
         # if not isinstance(local_input_array, np.ndarray):
@@ -2974,10 +3023,10 @@ cdef class FFTW_MPI:
         # dimension
         local_size_res = local_size(_mpi_local_size_input_shape(input_shape, scheme[0]),
                                     n_transforms, block0, block1, flags, direction, comm)
-        _i, _o = mpi_local_shapes[functions['fft_shape_lookup']](input_shape, local_size_res, flags)
-        self._local_input_shape, self._local_output_shape = tuple(_i), tuple(_o)
+        self._local_input_shape, self._local_output_shape = mpi_local_shapes[functions['fft_shape_lookup']] \
+                                                                (input_shape, local_size_res, flags)
 
-        # print 'local_size_res', local_size_res
+        # print 'In rank', self._MPI_rank, 'local_size_res', local_size_res
 
         # Now we can validate the arrays
         for name in ('input', 'output'):
@@ -3004,7 +3053,7 @@ cdef class FFTW_MPI:
             self._local_n1, self._local_1_start = local_size_res[3:5]
 
         self._local_out_start = self._local_0_start
-        if 'FFTW_MPI_TRANSPOSED_OUT' in flags:
+        if 'FFTW_MPI_TRANSPOSED_OUT' in flags or self._rank == 1:
             self._local_out_start = self._local_1_start
 
         # copy shape into right format for fftw
@@ -3039,10 +3088,13 @@ cdef class FFTW_MPI:
             if 'FFTW_MPI_TRANSPOSED_IN'  in flags or \
                'FFTW_MPI_TRANSPOSED_OUT' in flags:
                 raise ValueError('Invalid flag: FFTW_MPI_TRANSPOSED_* does not  apply in 1d')
-        else:
-            if 'FFTW_MPI_SCRAMBLED_IN'  in flags or \
-               'FFTW_MPI_SCRAMBLED_OUT' in flags:
+
+        if ('FFTW_MPI_SCRAMBLED_IN'  in flags or \
+            'FFTW_MPI_SCRAMBLED_OUT' in flags):
+            if self._rank > 1:
                 raise ValueError('Invalid flag: FFTW_MPI_SCRAMBLED_* applies only in 1d')
+            if comm_size <= 1:
+                raise NotImplementedError('Invalid flag: FFTW_MPI_SCRAMBLED_* requires at least two processes')
 
         if ('FFTW_DESTROY_INPUT' not in flags) and (
                 (scheme[0] != 'c2r') or not self._rank > 1):
@@ -3095,7 +3147,7 @@ cdef class FFTW_MPI:
 
         if self._plan is NULL:
             raise RuntimeError('The data configuration has an uncaught error that led '+
-                    'to the planner returning NULL. This is a bug.')
+                               'to the planner returning NULL in MPI rank %d. This is a bug.' % self._MPI_rank)
 
     def __init__(self, input_array, output_array, axes=(-1,),
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',),
