@@ -2286,19 +2286,19 @@ def create_mpi_plan(input_shape, input_chunk=None, input_dtype=None,
     attributes ``plan.*put_array``. Note that the physical size of a memory
     chunk may be slightly larger than what say ``plan.output_array.shape``
     indicates. For more details, see the FFTW manual on Distributed-memory FFTW
-    with MPI.
+    with MPI at `<http://fftw.org/fftw3_doc/Distributed_002dmemory-FFTW-with-MPI.html>`_
 
     Construct an in-place transform with ``output_chunk='INPUT'``.
 
-    All other arguments are used to allocate byte-aligned input/output arrays
-    and the appropriate FFT plan, as described in :py:func:`local_size` and
-    :py:class:`FFTW_MPI`.
+    All other arguments are passed forward to :py:func:`local_size`
+    and :py:class:`FFTW_MPI` in order to allocate byte-aligned
+    input/output arrays and to create the appropriate FFT plan.
 
-    The ``direction`` argument is ignored for r2c and c2r transforms, and should
-    be one of 'FFTW_FORWARD', or 'FFTW_BACKWARD' for c2c.
+    The ``direction`` argument is ignored for r2c and c2r transforms,
+    and should be one of 'FFTW_FORWARD' or 'FFTW_BACKWARD' for c2c.
 
-    Return a :class:`FFTW_MPI` object ``plan``. Execute the plan as ``plan(*args,
-    *kwargs)``.
+    Return a :class:`FFTW_MPI` object ``plan``. Execute the plan as
+    ``plan(*args, *kwargs)``.
 
     '''
     # common arguments in function calls are checked there
@@ -2754,11 +2754,13 @@ cdef class FFTW_MPI:
 
     @property
     def input_array(self):
-        return self.get_input_array()
+        '''Short cut to the first input array.'''
+        return self.get_input_array(0)
 
     @property
     def output_array(self):
-        return self.get_output_array()
+        '''Short cut to the first output array.'''
+        return self.get_output_array(0)
 
     def _get_output_shape(self):
 
@@ -2900,9 +2902,8 @@ cdef class FFTW_MPI:
         return self._threads
 
     # TODO accept single flag and convert into sequence
-    # TODO same args for __init__, add signature to pyfft.rst once it is stable
     # TODO not NULL tests for chunks
-    def __cinit__(self, input_shape,  input_chunk, output_chunk,
+    def __cinit__(self, input_shape, input_chunk, output_chunk,
                   block0='DEFAULT_BLOCK', block1='DEFAULT_BLOCK',
                   direction='FFTW_FORWARD', flags=('FFTW_MEASURE',),
                   unsigned int threads=1, planning_timelimit=None,
@@ -2932,10 +2933,6 @@ cdef class FFTW_MPI:
             except TypeError:
                 raise TypeError('Invalid planning timelimit: '
                         'The planning timelimit needs to be a float.')
-
-        # TODO document in-place
-        # if output_chunk is None:
-        #     output_chunk = input_chunk
 
         # save communicator and this process' rank
         cdef int ierr = 0
@@ -3198,28 +3195,31 @@ cdef class FFTW_MPI:
             raise RuntimeError('The data configuration has an uncaught error that led '+
                                'to the planner returning NULL in MPI rank %d. This is a bug.' % self._MPI_rank)
 
-    def __init__(self, input_array, output_chunk, axes=(-1,),
-            direction='FFTW_FORWARD', flags=('FFTW_MEASURE',),
-            int threads=1, planning_timelimit=None, comm=None,
-            *args, **kwargs):
+    def __init__(self, input_shape, input_chunk, output_chunk,
+                  block0='DEFAULT_BLOCK', block1='DEFAULT_BLOCK',
+                  direction='FFTW_FORWARD', flags=('FFTW_MEASURE',),
+                  unsigned int threads=1, planning_timelimit=None,
+                  n_transforms=1, comm=None,
+                  *args, **kwargs):
         '''
         **Arguments**:
 
-        * ``input_array`` and ``output_chunk`` should be numpy arrays.
-          The contents of these arrays will be destroyed by the planning
-          process during initialisation. Information on supported
-          dtypes for the arrays is :ref:`given below <scheme_table>`.
+        * ``input_shape`` is the *global* shape of the input array,
+          that is the shape of the array that one would transform with
+          the serial interface on a single machine. This shape is
+          identical on every MPI rank participating in the transform.
 
-        * ``axes`` describes along which axes the DFT should be taken.
-          This should be a valid list of axes. Repeated axes are
-          only transformed once. Invalid axes will raise an ``IndexError``
-          exception. This argument is equivalent to the same
-          argument in :func:`numpy.fft.fftn`, except for the fact that
-          the behaviour of repeated axes is different (``numpy.fft``
-          will happily take the fft of the same axis if it is repeated
-          in the ``axes`` argument). Rudimentary testing has suggested
-          this is down to the underlying FFTW library and so unlikely
-          to be fixed in these wrappers.
+        * ``input_chunk`` and ``output_chunk`` should be numpy arrays.
+          The contents of these arrays could be destroyed by the
+          planning process during initialisation. Information on
+          supported dtypes for the arrays is :ref:`given below
+          <scheme_table>`. The chunks may very well point the same
+          memory to perform an in-place transform.
+
+        * ``block0, block1`` are the block sizes in the first/second
+          dimension. It is the number of elements that this MPI rank
+          operates on during the transform. Applies only to
+          multidimensional transforms.
 
         * ``direction`` should be a string and one of ``'FFTW_FORWARD'``
           or ``'FFTW_BACKWARD'``, which dictate whether to take the
@@ -3232,31 +3232,26 @@ cdef class FFTW_MPI:
           the :ref:`table below <scheme_table>` if a Real scheme
           is used, otherwise a ``ValueError`` is raised.
 
-        .. _FFTW_flags:
+        .. _FFTW_MPI_flags:
 
-        * ``flags`` is a list of strings and is a subset of the
-          flags that FFTW allows for the planners:
+        * ``flags`` is a list of strings corresponding to the flags
+          that FFTW allows for the planners. In addition to the the
+          flags described in :ref:`below<FFTW_flags>`, these
+          MPI-specific flags are supported:
 
-          * ``'FFTW_ESTIMATE'``, ``'FFTW_MEASURE'``, ``'FFTW_PATIENT'`` and
-            ``'FFTW_EXHAUSTIVE'`` are supported. These describe the
-            increasing amount of effort spent during the planning
-            stage to create the fastest possible transform.
-            Usually ``'FFTW_MEASURE'`` is a good compromise. If no flag
-            is passed, the default ``'FFTW_MEASURE'`` is used.
-          * ``'FFTW_UNALIGNED'`` is supported.
-            This tells FFTW not to assume anything about the
-            alignment of the data and disabling any SIMD capability
-            (see below).
-          * ``'FFTW_DESTROY_INPUT'`` is supported.
-            This tells FFTW that the input array can be destroyed during
-            the transform, sometimes allowing a faster algorithm to be
-            used. The default behaviour is, if possible, to preserve the
-            input. In the case of the 1D Backwards Real transform, this
-            may result in a performance hit. In the case of a backwards
-            real transform for greater than one dimension, it is not
-            possible to preserve the input, making this flag implicit
-            in that case. A little more on this is given
-            :ref:`below<scheme_table>`.
+          * ``FFTW_MPI_SCRAMBLED_OUT, FFTW_MPI_SCRAMBLED_IN``: valid
+            for 1d transforms only, these flags indicate that the
+            output/input of the transform are in an undocumented
+            “scrambled” order. A forward ``FFTW_MPI_SCRAMBLED_OUT``
+            transform can be inverted by a backward
+            ``FFTW_MPI_SCRAMBLED_IN`` (times the usual 1/N
+            normalization). See `FFTW doc <http://fftw.org/fftw3_doc/One_002ddimensional-distributions.html#One_002ddimensional-distributions>`_
+
+          * ``FFTW_MPI_TRANSPOSED_OUT, FFTW_MPI_TRANSPOSED_IN``: valid
+            for multidimensional (rnk > 1) transforms only, these
+            flags specify that the output or input of an n0 × n1 × n2
+            × … × nd-1 transform is transposed to n1 × n0 × n2 ×…×
+            nd-1. See `FFTW doc <http://fftw.org/fftw3_doc/Transposed-distributions.html#Transposed-distributions>`_
 
           The `FFTW planner flags documentation
           <http://www.fftw.org/fftw3_doc/Planner-Flags.html#Planner-Flags>`_
@@ -3279,16 +3274,32 @@ cdef class FFTW_MPI:
           <http://www.fftw.org/fftw3_doc/Planner-Flags.html#Planner-Flags>`_
           for more information on this.
 
-        .. _fftw_schemes:
+        * ``n_transforms`` is the number of same-size arrays to
+          transform simultaneously in one go. Suppose you have three
+          arrays x,y,z you want to Fourier transform. Then you can lay
+          them out in interleaved format such that in memory they are
+          ordered as ``x[0], y[0], z[0], x[1], y[1], z[1]...`` and
+          specify ``n_transforms=3``. So ``n_transforms`` is the
+          number of elements between the first and second element of
+          each individual array. All arrays must be of the same data
+          type and length. Access to array ``n`` is available via
+          ``get_input_array(n)`` and ``get_output_array(n)``.
+
+        * ``comm`` is expected to be an instance of
+          ``mpi4py.libmpi.MPI_Comm``. If ``None``, default to the
+          world communicator. ``comm`` is used in all communication
+          between MPI ranks within FFTW.
+
+        .. _fftw_mpi_schemes:
 
         **Schemes**
 
         The currently supported schemes are as follows:
 
-        .. _scheme_table:
+        .. _scheme_mpi_table:
 
         +----------------+-----------------------+------------------------+-----------+
-        | Type           | ``input_array.dtype`` | ``output_chunk.dtype`` | Direction |
+        | Type           | ``input_chunk.dtype`` | ``output_chunk.dtype`` | Direction |
         +================+=======================+========================+===========+
         | Complex        | ``complex64``         | ``complex64``          | Both      |
         +----------------+-----------------------+------------------------+-----------+
@@ -3309,50 +3320,37 @@ cdef class FFTW_MPI:
         | Real\ :sup:`1` | ``clongdouble``       | ``longdouble``         | Backwards |
         +----------------+-----------------------+------------------------+-----------+
 
-        \ :sup:`1`  Note that the Backwards Real transform for the case
-        in which the dimensionality of the transform is greater than 1
-        will destroy the input array. This is inherent to FFTW and the only
-        general work-around for this is to copy the array prior to
-        performing the transform. In the case where the dimensionality
-        of the transform is 1, the default is to preserve the input array.
-        This is different from the default in the underlying library, and
-        some speed gain may be achieved by allowing the input array to
-        be destroyed by passing the ``'FFTW_DESTROY_INPUT'``
-        :ref:`flag <FFTW_flags>`.
-
-        ``clongdouble`` typically maps directly to ``complex256``
+          ``clongdouble`` typically maps directly to ``complex256``
         or ``complex192``, and ``longdouble`` to ``float128`` or
         ``float96``, dependent on platform.
 
-        The relative shapes of the arrays should be as follows:
+        FFTW MPI supports and encourages in-place
+        transforms. Therefore the relative shapes of the ``*chunk``
+        should be as follows:
 
-        * For a Complex transform, ``output_chunk.shape == input_array.shape``
-        * For a Real transform in the Forwards direction, both the following
-          should be true:
+        * For a Complex transform, ``output_chunk.size ==
+        * input_chunk.size`` For a real-to-complex transform in the
+          forward direction ``2 * output_chunk.size ==
+          input_chunk.size``
+        * For a complex-to-real transform in the backward direction
+          ``output_chunk.size == 2 * input_chunk.size``
 
-          * ``output_chunk.shape[axes][-1] == input_array.shape[axes][-1]//2 + 1``
-          * All the other axes should be equal in length.
-
-        * For a Real transform in the Backwards direction, both the following
-          should be true:
-
-          * ``input_array.shape[axes][-1] == output_chunk.shape[axes][-1]//2 + 1``
-          * All the other axes should be equal in length.
-
-        In the above expressions for the Real transform, the ``axes``
-        arguments denotes the unique set of axes on which we are taking
-        the FFT, in the order passed. It is the last of these axes that
-        is subject to the special case shown.
+        Only transforms over all dimensions of ``input_shape`` are
+        considered. Hence the memory in ``*chunk`` must be contiguous.
 
         The shapes for the real transforms corresponds to those
         stipulated by the FFTW library. Further information can be
         found in the FFTW documentation on the `real DFT
         <http://www.fftw.org/fftw3_doc/Guru-Real_002ddata-DFTs.html>`_.
 
-        The actual arrangement in memory is arbitrary and the scheme
-        can be planned for any set of strides on either the input
-        or the output. The user should not have to worry about this
-        and any valid numpy array should work just fine.
+        The data is expected to lie at certain positions of the
+        array. There is padding and possibly extra bytes in the memory
+        chunk, so before manipulating the memory directly, consult the
+        FFTW MPI docs. It is strongly recommended to use the plan's
+        attributes ``input_array`` and ``output_array`` to get a view
+        on the memory chunk that allows natural read/write access to
+        the right locations. Note that due to padding in the last
+        column, the view's memory need *not* be contiguous.
 
         What is calculated is exactly what FFTW calculates.
         Notably, this is an unnormalized transform so should
@@ -3362,12 +3360,12 @@ cdef class FFTW_MPI:
         `FFTW documentation
         <http://www.fftw.org/fftw3_doc/What-FFTW-Really-Computes.html>`_.
 
-        The FFTW library benefits greatly from the beginning of each
-        DFT axes being aligned on the correct byte boundary, enabling
-        SIMD instructions. By default, if the data begins on such a
-        boundary, then FFTW will be allowed to try and enable
-        SIMD instructions. This means that all future changes to
-        the data arrays will be checked for similar alignment. SIMD
+        The FFTW library benefits greatly from the beginning of
+        ``input_chunk`` being aligned on the correct byte boundary,
+        enabling SIMD instructions. By default, if the data begins on
+        such a boundary, then FFTW will be allowed to try and enable
+        SIMD instructions. This means that all future changes to the
+        data arrays will be checked for similar alignment. SIMD
         instructions can be explicitly disabled by setting the
         FFTW_UNALIGNED flags, to allow for updates with unaligned
         data.
@@ -3391,16 +3389,6 @@ cdef class FFTW_MPI:
         transform (which :class:`pyfftw.FFTW` will handle for you when
         accessed through :meth:`~pyfftw.FFTW.__call__`).
 
-        ``n_transforms`` is the number of same-size arrays to
-        transform simultaneously in one go. Suppose you have three
-        arrays x,y,z you want to Fourier transform. Then you can lay
-        them out in interleaved format such that in memory they are
-        ordered as x[0], y[0], z[0], x[1], y[1], z[1]... and specify
-        ``n_transforms=3``. So ``n_transforms`` is the number of
-        elements between the first and second element of each
-        individual array. All arrays must be of the same data type and
-        length.
-
         '''
         pass
 
@@ -3409,9 +3397,9 @@ cdef class FFTW_MPI:
         if not self._plan == NULL:
             self._fftw_destroy(self._plan)
 
-    def __call__(self, input_array=None, output_chunk=None,
+    def __call__(self, input_chunk=None, output_chunk=None,
             normalise_idft=True):
-        '''__call__(input_array=None, output_chunk=None, normalise_idft=True)
+        '''__call__(input_chunk=None, output_chunk=None, normalise_idft=True)
 
         Calling the class instance (optionally) updates the arrays, then
         calls :meth:`~pyfftw.FFTW.execute`, before optionally normalising
@@ -3427,7 +3415,7 @@ cdef class FFTW_MPI:
         which the FFT is taken. If the direction is ``'FFTW_FORWARD'``, this
         flag makes no difference to the output array.
 
-        When ``input_array`` is something other than None, then the passed in
+        When ``input_chunk`` is something other than None, then the passed in
         array is coerced to be the same dtype as the input array used when the
         class was instantiated, the byte-alignment of the passed in array is
         made consistent with the expected byte-alignment and the striding is
@@ -3467,21 +3455,21 @@ cdef class FFTW_MPI:
         copy the returned array.
         '''
 
-        if input_array is not None or output_chunk is not None:
+        if input_chunk is not None or output_chunk is not None:
 
-            if input_array is None:
-                input_array = self._input_chunk
+            if input_chunk is None:
+                input_chunk = self._input_chunk
 
             if output_chunk is None:
                 output_chunk = self._output_chunk
 
-            if not isinstance(input_array, np.ndarray):
+            if not isinstance(input_chunk, np.ndarray):
                 copy_needed = True
-            elif (not input_array.dtype == self._input_dtype):
+            elif (not input_chunk.dtype == self._input_dtype):
                 copy_needed = True
-            elif (not input_array.strides == self._input_strides):
+            elif (not input_chunk.strides == self._input_strides):
                 copy_needed = True
-            elif not (<intptr_t>np.PyArray_DATA(input_array)
+            elif not (<intptr_t>np.PyArray_DATA(input_chunk)
                     % self.input_alignment == 0):
                 copy_needed = True
             else:
@@ -3489,25 +3477,25 @@ cdef class FFTW_MPI:
 
             if copy_needed:
 
-                if not isinstance(input_array, np.ndarray):
-                    input_array = np.asanyarray(input_array)
+                if not isinstance(input_chunk, np.ndarray):
+                    input_chunk = np.asanyarray(input_chunk)
 
-                if not input_array.shape == self._input_shape:
+                if not input_chunk.shape == self._input_shape:
                     raise ValueError('Invalid input shape: '
                             'The new input array should be the same shape '
                             'as the input array used to instantiate the '
                             'object.')
 
-                self._input_chunk[:] = input_array
+                self._input_chunk[:] = input_chunk
 
                 if output_chunk is not None:
                     # No point wasting time if no update is necessary
                     # (which the copy above may have avoided)
-                    input_array = self._input_chunk
-                    self.update_arrays(input_array, output_chunk)
+                    input_chunk = self._input_chunk
+                    self.update_arrays(input_chunk, output_chunk)
 
             else:
-                self.update_arrays(input_array, output_chunk)
+                self.update_arrays(input_chunk, output_chunk)
 
         self.execute()
 
@@ -3519,8 +3507,8 @@ cdef class FFTW_MPI:
 
     # TODO update to MPI
     cpdef update_arrays(self,
-            new_input_array, new_output_chunk):
-        '''update_arrays(new_input_array, new_output_chunk)
+            new_input_chunk, new_output_chunk):
+        '''update_arrays(new_input_chunk, new_output_chunk)
 
         Update the arrays upon which the DFT is taken.
 
@@ -3541,7 +3529,7 @@ cdef class FFTW_MPI:
         be raised and the data will *not* be updated (though the
         object will still be in a sane state).
         '''
-        if not isinstance(new_input_array, np.ndarray):
+        if not isinstance(new_input_chunk, np.ndarray):
             raise ValueError('Invalid input array: '
                     'The new input array needs to be an instance '
                     'of numpy.ndarray')
@@ -3551,7 +3539,7 @@ cdef class FFTW_MPI:
                     'The new output array needs to be an instance '
                     'of numpy.ndarray')
 
-        if not (<intptr_t>np.PyArray_DATA(new_input_array) %
+        if not (<intptr_t>np.PyArray_DATA(new_input_chunk) %
                 self.input_alignment == 0):
             raise ValueError('Invalid input alignment: '
                     'The original arrays were %d-byte aligned. It is '
@@ -3565,7 +3553,7 @@ cdef class FFTW_MPI:
                     'necessary that the update output array is similarly '
                     'aligned.' % self.output_alignment)
 
-        if not new_input_array.dtype == self._input_dtype:
+        if not new_input_chunk.dtype == self._input_dtype:
             raise ValueError('Invalid input dtype: '
                     'The new input array is not of the same '
                     'dtype as was originally planned for.')
@@ -3575,10 +3563,10 @@ cdef class FFTW_MPI:
                     'The new output array is not of the same '
                     'dtype as was originally planned for.')
 
-        new_input_shape = new_input_array.shape
+        new_input_shape = new_input_chunk.shape
         new_output_shape = new_output_chunk.shape
 
-        new_input_strides = new_input_array.strides
+        new_input_strides = new_input_chunk.strides
         new_output_strides = new_output_chunk.strides
 
         if not new_input_shape == self._input_shape:
@@ -3601,21 +3589,21 @@ cdef class FFTW_MPI:
                     'The strides should be identical for the new '
                     'output array as for the old.')
 
-        self._update_arrays(new_input_array, new_output_chunk)
+        self._update_arrays(new_input_chunk, new_output_chunk)
 
     cdef _update_arrays(self,
-            np.ndarray new_input_array, np.ndarray new_output_chunk):
+            np.ndarray new_input_chunk, np.ndarray new_output_chunk):
         ''' A C interface to the update_arrays method that does not
         perform any checks on strides being correct and so on.
         '''
-        self._input_chunk = new_input_array
+        self._input_chunk = new_input_chunk
         self._output_chunk = new_output_chunk
 
     cpdef execute(self):
         '''execute()
 
         Execute the planned operation, taking the correct kind of FFT of
-        the input array (i.e. :attr:`FFTW.input_array`),
+        the input array (i.e. :attr:`FFTW.input_chunk`),
         and putting the result in the output array (i.e.
         :attr:`FFTW.output_chunk`).
         '''
