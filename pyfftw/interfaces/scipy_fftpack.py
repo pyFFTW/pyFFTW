@@ -46,9 +46,9 @@ from . import numpy_fft
 import numpy
 
 # Complete the namespace (these are not actually used in this module)
-from scipy.fftpack import (dct, idct, diff, tilbert, itilbert, 
-        hilbert, ihilbert, cs_diff, sc_diff, ss_diff, cc_diff, 
-        shift, fftshift, ifftshift, fftfreq, rfftfreq, 
+from scipy.fftpack import (dct, idct, dst, idst, diff, tilbert,
+        itilbert, hilbert, ihilbert, cs_diff, sc_diff, ss_diff,
+        cc_diff, shift, fftshift, ifftshift, fftfreq, rfftfreq, 
         convolve, _fftpack)
 
 __all__ = ['fft','ifft','fftn','ifftn','rfft','irfft', 'fft2','ifft2', 
