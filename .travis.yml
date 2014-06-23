@@ -1,6 +1,3 @@
-# Added build to use miniconda (including all the relevant deps).
-# based on https://gist.github.com/dan-blanchard/7045057
-
 language: python
 
 python:
@@ -12,31 +9,19 @@ branches:
     except:
         - gh-pages
 
-#virtualenv:
-#  system_site_packages: true
+virtualenv:
+  system_site_packages: true
 
-#before_install:
-# - sudo apt-get update -qq
-# - sudo apt-get install -qq libfftw3-dev #cython python-numpy python-scipy python3-numpy python3-scipy
+before_install:
+ - sudo apt-get update -qq
+ - sudo apt-get install -qq libfftw3-dev libblas-dev liblapack-dev libatlas-base-dev gfortran #cython python-numpy python-scipy python3-numpy python3-scipy
    #- cython pyfftw/pyfftw.pyx
    #- cython pyfftw/utils.pxi
 
-# Setup anaconda
-before_install:
-  - if [ ${TRAVIS_PYTHON_VERSION:0:1} == "2" ]; then wget http://repo.continuum.io/miniconda/Miniconda-3.5.5-Linux-x86_64.sh -O miniconda.sh; else wget http://repo.continuum.io/miniconda/Miniconda3-3.5.5-Linux-x86_64.sh -O miniconda.sh; fi
-  - chmod +x miniconda.sh
-  - ./miniconda.sh -b
-  - export PATH=/home/travis/anaconda/bin:$PATH
-  - conda update --yes conda
-  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
-  - sudo rm -rf /dev/shm
-  - sudo ln -s /run/shm /dev/shm
-
-# Install packages
-install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy cython
-  ## Coverage packages are on my binstar channel
-  #- conda install --yes -c dan_blanchard python-coveralls nose-cov
-  - python setup.py build_ext --inplace
+install: 
+ - pip install cython
+ - pip install numpy
+ - pip install scipy
+ - python setup.py build_ext --inplace
 
 script: python setup.py test
