@@ -3,6 +3,7 @@ language: python
 python:
   - 2.7
   - 3.2
+  #- 3.4
 
 branches:
     except:
@@ -13,11 +14,14 @@ virtualenv:
 
 before_install:
  - sudo apt-get update -qq
- - sudo apt-get install -qq libfftw3-dev cython python-numpy python-scipy python3-numpy python3-scipy
- - cython pyfftw/pyfftw.pyx
- - cython pyfftw/utils.pxi
+ - sudo apt-get install -qq libfftw3-dev libblas-dev liblapack-dev libatlas-base-dev gfortran #cython python-numpy python-scipy python3-numpy python3-scipy
+   #- cython pyfftw/pyfftw.pyx
+   #- cython pyfftw/utils.pxi
 
 install: 
+ - pip install cython
+ - pip install numpy
+ - pip install scipy
  - python setup.py build_ext --inplace
 
 script: python setup.py test
