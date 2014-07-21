@@ -65,6 +65,11 @@ from scipy.fftpack import (dct, idct, diff, tilbert, itilbert,
         shift, fftshift, ifftshift, fftfreq, rfftfreq, 
         convolve, _fftpack)
 
+try:
+    from scipy.fftpack import dst, idst
+except ImportError:
+    pass
+
 __all__ = ['fft','ifft','fftn','ifftn','rfft','irfft', 'fft2','ifft2', 
         'diff', 'tilbert','itilbert','hilbert','ihilbert', 'sc_diff',
         'cs_diff','cc_diff','ss_diff', 'shift', 'rfftfreq']
