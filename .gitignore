@@ -11,3 +11,6 @@ dist
 docs
 MANIFEST
 *.egg-info/*
+
+*.*project
+tmp/
