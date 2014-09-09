@@ -10,10 +10,15 @@ cimport mpi4py.libmpi as libmpi
 # see also https://bitbucket.org/mpi4py/mpi4py/issue/1
 cdef extern from 'mpi-compat.h': pass
 
+include 'mpi.pxd'
+
 # Initialize the module
-fftw_mpi_init()
-fftwf_mpi_init()
-fftwl_mpi_init()
+IF HAVE_DOUBLE_MPI:
+    fftw_mpi_init()
+IF HAVE_SINGLE_MPI:
+    fftwf_mpi_init()
+IF HAVE_LONG_MPI:
+    fftwl_mpi_init()
 
 _build_distributor_list()
 _build_mpi_executor_list()
@@ -495,13 +500,21 @@ cdef fftw_generic_execute * _build_mpi_executor_list():
 
 cdef fftw_mpi_generic_wisdom mpi_wisdom[6]
 cdef fftw_mpi_generic_wisdom * _build_mpi_wisdom_list():
+    # TODO don't repeat 6, compute it at compile time
+    for i in range(6):
+        mpi_wisdom[i] = NULL
 
-    mpi_wisdom[0] = <fftw_mpi_generic_wisdom> &fftw_mpi_gather_wisdom
-    mpi_wisdom[1] = <fftw_mpi_generic_wisdom> &fftwf_mpi_gather_wisdom
-    mpi_wisdom[2] = <fftw_mpi_generic_wisdom> &fftwl_mpi_gather_wisdom
-    mpi_wisdom[3] = <fftw_mpi_generic_wisdom> &fftw_mpi_broadcast_wisdom
-    mpi_wisdom[4] = <fftw_mpi_generic_wisdom> &fftwf_mpi_broadcast_wisdom
-    mpi_wisdom[5] = <fftw_mpi_generic_wisdom> &fftwl_mpi_broadcast_wisdom
+    IF HAVE_DOUBLE_MPI:
+        mpi_wisdom[0] = <fftw_mpi_generic_wisdom> &fftw_mpi_gather_wisdom
+        mpi_wisdom[3] = <fftw_mpi_generic_wisdom> &fftw_mpi_broadcast_wisdom
+
+    IF HAVE_SINGLE_MPI:
+        mpi_wisdom[1] = <fftw_mpi_generic_wisdom> &fftwf_mpi_gather_wisdom
+        mpi_wisdom[4] = <fftw_mpi_generic_wisdom> &fftwf_mpi_broadcast_wisdom
+
+    IF HAVE_LONG_MPI:
+        mpi_wisdom[2] = <fftw_mpi_generic_wisdom> &fftwl_mpi_gather_wisdom
+        mpi_wisdom[5] = <fftw_mpi_generic_wisdom> &fftwl_mpi_broadcast_wisdom
 
 cdef object mpi_flag_dict
 mpi_flag_dict = {'FFTW_MPI_DEFAULT_BLOCK': FFTW_MPI_DEFAULT_BLOCK,
@@ -545,35 +558,43 @@ def n_elements_in_out(n, scheme):
 
     return nin, nout
 
-cdef object mpi_scheme_functions
-mpi_scheme_functions = {
+# all access to MPI functions should go via this dictionary
+# any library that's missing gives rise to a KeyError instead of segfault
+# if a NULL function is called
+cdef object mpi_scheme_functions = {}
+IF HAVE_DOUBLE_MPI:
+    mpi_scheme_functions.update({
     ('c2c', '64'): {'planner': 0, 'executor':0, 'generic_precision':0,
-                    'validator': 2, 'fft_shape_lookup': 2,
-                    'output_shape': 2},
-    ('c2c', '32'): {'planner':1, 'executor':1, 'generic_precision':1,
-                    'validator': 2, 'fft_shape_lookup': 2,
-                    'output_shape': 2},
-    ('c2c', 'ld'): {'planner':2, 'executor':2, 'generic_precision':2,
                     'validator': 2, 'fft_shape_lookup': 2,
                     'output_shape': 2},
     ('r2c', '64'): {'planner':3, 'executor':3, 'generic_precision':0,
                     'validator': 0, 'fft_shape_lookup': 0,
                     'output_shape': 0},
+    ('c2r', '64'): {'planner':6, 'executor':6, 'generic_precision':0,
+                    'validator': 1, 'fft_shape_lookup': 1,
+                    'output_shape': 1}})
+IF HAVE_SINGLE_MPI:
+    mpi_scheme_functions.update({
+    ('c2c', '32'): {'planner':1, 'executor':1, 'generic_precision':1,
+                    'validator': 2, 'fft_shape_lookup': 2,
+                    'output_shape': 2},
     ('r2c', '32'): {'planner':4, 'executor':4, 'generic_precision':1,
                     'validator': 0, 'fft_shape_lookup':  0,
                     'output_shape': 0},
+    ('c2r', '32'): {'planner':7, 'executor':7, 'generic_precision':1,
+                    'validator': 1, 'fft_shape_lookup': 1,
+                    'output_shape': 1}})
+IF HAVE_LONG_MPI:
+    mpi_scheme_functions.update({
+    ('c2c', 'ld'): {'planner':2, 'executor':2, 'generic_precision':2,
+                    'validator': 2, 'fft_shape_lookup': 2,
+                    'output_shape': 2},
     ('r2c', 'ld'): {'planner':5, 'executor':5, 'generic_precision':2,
                     'validator': 0, 'fft_shape_lookup':  0,
                     'output_shape': 0},
-    ('c2r', '64'): {'planner':6, 'executor':6, 'generic_precision':0,
-                    'validator': 1, 'fft_shape_lookup': 1,
-                    'output_shape': 1},
-    ('c2r', '32'): {'planner':7, 'executor':7, 'generic_precision':1,
-                    'validator': 1, 'fft_shape_lookup': 1,
-                    'output_shape': 1},
     ('c2r', 'ld'): {'planner':8, 'executor':8, 'generic_precision':2,
                     'validator': 1, 'fft_shape_lookup': 1,
-                    'output_shape': 1}}
+                    'output_shape': 1}})
 
 cdef class IntegerArray:
     '''Wrapper around a small chunk of memory.'''

@@ -637,7 +637,7 @@ if __name__ == '__main__':
     '''Start as mpirun -n 4 python test_pyfftw_mpi.py'''
     unittest.main()
 
-# compile-command: "cd ../ && CC=mpicc python setup.py build_ext --inplace && mpirun -n 4 python test/test_pyfftw_mpi.py"
-# Local Variables:
 # compile-command: "cd ../ && CC=mpicc python setup.py build_ext --inplace && cd test && mpirun -n 1 python -m unittest test_pyfftw_mpi.MPITest.test_c2c"
+# Local Variables:
+# compile-command: "cd ../ && rm pyfftw/pyfftw.c; CC=mpicc python setup.py build_ext --inplace && mpirun -n 2 python test/test_pyfftw_mpi.py"
 # End:
