@@ -64,9 +64,6 @@ except ImportError as e:
     # We can't cythonize, but that's ok as it's been done already.
     from distutils.command.build_ext import build_ext
 
-data_types = ('DOUBLE', 'SINGLE', 'LONG', 'QUAD')
-data_types_short = ('', 'f', 'l', 'q')
-
 class LibraryChecker:
     '''Container for libraries that checks their existence.
 
@@ -90,8 +87,12 @@ class LibraryChecker:
         # construct checks
         # self.data['HAVE_SINGLE_THREADS'] = ['fftw3f_threads', 'fftwf_init_threads']
         self.data = {}
+
+        data_types = ('DOUBLE', 'SINGLE', 'LONG', 'QUAD')
+        data_types_short = ('', 'f', 'l', 'q')
         lib_types = ('', '_MPI', '_THREADS', '_OMP')
         functions = ('plan_dft', 'mpi_init', 'init_threads', 'init_threads')
+
         for f, l in zip(functions, lib_types):
             for d, s in zip(data_types, data_types_short):
                 self.data['HAVE_' + d + l] = ['fftw3' + s + l.lower(), 'fftw' + s + '_' + f]
@@ -124,9 +125,19 @@ class LibraryChecker:
                 self.libraries.append(lib)
             self.compile_time_env[macro] = exists
 
-        have_mpi = False
+        # optional packages summary: True if exists for any of the data types
+        for l in lib_types[1:]:
+            self.compile_time_env['HAVE' + l] = False
+            for d in data_types:
+                self.compile_time_env['HAVE' + l] |= self.compile_time_env['HAVE_' + d + l]
+
+        # required package: FFTW itself
+        have_fftw = False
         for d in data_types:
-            have_mpi |= self.compile_time_env['HAVE_' + d + '_MPI']
+            have_fftw |= self.compile_time_env['HAVE_' + d]
+
+        if not have_fftw:
+            raise RuntimeError("Cannot find any basic FFTW library")
 
     def has_function(self, function, includes=None, libraries=None, include_dirs=None, library_dirs=None):
         '''Alternative implementation of distutils.ccompiler.has_function that deletes the output and works reliably.'''
@@ -242,7 +253,6 @@ def stdchannel_redirected(stdchannel, dest_filename):
             dest_file.close()
 
 checker = LibraryChecker()
-checker.compile_time_env["HAVE_MPI"] = use_mpi
 
 print checker.compile_time_env
 
@@ -337,3 +347,6 @@ setup_args = {
 
 if __name__ == '__main__':
     setup(**setup_args)
+
+# compile-command: CC=mpicc python setup.py build_ext -i
+# End:
