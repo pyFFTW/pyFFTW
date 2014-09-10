@@ -13,13 +13,20 @@ cdef extern from 'mpi-compat.h': pass
 include 'mpi.pxd'
 
 # Initialize the module
+cdef int _n_types = 3
+cdef object _all_types = ['32', '64', 'ld']
+supported_mpi_types = []
 IF HAVE_DOUBLE_MPI:
     fftw_mpi_init()
+    supported_mpi_types.append('64')
 IF HAVE_SINGLE_MPI:
     fftwf_mpi_init()
+    supported_mpi_types.append('32')
 IF HAVE_LONG_MPI:
     fftwl_mpi_init()
+    supported_mpi_types.append('ld')
 
+_build_mpi_local_size()
 _build_distributor_list()
 _build_mpi_executor_list()
 _build_mpi_planner_list()
@@ -36,9 +43,9 @@ cdef  _fftw_mpi_local_size_many(
             ptrdiff_t *local_n1, ptrdiff_t *local_1_start,
             int sign, unsigned int flags):
 
-    cdef ptrdiff_t local_size = fftw_mpi_local_size_many(rank, n, howmany,
-                                                         block0, comm,
-                                                         local_n0, local_0_start)
+    cdef ptrdiff_t local_size = _fftw_mpi_generic_local_size_many(rank, n, howmany,
+                                                                  block0, comm,
+                                                                  local_n0, local_0_start)
 
     return local_size, local_n0[0], local_0_start[0]
 
@@ -50,11 +57,9 @@ cdef _fftw_mpi_local_size_many_transposed(
             ptrdiff_t *local_n1, ptrdiff_t *local_1_start,
             int sign, unsigned int flags):
 
-    cdef ptrdiff_t local_size = fftw_mpi_local_size_many_transposed(
-           rank, n, howmany,
-           block0, block1, comm,
-           local_n0, local_0_start,
-           local_n1, local_1_start)
+    cdef ptrdiff_t local_size = _fftw_mpi_generic_local_size_transposed(rank, n, howmany, block0, block1,
+                                                                        comm, local_n0, local_0_start,
+                                                                        local_n1, local_1_start)
     return local_size, local_n0[0], local_0_start[0], local_n1[0], local_1_start[0]
 
 # d=1
@@ -65,11 +70,9 @@ cdef object _fftw_mpi_local_size_many_1d(
             ptrdiff_t *local_no, ptrdiff_t *local_o_start,
             int sign, unsigned int flags):
 
-    cdef ptrdiff_t local_size = fftw_mpi_local_size_many_1d(
-           n[0], howmany,
-           comm, sign, flags,
-           local_ni, local_i_start,
-           local_no, local_o_start)
+    cdef ptrdiff_t local_size = _fftw_mpi_generic_local_size_1d(n[0], howmany, comm, sign, flags,
+                                                local_ni, local_i_start,
+                                                local_no, local_o_start)
 
     return local_size, local_ni[0], local_i_start[0], local_no[0], local_o_start[0]
 
@@ -443,12 +446,32 @@ def _mpi_local_input_output_shape_padded_c2r(input_shape, local_size_result, fla
 # ======================
 
 cdef fftw_mpi_generic_local_size distributors[3]
-
 cdef fftw_mpi_generic_local_size * _build_distributor_list():
-
     distributors[0] = <fftw_mpi_generic_local_size> &_fftw_mpi_local_size_many
     distributors[1] = <fftw_mpi_generic_local_size> &_fftw_mpi_local_size_many_transposed
     distributors[2] = <fftw_mpi_generic_local_size> &_fftw_mpi_local_size_many_1d
+
+cdef fftw_mpi_generic_local_size_many _fftw_mpi_generic_local_size_many = NULL
+cdef fftw_mpi_generic_local_size_many_transposed _fftw_mpi_generic_local_size_transposed = NULL
+cdef fftw_mpi_generic_local_size_many_1d _fftw_mpi_generic_local_size_1d = NULL
+
+cdef void _build_mpi_local_size():
+    IF HAVE_DOUBLE_MPI:
+        _fftw_mpi_generic_local_size_many = <fftw_mpi_generic_local_size_many> &fftw_mpi_local_size_many
+        _fftw_mpi_generic_local_size_transposed = <fftw_mpi_generic_local_size_many_transposed> &fftw_mpi_local_size_transposed
+        _fftw_mpi_generic_local_size_1d = <fftw_mpi_generic_local_size_many_1d> &fftw_mpi_local_size_1d
+
+    ELIF HAVE_SINGLE_MPI:
+        _fftw_mpi_generic_local_size_many = <fftw_mpi_generic_local_size_many> &fftwf_mpi_local_size_many
+        _fftw_mpi_generic_local_size_transposed = <fftw_mpi_generic_local_size_many_transposed> &fftwf_mpi_local_size_transposed
+        _fftw_mpi_generic_local_size_1d = <fftw_mpi_generic_local_size_many_1d> &fftwf_mpi_local_size_1d
+
+    ELIF HAVE_LONG_MPI:
+        _fftw_mpi_generic_local_size_many = <fftw_mpi_generic_local_size_many> &fftwl_mpi_local_size_many
+        _fftw_mpi_generic_local_size_transposed = <fftw_mpi_generic_local_size_many_transposed> &fftwl_mpi_local_size_transposed
+        _fftw_mpi_generic_local_size_1d = <fftw_mpi_generic_local_size_many_1d> &fftwl_mpi_local_size_1d
+    ELSE:
+        raise NotImplementedError('Could not find any FFTW library that implements fftw*_mpi_local_size_many')
 
 # Planner table (of size the number of planners).
 cdef fftw_mpi_generic_plan mpi_planners[12]
@@ -558,12 +581,12 @@ def n_elements_in_out(n, scheme):
 
     return nin, nout
 
-# all access to MPI functions should go via this dictionary
+# Every access to MPI functions should go via this dictionary
 # any library that's missing gives rise to a KeyError instead of segfault
 # if a NULL function is called
-cdef object mpi_scheme_functions = {}
+cdef object _mpi_scheme_functions = {}
 IF HAVE_DOUBLE_MPI:
-    mpi_scheme_functions.update({
+    _mpi_scheme_functions.update({
     ('c2c', '64'): {'planner': 0, 'executor':0, 'generic_precision':0,
                     'validator': 2, 'fft_shape_lookup': 2,
                     'output_shape': 2},
@@ -574,7 +597,7 @@ IF HAVE_DOUBLE_MPI:
                     'validator': 1, 'fft_shape_lookup': 1,
                     'output_shape': 1}})
 IF HAVE_SINGLE_MPI:
-    mpi_scheme_functions.update({
+    _mpi_scheme_functions.update({
     ('c2c', '32'): {'planner':1, 'executor':1, 'generic_precision':1,
                     'validator': 2, 'fft_shape_lookup': 2,
                     'output_shape': 2},
@@ -585,7 +608,7 @@ IF HAVE_SINGLE_MPI:
                     'validator': 1, 'fft_shape_lookup': 1,
                     'output_shape': 1}})
 IF HAVE_LONG_MPI:
-    mpi_scheme_functions.update({
+    _mpi_scheme_functions.update({
     ('c2c', 'ld'): {'planner':2, 'executor':2, 'generic_precision':2,
                     'validator': 2, 'fft_shape_lookup': 2,
                     'output_shape': 2},
@@ -595,6 +618,15 @@ IF HAVE_LONG_MPI:
     ('c2r', 'ld'): {'planner':8, 'executor':8, 'generic_precision':2,
                     'validator': 1, 'fft_shape_lookup': 1,
                     'output_shape': 1}})
+
+def mpi_scheme_functions(scheme):
+    try:
+        return _mpi_scheme_functions[scheme]
+    except KeyError:
+        msg = "The scheme '%s' is not supported." % str(scheme)
+        if scheme[1] in _all_types:
+            msg += "\nRebuild pyfftw with support for the data type '%s'!" % scheme[1]
+        raise NotImplementedError(msg)
 
 cdef class IntegerArray:
     '''Wrapper around a small chunk of memory.'''
@@ -837,7 +869,7 @@ def create_mpi_plan(input_shape, input_chunk=None, input_dtype=None,
     # number of elements to allocate
     n_elements_in, n_elements_out = n_elements_in_out(res[0], scheme[0])
 
-    functions = mpi_scheme_functions[scheme]
+    functions = mpi_scheme_functions(scheme)
 
     # need padding for r2c; cf. FFTW manual 6.5 'Multi-dimensional MPI DFTs of Real Data'
     local_input_shape, local_output_shape = mpi_local_shapes[functions['fft_shape_lookup']](input_shape, res, flags)
@@ -1451,7 +1483,7 @@ cdef class FFTW_MPI:
         self._input_dtype = input_dtype
         self._output_dtype = output_dtype
 
-        functions = mpi_scheme_functions[scheme]
+        functions = mpi_scheme_functions(scheme)
 
         self._fftw_planner = mpi_planners[functions['planner']]
         self._fftw_execute = mpi_executors[functions['executor']]

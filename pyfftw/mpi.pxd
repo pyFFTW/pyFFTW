@@ -429,6 +429,29 @@ cdef extern from 'fftw3-mpi.h':
     void fftwf_mpi_broadcast_wisdom(MPI_Comm comm)
     void fftwl_mpi_broadcast_wisdom(MPI_Comm comm)
 
+ctypedef ptrdiff_t (*fftw_mpi_generic_local_size_many)(
+    int rnk, const ptrdiff_t *n, ptrdiff_t howmany,
+    ptrdiff_t block0, MPI_Comm comm,
+    ptrdiff_t *local_n0, ptrdiff_t *local_0_start)
+
+ctypedef ptrdiff_t (*fftw_mpi_generic_local_size_many_transposed)(
+    int rnk, const ptrdiff_t *n,
+    ptrdiff_t howmany,
+    ptrdiff_t block0, ptrdiff_t block1,
+    MPI_Comm comm,
+    ptrdiff_t *local_n0,
+    ptrdiff_t *local_0_start,
+    ptrdiff_t *local_n1,
+    ptrdiff_t *local_1_start)
+
+ctypedef ptrdiff_t (*fftw_mpi_generic_local_size_many_1d)(
+    ptrdiff_t n0, ptrdiff_t howmany,
+    MPI_Comm comm, int sign, unsigned flags,
+    ptrdiff_t *local_ni,
+    ptrdiff_t *local_i_start,
+    ptrdiff_t *local_no,
+    ptrdiff_t *local_o_start)
+
 ctypedef object (*fftw_mpi_generic_local_size)(
                     int rnk, const ptrdiff_t *n, ptrdiff_t howmany,
                     ptrdiff_t block0, ptrdiff_t block1, MPI_Comm comm,

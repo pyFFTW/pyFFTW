@@ -15,9 +15,6 @@ from ._version import version
 
 from .pyfftw import (
         FFTW,
-        FFTW_MPI,
-        create_mpi_plan,
-        local_size,
         export_wisdom,
         import_wisdom,
         forget_wisdom,
@@ -25,6 +22,15 @@ from .pyfftw import (
         n_byte_align_empty,
         n_byte_align,
         is_n_byte_aligned,)
+
+try:
+    from .pyfftw import (
+        FFTW_MPI,
+        create_mpi_plan,
+        local_size,
+        supported_mpi_types)
+except ImportError:
+    pass
 
 from . import builders
 from . import interfaces

@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pyfftw import FFTW, FFTW_MPI, create_mpi_plan, local_size, n_byte_align_empty, simd_alignment
+# TODO skip all tests if FFTW_MPI doesn't exist but FFTW does
+from pyfftw import FFTW, FFTW_MPI, create_mpi_plan, local_size, n_byte_align_empty, simd_alignment, supported_mpi_types
 from mpi4py import MPI
 import numpy as np
 import unittest
@@ -406,6 +407,7 @@ class MPITest(unittest.TestCase):
             self.assertEqual(forward_plan.get_output_array(1).shape, delta_fct.shape)
             np.testing.assert_allclose(forward_plan.get_output_array(1), delta_fct, atol=1e-10, **msg)
 
+    @unittest.skipIf('32' not in supported_mpi_types, 'only single precision')
     def test_r2c_inplace(self):
         # large but random data with *equal* dimensions
         input_shape = [100] * 2 #[20, 60]
@@ -416,6 +418,7 @@ class MPITest(unittest.TestCase):
         kwargs = dict(input_dtype=input_dtype,
                   output_chunk='INPUT',
                   direction='FFTW_FORWARD', flags=['FFTW_ESTIMATE',])
+
         fplan = create_mpi_plan(input_shape, **kwargs)
         # fplan()
         self.assertEqual(fplan.input_array.dtype, input_dtype)
@@ -434,6 +437,7 @@ class MPITest(unittest.TestCase):
             self.assertEqual(fplan_tr.local_output_shape[-1], 100)
 
     # TODO fails with shape [700] * 3
+    @unittest.skipIf('32' not in supported_mpi_types, 'only single precision')
     def test_threads(self):
         input_shape = [200] * 3
         input_dtype = np.dtype('float32')
