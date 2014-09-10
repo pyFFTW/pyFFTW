@@ -26,7 +26,6 @@ IF HAVE_LONG_MPI:
     fftwl_mpi_init()
     supported_mpi_types.append('ld')
 
-_build_mpi_local_size()
 _build_distributor_list()
 _build_mpi_executor_list()
 _build_mpi_planner_list()
@@ -43,9 +42,22 @@ cdef  _fftw_mpi_local_size_many(
             ptrdiff_t *local_n1, ptrdiff_t *local_1_start,
             int sign, unsigned int flags):
 
-    cdef ptrdiff_t local_size = _fftw_mpi_generic_local_size_many(rank, n, howmany,
-                                                                  block0, comm,
-                                                                  local_n0, local_0_start)
+    cdef ptrdiff_t local_size
+    IF HAVE_DOUBLE_MPI:
+        local_size = fftw_mpi_local_size_many(rank, n, howmany,
+                                                         block0, comm,
+                                                         local_n0, local_0_start)
+    ELIF HAVE_SINGLE_MPI:
+        local_size = fftwf_mpi_local_size_many(rank, n, howmany,
+                                                          block0, comm,
+                                                          local_n0, local_0_start)
+    ELIF HAVE_LONG_MPI:
+        local_size = fftwl_mpi_local_size_many(rank, n, howmany,
+                                                          block0, comm,
+                                                          local_n0, local_0_start)
+    ELSE:
+        raise NotImplementedError('Could not find any FFTW library that implements fftw*_mpi_local_size_many')
+
 
     return local_size, local_n0[0], local_0_start[0]
 
@@ -57,9 +69,22 @@ cdef _fftw_mpi_local_size_many_transposed(
             ptrdiff_t *local_n1, ptrdiff_t *local_1_start,
             int sign, unsigned int flags):
 
-    cdef ptrdiff_t local_size = _fftw_mpi_generic_local_size_transposed(rank, n, howmany, block0, block1,
-                                                                        comm, local_n0, local_0_start,
-                                                                        local_n1, local_1_start)
+    cdef ptrdiff_t local_size
+    IF HAVE_DOUBLE_MPI:
+        local_size = fftw_mpi_local_size_many_transposed(rank, n, howmany, block0, block1,
+                                                         comm, local_n0, local_0_start,
+                                                         local_n1, local_1_start)
+    ELIF HAVE_SINGLE_MPI:
+        local_size = fftwf_mpi_local_size_many_transposed(rank, n, howmany, block0, block1,
+                                                          comm, local_n0, local_0_start,
+                                                          local_n1, local_1_start)
+    ELIF HAVE_LONG_MPI:
+        local_size = fftwl_mpi_local_size_many_transposed(rank, n, howmany, block0, block1,
+                                                          comm, local_n0, local_0_start,
+                                                          local_n1, local_1_start)
+    ELSE:
+        raise NotImplementedError('Could not find any FFTW library that implements fftw*_mpi_local_size_many_transposed')
+
     return local_size, local_n0[0], local_0_start[0], local_n1[0], local_1_start[0]
 
 # d=1
@@ -70,9 +95,21 @@ cdef object _fftw_mpi_local_size_many_1d(
             ptrdiff_t *local_no, ptrdiff_t *local_o_start,
             int sign, unsigned int flags):
 
-    cdef ptrdiff_t local_size = _fftw_mpi_generic_local_size_1d(n[0], howmany, comm, sign, flags,
-                                                local_ni, local_i_start,
-                                                local_no, local_o_start)
+    cdef ptrdiff_t local_size
+    IF HAVE_DOUBLE_MPI:
+        local_size = fftw_mpi_local_size_many_1d(n[0], howmany, comm, sign, flags,
+                                                 local_ni, local_i_start,
+                                                 local_no, local_o_start)
+    ELIF HAVE_SINGLE_MPI:
+        local_size = fftwf_mpi_local_size_many_1d(n[0], howmany, comm, sign, flags,
+                                                  local_ni, local_i_start,
+                                                  local_no, local_o_start)
+    ELIF HAVE_LONG_MPI:
+        local_size = fftwl_mpi_local_size_many_1d(n[0], howmany, comm, sign, flags,
+                                                  local_ni, local_i_start,
+                                                  local_no, local_o_start)
+    ELSE:
+        raise NotImplementedError('Could not find any FFTW library that implements fftw*_mpi_local_size_many_1d')
 
     return local_size, local_ni[0], local_i_start[0], local_no[0], local_o_start[0]
 
@@ -451,28 +488,6 @@ cdef fftw_mpi_generic_local_size * _build_distributor_list():
     distributors[1] = <fftw_mpi_generic_local_size> &_fftw_mpi_local_size_many_transposed
     distributors[2] = <fftw_mpi_generic_local_size> &_fftw_mpi_local_size_many_1d
 
-cdef fftw_mpi_generic_local_size_many _fftw_mpi_generic_local_size_many = NULL
-cdef fftw_mpi_generic_local_size_many_transposed _fftw_mpi_generic_local_size_transposed = NULL
-cdef fftw_mpi_generic_local_size_many_1d _fftw_mpi_generic_local_size_1d = NULL
-
-cdef void _build_mpi_local_size():
-    IF HAVE_DOUBLE_MPI:
-        _fftw_mpi_generic_local_size_many = <fftw_mpi_generic_local_size_many> &fftw_mpi_local_size_many
-        _fftw_mpi_generic_local_size_transposed = <fftw_mpi_generic_local_size_many_transposed> &fftw_mpi_local_size_transposed
-        _fftw_mpi_generic_local_size_1d = <fftw_mpi_generic_local_size_many_1d> &fftw_mpi_local_size_1d
-
-    ELIF HAVE_SINGLE_MPI:
-        _fftw_mpi_generic_local_size_many = <fftw_mpi_generic_local_size_many> &fftwf_mpi_local_size_many
-        _fftw_mpi_generic_local_size_transposed = <fftw_mpi_generic_local_size_many_transposed> &fftwf_mpi_local_size_transposed
-        _fftw_mpi_generic_local_size_1d = <fftw_mpi_generic_local_size_many_1d> &fftwf_mpi_local_size_1d
-
-    ELIF HAVE_LONG_MPI:
-        _fftw_mpi_generic_local_size_many = <fftw_mpi_generic_local_size_many> &fftwl_mpi_local_size_many
-        _fftw_mpi_generic_local_size_transposed = <fftw_mpi_generic_local_size_many_transposed> &fftwl_mpi_local_size_transposed
-        _fftw_mpi_generic_local_size_1d = <fftw_mpi_generic_local_size_many_1d> &fftwl_mpi_local_size_1d
-    ELSE:
-        raise NotImplementedError('Could not find any FFTW library that implements fftw*_mpi_local_size_many')
-
 # Planner table (of size the number of planners).
 cdef fftw_mpi_generic_plan mpi_planners[12]
 
@@ -807,6 +822,7 @@ def create_mpi_plan(input_shape, input_chunk=None, input_dtype=None,
     ``plan(*args, *kwargs)``.
 
     '''
+
     # common arguments in function calls are checked there
     kwargs = dict(n_transforms=howmany,
                   block0=block0, block1=block1, flags=flags,

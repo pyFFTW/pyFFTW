@@ -15,18 +15,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# TODO skip all tests if FFTW_MPI doesn't exist but FFTW does
-from pyfftw import FFTW, FFTW_MPI, create_mpi_plan, local_size, n_byte_align_empty, simd_alignment, supported_mpi_types
-from mpi4py import MPI
-import numpy as np
-import unittest
-from timeit import Timer
+try:
+    from pyfftw import FFTW, FFTW_MPI, create_mpi_plan, local_size, n_byte_align_empty, simd_alignment, supported_mpi_types
+    from mpi4py import MPI
 
-# MPI
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-master = (rank == 0)
-msg = dict(err_msg='Error on rank %d' % rank)
+    # MPI
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    master = (rank == 0)
+    msg = dict(err_msg='Error on rank %d' % rank)
+
+    mpi_import_failed = False
+except ImportError:
+    mpi_import_failed = True
+
+import unittest
+import numpy as np
+from timeit import Timer
 
 np.set_printoptions(precision=3, linewidth=120)
 
@@ -69,7 +74,10 @@ class MPITest(unittest.TestCase):
     using the MPI version of FFTW
     '''
     def setUp(self):
-        # data shape definition
+        if mpi_import_failed:
+            self.skipTest('FFTW MPI does not exist')
+
+         # data shape definition
         self.dim = 3
         self.N = global_N
 
@@ -120,8 +128,9 @@ class MPITest(unittest.TestCase):
         if nres == 3:
             return
 
-    @unittest.skipIf(comm.Get_size() > 1, 'only for a single process')
     def test_local_size(self):
+        if comm.Get_size() > 1:
+            self.skipTest('only for a single process')
         ###
         # valid arguments
         ###
@@ -145,8 +154,10 @@ class MPITest(unittest.TestCase):
         # fftw_mpi_local_size_many_1d
         self.validate_local_size_result(local_size(input_shape=(self.N,)), 5, dim=1)
 
-    @unittest.skipIf(global_N % comm.Get_size(), 'Predict FFTW MPI share only if %d divisible by number of processes' % global_N)
     def test_create_mpi_plan(self):
+        if global_N % comm.Get_size():
+            self.skipTest('Predict FFTW MPI share only if %d divisible by number of processes' % global_N)
+
         # 3d r2c
         plan = create_mpi_plan(input_shape=(self.N, self.N, self.N), input_dtype='float64', output_dtype='complex128')
         n_out = self.N // 2 + 1
@@ -185,29 +196,11 @@ class MPITest(unittest.TestCase):
             with self.assertRaises(NotImplementedError):
                 plan = create_mpi_plan(input_shape=(self.N,), input_dtype=i, output_dtype=o)
 
-    @unittest.skip('test serial only for communication with Margarita')
-    def test_serial(self):
-        b = n_byte_align_empty((self.N, self.N, self.N // 2 + 1), simd_alignment, dtype=self.output_dtype)
-        fft_object = FFTW(self.a, b, direction='FFTW_FORWARD', flags=('FFTW_ESTIMATE',), axes=range(self.a.ndim))
-        create_data(self.a)
-        fft_object()
-
-        with file('transform.txt', 'w') as outfile:
-            outfile.write('# Array shape: {0}\n'.format(b.shape))
-
-            for slice in b:
-                np.savetxt(outfile, slice, fmt='%.4f')
-                outfile.write('# New slice\n')
-        print(b[0,0:2,0])
-
-        data = np.ones((2,2))
-        res = np.fft.rfftn(data)
-        print(data)
-        print(res)
-
     # compute forward and backward complex transform of constant array
-    @unittest.skipIf(comm.Get_size() > 1, 'only for a single process')
     def test_basic(self):
+        if comm.Get_size() > 1:
+            self.skipTest('only for a single process')
+
         input_shape = tuple([self.N] * 3)
         input_dtype = 'complex128'
         output_dtype = 'complex128'
@@ -317,8 +310,10 @@ class MPITest(unittest.TestCase):
 
         # TODO hangs with 7 processes
 
-    @unittest.skipIf(comm.Get_size() > 1, 'only for a single process')
     def test_c2c(self):
+        if comm.Get_size() > 1:
+            self.skipTest('only for a single process')
+
         forward_flags = ('FFTW_ESTIMATE',)
         input_shape  = (6, 3)
         output_shape = input_shape
@@ -359,8 +354,6 @@ class MPITest(unittest.TestCase):
         # complex data
         global_data = np.array([i - 3.j * i for i in range(np.prod(input_shape))]).reshape(*input_shape)
         global_target = np.fft.fftn(global_data)
-        # if master:
-        #     print global_target
 
         kwargs = dict(input_dtype=dtype, output_dtype=dtype, howmany=2,
                       direction='FFTW_FORWARD',
@@ -407,8 +400,9 @@ class MPITest(unittest.TestCase):
             self.assertEqual(forward_plan.get_output_array(1).shape, delta_fct.shape)
             np.testing.assert_allclose(forward_plan.get_output_array(1), delta_fct, atol=1e-10, **msg)
 
-    @unittest.skipIf('32' not in supported_mpi_types, 'only single precision')
     def test_r2c_inplace(self):
+        if '32' not in supported_mpi_types:
+            self.skipTest('single precision not build')
         # large but random data with *equal* dimensions
         input_shape = [100] * 2 #[20, 60]
         input_dtype = np.dtype('float32')
@@ -437,8 +431,9 @@ class MPITest(unittest.TestCase):
             self.assertEqual(fplan_tr.local_output_shape[-1], 100)
 
     # TODO fails with shape [700] * 3
-    @unittest.skipIf('32' not in supported_mpi_types, 'only single precision')
     def test_threads(self):
+        if '32' not in supported_mpi_types:
+            self.skipTest('single precision not build')
         input_shape = [200] * 3
         input_dtype = np.dtype('float32')
         output_dtype = np.dtype('complex64')
@@ -566,6 +561,7 @@ class MPITest(unittest.TestCase):
             np.testing.assert_allclose(o, data[bplan.output_slice], **msg)
 
     def test_1d(self):
+
         # only c2c implemented
         N = 50
         p = create_mpi_plan(N, input_dtype='complex128',
@@ -622,9 +618,6 @@ class MPITest(unittest.TestCase):
 
         p()
 
-        # if master:
-        #     print p.get_output_array()
-
         b = create_mpi_plan(N, input_chunk=p.output_chunk,
                             output_dtype='complex128',
                             direction='FFTW_BACKWARD',
@@ -639,9 +632,9 @@ class MPITest(unittest.TestCase):
 
 if __name__ == '__main__':
     '''Start as mpirun -n 4 python test_pyfftw_mpi.py'''
-    unittest.main()
+    unittest.main(verbosity=2)
 
 # compile-command: "cd ../ && CC=mpicc python setup.py build_ext --inplace && cd test && mpirun -n 1 python -m unittest test_pyfftw_mpi.MPITest.test_c2c"
 # Local Variables:
-# compile-command: "cd ../ && rm pyfftw/pyfftw.c; CC=mpicc python setup.py build_ext --inplace && mpirun -n 2 python test/test_pyfftw_mpi.py"
+# compile-command: "cd ../ && rm pyfftw/pyfftw.c ; CC=mpicc python setup.py build_ext --inplace && mpirun -n 1 python test/test_pyfftw_mpi.py"
 # End:
