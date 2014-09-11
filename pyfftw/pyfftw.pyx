@@ -490,12 +490,13 @@ scheme_functions = {
 cdef void _cleanup():
     # TODO tight coupling with non-MPI code
     # TODO mpi_cleanup() includes serial clean up
-    IF HAVE_DOUBLE_MPI:
-        fftw_mpi_cleanup()
-    IF HAVE_SINGLE_MPI:
-        fftwf_mpi_cleanup()
-    IF HAVE_LONG_MPI:
-        fftwl_mpi_cleanup()
+    IF HAVE_MPI:
+        IF HAVE_DOUBLE_MPI:
+            fftw_mpi_cleanup()
+        IF HAVE_SINGLE_MPI:
+            fftwf_mpi_cleanup()
+        IF HAVE_LONG_MPI:
+            fftwl_mpi_cleanup()
 
     fftw_cleanup()
     fftwf_cleanup()

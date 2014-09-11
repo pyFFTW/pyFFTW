@@ -19,13 +19,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from distutils.core import setup, Command
+from distutils import log
 from distutils.extension import Extension
 from distutils.util import get_platform
 from distutils.ccompiler import get_default_compiler, new_compiler
 from distutils.errors import CompileError, LinkError
+from distutils.sysconfig import customize_compiler
 
 import os
-import mpi4py
 import numpy
 import sys
 
@@ -43,14 +44,13 @@ finally:
 
 version = _version.version
 
+# 0=minimal output, 2=maximum debug
+log.set_verbosity(0)
+
 # todo check latest cython doc at sage server on best practice for
 #      building. I think cythonize is the way to go; it seems to
 #      be only way to pass macros from setup.py into cython for
 #      conditional compilation
-
-# TODO read option from command line
-#      http://stackoverflow.com/questions/677577/distutils-how-to-pass-a-user-defined-parameter-to-setup-py
-use_mpi = 0
 
 try:
     from Cython.Distutils import build_ext as build_ext
@@ -63,165 +63,6 @@ except ImportError as e:
 
     # We can't cythonize, but that's ok as it's been done already.
     from distutils.command.build_ext import build_ext
-
-class LibraryChecker:
-    '''Container for libraries that checks their existence.
-
-    :param exclude:
-
-        Iterable of strings; pass packages to ignore in here. Example: exclude=('DOUBLE_MPI', 'SINGLE_MPI', 'LONG_MPI', 'QUAD_MPI')
-
-    '''
-    def __init__(self, exclude=None):
-        self.include_dirs = [os.path.join(os.getcwd(), 'include'),
-                             os.path.join(os.getcwd(), 'pyfftw'),
-                             numpy.get_include()]
-        if use_mpi:
-            self.include_dirs.append(mpi4py.get_include())
-
-        self.libraries = []
-        self.library_dirs = []
-        self.package_data = {} # why package data only updated for windows?
-        self.compile_time_env = {}
-
-        # construct checks
-        # self.data['HAVE_SINGLE_THREADS'] = ['fftw3f_threads', 'fftwf_init_threads']
-        self.data = {}
-
-        data_types = ('DOUBLE', 'SINGLE', 'LONG', 'QUAD')
-        data_types_short = ('', 'f', 'l', 'q')
-        lib_types = ('', '_MPI', '_THREADS', '_OMP')
-        functions = ('plan_dft', 'mpi_init', 'init_threads', 'init_threads')
-
-        for f, l in zip(functions, lib_types):
-            for d, s in zip(data_types, data_types_short):
-                self.data['HAVE_' + d + l] = ['fftw3' + s + l.lower(), 'fftw' + s + '_' + f]
-
-        if get_platform() in ('win32', 'win-amd64'):
-            # self.libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
-            for k, v in self.data.iteritems():
-                # fftw3 -> libfftw3-3
-                v[0] = 'lib' + v[0] + '-3'
-            self.include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
-            self.library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
-            # TODO fix package data *after* we know which libraries exist
-            # self.package_data['pyfftw'] = [lib + '.dll' for lib in self.libraries]
-            # TODO What about thread libraries on windows?
-            # TODO mpi support missing and untested on windows
-
-        # now check library existence by linking. If the linker can't find it, we don't have it
-        self.compiler = new_compiler(verbose=1)
-
-        for macro, (lib, function) in self.data.iteritems():
-            if exclude is not None and macro[5:] in exclude:
-                exists = False
-            else:
-                # print macro, lib, function
-                with stdchannel_redirected(sys.stderr, os.devnull):
-                    exists = self.has_function(function, libraries=(lib,),
-                                                   include_dirs=self.include_dirs,
-                                                   library_dirs=self.library_dirs)
-            if exists:
-                self.libraries.append(lib)
-            self.compile_time_env[macro] = exists
-
-        # optional packages summary: True if exists for any of the data types
-        for l in lib_types[1:]:
-            self.compile_time_env['HAVE' + l] = False
-            for d in data_types:
-                self.compile_time_env['HAVE' + l] |= self.compile_time_env['HAVE_' + d + l]
-
-        # required package: FFTW itself
-        have_fftw = False
-        for d in data_types:
-            have_fftw |= self.compile_time_env['HAVE_' + d]
-
-        if not have_fftw:
-            raise RuntimeError("Cannot find any basic FFTW library")
-
-    def has_function(self, function, includes=None, libraries=None, include_dirs=None, library_dirs=None):
-        '''Alternative implementation of distutils.ccompiler.has_function that deletes the output and works reliably.'''
-
-        if includes is None:
-            includes = []
-        if libraries is None:
-            libraries = []
-        if include_dirs is None:
-            include_dirs = []
-        if library_dirs is None:
-            library_dirs = []
-
-        print "Checking for", function, "in", libraries, "..",
-
-        import tempfile, shutil
-        tmpdir = tempfile.mkdtemp(prefix='pyfftw-')
-        devnull = oldstderr = None
-        try:
-            try:
-                fname = os.path.join(tmpdir, '%s.c' % function)
-                f = open(fname, 'w')
-                for inc in includes:
-                    f.write('#include <%s>\n' % inc)
-                f.write('int main(void) {\n')
-                f.write('    %s();\n' % function)
-                f.write('}\n')
-            finally:
-                f.close()
-            try:
-                objects = self.compiler.compile([fname], output_dir=tmpdir, include_dirs=include_dirs)
-            except CompileError:
-                print 'no'
-                return False
-            except Exception as e:
-                print 'Compilation failed'
-                print e
-                return False
-            try:
-                self.compiler.link_executable(objects,
-                                              os.path.join(tmpdir, "a.out"),
-                                              libraries=libraries,
-                                              library_dirs=library_dirs)
-            except LinkError:
-                print 'no'
-                return False
-            except Exception as e:
-                print 'Linking failed'
-                print e
-                return False
-            # no error, seems to work
-            print 'ok'
-            return True
-        finally:
-            shutil.rmtree(tmpdir)
-
-class custom_build_ext(build_ext):
-    def finalize_options(self):
-
-        build_ext.finalize_options(self)
-
-        if self.compiler is None:
-            compiler = get_default_compiler()
-        else:
-            compiler = self.compiler
-
-        if compiler == 'msvc':
-            # Add msvc specific hacks
-
-            if (sys.version_info.major, sys.version_info.minor) < (3, 3):
-                # The check above is a nasty hack. We're using the python
-                # version as a proxy for the MSVC version. 2008 doesn't
-                # have stdint.h, so is needed. 2010 does.
-                #
-                # We need to add the path to msvc includes
-                include_dirs.append(os.path.join(os.getcwd(),
-                    'include', 'msvc_2008'))
-
-            # We need to prepend lib to all the library names
-            _libraries = []
-            for each_lib in self.libraries:
-                _libraries.append('lib' + each_lib)
-
-            self.libraries = _libraries
 
 # check what's available
 import contextlib
@@ -252,9 +93,199 @@ def stdchannel_redirected(stdchannel, dest_filename):
         if dest_file is not None:
             dest_file.close()
 
-checker = LibraryChecker()
+class LibraryChecker:
+    '''Container for libraries that checks their existence.
 
-print checker.compile_time_env
+    :param exclude:
+
+        Iterable of strings; pass packages to ignore in here. Example: exclude=('DOUBLE_MPI', 'SINGLE_MPI', 'LONG_MPI', 'QUAD_MPI')
+
+    '''
+    def __init__(self, exclude=None):
+        self.include_dirs = [os.path.join(os.getcwd(), 'include'),
+                             os.path.join(os.getcwd(), 'pyfftw'),
+                             numpy.get_include()]
+        self.libraries = []
+        self.library_dirs = []
+        self.package_data = {} # why package data only updated for windows?
+        self.compile_time_env = {}
+
+        # construct checks
+        # self.data['HAVE_SINGLE_THREADS'] = ['fftw3f_threads', 'fftwf_init_threads']
+        self.data = {}
+
+        # now check library existence by linking. If the linker can't find it, we don't have it
+        # create compiler and customize with environment variables
+        self.compiler = new_compiler()
+        customize_compiler(self.compiler)
+
+        have_mpi_h = self.check_mpi()
+        if have_mpi_h:
+            try:
+                import mpi4py
+                self.include_dirs.append(mpi4py.get_include())
+            except ImportError:
+                print("Could not import mpi4py. Skipping support for FFTW MPI.")
+                have_mpi_h = False
+
+        data_types = ['DOUBLE', 'SINGLE', 'LONG', 'QUAD']
+        data_types_short = ['', 'f', 'l', 'q']
+        lib_types = ['', '_THREADS', '_OMP']
+        functions = ['plan_dft', 'init_threads', 'init_threads']
+        if have_mpi_h:
+            lib_types.append('_MPI')
+            functions.append('mpi_init')
+
+        for f, l in zip(functions, lib_types):
+            for d, s in zip(data_types, data_types_short):
+                self.data['HAVE_' + d + l] = ['fftw3' + s + l.lower(), 'fftw' + s + '_' + f]
+
+        if get_platform() in ('win32', 'win-amd64'):
+            # self.libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
+            for k, v in self.data.iteritems():
+                # fftw3 -> libfftw3-3
+                v[0] = 'lib' + v[0] + '-3'
+            self.include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
+            self.library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
+            # TODO fix package data *after* we know which libraries exist
+            # self.package_data['pyfftw'] = [lib + '.dll' for lib in self.libraries]
+            # TODO What about thread libraries on windows?
+            # TODO mpi support missing and untested on windows
+
+        for macro, (lib, function) in self.data.iteritems():
+            if exclude is not None and macro[5:] in exclude:
+                exists = False
+            else:
+                # print macro, lib, function
+                with stdchannel_redirected(sys.stderr, os.devnull):
+                    exists = self.has_function(function, libraries=(lib,),
+                                                   include_dirs=self.include_dirs,
+                                                   library_dirs=self.library_dirs)
+            if exists:
+                self.libraries.append(lib)
+            self.compile_time_env[macro] = exists
+
+        # optional packages summary: True if exists for any of the data types
+        for l in lib_types[1:]:
+            self.compile_time_env['HAVE' + l] = False
+            for d in data_types:
+                self.compile_time_env['HAVE' + l] |= self.compile_time_env['HAVE_' + d + l]
+        # compile only if mpi.h *and* one of the fftw mpi libraries are found
+        if have_mpi_h and self.compile_time_env['HAVE_MPI']:
+            found_mpi_types = []
+            for d in data_types:
+                if self.compile_time_env['HAVE_' + d + '_MPI']:
+                    found_mpi_types.append(d)
+
+            print("Enabling mpi support for " + str(found_mpi_types))
+        else:
+            self.compile_time_env['HAVE_MPI'] = False
+
+        # required package: FFTW itself
+        have_fftw = False
+        for d in data_types:
+            have_fftw |= self.compile_time_env['HAVE_' + d]
+
+        if not have_fftw:
+            raise RuntimeError("Cannot find any basic FFTW library")
+
+    def check_mpi(self):
+        with stdchannel_redirected(sys.stderr, os.devnull):
+            exists = self.has_function(r'void hello', includes=('mpi.h',),
+                                       include_dirs=self.include_dirs,
+                                       library_dirs=self.library_dirs)
+        return exists
+
+    def has_function(self, function, includes=None, libraries=None, include_dirs=None, library_dirs=None):
+        '''Alternative implementation of distutils.ccompiler.has_function that deletes the output and works reliably.'''
+
+        if includes is None:
+            includes = []
+        if libraries is None:
+            libraries = []
+        if include_dirs is None:
+            include_dirs = []
+        if library_dirs is None:
+            library_dirs = []
+
+        msg = "Checking for %s" % function
+        if libraries:
+            msg += " in " + str(libraries)
+        if includes:
+            msg += " with includes " + str(includes)
+        msg += "..."
+
+        import tempfile, shutil
+        tmpdir = tempfile.mkdtemp(prefix='pyfftw-')
+        devnull = oldstderr = None
+        try:
+            try:
+                fname = os.path.join(tmpdir, '%s.c' % function)
+                f = open(fname, 'w')
+                for inc in includes:
+                    f.write('#include <%s>\n' % inc)
+                f.write('int main(void) {\n')
+                f.write('    %s();\n' % function)
+                f.write('}\n')
+            finally:
+                f.close()
+            try:
+                objects = self.compiler.compile([fname], output_dir=tmpdir, include_dirs=include_dirs)
+            except CompileError:
+                return False
+            except Exception as e:
+                log.info(e)
+                return False
+            try:
+                self.compiler.link_executable(objects,
+                                              os.path.join(tmpdir, "a.out"),
+                                              libraries=libraries,
+                                              library_dirs=library_dirs)
+            except LinkError:
+                return False
+            except Exception as e:
+                print 'Linking failed'
+                print e
+                return False
+            # no error, seems to work
+            log.info(msg + "ok")
+            return True
+        finally:
+            pass
+            shutil.rmtree(tmpdir)
+            log.info(msg + "no")
+
+checker = LibraryChecker()
+log.debug(checker.compile_time_env)
+
+class custom_build_ext(build_ext):
+    def finalize_options(self):
+
+        build_ext.finalize_options(self)
+
+        if self.compiler is None:
+            compiler = get_default_compiler()
+        else:
+            compiler = self.compiler
+
+        if compiler == 'msvc':
+            # Add msvc specific hacks
+
+            if (sys.version_info.major, sys.version_info.minor) < (3, 3):
+                # The check above is a nasty hack. We're using the python
+                # version as a proxy for the MSVC version. 2008 doesn't
+                # have stdint.h, so is needed. 2010 does.
+                #
+                # We need to add the path to msvc includes
+                include_dirs.append(os.path.join(os.getcwd(),
+                    'include', 'msvc_2008'))
+
+            # We need to prepend lib to all the library names
+            _libraries = []
+            for each_lib in self.libraries:
+                _libraries.append('lib' + each_lib)
+
+            self.libraries = _libraries
 
 # recompile if any of these files are modified
 dependencies = [os.path.join('pyfftw', f) for f in ('pyfftw.pxd', 'mpi.pxd', 'mpi.pxi', 'utils.pxi')]
@@ -266,6 +297,9 @@ ext_modules = [Extension('pyfftw.pyfftw',
                          include_dirs=checker.include_dirs,
                          extra_compile_args=['-Wno-maybe-uninitialized'],
                          depends=dependencies)]
+
+# TODO only use cythonize to pass macros in compile_time_env to the source compilation.
+# if we can do it with standard macros, try that!
 
 from Cython.Build import cythonize
 ext_modules = cythonize(ext_modules, compile_time_env=checker.compile_time_env)
@@ -348,5 +382,6 @@ setup_args = {
 if __name__ == '__main__':
     setup(**setup_args)
 
-# compile-command: CC=mpicc python setup.py build_ext -i
+# Local variables:
+# compile-command: "CC=mpicc python setup.py build_ext -i"
 # End:

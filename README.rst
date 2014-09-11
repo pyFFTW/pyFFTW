@@ -80,24 +80,37 @@ Building the MPI branch
 This has only been tested on Ubuntu 13.10. With sudo priviledges,
 * install the openmpi environment, you need the MPI wrapper for the GNU C compiler, ``mpicc``
 * install the FFTW library with MPI support
-* clone the repository from github as described above
-* switch to the mpi branch
-* build ``CC=mpicc python setup.py build_ext --inplace``
+
+Then
+* clone the repository from github as described above,
+* switch to the mpi branch,
+* build ``CC=mpicc python setup.py build_ext --inplace``, if `mpicc`
+  is the mpi wrapper for the C compiler you wish to use.
+* make sure that setup.py confirms mpi support; example output:
+  `Enabling mpi support for ['DOUBLE', 'SINGLE', 'LONG']`. If not,
+  enter the setup.py and increase the verbosity:
+  `log.set_verbosity(2)`, then run `setup.py` again and diagnose the
+  output. If only the linking fails, adjusting `LDSHARED=mpicc` in
+  addition to `CC` might help. Other useful variables to configure the
+  compilation/linking include `'CC', 'CXX', 'OPT', 'CFLAGS',
+  'EXTRA_CFLAGS', 'BASECFLAGS', 'CCSHARED', 'LDSHARED', 'SO', 'AR',
+  'ARFLAGS', 'CONFIGURE_CPPFLAGS', 'CONFIGURE_CFLAGS',
+  'CONFIGURE_LDFLAGS'`.
 * now you have a local package in ``pyfftw/``. If you want to install
   a symbolic link to it such that you can use it from other places as
   well while also modifying the source code and rebuilding it, do
-  ``pip install --user -e .`` once.
+  ``pip install --user -e .`` once,
 * if the build fails, have a look at setup.py. You might need to tell
   it where to find the MPI specific libraries ``fftw3_mpi``,
-  ``fftw3f_mpi``, ``fftw3l_mpi``
+  ``fftw3f_mpi``, ``fftw3l_mpi``,
 * to build the documentation ``CC=mpicc python setup.py
   build_ext --inplace && touch pyfftw/pyfftw.rst && make html``.  The
   ``touch`` is needed as sphinx otherwise does not extract the doc
-  strings from the cython code
+  strings from the cython code,
 * run the MPI unittests with ``mpirun``: Go to ``test/``, then run
   ``cd ../ && CC=mpicc python setup.py build_ext --inplace && cd test
   && mpirun -n 2 python -m unittest test_pyfftw_mpi.MPITest.test_c2c``
-  To run all tests, omit ``.test_c2c``.
+  To run all MPI tests, just ``mpirun -n 2 python test_pyfftw_mpi.py``.
 
 Platform specific build info
 ----------------------------
@@ -128,4 +141,3 @@ Mac OSX
 ~~~~~~~
 
 It has been suggested that FFTW should be installed from `macports <http://www.macports.org/>`_.
-
