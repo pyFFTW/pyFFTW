@@ -308,8 +308,6 @@ class MPITest(unittest.TestCase):
         if backward_plan.local_output_shape:
             np.testing.assert_equal(backward_plan.get_output_array(), input_data)
 
-        # TODO hangs with 7 processes
-
     def test_c2c(self):
         if comm.Get_size() > 1:
             self.skipTest('only for a single process')
@@ -377,7 +375,7 @@ class MPITest(unittest.TestCase):
             forward_plan.get_input_array(1)[:] = 1.
 
         if forward_plan.local_output_shape:
-            print 'rank', rank, forward_plan.local_output_shape
+            # print 'rank', rank, forward_plan.local_output_shape
             delta_fct = np.zeros_like(forward_plan.get_output_array(1))
             # only one rank has the delta component;
             # everything else is zero
@@ -407,19 +405,20 @@ class MPITest(unittest.TestCase):
         input_shape = [100] * 2 #[20, 60]
         input_dtype = np.dtype('float32')
         output_dtype = np.dtype('complex64')
-        # flags = ('FFTW_ESTIMATE', 'FFTW_MPI_TRANSPOSED_OUT')
+
         flags = ['FFTW_ESTIMATE']
         kwargs = dict(input_dtype=input_dtype,
                   output_chunk='INPUT',
                   direction='FFTW_FORWARD', flags=['FFTW_ESTIMATE',])
 
         fplan = create_mpi_plan(input_shape, **kwargs)
-        # fplan()
-        self.assertEqual(fplan.input_array.dtype, input_dtype)
-        self.assertEqual(fplan.output_array.dtype, output_dtype)
+        fplan()
+
         if fplan.has_input:
+            self.assertEqual(fplan.input_array.dtype, input_dtype)
             self.assertEqual(fplan.local_input_shape[-1], 100)
         if fplan.has_output:
+            self.assertEqual(fplan.output_array.dtype, output_dtype)
             self.assertEqual(fplan.local_output_shape[-1], 51)
 
         # transpose should change the output shape only
@@ -427,14 +426,13 @@ class MPITest(unittest.TestCase):
         fplan_tr = create_mpi_plan(fplan.input_shape, **kwargs)
         if fplan_tr.has_input:
             self.assertEqual(fplan_tr.local_input_shape, fplan.local_input_shape)
-        if fplan.has_output:
+        if fplan_tr.has_output:
             self.assertEqual(fplan_tr.local_output_shape[-1], 100)
 
-    # TODO fails with shape [700] * 3
     def test_threads(self):
         if '32' not in supported_mpi_types:
             self.skipTest('single precision not build')
-        input_shape = [200] * 3
+        input_shape = [300] * 3
         input_dtype = np.dtype('float32')
         output_dtype = np.dtype('complex64')
         kwargs = dict(input_dtype=input_dtype,
@@ -450,10 +448,9 @@ class MPITest(unittest.TestCase):
         print 'start serial'
         t = Timer(lambda: fplan())
         print 'serial time', t.timeit(number=1)
-        # print 'end serial'
 
-        target = np.zeros_like(fplan.output_array)
         if fplan.has_output:
+            target = np.zeros_like(fplan.output_array)
             if fplan.local_0_start == 0:
                 # use itemset to access first memory location
                 # regardless of dimensionality
