@@ -101,7 +101,7 @@ suitable `.lib` files as described on the
 
 Mac OSX
 ~~~~~~~
-Install FFTW from homebrew::
+Install FFTW from `homebrew <http://brew.sh>`_::
 
   brew install fftw
 
