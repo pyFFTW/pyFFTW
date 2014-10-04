@@ -114,8 +114,8 @@ Now install pyfftw from pip::
 
   pip install pyfftw
 
-Notes: `pkgin <http://saveosx.org>`_ fftw package does not contain long or float impletations of fftw, 
-and installation will fail.
+Notes: `pkgin <http://saveosx.org>`_ fftw package does not contain the long 
+or float implementations of fftw and so installation will fail.
 
 It has been suggested that `macports <http://www.macports.org/>`_ might also 
 work fine. You should then replace the LD environmental variables above with the 
