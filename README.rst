@@ -101,6 +101,25 @@ suitable `.lib` files as described on the
 
 Mac OSX
 ~~~~~~~
+Install FFTW from homebrew::
 
-It has been suggested that FFTW should be installed from `macports <http://www.macports.org/>`_.
+  brew install fftw
 
+Set temporary environmental variables, such that pyfftw finds fftw::
+
+  export DYLD_LIBRARY_PATH=/usr/local/lib
+  export LDFLAGS="-L/usr/local/include"
+
+Now install pyfftw from pip::
+
+  pip install pyfftw
+
+Notes: `pkgin <http://saveosx.org>`_ fftw package does not contain long or float impletations of fftw, 
+and installation will fail.
+
+It has been suggested that `macports <http://www.macports.org/>`_ might also 
+work fine. You should then replace the LD environmental variables above with the 
+right ones.
+
+- DYLD - path for libfftw3.dylib etc - ``find /usr -name libfftw3.dylib``
+- LDFLAGS - path for fftw3.h - ``find /usr -name fftw3.h``
