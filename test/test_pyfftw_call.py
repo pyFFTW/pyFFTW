@@ -394,6 +394,34 @@ class FFTWCallTest(unittest.TestCase):
         # Scaling is performed by default
         self.assertTrue(numpy.allclose(self.input_array, _input_array))
 
+    def test_call_with_normalisation_precision(self):
+        '''The normalisation should use a double precision scaling.
+        '''
+        # Should be the case for double inputs...
+        _input_array = n_byte_align_empty((256, 512), 16,
+                dtype='complex128')
+
+        ifft = FFTW(self.output_array, _input_array, 
+                direction='FFTW_BACKWARD')
+
+        ref_output = ifft(normalise_idft=False).copy()/numpy.float64(ifft.N)
+        test_output = ifft(normalise_idft=True).copy()
+
+        self.assertTrue(numpy.alltrue(ref_output == test_output))
+
+        # ... and single inputs.
+        _input_array = n_byte_align_empty((256, 512), 16,
+                dtype='complex64')
+
+        ifft = FFTW(numpy.array(self.output_array, _input_array.dtype), 
+                    _input_array, 
+                    direction='FFTW_BACKWARD')
+
+        ref_output = ifft(normalise_idft=False).copy()/numpy.float64(ifft.N)
+        test_output = ifft(normalise_idft=True).copy()
+
+        self.assertTrue(numpy.alltrue(ref_output == test_output))
+
         
 test_cases = (
         FFTWCallTest,)
