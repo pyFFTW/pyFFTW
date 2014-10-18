@@ -21,11 +21,14 @@ from .pyfftw import (
         simd_alignment,
         n_byte_align_empty,
         n_byte_align,
-        is_n_byte_aligned,)
+        is_n_byte_aligned,
+        empty_aligned,
+        ones_aligned,
+        zeros_aligned,
+)
 
 from . import builders
 from . import interfaces
 
 # clean up the namespace
 del builders.builders
-
