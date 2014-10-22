@@ -164,6 +164,52 @@ class TestCommand(Command):
             'unittest', 'discover'])
         raise SystemExit(errno)
 
+class QuickTestCommand(Command):
+    '''Runs a set of test cases that covers a limited set of the 
+    functionality. It is intended that this class be used as a sanity check
+    that everything is loaded and basically working as expected. It is not
+    meant to replace the comprehensive test suite.
+    '''
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+
+        quick_test_cases = [
+            'test.test_pyfftw_complex.Complex64FFTWTest',
+            'test.test_pyfftw_complex.Complex128FFTWTest.test_2d',
+            'test.test_pyfftw_complex.ComplexLongDoubleFFTWTest.test_2d',
+            'test.test_pyfftw_real_forward.RealForwardSingleFFTWTest',
+            'test.test_pyfftw_real_forward.RealForwardDoubleFFTWTest.test_2d',
+            'test.test_pyfftw_real_forward.RealForwardLongDoubleFFTWTest.test_2d',
+            'test.test_pyfftw_real_backward.RealBackwardSingleFFTWTest',
+            'test.test_pyfftw_real_backward.RealBackwardDoubleFFTWTest.test_2d',
+            'test.test_pyfftw_real_backward.RealBackwardLongDoubleFFTWTest.test_2d',
+            'test.test_pyfftw_wisdom',
+            'test.test_pyfftw_utils',
+            'test.test_pyfftw_call',
+            'test.test_pyfftw_class_misc',
+            'test.test_pyfftw_nbyte_align',
+            'test.test_pyfftw_interfaces_cache',
+            'test.test_pyfftw_multithreaded',
+            'test.test_pyfftw_numpy_interface.InterfacesNumpyFFTTestModule',
+            'test.test_pyfftw_numpy_interface.InterfacesNumpyFFTTestFFT2',
+            'test.test_pyfftw_numpy_interface.InterfacesNumpyFFTTestIFFT2',            
+            'test.test_pyfftw_builders.BuildersTestFFTWWrapper',
+            'test.test_pyfftw_builders.BuildersTestFFT2',
+            'test.test_pyfftw_builders.BuildersTestIRFFT2',
+        ]
+
+        import sys, subprocess
+        errno = subprocess.call([sys.executable, '-m', 
+            'unittest'] + quick_test_cases)
+        raise SystemExit(errno)
+
 setup_args = {
         'name': 'pyFFTW',
         'version': version,
@@ -189,7 +235,8 @@ setup_args = {
         'include_dirs': include_dirs,
         'package_data': package_data,
         'cmdclass': {'test': TestCommand,
-            'build_ext': custom_build_ext},
+                     'quick_test': QuickTestCommand,
+                     'build_ext': custom_build_ext},
   }
 
 if __name__ == '__main__':
