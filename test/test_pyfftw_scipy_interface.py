@@ -35,9 +35,17 @@
 from pyfftw.interfaces import scipy_fftpack
 import pyfftw
 import numpy
-import scipy
-import scipy.fftpack
-import scipy.signal
+
+try:
+    import scipy
+    import scipy.fftpack
+    import scipy.signal
+
+except ImportError:
+    scipy_missing = True
+
+else:
+    scipy_missing = False
 
 import unittest
 from .test_pyfftw_base import run_test_suites
@@ -82,6 +90,8 @@ io_dtypes = {
         'r2c': (real_dtypes, make_r2c_real_data),
         'c2r': (real_dtypes, make_c2r_real_data)}
 
+@unittest.skipIf(scipy_missing, 'scipy is not installed, so this feature is'
+                 'unavailable')
 class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
     ''' A really simple test suite to check simple implementation.
     '''
