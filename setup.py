@@ -32,9 +32,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-from distutils.core import setup, Command
-from distutils.extension import Extension
-from distutils.util import get_platform
+from setuptools import setup, Command, Extension
+from pkg_resources import get_build_platform
 from distutils.ccompiler import get_default_compiler
 
 import os
@@ -65,7 +64,7 @@ except ImportError as e:
                 'Cython is required to build the initial .c file.')
 
     # We can't cythonize, but that's ok as it's been done already.
-    from distutils.command.build_ext import build_ext
+    from setuptools.command.build_ext import build_ext
 
 include_dirs = [os.path.join(os.getcwd(), 'include'), 
         os.path.join(os.getcwd(), 'pyfftw'),
@@ -73,7 +72,7 @@ include_dirs = [os.path.join(os.getcwd(), 'include'),
 library_dirs = []
 package_data = {}
 
-if get_platform() in ('win32', 'win-amd64'):
+if get_build_platform() in ('win32', 'win-amd64'):
     libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
     include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
     library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
