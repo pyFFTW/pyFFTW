@@ -45,7 +45,7 @@ finally:
 version = _version.version
 
 # 0=minimal output, 2=maximum debug
-log.set_verbosity(0)
+log.set_verbosity(2)
 
 # todo check latest cython doc at sage server on best practice for
 #      building. I think cythonize is the way to go; it seems to
@@ -111,13 +111,17 @@ class LibraryChecker:
         self.compile_time_env = {}
 
         # construct checks
-        # self.data['HAVE_SINGLE_THREADS'] = ['fftw3f_threads', 'fftwf_init_threads']
         self.data = {}
 
         # now check library existence by linking. If the linker can't find it, we don't have it
         # create compiler and customize with environment variables
-        self.compiler = new_compiler()
-        customize_compiler(self.compiler)
+        self.compiler = customize_compiler(new_compiler())
+
+        # where compiler warnings go
+        if log._global_log.threshold == 0:
+            self.redirect = os.devnull
+        else:
+            self.redirect = sys.stdout
 
         have_mpi_h = self.check_mpi()
         if have_mpi_h:
@@ -152,15 +156,19 @@ class LibraryChecker:
             # TODO What about thread libraries on windows?
             # TODO mpi support missing and untested on windows
 
+        # first check if headers are there
+        if not self.has_header(['fftw3.h'], include_dirs=self.include_dirs):
+            raise CompileError("Could not find the FFTW header 'fftw3.h'")
+
+        log.debug(self.data)
         for macro, (lib, function) in self.data.iteritems():
             if exclude is not None and macro[5:] in exclude:
                 exists = False
             else:
                 # print macro, lib, function
-                with stdchannel_redirected(sys.stderr, os.devnull):
-                    exists = self.has_function(function, libraries=(lib,),
-                                                   include_dirs=self.include_dirs,
-                                                   library_dirs=self.library_dirs)
+                exists = self.has_function(function, libraries=(lib,),
+                                           include_dirs=self.include_dirs,
+                                           library_dirs=self.library_dirs)
             if exists:
                 self.libraries.append(lib)
             self.compile_time_env[macro] = exists
@@ -171,7 +179,7 @@ class LibraryChecker:
             for d in data_types:
                 self.compile_time_env['HAVE' + l] |= self.compile_time_env['HAVE_' + d + l]
         # compile only if mpi.h *and* one of the fftw mpi libraries are found
-        if have_mpi_h and self.compile_time_env['HAVE_MPI']:
+        if have_mpi_h and self.has_header(['fftw3-mpi.h'], include_dirs=self.include_dirs) and self.compile_time_env['HAVE_MPI']:
             found_mpi_types = []
             for d in data_types:
                 if self.compile_time_env['HAVE_' + d + '_MPI']:
@@ -187,7 +195,7 @@ class LibraryChecker:
             have_fftw |= self.compile_time_env['HAVE_' + d]
 
         if not have_fftw:
-            raise RuntimeError("Cannot find any basic FFTW library")
+            raise LinkError("Could not find any of the FFTW libraries")
 
     def check_mpi(self):
         with stdchannel_redirected(sys.stderr, os.devnull):
@@ -216,31 +224,41 @@ class LibraryChecker:
         msg += "..."
 
         import tempfile, shutil
+
         tmpdir = tempfile.mkdtemp(prefix='pyfftw-')
-        devnull = oldstderr = None
         try:
             try:
                 fname = os.path.join(tmpdir, '%s.c' % function)
                 f = open(fname, 'w')
                 for inc in includes:
                     f.write('#include <%s>\n' % inc)
-                f.write('int main(void) {\n')
-                f.write('    %s();\n' % function)
-                f.write('}\n')
+                if function:
+                    f.write('void %s();\n' % function)
+                # f.write('int main(void) {\n')
+                # f.write('    %s();\n' % function)
+                # f.write('}\n')
             finally:
                 f.close()
+                # the root directory
+                file_root = os.path.abspath(os.sep)
             try:
-                objects = self.compiler.compile([fname], output_dir=tmpdir, include_dirs=include_dirs)
+                # output file is stored relative to input file since
+                # the output has the full directory, joining with the
+                # file root gives the right directory
+                with stdchannel_redirected(sys.stderr, self.redirect):
+                    objects = self.compiler.compile([fname], output_dir=file_root, include_dirs=include_dirs)
             except CompileError:
                 return False
             except Exception as e:
                 log.info(e)
                 return False
             try:
-                self.compiler.link_executable(objects,
-                                              os.path.join(tmpdir, "a.out"),
-                                              libraries=libraries,
-                                              library_dirs=library_dirs)
+                with stdchannel_redirected(sys.stderr, self.redirect):
+                    # using link_executable, LDFLAGS that the user can modify are ignored
+                    self.compiler.link_shared_object(objects,
+                                                     os.path.join(tmpdir, 'a.out'),
+                                                     libraries=libraries,
+                                                     library_dirs=library_dirs)
             except LinkError:
                 return False
             except Exception as e:
@@ -251,9 +269,12 @@ class LibraryChecker:
             log.info(msg + "ok")
             return True
         finally:
-            pass
-            shutil.rmtree(tmpdir)
+            # shutil.rmtree(tmpdir)
             log.info(msg + "no")
+
+    def has_header(self, headers, include_dirs=None):
+        '''Check for existence and usability of header files by compiling a test file.'''
+        return self.has_function(None, includes=headers, include_dirs=include_dirs)
 
 checker = LibraryChecker()
 log.debug(checker.compile_time_env)
