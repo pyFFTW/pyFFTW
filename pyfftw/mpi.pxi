@@ -13,8 +13,6 @@ cdef extern from 'mpi-compat.h': pass
 include 'mpi.pxd'
 
 # Initialize the module
-cdef int _n_types = 3
-cdef object _all_types = ['32', '64', 'ld']
 supported_mpi_types = []
 IF HAVE_DOUBLE_MPI:
     fftw_mpi_init()

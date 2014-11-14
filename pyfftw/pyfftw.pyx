@@ -30,6 +30,19 @@ include 'utils.pxi'
 cdef extern from *:
     int Py_AtExit(void (*callback)())
 
+# the total number of supported types pyfftw is build for
+cdef int _n_types = 3
+cdef object _all_types = ['32', '64', 'ld']
+
+# the types supported in this build
+cdef object supported_types = []
+IF HAVE_DOUBLE:
+    supported_types.append('64')
+IF HAVE_SINGLE:
+    supported_types.append('32')
+IF HAVE_LONG:
+    supported_types.append('ld')
+
 cdef object directions
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
         'FFTW_BACKWARD': FFTW_BACKWARD}
@@ -494,32 +507,46 @@ scheme_directions = {
 # reported on some systems when this is set to None. It seems
 # sufficiently trivial to use -1 in place of None, especially given
 # that scheme_functions is an internal cdef object.
-cdef object scheme_functions
-scheme_functions = {
+cdef object _scheme_functions = {}
+IF HAVE_DOUBLE:
+    _scheme_functions.update({
     ('c2c', '64'): {'planner': 0, 'executor':0, 'generic_precision':0,
-        'validator': -1, 'fft_shape_lookup': -1},
-    ('c2c', '32'): {'planner':1, 'executor':1, 'generic_precision':1,
-        'validator': -1, 'fft_shape_lookup': -1},
-    ('c2c', 'ld'): {'planner':2, 'executor':2, 'generic_precision':2,
         'validator': -1, 'fft_shape_lookup': -1},
     ('r2c', '64'): {'planner':3, 'executor':3, 'generic_precision':0,
         'validator': 0,
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
+    ('c2r', '64'): {'planner':6, 'executor':6, 'generic_precision':0,
+        'validator': 1,
+        'fft_shape_lookup': _lookup_shape_c2r_arrays}})
+IF HAVE_SINGLE:
+    _scheme_functions.update({
+    ('c2c', '32'): {'planner':1, 'executor':1, 'generic_precision':1,
+        'validator': -1, 'fft_shape_lookup': -1},
     ('r2c', '32'): {'planner':4, 'executor':4, 'generic_precision':1,
         'validator': 0,
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
+    ('c2r', '32'): {'planner':7, 'executor':7, 'generic_precision':1,
+        'validator': 1,
+        'fft_shape_lookup': _lookup_shape_c2r_arrays}})
+IF HAVE_LONG:
+    _scheme_functions.update({
+    ('c2c', 'ld'): {'planner':2, 'executor':2, 'generic_precision':2,
+        'validator': -1, 'fft_shape_lookup': -1},
     ('r2c', 'ld'): {'planner':5, 'executor':5, 'generic_precision':2,
         'validator': 0,
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
-    ('c2r', '64'): {'planner':6, 'executor':6, 'generic_precision':0,
-        'validator': 1,
-        'fft_shape_lookup': _lookup_shape_c2r_arrays},
-    ('c2r', '32'): {'planner':7, 'executor':7, 'generic_precision':1,
-        'validator': 1,
-        'fft_shape_lookup': _lookup_shape_c2r_arrays},
     ('c2r', 'ld'): {'planner':8, 'executor':8, 'generic_precision':2,
         'validator': 1,
-        'fft_shape_lookup': _lookup_shape_c2r_arrays}}
+        'fft_shape_lookup': _lookup_shape_c2r_arrays}})
+
+def scheme_functions(scheme):
+    try:
+        return _scheme_functions[scheme]
+    except KeyError:
+        msg = "The scheme '%s' is not supported." % str(scheme)
+        if scheme[1] in _all_types:
+            msg += "\nRebuild pyfftw with support for the data type '%s'!" % scheme[1]
+        raise NotImplementedError(msg)
 
 # Set the cleanup routine
 cdef void _cleanup():
@@ -554,11 +581,11 @@ _build_nthreads_plan_setters_list()
 _build_validators_list()
 _build_set_timelimit_funcs_list()
 
-IF HAVE_DOUBLE:
+IF HAVE_DOUBLE_THREADS:
     fftw_init_threads()
-IF HAVE_SINGLE:
+IF HAVE_SINGLE_THREADS:
     fftwf_init_threads()
-IF HAVE_LONG:
+IF HAVE_LONG_THREADS:
     fftwl_init_threads()
 
 Py_AtExit(_cleanup)
@@ -893,7 +920,7 @@ cdef class FFTW:
         self._input_dtype = input_dtype
         self._output_dtype = output_dtype
 
-        functions = scheme_functions[scheme]
+        functions = scheme_functions(scheme)
 
         self._fftw_planner = planners[functions['planner']]
         self._fftw_execute = executors[functions['executor']]
@@ -1643,7 +1670,9 @@ def export_wisdom():
     argument to :func:`~pyfftw.import_wisdom`.
     '''
 
-    cdef bytes py_wisdom, py_wisdomf, py_wisdoml = (0, 0, 0)
+    cdef bytes py_wisdom  = 0
+    cdef bytes py_wisdomf = 0
+    cdef bytes py_wisdoml = 0
 
     cdef int counter, counterf, counterl = (0, 0, 0)
 
@@ -1676,7 +1705,7 @@ def export_wisdom():
         try:
             py_wisdomf = c_wisdomf
         finally:
-            free(c_wisdoml)
+            free(c_wisdomf)
     IF HAVE_LONG:
         fftwl_export_wisdom(&count_char, <void *>&counterl)
         c_wisdoml = <char *>malloc(sizeof(char)*(counterl + 1))
@@ -1715,7 +1744,9 @@ def import_wisdom(wisdom):
     cdef char* c_wisdomf = wisdom[1]
     cdef char* c_wisdoml = wisdom[2]
 
-    cdef bint success, successf, successl = (False, False, False)
+    cdef bint success  = False
+    cdef bint successf = False
+    cdef bint successl = False
     IF HAVE_DOUBLE:
         success = fftw_import_wisdom_from_string(c_wisdom)
     IF HAVE_SINGLE:
