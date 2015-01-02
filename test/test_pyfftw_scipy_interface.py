@@ -90,8 +90,8 @@ class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
         scipy_fftn = scipy.signal.signaltools.fftn
         scipy_ifftn = scipy.signal.signaltools.ifftn
 
-        a = pyfftw.n_byte_align_empty((128, 64), 16, dtype='complex128')
-        b = pyfftw.n_byte_align_empty((128, 64), 16, dtype='complex128')
+        a = pyfftw.empty_aligned((128, 64), dtype='complex128', n=16)
+        b = pyfftw.empty_aligned((128, 64), dtype='complex128', n=16)
 
         a[:] = (numpy.random.randn(*a.shape) + 
                 1j*numpy.random.randn(*a.shape))

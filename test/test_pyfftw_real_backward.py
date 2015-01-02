@@ -33,7 +33,7 @@
 #
 
 
-from pyfftw import FFTW, n_byte_align, n_byte_align_empty, forget_wisdom
+from pyfftw import FFTW, forget_wisdom
 import numpy
 from timeit import Timer
 import time
@@ -340,4 +340,3 @@ if __name__ == '__main__':
     run_test_suites(test_cases, test_set)
 
 del Complex64FFTWTest
-

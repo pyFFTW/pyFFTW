@@ -33,7 +33,7 @@
 #
 
 from pyfftw import (
-        FFTW, n_byte_align_empty, is_n_byte_aligned, simd_alignment)
+        FFTW, empty_aligned, is_byte_aligned, simd_alignment)
 import pyfftw
 
 from .test_pyfftw_base import run_test_suites
@@ -57,10 +57,8 @@ class FFTWMiscTest(unittest.TestCase):
 
     def setUp(self):
 
-        self.input_array = n_byte_align_empty((256, 512), 16, 
-                dtype='complex128')
-        self.output_array = n_byte_align_empty((256, 512), 16,
-                dtype='complex128')
+        self.input_array = empty_aligned((256, 512), dtype='complex128', n=16)
+        self.output_array = empty_aligned((256, 512), dtype='complex128', n=16)
 
         self.fft = FFTW(self.input_array, self.output_array)
 
@@ -89,8 +87,8 @@ class FFTWMiscTest(unittest.TestCase):
         self.assertEqual(fft.flags, ('FFTW_DESTROY_INPUT', 'FFTW_UNALIGNED'))
 
         # Test an implicit flag
-        _input_array = n_byte_align_empty(256, 16, dtype='complex64')
-        _output_array = n_byte_align_empty(256, 16, dtype='complex64')
+        _input_array = empty_aligned(256, dtype='complex64', n=16)
+        _output_array = empty_aligned(256, dtype='complex64', n=16)
 
         # These are guaranteed to be misaligned (due to dtype size == 8)
         input_array = _input_array[:-1]
@@ -113,12 +111,10 @@ class FFTWMiscTest(unittest.TestCase):
 
         # Start by creating arrays that are only on various byte 
         # alignments (4, 16 and 32)
-        _input_array = n_byte_align_empty(
-                len(self.input_array.ravel())*2+5,
-                32, dtype='float32')
-        _output_array = n_byte_align_empty(
-                len(self.output_array.ravel())*2+5,
-                32, dtype='float32')
+        _input_array = empty_aligned(len(self.input_array.ravel())*2+5,
+                                     dtype='float32', n=32)
+        _output_array = empty_aligned(len(self.output_array.ravel())*2+5,
+                                      dtype='float32', n=32)
 
         _input_array[:] = 0
         _output_array[:] = 0
@@ -155,20 +151,20 @@ class FFTWMiscTest(unittest.TestCase):
         alignments = (4, 16, 32)
 
         # Test the arrays are aligned on 4 bytes...
-        self.assertTrue(is_n_byte_aligned(input_arrays[4], 4))
-        self.assertTrue(is_n_byte_aligned(output_arrays[4], 4))
+        self.assertTrue(is_byte_aligned(input_arrays[4], n=4))
+        self.assertTrue(is_byte_aligned(output_arrays[4], n=4))
 
         # ...and on 16...
-        self.assertFalse(is_n_byte_aligned(input_arrays[4], 16))
-        self.assertFalse(is_n_byte_aligned(output_arrays[4], 16))
-        self.assertTrue(is_n_byte_aligned(input_arrays[16], 16))
-        self.assertTrue(is_n_byte_aligned(output_arrays[16], 16))
+        self.assertFalse(is_byte_aligned(input_arrays[4], n=16))
+        self.assertFalse(is_byte_aligned(output_arrays[4], n=16))
+        self.assertTrue(is_byte_aligned(input_arrays[16], n=16))
+        self.assertTrue(is_byte_aligned(output_arrays[16], n=16))
 
         # ...and on 32...
-        self.assertFalse(is_n_byte_aligned(input_arrays[16], 32))
-        self.assertFalse(is_n_byte_aligned(output_arrays[16], 32))
-        self.assertTrue(is_n_byte_aligned(input_arrays[32], 32))
-        self.assertTrue(is_n_byte_aligned(output_arrays[32], 32))
+        self.assertFalse(is_byte_aligned(input_arrays[16], n=32))
+        self.assertFalse(is_byte_aligned(output_arrays[16], n=32))
+        self.assertTrue(is_byte_aligned(input_arrays[32], n=32))
+        self.assertTrue(is_byte_aligned(output_arrays[32], n=32))
 
         if len(pyfftw.pyfftw._valid_simd_alignments) > 0:
             max_align = pyfftw.pyfftw._valid_simd_alignments[0]

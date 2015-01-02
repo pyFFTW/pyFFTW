@@ -34,7 +34,7 @@
 
 
 from pyfftw import (
-        FFTW, n_byte_align_empty, n_byte_align)
+        FFTW, empty_aligned, byte_align)
 
 from .test_pyfftw_base import run_test_suites
 import numpy
@@ -51,10 +51,8 @@ class FFTWCallTest(unittest.TestCase):
    
     def setUp(self):
 
-        self.input_array = n_byte_align_empty((256, 512), 16, 
-                dtype='complex128')
-        self.output_array = n_byte_align_empty((256, 512), 16,
-                dtype='complex128')
+        self.input_array = empty_aligned((256, 512), dtype='complex128', n=16)
+        self.output_array = empty_aligned((256, 512), dtype='complex128', n=16)
 
         self.fft = FFTW(self.input_array, self.output_array)
 
@@ -78,11 +76,11 @@ class FFTWCallTest(unittest.TestCase):
         '''Test the class call with a positional input update.
         '''
 
-        input_array = n_byte_align(
-                (numpy.random.randn(*self.input_array.shape) 
-                    + 1j*numpy.random.randn(*self.input_array.shape)), 16)
+        input_array = byte_align(
+                (numpy.random.randn(*self.input_array.shape)
+                    + 1j*numpy.random.randn(*self.input_array.shape)), n=16)
 
-        output_array = self.fft(n_byte_align(input_array.copy(), 16)).copy()
+        output_array = self.fft(byte_align(input_array.copy(), n=16)).copy()
 
         self.fft.update_arrays(input_array, self.output_array)
         self.fft.execute()
@@ -92,12 +90,12 @@ class FFTWCallTest(unittest.TestCase):
     def test_call_with_keyword_input_update(self):
         '''Test the class call with a keyword input update.
         '''
-        input_array = n_byte_align(
-                numpy.random.randn(*self.input_array.shape) 
-                    + 1j*numpy.random.randn(*self.input_array.shape), 16)
+        input_array = byte_align(
+                numpy.random.randn(*self.input_array.shape)
+                    + 1j*numpy.random.randn(*self.input_array.shape), n=16)
 
         output_array = self.fft(
-            input_array=n_byte_align(input_array.copy(), 16)).copy()
+            input_array=byte_align(input_array.copy(), n=16)).copy()
 
         self.fft.update_arrays(input_array, self.output_array)
         self.fft.execute()
@@ -108,12 +106,12 @@ class FFTWCallTest(unittest.TestCase):
     def test_call_with_keyword_output_update(self):
         '''Test the class call with a keyword output update.
         '''
-        output_array = n_byte_align(
-            (numpy.random.randn(*self.output_array.shape) 
-                + 1j*numpy.random.randn(*self.output_array.shape)), 16)
+        output_array = byte_align(
+            (numpy.random.randn(*self.output_array.shape)
+                + 1j*numpy.random.randn(*self.output_array.shape)), n=16)
 
         returned_output_array = self.fft(
-                output_array=n_byte_align(output_array.copy(), 16)).copy()
+                output_array=byte_align(output_array.copy(), n=16)).copy()
 
         self.fft.update_arrays(self.input_array, output_array)
         self.fft.execute()
@@ -124,16 +122,16 @@ class FFTWCallTest(unittest.TestCase):
     def test_call_with_positional_updates(self):
         '''Test the class call with a positional array updates.
         '''
-        
-        input_array = n_byte_align((numpy.random.randn(*self.input_array.shape) 
-            + 1j*numpy.random.randn(*self.input_array.shape)), 16)
 
-        output_array = n_byte_align((numpy.random.randn(*self.output_array.shape) 
-            + 1j*numpy.random.randn(*self.output_array.shape)), 16)
+        input_array = byte_align((numpy.random.randn(*self.input_array.shape)
+            + 1j*numpy.random.randn(*self.input_array.shape)), n=16)
+
+        output_array = byte_align((numpy.random.randn(*self.output_array.shape)
+            + 1j*numpy.random.randn(*self.output_array.shape)), n=16)
 
         returned_output_array = self.fft(
-            n_byte_align(input_array.copy(), 16),
-            n_byte_align(output_array.copy(), 16)).copy()
+            byte_align(input_array.copy(), n=16),
+            byte_align(output_array.copy(), n=16)).copy()
 
         self.fft.update_arrays(input_array, output_array)
         self.fft.execute()
@@ -143,18 +141,18 @@ class FFTWCallTest(unittest.TestCase):
     def test_call_with_keyword_updates(self):
         '''Test the class call with a positional output update.
         '''
-        
-        input_array = n_byte_align(
-                (numpy.random.randn(*self.input_array.shape) 
-                    + 1j*numpy.random.randn(*self.input_array.shape)), 16)
 
-        output_array = n_byte_align(
+        input_array = byte_align(
+                (numpy.random.randn(*self.input_array.shape)
+                    + 1j*numpy.random.randn(*self.input_array.shape)), n=16)
+
+        output_array = byte_align(
                 (numpy.random.randn(*self.output_array.shape)
-                    + 1j*numpy.random.randn(*self.output_array.shape)), 16)
+                    + 1j*numpy.random.randn(*self.output_array.shape)), n=16)
 
         returned_output_array = self.fft(
-                output_array=n_byte_align(output_array.copy(), 16),
-                input_array=n_byte_align(input_array.copy(), 16)).copy()
+                output_array=byte_align(output_array.copy(), n=16),
+                input_array=byte_align(input_array.copy(), n=16)).copy()
 
         self.fft.update_arrays(input_array, output_array)
         self.fft.execute()
@@ -164,14 +162,14 @@ class FFTWCallTest(unittest.TestCase):
     def test_call_with_different_input_dtype(self):
         '''Test the class call with an array with a different input dtype
         '''
-        input_array = n_byte_align(numpy.complex64(
-                numpy.random.randn(*self.input_array.shape) 
-                + 1j*numpy.random.randn(*self.input_array.shape)), 16)
+        input_array = byte_align(numpy.complex64(
+                numpy.random.randn(*self.input_array.shape)
+                + 1j*numpy.random.randn(*self.input_array.shape)), n=16)
 
-        output_array = self.fft(n_byte_align(input_array.copy(), 16)).copy()
+        output_array = self.fft(byte_align(input_array.copy(), n=16)).copy()
 
-        _input_array = n_byte_align(numpy.asarray(input_array,
-                dtype=self.input_array.dtype), 16)
+        _input_array = byte_align(numpy.asarray(input_array,
+                dtype=self.input_array.dtype), n=16)
 
         self.assertTrue(_input_array.dtype != input_array.dtype)
 
@@ -214,14 +212,14 @@ class FFTWCallTest(unittest.TestCase):
                 + 1j*numpy.random.randn(*self.input_array.shape))
 
         output_array = self.fft(
-                input_array=n_byte_align(input_array.copy(), 16)).copy()
+                input_array=byte_align(input_array.copy(), n=16)).copy()
 
         # Offset by one from 16 byte aligned to guarantee it's not
         # 16 byte aligned
         a = input_array
-        a__ = n_byte_align_empty(
-                numpy.prod(a.shape)*a.itemsize+1, 16, dtype='int8')
-        
+        a__ = empty_aligned(numpy.prod(a.shape)*a.itemsize+1, dtype='int8',
+                            n=16)
+
         a_ = a__[1:].view(dtype=a.dtype).reshape(*a.shape)
         a_[:] = a
 
@@ -242,13 +240,13 @@ class FFTWCallTest(unittest.TestCase):
         a_size = len(a.ravel())*a.itemsize
 
         update_array = numpy.frombuffer(
-                numpy.zeros(a_size + 1, dtype='int8')[1:].data, 
+                numpy.zeros(a_size + 1, dtype='int8')[1:].data,
                 dtype=a.dtype).reshape(a.shape)
 
         fft = FFTW(a, b, flags=('FFTW_UNALIGNED',))
         # Confirm that a usual update will fail (it's not on the
         # byte boundary)
-        self.assertRaisesRegex(ValueError, 'Invalid input alignment', 
+        self.assertRaisesRegex(ValueError, 'Invalid input alignment',
                 fft.update_arrays, *(update_array, b))
 
         fft(update_array, b)
@@ -258,8 +256,8 @@ class FFTWCallTest(unittest.TestCase):
         '''
         # Add an extra dimension to bugger up the striding
         new_shape = self.output_array.shape + (2,)
-        output_array = n_byte_align(numpy.random.randn(*new_shape) 
-                + 1j*numpy.random.randn(*new_shape), 16)
+        output_array = byte_align(numpy.random.randn(*new_shape)
+                + 1j*numpy.random.randn(*new_shape), n=16)
 
         self.assertRaisesRegex(ValueError, 'Invalid output striding',
                 self.fft, **{'output_array': output_array[:,:,1]})
@@ -269,15 +267,16 @@ class FFTWCallTest(unittest.TestCase):
         '''
         shape = self.input_array.shape + (2,)
 
-        input_array = n_byte_align(numpy.random.randn(*shape) 
-                + 1j*numpy.random.randn(*shape), 16)
+        input_array = byte_align(numpy.random.randn(*shape)
+                + 1j*numpy.random.randn(*shape), n=16)
 
         fft = FFTW(input_array[:,:,0], self.output_array)
         
         test_output_array = fft().copy()
 
         new_input_array = n_byte_align(
-                input_array[:, :, 0].copy(), 16)
+        new_input_array = byte_align(
+                input_array[:, :, 0].copy(), n=16)
 
         new_output = fft(new_input_array).copy()
 
@@ -292,8 +291,8 @@ class FFTWCallTest(unittest.TestCase):
         shape = list(self.input_array.shape + (2,))
         shape[0] += 1
 
-        input_array = n_byte_align(numpy.random.randn(*shape) 
-                + 1j*numpy.random.randn(*shape), 16)
+        input_array = byte_align(numpy.random.randn(*shape)
+                + 1j*numpy.random.randn(*shape), n=16)
 
         fft = FFTW(self.input_array, self.output_array)
         
@@ -307,25 +306,25 @@ class FFTWCallTest(unittest.TestCase):
                 + 1j*numpy.random.randn(*self.input_array.shape))
 
         output_array = self.fft(
-                input_array=n_byte_align(input_array.copy(), 16)).copy()
+                input_array=byte_align(input_array.copy(), n=16)).copy()
 
-        input_array = n_byte_align(input_array, 16)
-        output_array = n_byte_align(output_array, 16)
+        input_array = byte_align(input_array, n=16)
+        output_array = byte_align(output_array, n=16)
 
         # Offset by one from 16 byte aligned to guarantee it's not
         # 16 byte aligned
-        a = n_byte_align(input_array.copy(), 16)
-        a__ = n_byte_align_empty(
-                numpy.prod(a.shape)*a.itemsize+1, 16, dtype='int8')
-        
+        a = byte_align(input_array.copy(), n=16)
+        a__ = empty_aligned(numpy.prod(a.shape)*a.itemsize+1, dtype='int8',
+                            n=16)
+
         a_ = a__[1:].view(dtype=a.dtype).reshape(*a.shape)
         a_[:] = a
 
         # Create a different second array the same way
-        b = n_byte_align(output_array.copy(), 16)
-        b__ = n_byte_align_empty(
-                numpy.prod(b.shape)*a.itemsize+1, 16, dtype='int8')
-        
+        b = byte_align(output_array.copy(), n=16)
+        b__ = empty_aligned(numpy.prod(b.shape)*a.itemsize+1, dtype='int8',
+                            n=16)
+
         b_ = b__[1:].view(dtype=b.dtype).reshape(*b.shape)
         b_[:] = a
 
@@ -356,8 +355,7 @@ class FFTWCallTest(unittest.TestCase):
                 self.fft.update_arrays, *(input_array, b_))
 
     def test_call_with_normalisation_on(self):
-        _input_array = n_byte_align_empty((256, 512), 16,
-                dtype='complex128')
+        _input_array = empty_aligned((256, 512), dtype='complex128', n=16)
 
         ifft = FFTW(self.output_array, _input_array, 
                 direction='FFTW_BACKWARD')
@@ -368,10 +366,9 @@ class FFTWCallTest(unittest.TestCase):
         self.assertTrue(numpy.allclose(self.input_array, _input_array))
 
     def test_call_with_normalisation_off(self):
-        _input_array = n_byte_align_empty((256, 512), 16,
-                dtype='complex128')
+        _input_array = empty_aligned((256, 512), dtype='complex128', n=16)
 
-        ifft = FFTW(self.output_array, _input_array, 
+        ifft = FFTW(self.output_array, _input_array,
                 direction='FFTW_BACKWARD')
 
         self.fft(normalise_idft=True) # Shouldn't make any difference
@@ -382,8 +379,7 @@ class FFTWCallTest(unittest.TestCase):
         self.assertTrue(numpy.allclose(self.input_array, _input_array))
 
     def test_call_with_normalisation_default(self):
-        _input_array = n_byte_align_empty((256, 512), 16,
-                dtype='complex128')
+        _input_array = empty_aligned((256, 512), dtype='complex128', n=16)
 
         ifft = FFTW(self.output_array, _input_array, 
                 direction='FFTW_BACKWARD')
@@ -398,8 +394,7 @@ class FFTWCallTest(unittest.TestCase):
         '''The normalisation should use a double precision scaling.
         '''
         # Should be the case for double inputs...
-        _input_array = n_byte_align_empty((256, 512), 16,
-                dtype='complex128')
+        _input_array = empty_aligned((256, 512), dtype='complex128', n=16)
 
         ifft = FFTW(self.output_array, _input_array, 
                 direction='FFTW_BACKWARD')
@@ -410,8 +405,7 @@ class FFTWCallTest(unittest.TestCase):
         self.assertTrue(numpy.alltrue(ref_output == test_output))
 
         # ... and single inputs.
-        _input_array = n_byte_align_empty((256, 512), 16,
-                dtype='complex64')
+        _input_array = empty_aligned((256, 512), dtype='complex64', n=16)
 
         ifft = FFTW(numpy.array(self.output_array, _input_array.dtype), 
                     _input_array, 

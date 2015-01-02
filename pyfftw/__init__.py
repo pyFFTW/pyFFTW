@@ -22,6 +22,8 @@ from .pyfftw import (
         n_byte_align_empty,
         n_byte_align,
         is_n_byte_aligned,
+        byte_align,
+        is_byte_aligned,
         empty_aligned,
         ones_aligned,
         zeros_aligned,

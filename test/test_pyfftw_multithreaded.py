@@ -32,7 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-from pyfftw import FFTW, n_byte_align, n_byte_align_empty
+from pyfftw import FFTW
 import numpy
 from timeit import Timer
 

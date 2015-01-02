@@ -136,7 +136,7 @@ cpdef byte_align(array, n=None, dtype=None):
     return array
 
 
-cpdef is_n_byte_aligned(array, n=None):
+cpdef is_byte_aligned(array, n=None):
     ''' is_n_byte_aligned(array, n=None)
 
     Function that takes a numpy array and checks it is aligned on an n-byte
@@ -155,6 +155,18 @@ cpdef is_n_byte_aligned(array, n=None):
     offset = <intptr_t>np.PyArray_DATA(array) %n
 
     return not bool(offset)
+
+
+cpdef is_n_byte_aligned(array, n):
+    ''' is_n_byte_aligned(array, n)
+    This function is deprecated: ``is_byte_aligned`` should be used
+    instead.
+
+    Function that takes a numpy array and checks it is aligned on an n-byte
+    boundary, where ``n`` is a passed parameter, returning ``True`` if it is,
+    and ``False`` if it is not.
+    '''
+    return is_byte_aligned(array, n=n)
 
 
 cpdef empty_aligned(shape, dtype='float64', order='C', n=None):

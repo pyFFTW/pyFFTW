@@ -120,8 +120,8 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         output_dtype = orig_output_array.dtype
         output_alignment = FFTW_object.output_alignment
 
-        output_array = pyfftw.n_byte_align_empty(output_shape, 
-                output_alignment, output_dtype)
+        output_array = pyfftw.empty_aligned(
+            output_shape, output_dtype, n=output_alignment)
 
         FFTW_object(input_array=a, output_array=output_array, 
                 normalise_idft=normalise_idft)

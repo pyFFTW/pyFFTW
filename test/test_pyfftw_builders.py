@@ -32,8 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-from pyfftw import (builders, n_byte_align_empty, n_byte_align, FFTW,
-        simd_alignment)
+from pyfftw import builders, empty_aligned, byte_align, FFTW
 from pyfftw.builders import _utils as utils
 from .test_pyfftw_base import run_test_suites
 
@@ -667,10 +666,10 @@ class BuildersTestFFT(unittest.TestCase):
 
                 # Offset by one from 16 byte aligned to guarantee it's not
                 # 16 byte aligned
-                _input_array = n_byte_align_empty(
-                        numpy.prod(test_shape)*input_array.itemsize+1, 
-                        16, dtype='int8')
-    
+                _input_array = empty_aligned(
+                        numpy.prod(test_shape)*input_array.itemsize+1,
+                        dtype='int8', n=16)
+
                 misaligned_input_array = _input_array[1:].view(
                          dtype=input_array.dtype).reshape(*test_shape)
 
@@ -679,8 +678,7 @@ class BuildersTestFFT(unittest.TestCase):
                         getattr(builders, self.func),
                         misaligned_input_array, s, **_kwargs)
 
-                _input_array = n_byte_align(input_array.copy(), 
-                        simd_alignment)
+                _input_array = byte_align(input_array.copy())
                 FFTW_object = getattr(builders, self.func)(
                         _input_array, s, **_kwargs)
 
@@ -698,10 +696,10 @@ class BuildersTestRFFT(BuildersTestFFT):
 
 class BuildersTestIRFFT(BuildersTestFFT):
     func = 'irfft'
-    realinv = True    
+    realinv = True
 
 class BuildersTestFFT2(BuildersTestFFT):
-    axes_kw = 'axes'    
+    axes_kw = 'axes'
     func = 'ifft2'
     test_shapes = (
             ((128, 64), {'axes': None}),
@@ -711,7 +709,7 @@ class BuildersTestFFT2(BuildersTestFFT):
             ((64, 128, 16), {'axes': (0, 2)}),
             ((4, 6, 8, 4), {'axes': (0, 3)}),
             )
-    
+
     invalid_args = (
             ((100,), ((100, 200),), ValueError, 'Shape error'),
             ((100, 200), ((100, 200, 100),), ValueError, 'Shape error'),
@@ -729,7 +727,7 @@ class BuildersTestRFFT2(BuildersTestFFT2):
 
 class BuildersTestIRFFT2(BuildersTestFFT2):
     func = 'irfft2'
-    realinv = True    
+    realinv = True
 
 class BuildersTestFFTN(BuildersTestFFT2):
     func = 'ifftn'
@@ -748,7 +746,7 @@ class BuildersTestRFFTN(BuildersTestFFTN):
 
 class BuildersTestIRFFTN(BuildersTestFFTN):
     func = 'irfftn'
-    realinv = True    
+    realinv = True
 
 
 class BuildersTestFFTWWrapper(unittest.TestCase):
@@ -767,21 +765,18 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
 
         self.input_array_slicer = [slice(None), slice(256)]
         self.FFTW_array_slicer = [slice(128), slice(None)]
-        
-        self.input_array = n_byte_align_empty((128, 512), 
-                simd_alignment, dtype='complex128')
-        self.output_array = n_byte_align_empty((256, 256), 
-                simd_alignment, dtype='complex128')
 
-        self.internal_array = n_byte_align_empty((256, 256), 
-                simd_alignment, dtype='complex128')
+        self.input_array = empty_aligned((128, 512), dtype='complex128')
+        self.output_array = empty_aligned((256, 256), dtype='complex128')
 
-        self.fft = utils._FFTWWrapper(self.internal_array, 
+        self.internal_array = empty_aligned((256, 256), dtype='complex128')
+
+        self.fft = utils._FFTWWrapper(self.internal_array,
                 self.output_array,
                 input_array_slicer=self.input_array_slicer,
                 FFTW_array_slicer=self.FFTW_array_slicer)
 
-        self.input_array[:] = (numpy.random.randn(*self.input_array.shape) 
+        self.input_array[:] = (numpy.random.randn(*self.input_array.shape)
                 + 1j*numpy.random.randn(*self.input_array.shape))
 
         self.internal_array[:] = 0
@@ -804,63 +799,58 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         '''Test a call to an instance of the class.
         '''
 
-        self.input_array[:] = (numpy.random.randn(*self.input_array.shape) 
+        self.input_array[:] = (numpy.random.randn(*self.input_array.shape)
                 + 1j*numpy.random.randn(*self.input_array.shape))
 
         output_array = self.fft()
 
         self.assertTrue(numpy.alltrue(output_array == self.output_array))
 
-    
+
     def test_call_with_positional_input_update(self):
         '''Test the class call with a positional input update.
         '''
 
-        input_array = n_byte_align(
-                (numpy.random.randn(*self.input_array.shape) 
-                    + 1j*numpy.random.randn(*self.input_array.shape)), 
-                simd_alignment)
+        input_array = byte_align(
+                (numpy.random.randn(*self.input_array.shape)
+                    + 1j*numpy.random.randn(*self.input_array.shape)))
 
         output_array = self.fft(
-                n_byte_align(input_array.copy(), simd_alignment)).copy()
+                byte_align(input_array.copy())).copy()
 
         self.update_arrays(input_array, self.output_array)
         self.fft.execute()
 
         self.assertTrue(numpy.alltrue(output_array == self.output_array))
 
-        
+
     def test_call_with_keyword_input_update(self):
         '''Test the class call with a keyword input update.
         '''
-        input_array = n_byte_align(
-                numpy.random.randn(*self.input_array.shape) 
-                    + 1j*numpy.random.randn(*self.input_array.shape), 
-                    simd_alignment)
+        input_array = byte_align(
+                numpy.random.randn(*self.input_array.shape)
+                    + 1j*numpy.random.randn(*self.input_array.shape))
 
         output_array = self.fft(
-            input_array=n_byte_align(
-                input_array.copy(), simd_alignment)).copy()
+            input_array=byte_align(input_array.copy())).copy()
 
         self.update_arrays(input_array, self.output_array)
         self.fft.execute()
 
         self.assertTrue(numpy.alltrue(output_array == self.output_array))
-    
-        
+
+
     def test_call_with_keyword_output_update(self):
         '''Test the class call with a keyword output update.
         '''
-        output_array = n_byte_align(
-            (numpy.random.randn(*self.output_array.shape) 
-                + 1j*numpy.random.randn(*self.output_array.shape)), 
-            simd_alignment)
+        output_array = byte_align(
+            (numpy.random.randn(*self.output_array.shape)
+                + 1j*numpy.random.randn(*self.output_array.shape)))
 
         returned_output_array = self.fft(
-                output_array=n_byte_align(
-                    output_array.copy(), simd_alignment)).copy()
+                output_array=byte_align(output_array.copy())).copy()
 
-        
+
         self.update_arrays(self.input_array, output_array)
         self.fft.execute()
 
@@ -870,18 +860,16 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
     def test_call_with_positional_updates(self):
         '''Test the class call with a positional array updates.
         '''
-        
-        input_array = n_byte_align((numpy.random.randn(*self.input_array.shape) 
-            + 1j*numpy.random.randn(*self.input_array.shape)), 
-            simd_alignment)
 
-        output_array = n_byte_align((numpy.random.randn(*self.output_array.shape) 
-            + 1j*numpy.random.randn(*self.output_array.shape)),
-            simd_alignment)
+        input_array = byte_align((numpy.random.randn(*self.input_array.shape)
+            + 1j*numpy.random.randn(*self.input_array.shape)))
+
+        output_array = byte_align((numpy.random.randn(*self.output_array.shape)
+            + 1j*numpy.random.randn(*self.output_array.shape)))
 
         returned_output_array = self.fft(
-            n_byte_align(input_array.copy(), simd_alignment),
-            n_byte_align(output_array.copy(), simd_alignment)).copy()
+            byte_align(input_array.copy()),
+            byte_align(output_array.copy())).copy()
 
         self.update_arrays(input_array, output_array)
         self.fft.execute()
@@ -891,38 +879,32 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
     def test_call_with_keyword_updates(self):
         '''Test the class call with a positional output update.
         '''
-        
-        input_array = n_byte_align(
-                (numpy.random.randn(*self.input_array.shape) 
-                    + 1j*numpy.random.randn(*self.input_array.shape)),
-                simd_alignment)
 
-        output_array = n_byte_align(
+        input_array = byte_align(
+                (numpy.random.randn(*self.input_array.shape)
+                    + 1j*numpy.random.randn(*self.input_array.shape)))
+
+        output_array = byte_align(
                 (numpy.random.randn(*self.output_array.shape)
-                    + 1j*numpy.random.randn(*self.output_array.shape)),
-                simd_alignment)
+                    + 1j*numpy.random.randn(*self.output_array.shape)))
 
         returned_output_array = self.fft(
-                output_array=n_byte_align(output_array.copy(), 
-                    simd_alignment),
-                input_array=n_byte_align(input_array.copy(),
-                    simd_alignment)).copy()
+                output_array=byte_align(output_array.copy()),
+                input_array=byte_align(input_array.copy())).copy()
 
         self.update_arrays(input_array, output_array)
         self.fft.execute()
 
         self.assertTrue(numpy.alltrue(returned_output_array == output_array))
-    
+
     def test_call_with_different_input_dtype(self):
         '''Test the class call with an array with a different input dtype
         '''
-        input_array = n_byte_align(numpy.complex64(
-                numpy.random.randn(*self.input_array.shape) 
-                + 1j*numpy.random.randn(*self.input_array.shape)),
-                simd_alignment)
+        input_array = byte_align(numpy.complex64(
+                numpy.random.randn(*self.input_array.shape)
+                + 1j*numpy.random.randn(*self.input_array.shape)))
 
-        output_array = self.fft(n_byte_align(input_array.copy(), 
-            simd_alignment)).copy()
+        output_array = self.fft(byte_align(input_array.copy())).copy()
 
         _input_array = numpy.asarray(input_array,
                 dtype=self.input_array.dtype)
@@ -931,7 +913,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         self.fft.execute()
 
         self.assertTrue(numpy.alltrue(output_array == self.output_array))
-    
+
     def test_call_with_list_input(self):
         '''Test the class call with a list rather than an array
         '''
@@ -948,26 +930,25 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         '''
 
         new_shape = self.input_array.shape + (2, )
-        invalid_array = (numpy.random.randn(*new_shape) 
+        invalid_array = (numpy.random.randn(*new_shape)
                 + 1j*numpy.random.randn(*new_shape))
-        
-        self.assertRaises(ValueError, self.fft, 
+
+        self.assertRaises(ValueError, self.fft,
                 *(),
                 **{'output_array':invalid_array})
 
-        self.assertRaises(ValueError, self.fft, 
+        self.assertRaises(ValueError, self.fft,
                 *(),
                 **{'input_array':invalid_array})
 
-    
+
     def test_call_with_invalid_output_striding(self):
         '''Test the class call with an invalid strided output update.
         '''
         # Add an extra dimension to bugger up the striding
         new_shape = self.output_array.shape + (2,)
-        output_array = n_byte_align(numpy.random.randn(*new_shape) 
-                + 1j*numpy.random.randn(*new_shape), 
-                simd_alignment)
+        output_array = byte_align(numpy.random.randn(*new_shape)
+                + 1j*numpy.random.randn(*new_shape))
 
         self.assertRaisesRegex(ValueError, 'Invalid output striding',
                 self.fft, **{'output_array': output_array[:,:,1]})
@@ -978,20 +959,18 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         input_array_shape = self.input_array.shape + (2,)
         internal_array_shape = self.internal_array.shape
 
-        internal_array = n_byte_align(
-                numpy.random.randn(*internal_array_shape) 
-                + 1j*numpy.random.randn(*internal_array_shape),
-                simd_alignment)
+        internal_array = byte_align(
+                numpy.random.randn(*internal_array_shape)
+                + 1j*numpy.random.randn(*internal_array_shape))
 
         fft =  utils._FFTWWrapper(internal_array, self.output_array,
                 input_array_slicer=self.input_array_slicer,
                 FFTW_array_slicer=self.FFTW_array_slicer)
-        
+
         test_output_array = fft().copy()
 
-        new_input_array = n_byte_align_empty(input_array_shape, 
-                simd_alignment,
-                dtype=internal_array.dtype)
+        new_input_array = empty_aligned(input_array_shape,
+                                        dtype=internal_array.dtype)
         new_input_array[:] = 0
 
         new_input_array[:,:,0][self.input_array_slicer] = (
@@ -1011,19 +990,17 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         shape = list(self.input_array.shape + (2,))
         shape[0] += 1
 
-        input_array = n_byte_align(numpy.random.randn(*shape) 
-                + 1j*numpy.random.randn(*shape), 
-                simd_alignment)
+        input_array = byte_align(numpy.random.randn(*shape)
+                + 1j*numpy.random.randn(*shape))
 
         self.assertRaisesRegex(ValueError, 'Invalid input shape',
                 self.fft, **{'input_array': input_array[:,:,0]})
 
     def test_call_with_normalisation_on(self):
-        _input_array = n_byte_align_empty(self.internal_array.shape, 
-                simd_alignment,
-                dtype='complex128')
-        
-        ifft = utils._FFTWWrapper(self.output_array, _input_array, 
+        _input_array = empty_aligned(self.internal_array.shape,
+                                     dtype='complex128')
+
+        ifft = utils._FFTWWrapper(self.output_array, _input_array,
                 direction='FFTW_BACKWARD',
                 input_array_slicer=slice(None),
                 FFTW_array_slicer=slice(None))
@@ -1032,16 +1009,15 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         ifft(normalise_idft=True)
 
         self.assertTrue(numpy.allclose(
-            self.input_array[self.input_array_slicer], 
+            self.input_array[self.input_array_slicer],
             _input_array[self.FFTW_array_slicer]))
 
     def test_call_with_normalisation_off(self):
-        
-        _input_array = n_byte_align_empty(self.internal_array.shape, 
-                simd_alignment,
-                dtype='complex128')
 
-        ifft = utils._FFTWWrapper(self.output_array, _input_array, 
+        _input_array = empty_aligned(self.internal_array.shape,
+                                     dtype='complex128')
+
+        ifft = utils._FFTWWrapper(self.output_array, _input_array,
                 direction='FFTW_BACKWARD',
                 input_array_slicer=slice(None),
                 FFTW_array_slicer=slice(None))
@@ -1052,15 +1028,14 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         _input_array /= ifft.N
 
         self.assertTrue(numpy.allclose(
-            self.input_array[self.input_array_slicer], 
+            self.input_array[self.input_array_slicer],
             _input_array[self.FFTW_array_slicer]))
 
     def test_call_with_normalisation_default(self):
-        _input_array = n_byte_align_empty(self.internal_array.shape, 
-                simd_alignment,
-                dtype='complex128')
+        _input_array = empty_aligned(self.internal_array.shape,
+                                     dtype='complex128')
 
-        ifft = utils._FFTWWrapper(self.output_array, _input_array, 
+        ifft = utils._FFTWWrapper(self.output_array, _input_array,
                 direction='FFTW_BACKWARD',
                 input_array_slicer=slice(None),
                 FFTW_array_slicer=slice(None))
@@ -1070,7 +1045,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
 
         # Scaling is performed by default
         self.assertTrue(numpy.allclose(
-            self.input_array[self.input_array_slicer], 
+            self.input_array[self.input_array_slicer],
             _input_array[self.FFTW_array_slicer]))
 
 
@@ -1161,7 +1136,7 @@ class BuildersTestUtilities(unittest.TestCase):
         for each_axes in test_axes:
 
             args = (a, s, each_axes, False, False)
-            self.assertRaisesRegex(IndexError, 'Invalid axes', 
+            self.assertRaisesRegex(IndexError, 'Invalid axes',
                     utils._compute_array_shapes, *args)
 
     def _call_cook_nd_args(self, arg_tuple):
@@ -1201,7 +1176,7 @@ class BuildersTestUtilities(unittest.TestCase):
         for each_input, each_output in zip(inputs, outputs):
             self.assertEqual(self._call_cook_nd_args(each_input),
                     each_output)
-    
+
     def test_cook_nd_args_invreal(self):
 
         # inputs are (a.shape, s, axes, invreal)
@@ -1242,7 +1217,7 @@ class BuildersTestUtilities(unittest.TestCase):
 
         # all the inputs should yield an error
         for each_input in inputs:
-            self.assertRaisesRegex(ValueError, 'Shape error', 
+            self.assertRaisesRegex(ValueError, 'Shape error',
                     self._call_cook_nd_args, *(each_input,))
 
 test_cases = (

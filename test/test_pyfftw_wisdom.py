@@ -33,7 +33,7 @@
 #
 
 from pyfftw import (
-        FFTW, n_byte_align_empty, 
+        FFTW, empty_aligned,
         export_wisdom, import_wisdom, forget_wisdom)
 
 from .test_pyfftw_base import run_test_suites
@@ -49,8 +49,8 @@ class FFTWWisdomTest(unittest.TestCase):
         for each_dtype in (numpy.complex128, numpy.complex64, 
                 numpy.clongdouble):
 
-            a = n_byte_align_empty((1,1024), 16, each_dtype)
-            b = n_byte_align_empty(a.shape, 16, dtype=a.dtype)
+            a = empty_aligned((1,1024), each_dtype, n=16)
+            b = empty_aligned(a.shape, dtype=a.dtype, n=16)
             fft = FFTW(a,b)
 
 

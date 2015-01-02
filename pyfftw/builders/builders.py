@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 #
 # Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2014 David Wells
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
+# David Wells
+# drwells <at> vt.edu
 #
 # All rights reserved.
 #
@@ -96,7 +99,7 @@ The actual internal input array can always be retrieved with
 .. doctest::
     
     >>> import pyfftw
-    >>> a = pyfftw.n_byte_align_empty(4, 16, dtype='complex128')
+    >>> a = pyfftw.empty_aligned(4, dtype='complex128')
     >>> fft = pyfftw.builders.fft(a)
     >>> a[:] = [1, 2, 3, 4]
     >>> fft() # returns the output
@@ -191,9 +194,9 @@ following additional keyword arguments:
   Setting this argument to ``True`` makes sure that the input array
   is correctly aligned. It is possible to correctly byte align the array
   prior to calling this function (using, for example,
-  :func:`pyfftw.n_byte_align`). If and only if a realignment is 
-  necessary is a new array created. If a new array *is* created, it is 
-  up to the calling code to acquire that new input array using 
+  :func:`pyfftw.byte_align`). If and only if a realignment is
+  necessary is a new array created. If a new array *is* created, it is
+  up to the calling code to acquire that new input array using
   :attr:`pyfftw.FFTW.input_array`.
 
   The resultant :class:`pyfftw.FFTW` object that is created will be
