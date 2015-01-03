@@ -274,7 +274,6 @@ class FFTWCallTest(unittest.TestCase):
         
         test_output_array = fft().copy()
 
-        new_input_array = n_byte_align(
         new_input_array = byte_align(
                 input_array[:, :, 0].copy(), n=16)
 
