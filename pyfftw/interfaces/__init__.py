@@ -49,19 +49,19 @@ In practice, this means something like the following (taking
 .. doctest::
 
     >>> import pyfftw, numpy
-    >>> a = pyfftw.n_byte_align_empty((128, 64), 16, dtype='complex64')
+    >>> a = pyfftw.empty_aligned((128, 64), dtype='complex64', n=16)
     >>> a[:] = numpy.random.randn(*a.shape) + 1j*numpy.random.randn(*a.shape)
     >>> fft_a = pyfftw.interfaces.numpy_fft.fft2(a) # Will need to plan
 
 .. doctest::
 
-    >>> b = pyfftw.n_byte_align_empty((128, 64), 16, dtype='complex64')
+    >>> b = pyfftw.empty_aligned((128, 64), dtype='complex64', n=16)
     >>> b[:] = a
     >>> fft_b = pyfftw.interfaces.numpy_fft.fft2(b) # Already planned, so faster
 
 .. doctest::
 
-    >>> c = pyfftw.n_byte_align_empty(132, 16, dtype='complex128')
+    >>> c = pyfftw.empty_aligned(132, dtype='complex128', n=16)
     >>> fft_c = pyfftw.interfaces.numpy_fft.fft(c) # Needs a new plan
     >>> c[:] = numpy.random.randn(*c.shape) + 1j*numpy.random.randn(*c.shape)
 
@@ -186,7 +186,7 @@ different defaults.
   This argument being ``True`` makes sure that the input array
   is correctly aligned. It is possible to correctly byte align the array
   prior to calling this function (using, for example,
-  :func:`pyfftw.n_byte_align`). If and only if a realignment is 
+  :func:`pyfftw.byte_align`). If and only if a realignment is
   necessary is a new array created.
 
   It's worth noting that just being aligned may not be sufficient to

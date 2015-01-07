@@ -32,7 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-from pyfftw import n_byte_align_empty, n_byte_align, interfaces
+from pyfftw import interfaces
 
 from .test_pyfftw_base import run_test_suites
 

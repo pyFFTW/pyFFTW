@@ -33,7 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-from pyfftw import FFTW, n_byte_align, n_byte_align_empty, forget_wisdom
+from pyfftw import FFTW, byte_align, empty_aligned, forget_wisdom
 import pyfftw
 import numpy
 from timeit import Timer
@@ -215,34 +215,34 @@ class Complex64FFTW1DTest(object):
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        a = n_byte_align(a, 16)
-        b = n_byte_align(b, 16)
+        a = byte_align(a, n=16)
+        b = byte_align(b, n=16)
 
         fft, ifft = self.run_validate_fft(a, b, axes, 
                 force_unaligned_data=True)
 
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        a = n_byte_align(a, 16)
-        b = n_byte_align(b, 16)
+        a = byte_align(a, n=16)
+        b = byte_align(b, n=16)
 
         a_orig = a.copy()
         b_orig = b.copy()
 
         # Offset from 16 byte aligned to guarantee it's not
         # 16 byte aligned
-        a__ = n_byte_align_empty(
-                numpy.prod(in_shape)*a.itemsize + input_dtype_alignment, 
-                16, dtype='int8')
-        
+        a__ = empty_aligned(
+                numpy.prod(in_shape)*a.itemsize + input_dtype_alignment,
+                dtype='int8', n=16)
+
         a_ = (a__[input_dtype_alignment:]
                 .view(dtype=self.input_dtype).reshape(*in_shape))
-        a_[:] = a 
-        
-        b__ = n_byte_align_empty(
-                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment, 
-                16, dtype='int8')
-        
+        a_[:] = a
+
+        b__ = empty_aligned(
+                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment,
+                dtype='int8', n=16)
+
         b_ = (b__[input_dtype_alignment:]
                 .view(dtype=self.output_dtype).reshape(*out_shape))
         b_[:] = b
@@ -288,8 +288,8 @@ class Complex64FFTW1DTest(object):
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        a = n_byte_align(a, 16)
-        b = n_byte_align(b, 16)
+        a = byte_align(a, n=16)
+        b = byte_align(b, n=16)
 
         fft, ifft = self.run_validate_fft(a, b, axes, 
                 force_unaligned_data=True)
@@ -298,17 +298,17 @@ class Complex64FFTW1DTest(object):
 
         # Offset from 16 byte aligned to guarantee it's not
         # 16 byte aligned
-        a__ = n_byte_align_empty(
-                numpy.prod(in_shape)*a.itemsize + 1, 
-                16, dtype='int8')
-        
+        a__ = empty_aligned(
+                numpy.prod(in_shape)*a.itemsize + 1,
+                dtype='int8', n=16)
+
         a_ = a__[1:].view(dtype=self.input_dtype).reshape(*in_shape)
-        a_[:] = a 
-        
-        b__ = n_byte_align_empty(
-                numpy.prod(out_shape)*b.itemsize + 1, 
-                16, dtype='int8')
-        
+        a_[:] = a
+
+        b__ = empty_aligned(
+                numpy.prod(out_shape)*b.itemsize + 1,
+                dtype='int8', n=16)
+
         b_ = b__[1:].view(dtype=self.output_dtype).reshape(*out_shape)
         b_[:] = b
 
@@ -496,8 +496,8 @@ class Complex64FFTW1DTest(object):
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        a = n_byte_align(a, 16)
-        b = n_byte_align(b, 16)
+        a = byte_align(a, n=16)
+        b = byte_align(b, n=16)
 
         fft, ifft = self.run_validate_fft(a, b, axes, 
                 force_unaligned_data=True)
@@ -506,18 +506,18 @@ class Complex64FFTW1DTest(object):
 
         # Offset from 16 byte aligned to guarantee it's not
         # 16 byte aligned
-        a__ = n_byte_align_empty(
-                numpy.prod(in_shape)*a.itemsize + input_dtype_alignment, 
-                16, dtype='int8')
-        
+        a__ = empty_aligned(
+                numpy.prod(in_shape)*a.itemsize + input_dtype_alignment,
+                dtype='int8', n=16)
+
         a_ = (a__[input_dtype_alignment:]
                 .view(dtype=self.input_dtype).reshape(*in_shape))
-        a_[:] = a 
-        
-        b__ = n_byte_align_empty(
-                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment, 
-                16, dtype='int8')
-        
+        a_[:] = a
+
+        b__ = empty_aligned(
+                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment,
+                dtype='int8', n=16)
+
         b_ = (b__[input_dtype_alignment:]
                 .view(dtype=self.output_dtype).reshape(*out_shape))
         b_[:] = b
@@ -537,17 +537,17 @@ class Complex64FFTW1DTest(object):
 
         # Offset from 16 byte aligned to guarantee it's not
         # 16 byte aligned
-        a__ = n_byte_align_empty(
+        a__ = empty_aligned(
                 numpy.prod(in_shape)*a.itemsize + input_dtype_alignment,
-                16, dtype='int8')
-        
+                dtype='int8', n=16)
+
         a_ = a__[input_dtype_alignment:].view(dtype=self.input_dtype).reshape(*in_shape)
         a_[:] = a
-        
-        b__ = n_byte_align_empty(
-                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment, 
-                16, dtype='int8')
-        
+
+        b__ = empty_aligned(
+                numpy.prod(out_shape)*b.itemsize + input_dtype_alignment,
+                dtype='int8', n=16)
+
         b_ = b__[input_dtype_alignment:].view(dtype=self.output_dtype).reshape(*out_shape)
         b_[:] = b
         
@@ -568,8 +568,8 @@ class Complex64FFTW1DTest(object):
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        a = n_byte_align(a, 16)
-        b = n_byte_align(b, 16)
+        a = byte_align(a, n=16)
+        b = byte_align(b, n=16)
 
         fft, ifft = self.run_validate_fft(a, b, axes)
         
@@ -577,18 +577,18 @@ class Complex64FFTW1DTest(object):
 
         # Offset from 16 byte aligned to guarantee it's not
         # 16 byte aligned
-        a__ = n_byte_align_empty(
-                numpy.prod(in_shape)*a.itemsize+byte_error, 
-                16, dtype='int8')
-        
+        a__ = empty_aligned(
+                numpy.prod(in_shape)*a.itemsize+byte_error,
+                dtype='int8', n=16)
+
         a_ = (a__[byte_error:]
                 .view(dtype=self.input_dtype).reshape(*in_shape))
-        a_[:] = a 
-        
-        b__ = n_byte_align_empty(
-                numpy.prod(out_shape)*b.itemsize+byte_error, 
-                16, dtype='int8')
-        
+        a_[:] = a
+
+        b__ = empty_aligned(
+                numpy.prod(out_shape)*b.itemsize+byte_error,
+                dtype='int8', n=16)
+
         b_ = (b__[byte_error:]
                 .view(dtype=self.output_dtype).reshape(*out_shape))
         b_[:] = b

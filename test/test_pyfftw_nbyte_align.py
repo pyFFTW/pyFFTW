@@ -1,7 +1,10 @@
 # Copyright 2014 Knowledge Economy Developments Ltd
-# 
+# Copyright 2014 David Wells
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
+# David Wells
+# drwells <at> vt.edu
 #
 # All rights reserved.
 #
@@ -32,6 +35,9 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
+from pyfftw import (byte_align, is_byte_aligned, ones_aligned,
+                    empty_aligned, zeros_aligned, simd_alignment,)
+# Test the deprecated functions.
 from pyfftw import n_byte_align, n_byte_align_empty, is_n_byte_aligned
 import numpy
 from timeit import Timer
@@ -39,12 +45,23 @@ from timeit import Timer
 from .test_pyfftw_base import run_test_suites
 
 import unittest
+import warnings
 
-class NByteAlignTest(unittest.TestCase):
+
+def ignore_deprecation_warning(function):
+    def new_function(*args, **kwargs):
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            return function(*args, **kwargs)
+
+    return new_function
+
+
+class ByteAlignTest(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
 
-        super(NByteAlignTest, self).__init__(*args, **kwargs)
+        super(ByteAlignTest, self).__init__(*args, **kwargs)
 
         if not hasattr(self, 'assertRaisesRegex'):
             self.assertRaisesRegex = self.assertRaisesRegexp
@@ -54,9 +71,65 @@ class NByteAlignTest(unittest.TestCase):
         return
 
     def tearDown(self):
-        
+
         return
 
+    def test_ones_aligned(self):
+        shape = (10,10)
+        # Test a few alignments and dtypes
+        for each in [(3, 'float64'),
+                (7, 'float64'),
+                (9, 'float32'),
+                (16, 'int64'),
+                (24, 'bool'),
+                (23, 'complex64'),
+                (63, 'complex128'),
+                (64, 'int8')]:
+
+            n = each[0]
+            a = numpy.ones(shape, dtype=each[1])
+            b = ones_aligned(shape, dtype=each[1], n=n)
+            self.assertTrue(b.ctypes.data%n == 0)
+            self.assertTrue(b.dtype == each[1])
+            self.assertTrue(numpy.array_equal(a, b))
+
+    def test_zeros_aligned(self):
+        shape = (10,10)
+        # Test a few alignments and dtypes
+        for each in [(3, 'float64'),
+                (7, 'float64'),
+                (9, 'float32'),
+                (16, 'int64'),
+                (24, 'bool'),
+                (23, 'complex64'),
+                (63, 'complex128'),
+                (64, 'int8')]:
+
+            n = each[0]
+            a = numpy.zeros(shape, dtype=each[1])
+            b = zeros_aligned(shape, dtype=each[1], n=n)
+            self.assertTrue(b.ctypes.data%n == 0)
+            self.assertTrue(b.dtype == each[1])
+            self.assertTrue(numpy.array_equal(a, b))
+
+    def test_empty_aligned(self):
+        shape = (10,10)
+        # Test a few alignments and dtypes
+        for each in [(3, 'float64'),
+                (7, 'float64'),
+                (9, 'float32'),
+                (16, 'int64'),
+                (24, 'bool'),
+                (23, 'complex64'),
+                (63, 'complex128'),
+                (64, 'int8')]:
+
+            n = each[0]
+            b = empty_aligned(shape, dtype=each[1], n=n)
+            self.assertTrue(b.ctypes.data%n == 0)
+            self.assertTrue(b.dtype == each[1])
+
+    @ignore_deprecation_warning
     def test_n_byte_align_empty(self):
         shape = (10,10)
         # Test a few alignments and dtypes
@@ -72,8 +145,18 @@ class NByteAlignTest(unittest.TestCase):
             n = each[0]
             b = n_byte_align_empty(shape, n, dtype=each[1])
             self.assertTrue(b.ctypes.data%n == 0)
-            self.assertTrue(b.dtype == each[1])            
+            self.assertTrue(b.dtype == each[1])
 
+    def test_byte_align(self):
+        shape = (10,10)
+        a = numpy.random.randn(*shape)
+        # Test a few alignments
+        for n in [None, 3, 7, 9, 16, 24, 23, 63, 64]:
+            expected_alignment = get_expected_alignment(n)
+            b = byte_align(a, n=n)
+            self.assertTrue(b.ctypes.data % expected_alignment == 0)
+
+    @ignore_deprecation_warning
     def test_n_byte_align(self):
         shape = (10,10)
         a = numpy.random.randn(*shape)
@@ -82,7 +165,17 @@ class NByteAlignTest(unittest.TestCase):
             b = n_byte_align(a, n)
             self.assertTrue(b.ctypes.data%n == 0)
 
-    def test_integer_shape(self):
+    def test_byte_align_integer_shape(self):
+        shape = 100
+        a = numpy.random.randn(shape)
+        # Test a few alignments
+        for n in [None, 3, 7, 9, 16, 24, 23, 63, 64]:
+            expected_alignment = get_expected_alignment(n)
+            b = byte_align(a, n=n)
+            self.assertTrue(b.ctypes.data % expected_alignment == 0)
+
+    @ignore_deprecation_warning
+    def test_n_byte_align_integer_shape(self):
         shape = 100
         a = numpy.random.randn(shape)
         # Test a few alignments
@@ -90,6 +183,21 @@ class NByteAlignTest(unittest.TestCase):
             b = n_byte_align(a, n)
             self.assertTrue(b.ctypes.data%n == 0)
 
+    def test_is_byte_aligned(self):
+        a = empty_aligned(100)
+        self.assertTrue(is_byte_aligned(a, get_expected_alignment(None)))
+
+        a = empty_aligned(100, n=16)
+        self.assertTrue(is_byte_aligned(a, n=16))
+
+        a = empty_aligned(100, n=5)
+        self.assertTrue(is_byte_aligned(a, n=5))
+
+        a = empty_aligned(100, dtype='float32', n=16)[1:]
+        self.assertFalse(is_byte_aligned(a, n=16))
+        self.assertTrue(is_byte_aligned(a, n=4))
+
+    @ignore_deprecation_warning
     def test_is_n_byte_aligned(self):
         a = n_byte_align_empty(100, 16)
         self.assertTrue(is_n_byte_aligned(a, 16))
@@ -101,18 +209,50 @@ class NByteAlignTest(unittest.TestCase):
         self.assertFalse(is_n_byte_aligned(a, 16))
         self.assertTrue(is_n_byte_aligned(a, 4))
 
+    def test_is_byte_aligned_fail_with_non_array(self):
+
+        a = [1, 2, 3, 4]
+        self.assertRaisesRegex(TypeError, 'Invalid array',
+                is_byte_aligned, a, n=16)
+
+    @ignore_deprecation_warning
     def test_is_n_byte_aligned_fail_with_non_array(self):
 
         a = [1, 2, 3, 4]
         self.assertRaisesRegex(TypeError, 'Invalid array',
                 is_n_byte_aligned, a, 16)
 
+    def test_byte_align_fail_with_non_array(self):
+
+        a = [1, 2, 3, 4]
+        self.assertRaisesRegex(TypeError, 'Invalid array',
+                byte_align, a, n=16)
+
+    @ignore_deprecation_warning
     def test_n_byte_align_fail_with_non_array(self):
 
         a = [1, 2, 3, 4]
         self.assertRaisesRegex(TypeError, 'Invalid array',
                 n_byte_align, a, 16)
 
+    def test_byte_align_consistent_data(self):
+        shape = (10,10)
+        a = numpy.int16(numpy.random.randn(*shape)*16000)
+        b = numpy.float64(numpy.random.randn(*shape))
+        c = numpy.int8(numpy.random.randn(*shape)*255)
+
+        # Test a few alignments
+        for n in [None, 3, 7, 9, 16, 24, 23, 63, 64]:
+            d = byte_align(a, n=n)
+            self.assertTrue(numpy.array_equal(a, d))
+
+            d = byte_align(b, n=n)
+            self.assertTrue(numpy.array_equal(b, d))
+
+            d = byte_align(c, n=n)
+            self.assertTrue(numpy.array_equal(c, d))
+
+    @ignore_deprecation_warning
     def test_n_byte_align_consistent_data(self):
         shape = (10,10)
         a = numpy.int16(numpy.random.randn(*shape)*16000)
@@ -130,6 +270,27 @@ class NByteAlignTest(unittest.TestCase):
             d = n_byte_align(c, n)
             self.assertTrue(numpy.array_equal(c, d))
 
+    def test_byte_align_different_dtypes(self):
+        shape = (10,10)
+        a = numpy.int16(numpy.random.randn(*shape)*16000)
+        b = numpy.float64(numpy.random.randn(*shape))
+        c = numpy.int8(numpy.random.randn(*shape)*255)
+        # Test a few alignments
+        for n in [None, 3, 7, 9, 16, 24, 23, 63, 64]:
+            expected_alignment = get_expected_alignment(n)
+            d = byte_align(a, n=n)
+            self.assertTrue(d.ctypes.data % expected_alignment == 0)
+            self.assertTrue(d.__class__ == a.__class__)
+
+            d = byte_align(b, n=n)
+            self.assertTrue(d.ctypes.data % expected_alignment == 0)
+            self.assertTrue(d.__class__ == b.__class__)
+
+            d = byte_align(c, n=n)
+            self.assertTrue(d.ctypes.data % expected_alignment == 0)
+            self.assertTrue(d.__class__ == c.__class__)
+
+    @ignore_deprecation_warning
     def test_n_byte_align_different_dtypes(self):
         shape = (10,10)
         a = numpy.int16(numpy.random.randn(*shape)*16000)
@@ -149,6 +310,27 @@ class NByteAlignTest(unittest.TestCase):
             self.assertTrue(d.ctypes.data%n == 0)
             self.assertTrue(d.__class__ == c.__class__)
 
+    def test_byte_align_set_dtype(self):
+        shape = (10,10)
+        a = numpy.int16(numpy.random.randn(*shape)*16000)
+        b = numpy.float64(numpy.random.randn(*shape))
+        c = numpy.int8(numpy.random.randn(*shape)*255)
+        # Test a few alignments
+        for n in [None, 3, 7, 9, 16, 24, 23, 63, 64]:
+            expected_alignment = get_expected_alignment(n)
+            d = byte_align(a, dtype='float32', n=n)
+            self.assertTrue(d.ctypes.data % expected_alignment == 0)
+            self.assertTrue(d.dtype == 'float32')
+
+            d = byte_align(b, dtype='float32', n=n)
+            self.assertTrue(d.ctypes.data % expected_alignment == 0)
+            self.assertTrue(d.dtype == 'float32')
+
+            d = byte_align(c, dtype='float64', n=n)
+            self.assertTrue(d.ctypes.data % expected_alignment == 0)
+            self.assertTrue(d.dtype == 'float64')
+
+    @ignore_deprecation_warning
     def test_n_byte_align_set_dtype(self):
         shape = (10,10)
         a = numpy.int16(numpy.random.randn(*shape)*16000)
@@ -169,8 +351,14 @@ class NByteAlignTest(unittest.TestCase):
             self.assertTrue(d.dtype == 'float64')
 
 
+def get_expected_alignment(n):
+    if n is None:
+        return simd_alignment
+    else:
+        return n
+
 test_cases = (
-        NByteAlignTest,)
+        ByteAlignTest,)
 
 test_set = None
 

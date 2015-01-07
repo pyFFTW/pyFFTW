@@ -1267,9 +1267,9 @@ cdef class FFTW:
         instructions can be explicitly disabled by setting the
         FFTW_UNALIGNED flags, to allow for updates with unaligned
         data.
-        
-        :func:`~pyfftw.n_byte_align` and 
-        :func:`~pyfftw.n_byte_align_empty` are two methods
+
+        :func:`~pyfftw.byte_align` and
+        :func:`~pyfftw.empty_aligned` are two methods
         included with this module for producing aligned arrays.
 
         The optimum alignment for the running platform is provided
