@@ -47,7 +47,7 @@ caveat [#caveat]_) drop in replacements for :mod:`numpy.fft` and
 
    >>> import pyfftw
    >>> import numpy
-   >>> a = pyfftw.n_byte_align_empty(128, 16, 'complex128')
+   >>> a = pyfftw.empty_aligned(128, dtype='complex128', n=16)
    >>> a[:] = numpy.random.randn(128) + 1j*numpy.random.randn(128)
    >>> b = pyfftw.interfaces.numpy_fft.fft(a)
    >>> c = numpy.fft.fft(a)
@@ -55,11 +55,12 @@ caveat [#caveat]_) drop in replacements for :mod:`numpy.fft` and
    True
 
 We initially create and fill a complex array, ``a``, of length 128.
-:func:`pyfftw.n_byte_align_empty` is a helper function that works like
+:func:`pyfftw.empty_aligned` is a helper function that works like
 :func:`numpy.empty` but returns the array aligned to a particular number of
-bytes in memory, in this case 16. Having byte aligned arrays allows FFTW to
-performed vector operations, potentially speeding up the FFT (a similar
-:func:`pyfftw.n_byte_align` exists to align a pre-existing array as
+bytes in memory, in this case 16. If the alignment is not specified then the
+library inspects the CPU for an appropriate alignment value. Having byte aligned
+arrays allows FFTW to performed vector operations, potentially speeding up the
+FFT (a similar :func:`pyfftw.byte_align` exists to align a pre-existing array as
 necessary).
 
 Calling :func:`pyfftw.interfaces.numpy_fft.fft` on ``a`` gives the same
@@ -110,8 +111,8 @@ patched in order to speed it up.
    import numpy
    from timeit import Timer
    
-   a = pyfftw.n_byte_align_empty((128, 64), 16, dtype='complex128')
-   b = pyfftw.n_byte_align_empty((128, 64), 16, dtype='complex128')
+   a = pyfftw.empty_aligned((128, 64), dtype='complex128')
+   b = pyfftw.empty_aligned((128, 64), dtype='complex128')
    
    a[:] = numpy.random.randn(128, 64) + 1j*numpy.random.randn(128, 64)
    b[:] = numpy.random.randn(128, 64) + 1j*numpy.random.randn(128, 64)
@@ -192,13 +193,13 @@ a one-dimensional complex array:
 
    import pyfftw
    
-   a = pyfftw.n_byte_align_empty(128, 16, 'complex128')
-   b = pyfftw.n_byte_align_empty(128, 16, 'complex128')
+   a = pyfftw.empty_aligned(128, dtype='complex128')
+   b = pyfftw.empty_aligned(128, dtype='complex128')
 
    fft_object = pyfftw.FFTW(a, b)
 
 In this case, we create 2 complex arrays, ``a`` and ``b`` each of
-length 128. As before, we use :func:`pyfftw.n_byte_align_empty` to 
+length 128. As before, we use :func:`pyfftw.empty_aligned` to
 make sure the array is aligned.
 
 Given these 2 arrays, the only transform that makes sense is a 
@@ -214,7 +215,7 @@ Similarly, to plan the inverse:
 
 .. testcode::
    
-   c = pyfftw.n_byte_align_empty(128, 16, 'complex128')
+   c = pyfftw.empty_aligned(128, dtype='complex128')
    ifft_object = pyfftw.FFTW(b, c, direction='FFTW_BACKWARD')
 
 In this case, the direction argument is given as ``'FFTW_BACKWARD'`` 
@@ -272,9 +273,9 @@ requirements for updating the array.
 
 .. doctest::
 
-   >>> d = pyfftw.n_byte_align_empty(4, 16, 'complex128')
-   >>> e = pyfftw.n_byte_align_empty(4, 16, 'complex128')   
-   >>> f = pyfftw.n_byte_align_empty(4, 16, 'complex128')
+   >>> d = pyfftw.empty_aligned(4, dtype='complex128')
+   >>> e = pyfftw.empty_aligned(4, dtype='complex128')
+   >>> f = pyfftw.empty_aligned(4, dtype='complex128')
    >>> fft_object = pyfftw.FFTW(d, e)
    >>> fft_object.input_array is d # get the input array from the object
    True
@@ -307,8 +308,8 @@ transform is to be taken.
 
    import pyfftw
    
-   a = pyfftw.n_byte_align_empty((128, 64), 16, 'complex128')
-   b = pyfftw.n_byte_align_empty((128, 64), 16, 'complex128')
+   a = pyfftw.empty_aligned((128, 64), dtype='complex128')
+   b = pyfftw.empty_aligned((128, 64), dtype='complex128')
 
    # Plan an fft over the last axis
    fft_object_a = pyfftw.FFTW(a, b)
@@ -374,7 +375,7 @@ around :class:`pyfftw.FFTW`) is returned.
 
    import pyfftw
 
-   a = pyfftw.n_byte_align_empty((128, 64), 16, 'complex128')
+   a = pyfftw.empty_aligned((128, 64), dtype='complex128')
    
    # Generate some data
    ar, ai = numpy.random.randn(2, 128, 64)
@@ -423,7 +424,7 @@ array.
 
 .. testcode::
 
-   a = pyfftw.n_byte_align_empty((128, 64), 16, 'complex128')
+   a = pyfftw.empty_aligned((128, 64), dtype='complex128')
    
    fft_wrapper_object = pyfftw.builders.fftn(a, s=(32, 256))
    
@@ -447,7 +448,8 @@ of the internal array is sliced to include only the last 64 elements.
 This way, shapes are made consistent for copying.
 
 Understanding :mod:`numpy.fft`, these functions are largely
-self-explanatory. We point the reader to the :mod:`API docs <pyfftw.builders>` for more information.
+self-explanatory. We point the reader to the :mod:`API docs <pyfftw.builders>`
+for more information.
 
 .. rubric:: Footnotes
 
