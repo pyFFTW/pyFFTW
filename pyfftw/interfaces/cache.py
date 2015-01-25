@@ -154,6 +154,7 @@ class _Cache(object):
         self.initialised = _threading.Event()
 
         self._parent_thread = _threading.current_thread()
+        self._close_thread_now = _threading.Event()
 
         self._initialised = _threading.Event()
         self._initialised.clear() # Explicitly clear it for clarity
@@ -175,7 +176,9 @@ class _Cache(object):
         # exiting (which it will because a reference error will
         # be raised).
         try:
+            self._close_thread_now.set()
             self._thread_object.join()
+        
         except TypeError:
             # Not sure what's going on here, but IPython baulks on exit
             pass
@@ -191,7 +194,8 @@ class _Cache(object):
             self._initialised.set()
 
             while True:
-                if not self._parent_thread.is_alive():
+                if (not self._parent_thread.is_alive() or 
+                    self._close_thread_now.is_set()):
                     break
 
                 if time.time() - last_cull_time > self._keepalive_time:
