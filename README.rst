@@ -123,3 +123,30 @@ right ones.
 
 - DYLD - path for libfftw3.dylib etc - ``find /usr -name libfftw3.dylib``
 - LDFLAGS - path for fftw3.h - ``find /usr -name fftw3.h``
+
+Contributions
+-------------
+
+Contributions are always welcome and valued. The primary restriction on
+accepting contributions is that they are exhaustively tested. The bulk of
+pyFFTW has been developed in a test-driven way (i.e. the test to be 
+satisfied is written before the code). I strongly encourage potential
+contributors to adopt such an approach.
+
+See some of my philosophy on testing in development `here
+<https://hgomersall.wordpress.com/2014/10/03/from-test-driven-development-and-specifications/>`_.
+If you want to argue with the philosophy, there is probably a good place to
+do it.
+
+New contributions should adhere to pep-8, but this is only weakly enforced 
+(there is loads of legacy stuff that breaks it, and things like a single
+trailing whitespace is not a big deal).
+
+The best place to start with contributing is by raising an issue detailing the
+specifics of what you wish to achieve (there should be a clear use-case for
+any new functionality). I tend to respond pretty quickly and am happy to help
+where I can with any conceptual issues.
+
+I suggest reading the issues already open in order that you know where things
+might be heading, or what others are working on.
+
