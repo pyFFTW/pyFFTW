@@ -109,6 +109,7 @@ Set temporary environmental variables, such that pyfftw finds fftw::
 
   export DYLD_LIBRARY_PATH=/usr/local/lib
   export LDFLAGS="-L/usr/local/include"
+  export CFLAGS="-I/usr/local/include"
 
 Now install pyfftw from pip::
 
