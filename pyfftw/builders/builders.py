@@ -569,7 +569,7 @@ def dct(a, n=None, axis=-1, overwrite_input=False,
     if isinstance(type, str):
         direction = type
     else:
-        direction = _dct_types[int(type) - 1]
+        direction = dct_types[int(type) - 1]
 
     s, axes = _precook_1d_args(a, n, axis)
     inverse = False
@@ -601,7 +601,7 @@ def dst(a, n=None, axis=-1, overwrite_input=False,
     if isinstance(type, str):
         direction = type
     else:
-        direction = _dct_types[int(type) - 1]
+        direction = dct_types[int(type) - 1]
 
     s, axes = _precook_1d_args(a, n, axis)
     inverse = False
