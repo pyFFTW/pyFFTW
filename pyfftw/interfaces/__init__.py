@@ -218,7 +218,10 @@ from . import (
         cache,)
 
 try:
-    import scipy.fftpack
+    from scipy.fftpack import (dct, idct, diff, tilbert, itilbert,
+        hilbert, ihilbert, cs_diff, sc_diff, ss_diff, cc_diff,
+        shift, fftshift, ifftshift, fftfreq, rfftfreq,
+        convolve, _fftpack)
 except ImportError:
     pass
 else:
