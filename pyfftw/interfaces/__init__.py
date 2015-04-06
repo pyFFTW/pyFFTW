@@ -225,6 +225,9 @@ try:
 except ImportError:
     pass
 else:
-    del scipy
+    del (dct, idct, diff, tilbert, itilbert,
+        hilbert, ihilbert, cs_diff, sc_diff, ss_diff, cc_diff,
+        shift, fftshift, ifftshift, fftfreq, rfftfreq,
+        convolve, _fftpack)
     from . import scipy_fftpack
 
