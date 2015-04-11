@@ -767,17 +767,17 @@ cdef int validate_dtype(dtype) except -1:
         raise TypeError('Invalid dtype: %s' % dtype)
 
 def validate_input_shape(input_shape):
-    '''Turn ``input_shape`` into array, make sure only positive integers present.
-
-    '''
+    '''Turn ``input_shape`` into integers, then ensure only positive integers present.'''
     dtype = 'uint64'
     if np.iterable(input_shape):
         i = np.array(input_shape, dtype)
     else:
         i = input_shape * np.ones(1, dtype)
-    if not len(i) or (i <= 0).any():
+    if not len(i):
+        raise ValueError('Empty input shape')
+    if (i <= 0).any():
         raise ValueError('Invalid input shape: %s' % input_shape)
-    return i
+    return tuple(i)
 
 # TODO same order of arguments as in FFTW_MPI
 # TODO Default efficiency options: inplace, transpose out
@@ -1152,30 +1152,30 @@ cdef class FFTW_MPI:
         '''
         return self._N
 
-    def _get_simd_aligned(self):
+    # todo is this still useful with MPI?
+    @property
+    def simd_aligned(self):
         '''
         Return whether or not this FFTW object requires simd aligned
         input and output data.
         '''
         return self._simd_allowed
 
-    simd_aligned = property(_get_simd_aligned)
-
-    def _get_input_alignment(self):
+    @property
+    def input_alignment(self):
         '''
         Returns the byte alignment of the input arrays for which the
-        :class:`~pyfftw.FFTW` object was created.
+        :class:`~pyfftw.FFTW_MPI` object was created.
 
         Input array updates with arrays that are not aligned on this
         byte boundary will result in a ValueError being raised, or
-        a copy being made if the :meth:`~pyfftw.FFTW.__call__`
+        a copy being made if the :meth:`~pyfftw.FFTW_MPI.__call__`
         interface is used.
         '''
         return self._input_array_alignment
 
-    input_alignment = property(_get_input_alignment)
-
-    def _get_output_alignment(self):
+    @property
+    def output_alignment(self):
         '''
         Returns the byte alignment of the output arrays for which the
         :class:`~pyfftw.FFTW` object was created.
@@ -1185,21 +1185,15 @@ cdef class FFTW_MPI:
         '''
         return self._output_array_alignment
 
-    output_alignment = property(_get_output_alignment)
-
-    def _get_flags_used(self):
+    @property
+    def flags(self):
         '''
-        Return which flags were used to construct the FFTW object.
+        Return flags used to construct the FFTW object.
 
         This includes flags that were added during initialisation.
         '''
         return tuple(self._flags_used)
 
-    flags = property(_get_flags_used)
-
-    # TODO Rename to input_chunk or input_data, have fixed attribute for
-    # first array so it need not be recreated, then conceptual_input_array --> input_array.
-    # drop local_input_shape, add bool has_input
     @property
     def input_chunk(self):
         '''Return the ndarray wrapping the local chunk of memory for the input
@@ -1216,61 +1210,80 @@ cdef class FFTW_MPI:
         '''
         return self._output_chunk
 
-    def _get_input_shape(self):
+    @property
+    def input_shape(self):
         '''Return the global shape of the input array that spans multiple MPI ranks for
         which the FFT is planned. Note that this usually differs from the shape
-        of ``input_array`` local to this MPI rank.
+        of ``input_array`` local to this MPI rank because the data is distributed, and every rank has only a portion of the data.
 
         '''
         return self._input_shape
 
-    input_shape = property(_get_input_shape)
+    @property
+    def output_shape(self):
 
-    # TODO merge input/output, they do the same trick
-    def get_input_array(self, transform=0):
-        '''Return a view of the input buffer with the right conceptual dimensions; i.e.,
-        the padding elements are hidden. If multiple transforms are done at
-        once, select the array using ``transform``. Default: the first array.
+        '''Return the global shape of the output array that spans multiple MPI ranks for
+        which the FFT is planned. Note that this usually differs from the shape
+        of ``output_chunk`` local to this MPI rank.
 
         '''
+        return self._output_shape
+
+    def _get_array(self, mode, transform):
+        '''Return a view of the input/output buffer with the right conceptual dimensions; i.e.,
+        the padding elements are hidden.
+
+        mode: Either input or output
+
+        transform: Index of the transform in the range [0:howmany]. 0 always
+        points to the first array, higher indices only make sense if multiple
+        transforms are computed at once.
+        '''
+        if mode == 'input':
+            local_shape_padded = self._local_input_shape_padded
+            local_shape = self._local_input_shape
+            chunk = self._input_chunk
+        elif mode == 'output':
+            local_shape_padded = self._local_output_shape_padded
+            local_shape = self._local_output_shape
+            chunk = self._output_chunk
+        else:
+            raise KeyError('Unknown mode' + str(mode))
+
         if transform + 1 > self._howmany:
             raise IndexError('Invalid index %d exceeds number of transforms %d' % (transform, self._howmany))
         if not self._local_input_shape:
-            raise AttributeError('MPI rank %d does not have any input data' % self._MPI_rank)
-        # transform from single to many transforms
-        shape = np.array(self._local_input_shape_padded)
-        shape[-1] *= self._howmany
+            raise AttributeError('MPI rank %d does not have any %s data' % (mode, self._MPI_rank))
 
-        # print 'rank', self._MPI_rank, 'padded input shape', shape, 'size', self._input_chunk.size
-        # print 'dtype', self._input_chunk.dtype
+        # transform from single to many transforms
+        shape = np.array(local_shape_padded)
+        shape[-1] *= self._howmany
 
         # first select only as many elements as needed,
         # then create a view with right dimensions for many transforms,
         # then pick out only one transform and ignore padding elements in last dimension
-        arr = self._input_chunk[0:np.prod(shape)].reshape(shape)
-        return arr[..., transform:self._local_input_shape[-1] * self._howmany:self._howmany]
+        arr = chunk[0:np.prod(shape)].reshape(shape)
+        return arr[..., transform:local_shape[-1] * self._howmany:self._howmany]
+
+    def get_input_array(self, transform=0):
+        '''Return a view of the input buffer with the right conceptual dimensions; i.e.,
+        the padding elements are hidden. If multiple transforms are done at
+        once, select the array using ``transform``.
+
+        Default: return the first array.
+
+        '''
+        return self._get_array(mode='input', transform=transform)
 
     def get_output_array(self, transform=0):
         '''Return a view of the output buffer with the right conceptual dimensions; i.e.,
         the padding elements are hidden. If multiple transforms are done at
-        once, select the array using ``transform``. Default: first array.
+        once, select the array using ``transform``.
+
+        Default: return the first array.
 
         '''
-        if transform + 1 > self._howmany:
-            raise IndexError('Invalid index %d exceeds number of transforms %d' % (transform, self._howmany))
-        if not self._local_output_shape:
-            raise AttributeError('MPI rank %d does not have any output data' % self._MPI_rank)
-        # transform from single to many transforms
-        shape = np.array(self._local_output_shape_padded)
-        shape[-1] *= self._howmany
-
-        # print 'rank', self._MPI_rank, 'padded output shape', shape, 'size', self._input_chunk.size
-
-        # first select only as many elements as needed,
-        # then create a view with right dimensions for many transforms,
-        # then pick out only one transform and ignore padding elements in last dimension
-        arr = self._output_chunk[0:np.prod(shape)].reshape(shape)
-        return arr[..., transform:self._local_output_shape[-1] * self._howmany:self._howmany]
+        return self._get_array(mode='output', transform=transform)
 
     @property
     def input_array(self):
@@ -1282,43 +1295,30 @@ cdef class FFTW_MPI:
         '''Short cut to the first output array.'''
         return self.get_output_array(0)
 
-    def _get_output_shape(self):
-
-        '''Return the global shape of the output array that spans multiple MPI ranks for
-        which the FFT is planned. Note that this usually differs from the shape
-        of ``output_chunk`` local to this MPI rank.
-
-        '''
-        return self._output_shape
-
-    output_shape = property(_get_output_shape)
-
-    def _get_input_dtype(self):
+    @property
+    def input_dtype(self):
         '''
         Return the dtype of the input array for which the FFT is planned.
         '''
         return self._input_dtype
 
-    input_dtype = property(_get_input_dtype)
-
-    def _get_output_dtype(self):
+    @property
+    def output_dtype(self):
         '''
         Return the shape of the output array for which the FFT is planned.
         '''
         return self._output_dtype
 
-    output_dtype = property(_get_output_dtype)
-
-    def _get_direction(self):
+    @property
+    def direction(self):
         '''
         Return the planned FFT direction. Either `'FFTW_FORWARD'` or
         `'FFTW_BACKWARD'`.
         '''
         return directions_lookup[self._direction]
 
-    direction = property(_get_direction)
-
-    def _get_local_n_elements(self):
+    @property
+    def local_n_elements(self):
         '''Return the total number of elements, including padding and possibly extra
         bytes for intermediate steps, that need to be allocated for input/output
         on this MPI rank.
@@ -1326,66 +1326,35 @@ cdef class FFTW_MPI:
         '''
         return self._local_n_elements
 
-    local_n_elements = property(_get_local_n_elements)
-
-    def _get_local_n0(self):
+    @property
+    def local_n0(self):
         '''Return the number of elements in the first dimension this MPI rank operates
         on.
 
         '''
         return self._local_n0
 
-    local_n0 = property(_get_local_n0)
-
-    def _get_local_0_start(self):
+    @property
+    def local_0_start(self):
         '''Return the offset in the first dimension this MPI rank operates on.
 
         '''
         return self._local_0_start
 
-    local_0_start = property(_get_local_0_start)
-
-    def _get_local_n1(self):
+    @property
+    def local_n1(self):
         '''Return the number of elements in the second dimension this MPI rank operates
-        on.
+        on. The return value is 0 unless the flag 'FFTW_MPI_TRANSPOSED_OUT' has been set.
 
         '''
         return self._local_n1
 
-    local_n1 = property(_get_local_n1)
-
-    def _get_local_1_start(self):
+    @property
+    def local_1_start(self):
         '''Return the offset in the first dimension this MPI rank operates on.
 
         '''
         return self._local_1_start
-
-    local_1_start = property(_get_local_1_start)
-
-    @property
-    def input_slice(self):
-        '''Return range of elements in the first input dimension of this MPI rank. Return None if
-        no input data on this rank.
-
-        Example: myplan.get_input_array(1)[:] = global_data[myplan.input_slice]
-
-        '''
-        if self._local_input_shape:
-            return slice(self._local_0_start, self._local_0_start + self._local_n0)
-        else:
-            return None
-
-    @property
-    def output_slice(self):
-        '''Return range of elements in the first output dimension of this MPI rank. Return None if
-        no output data on this rank.
-
-        Example: myplan.get_output_array(1)[:] = global_data[myplan.output_slice]
-
-        '''
-
-        if self._local_output_shape:
-            return slice(self._local_out_start, self._local_out_start + int(self._local_output_shape[0]))
 
     @property
     def local_input_shape(self):
@@ -1417,12 +1386,41 @@ cdef class FFTW_MPI:
         return bool(self._local_output_shape)
 
     @property
+    def input_slice(self):
+        '''Return range of elements in the first input dimension of this MPI rank. Return None if
+        no input data on this rank.
+
+        Example: myplan.get_input_array(1)[:] = global_data[myplan.input_slice]
+
+        '''
+        if self._local_input_shape:
+            return slice(self._local_0_start, self._local_0_start + self._local_n0)
+        else:
+            return None
+
+    @property
+    def output_slice(self):
+        '''Return range of elements in the first output dimension of this MPI rank. Return None if
+        no output data on this rank.
+
+        Example: myplan.get_output_array(1)[:] = global_data[myplan.output_slice]
+
+        '''
+
+        if self._local_output_shape:
+            return slice(self._local_out_start, self._local_out_start + int(self._local_output_shape[0]))
+        else:
+            return None
+
+    @property
     def threads(self):
         '''The number of threads to use for the execution of the plan.'''
         return self._threads
 
     # TODO accept single flag and convert into sequence
     # TODO not NULL tests for chunks
+    # TODO why `*args, **kwargs`? They are not used at all
+    # TODO Tune default flags for high performance:
     def __cinit__(self, input_shape, input_chunk, output_chunk,
                   block0='DEFAULT_BLOCK', block1='DEFAULT_BLOCK',
                   direction='FFTW_FORWARD', flags=('FFTW_MEASURE',),
@@ -1574,12 +1572,14 @@ cdef class FFTW_MPI:
 
         # passing FFTW_MPI_TRANSPOSED_IN and FFTW_MPI_TRANSPOSED_OUT
         # just swaps first two dimensions
-        if len(input_shape) > 1 and \
+        if self._rank > 1 and \
            'FFTW_MPI_TRANSPOSED_IN'  in flags and \
            'FFTW_MPI_TRANSPOSED_OUT' in flags:
             input_shape[0], input_shape[1] = input_shape[1], input_shape[0]
 
-        # TODO issue warning if FFTW_MPI_TRANSPOSED_* for 1D?
+        if self._rank == 1 and \
+           ('FFTW_MPI_TRANSPOSED_IN' in flags or 'FFTW_MPI_TRANSPOSED_OUT' in flags):
+                raise ValueError('Invalid flag: FFTW_MPI_TRANSPOSED_* does not  apply in 1d')
 
         # need local_size to tell us how many elements in first dimension are
         # processed on this MPI rank to determine the right shape, and to let
@@ -1649,11 +1649,6 @@ cdef class FFTW_MPI:
            except KeyError:
                raise ValueError('Invalid flag: ' + '\'' +
                                 each_flag + '\' is not a valid planner flag.')
-
-        if self._rank == 1:
-            if 'FFTW_MPI_TRANSPOSED_IN'  in flags or \
-               'FFTW_MPI_TRANSPOSED_OUT' in flags:
-                raise ValueError('Invalid flag: FFTW_MPI_TRANSPOSED_* does not  apply in 1d')
 
         if ('FFTW_MPI_SCRAMBLED_IN'  in flags or \
             'FFTW_MPI_SCRAMBLED_OUT' in flags):

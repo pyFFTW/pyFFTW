@@ -69,10 +69,6 @@ def create_data(data):
 global_N = 16
 
 class MPITest(unittest.TestCase):
-    '''
-    Recreate the C example: Fourier transform 3D data back and forth
-    using the MPI version of FFTW
-    '''
     def setUp(self):
         if mpi_import_failed:
             self.skipTest('FFTW MPI does not exist')
@@ -195,6 +191,72 @@ class MPITest(unittest.TestCase):
         for i, o in (('float64', 'complex128'), ('complex128', 'float64')):
             with self.assertRaises(NotImplementedError):
                 plan = create_mpi_plan(input_shape=(self.N,), input_dtype=i, output_dtype=o)
+
+        with self.assertRaises(ValueError):
+            plan = create_mpi_plan(input_shape=tuple(), input_dtype='float64', output_dtype='complex128')
+
+    # call all attributes of a simple plan
+    def test_attributes(self):
+        if comm.Get_size() > 1:
+            self.skipTest('only for a single process')
+        forward_flags = ('FFTW_ESTIMATE',)
+        input_shape  = (6, 4)
+        kwargs = dict(input_dtype='complex128',
+                      output_dtype='complex128', flags=forward_flags,
+                      direction='FFTW_FORWARD',
+                      comm=comm, threads=3)
+        p = create_mpi_plan(input_shape, **kwargs)
+
+        self.assertEqual(p.input_shape, input_shape)
+        self.assertEqual(p.N, np.prod(input_shape))
+        self.assertTrue(p.simd_aligned)
+
+        # alignment depends on platform but should be positive
+        self.assertGreater(p.input_alignment, 0)
+        self.assertGreater(p.output_alignment, 0)
+
+        # no extra flags added
+        self.assertEqual(p.flags, forward_flags)
+
+        # input chunk contains no extra data but has flat shape
+        self.assertEqual(p.local_n_elements, np.prod(input_shape))
+        self.assertEqual(p.local_n0, input_shape[0])
+        np.testing.assert_equal(p.input_chunk, p.input_array.flatten())
+        np.testing.assert_equal(p.output_chunk, p.output_array.flatten())
+        self.assertEqual(p.local_0_start, 0)
+        self.assertEqual(p.local_n0, input_shape[0])
+
+        # we don't use transpose out, so `local_n1` is not modified
+        self.assertEqual(p.local_n1, 0)
+        self.assertEqual(p.local_1_start, 0)
+
+        # with one rank, all the data is local
+        self.assertEqual(p.input_array.shape, input_shape)
+        self.assertEqual(p.output_array.shape, input_shape)
+
+        # short cut to the 0-th array
+        np.testing.assert_equal(p.input_array, p.get_input_array(0))
+        np.testing.assert_equal(p.output_array, p.get_output_array(0))
+
+        # information stored correctly
+        self.assertEqual(p.input_dtype, np.dtype(kwargs['input_dtype']))
+        self.assertEqual(p.output_dtype, np.dtype(kwargs['output_dtype']))
+        self.assertEqual(p.direction, kwargs['direction'])
+
+        # always true even for more than one rank
+        self.assertEqual(p.local_input_shape, p.input_array.shape)
+        self.assertEqual(p.local_output_shape, p.output_array.shape)
+
+        # we have input/output on this rank
+        self.assertEqual(p.has_input, True)
+        self.assertEqual(p.has_output, True)
+
+        # and it covers the full range along first dimension
+        self.assertEqual(p.input_slice, slice(0, input_shape[0]))
+        self.assertEqual(p.output_slice, slice(0, input_shape[0]))
+
+        # respect number of threads
+        self.assertEqual(p.threads, kwargs['threads'])
 
     # compute forward and backward complex transform of constant array
     def test_basic(self):
@@ -631,7 +693,7 @@ if __name__ == '__main__':
     '''Start as mpirun -n 4 python test_pyfftw_mpi.py'''
     unittest.main(verbosity=2)
 
-# compile-command: "cd ../ && CC=mpicc python setup.py build_ext --inplace && cd test && mpirun -n 1 python -m unittest test_pyfftw_mpi.MPITest.test_c2c"
+# compile-command: "mpirun -n 1 nosetests test_pyfftw_mpi.py:MPITest.test_attributes"
 # Local Variables:
-# compile-command: "cd ../ && rm pyfftw/pyfftw.c ; CC=mpicc python setup.py build_ext --inplace && mpirun -n 1 python test/test_pyfftw_mpi.py"
+# compile-command: "cd ../ && rm pyfftw/pyfftw.c ; CC=mpicc python setup.py build_ext --inplace && mpirun -n 2 python test/test_pyfftw_mpi.py"
 # End:
