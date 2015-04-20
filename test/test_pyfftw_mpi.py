@@ -552,11 +552,10 @@ class MPITest(unittest.TestCase):
         fplan = create_mpi_plan(input_shape, input_dtype='complex128', output_dtype='complex128',
                                 direction='FFTW_FORWARD', flags=flags)
 
-        # 4 not divisible by 3, so last rank with get no output data
+        # 4 not divisible by 3, so last rank will get no output data
         if (comm.Get_size() == 3 and rank == 2) or \
-           (comm.Get_size() > 4 and rank > 3):
-            with self.assertRaises(AttributeError) as cm:
-                fplan.get_output_array()
+           (comm.Get_size() >= 5 and rank >= 4):
+            self.assertFalse(fplan.has_output)
         else:
             shape = fplan.get_output_array().shape
             # print 'rank', rank, 'output shape', shape
@@ -610,7 +609,6 @@ class MPITest(unittest.TestCase):
 
             # output is transposed, and from the input we have to get
             # a selection of the columns, not the rows
-            # np.testing.assert_allclose(o.transpose(), target[..., fplan.local_1_start:fplan.local_1_start + o.shape[0]])
             np.testing.assert_allclose(o.transpose(), target[..., fplan.output_slice], **msg)
 
         if bplan.local_output_shape:
@@ -624,8 +622,8 @@ class MPITest(unittest.TestCase):
         # only c2c implemented
         N = 50
         p = create_mpi_plan(N, input_dtype='complex128',
-                        output_dtype='complex128',
-                        direction='FFTW_FORWARD')
+                            output_dtype='complex128',
+                            direction='FFTW_FORWARD')
 
         global_data = np.array([float(n) - 2.j * n for n in range(N)])
         global_target = np.fft.fft(global_data)

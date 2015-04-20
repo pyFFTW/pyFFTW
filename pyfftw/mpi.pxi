@@ -1112,7 +1112,7 @@ cdef class FFTW_MPI:
         object _output_dtype
         object _flags_used
 
-        # TODO keep MPI stuff? Then need property
+        # MPI stuff
         libmpi.MPI_Comm _comm
         int _MPI_rank
 
@@ -1251,8 +1251,8 @@ cdef class FFTW_MPI:
 
         if transform + 1 > self._howmany:
             raise IndexError('Invalid index %d exceeds number of transforms %d' % (transform, self._howmany))
-        if not self._local_input_shape:
-            raise AttributeError('MPI rank %d does not have any %s data' % (mode, self._MPI_rank))
+        if not local_shape:
+            raise AttributeError('MPI rank %d does not have any %s data' % (self._MPI_rank, mode))
 
         # transform from single to many transforms
         shape = np.array(local_shape_padded)
@@ -1416,8 +1416,6 @@ cdef class FFTW_MPI:
         '''The number of threads to use for the execution of the plan.'''
         return self._threads
 
-    # TODO accept single flag and convert into sequence
-    # TODO not NULL tests for chunks
     # TODO why `*args, **kwargs`? They are not used at all
     # TODO Tune default flags for high performance:
     def __cinit__(self, input_shape, input_chunk, output_chunk,
@@ -1428,7 +1426,6 @@ cdef class FFTW_MPI:
                   *args, **kwargs):
 
         # TODO Check or warn about prime n0
-        # TODO document blocks
 
         # Initialise the pointers that need to be freed
         self._plan = NULL
@@ -1551,6 +1548,8 @@ cdef class FFTW_MPI:
         # validate arrays
         ###
         input_shape = validate_input_shape(input_shape)
+        self._rank = len(input_shape)
+        self._howmany = n_transforms
 
         # passing FFTW_MPI_TRANSPOSED_IN and FFTW_MPI_TRANSPOSED_OUT
         # just swaps first two dimensions
@@ -1577,16 +1576,11 @@ cdef class FFTW_MPI:
             _mpi_validate_array(locals()[name + '_chunk'],
                                 local_size_res[0], name)
 
-        self._rank = len(input_shape)
-        self._howmany = n_transforms
-
         self._input_shape = input_shape
         self._output_shape = mpi_output_shape[functions['output_shape']](input_shape)
 
         self._local_input_shape_padded, self._local_output_shape_padded = \
         mpi_local_shapes_padded[functions['fft_shape_lookup']] (input_shape, local_size_res, flags)
-
-        # print 'padded shapes', self._local_input_shape_padded, self._local_output_shape_padded
 
         # now that we know the shape is right, save only a view with the right
         # conceptual dimensions; i.e., without padded elements
@@ -1657,7 +1651,7 @@ cdef class FFTW_MPI:
                 raise ValueError('Dimensions of the output array must be ' +
                         'less than ', str(limits.INT_MAX))
 
-        # parallel execution
+        # thread-parallel execution
         self._threads = threads
 
         if self._threads > 1 and (not mpi4py.rc.threaded) or (mpi4py.rc.thread_level == 'single'):
@@ -1666,16 +1660,6 @@ cdef class FFTW_MPI:
             threads = 1
         self._nthreads_plan_setter(threads)
 
-        # print('Before constructing the plan')
-        # print self._rank, '(',
-        # for i in range(self._rank):
-        #     print self._dims.data[i],
-        # print ')'
-        # print self._howmany, self._block0, self._block1, \
-        #       self._direction, self._flags
-        # print self._input_chunk.size, self._output_chunk.size
-
-        # Set the timelimit
         set_timelimit_func(_planning_timelimit)
 
         # Finally, construct the plan
@@ -1687,8 +1671,9 @@ cdef class FFTW_MPI:
             self._comm, self._direction, self._flags)
 
         if self._plan is NULL:
-            raise RuntimeError('The data configuration has an uncaught error that led '+
-                               'to the planner returning NULL in MPI rank %d. This is a bug.' % self._MPI_rank)
+            raise RuntimeError('The data configuration has an uncaught error that led ' +
+                               'to FFTW returning an invalid plan in MPI rank %d.' % self._MPI_rank +
+                               'Please report this as a bug.')
 
     def __init__(self, input_shape, input_chunk, output_chunk,
                   block0='DEFAULT_BLOCK', block1='DEFAULT_BLOCK',
@@ -1696,8 +1681,7 @@ cdef class FFTW_MPI:
                   unsigned int threads=1, planning_timelimit=None,
                   n_transforms=1, comm=None,
                   *args, **kwargs):
-        '''
-        **Arguments**:
+        '''**Arguments**:
 
         * ``input_shape`` is the *global* shape of the input array,
           that is the shape of the array that one would transform with
@@ -1708,7 +1692,7 @@ cdef class FFTW_MPI:
           The contents of these arrays could be destroyed by the
           planning process during initialisation. Information on
           supported dtypes for the arrays is :ref:`given below
-          <scheme_table>`. The chunks may very well point the same
+          <scheme_table>`. The chunks may very well point to the same
           memory to perform an in-place transform.
 
         * ``block0, block1`` are the block sizes in the first/second
@@ -1746,7 +1730,10 @@ cdef class FFTW_MPI:
             for multidimensional (rnk > 1) transforms only, these
             flags specify that the output or input of an n0 × n1 × n2
             × … × nd-1 transform is transposed to n1 × n0 × n2 ×…×
-            nd-1. See `FFTW doc <http://fftw.org/fftw3_doc/Transposed-distributions.html#Transposed-distributions>`_
+            nd-1. This speeds up the calculation as one less
+            synchronization between all MPI ranks is needed. See `FFTW
+            doc
+            <http://fftw.org/fftw3_doc/Transposed-distributions.html#Transposed-distributions>`_
 
           The `FFTW planner flags documentation
           <http://www.fftw.org/fftw3_doc/Planner-Flags.html#Planner-Flags>`_
@@ -1758,26 +1745,28 @@ cdef class FFTW_MPI:
           of threads is greater than 1, then the GIL is released
           by necessity.
 
-        * ``planning_timelimit`` is a floating point number that
-          indicates to the underlying FFTW planner the maximum number of
-          seconds it should spend planning the FFT. This is a rough
-          estimate and corresponds to calling of ``fftw_set_timelimit()``
-          (or an equivalent dependent on type) in the underlying FFTW
-          library. If ``None`` is set, the planner will run indefinitely
-          until all the planning modes allowed by the flags have been
-          tried. See the `FFTW planner flags page
+        * ``planning_timelimit`` is a float that indicates to the
+          underlying FFTW planner the maximum number of seconds it
+          should spend planning the FFT. This is a rough estimate and
+          corresponds to calling of ``fftw_set_timelimit()`` (or an
+          equivalent dependent on type) in the underlying FFTW
+          library. If ``None`` is set, the planner will run
+          indefinitely until all the planning modes allowed by the
+          flags have been tried. See the `FFTW planner flags page
           <http://www.fftw.org/fftw3_doc/Planner-Flags.html#Planner-Flags>`_
           for more information on this.
 
         * ``n_transforms`` is the number of same-size arrays to
           transform simultaneously in one go. Suppose you have three
-          arrays x,y,z you want to Fourier transform. Then you can lay
-          them out in interleaved format such that in memory they are
-          ordered as ``x[0], y[0], z[0], x[1], y[1], z[1]...`` and
-          specify ``n_transforms=3``. So ``n_transforms`` is the
-          number of elements between the first and second element of
-          each individual array. All arrays must be of the same data
-          type and length. Access to array ``n`` is available via
+          arrays ``x,y,z`` you want to Fourier transform. Then you can
+          save some MPI communication overhead by doing the
+          ``n_transforms=3`` transforms at once; the arrays are
+          expected to reside in an interleaved format such that in
+          memory they are ordered as ``x[0], y[0], z[0], x[1], y[1],
+          z[1]...``. So ``n_transforms`` is the number of elements
+          between the first and second element of each individual
+          array. All arrays must be of the same data type and
+          length. Access to array ``n`` is available via
           ``get_input_array(n)`` and ``get_output_array(n)``.
 
         * ``comm`` is expected to be an instance of
@@ -1815,16 +1804,17 @@ cdef class FFTW_MPI:
         | Real\ :sup:`1` | ``clongdouble``       | ``longdouble``         | Backwards |
         +----------------+-----------------------+------------------------+-----------+
 
-          ``clongdouble`` typically maps directly to ``complex256``
-        or ``complex192``, and ``longdouble`` to ``float128`` or
+        ``clongdouble`` typically maps directly to ``complex256`` or
+        ``complex192``, and ``longdouble`` to ``float128`` or
         ``float96``, dependent on platform.
 
-        FFTW MPI supports and encourages in-place
-        transforms. Therefore the relative shapes of the ``*chunk``
-        should be as follows:
+        FFTW MPI supports and encourages in-place transforms. In that
+        case, the sizes (in units of the respective data type) of the
+        ``*chunk``s should be as follows:
 
-        * For a Complex transform, ``output_chunk.size ==
-        * input_chunk.size`` For a real-to-complex transform in the
+        * For a complex transform, ``output_chunk.size ==
+          input_chunk.size``
+        * For a real-to-complex transform in the
           forward direction ``2 * output_chunk.size ==
           input_chunk.size``
         * For a complex-to-real transform in the backward direction
@@ -1863,7 +1853,7 @@ cdef class FFTW_MPI:
         data arrays will be checked for similar alignment. SIMD
         instructions can be explicitly disabled by setting the
         FFTW_UNALIGNED flags, to allow for updates with unaligned
-        data.
+        data. Usually this should not be necessary.
 
         :func:`~pyfftw.n_byte_align` and
         :func:`~pyfftw.n_byte_align_empty` are two methods
@@ -1876,19 +1866,10 @@ cdef class FFTW_MPI:
         well as SSE (requiring 16-byte alignment), then if the array
         is 16-byte aligned, SSE will still be used.
 
-        It's worth noting that just being aligned may not be sufficient
-        to create the fastest possible transform. For example, if the
-        array is not contiguous (i.e. certain axes are displaced in
-        memory), it may be faster to plan a transform for a contiguous
-        array, and then rely on the array being copied in before the
-        transform (which :class:`pyfftw.FFTW` will handle for you when
-        accessed through :meth:`~pyfftw.FFTW.__call__`).
-
         '''
         pass
 
     def __dealloc__(self):
-
         if not self._plan == NULL:
             self._fftw_destroy(self._plan)
 
