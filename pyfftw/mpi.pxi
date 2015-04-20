@@ -796,28 +796,33 @@ def create_mpi_plan(input_shape, input_chunk=None, input_dtype=None,
     is given, the dtype can extracted. The conversion scheme is inferred from
     the data type of either ``output_chunk`` or ``output_dtype``.
 
-    If the ``local_*put_array`` arguments are omitted [recommended], arrays of
-    the proper size to this MPI rank are allocated with SIMD alignment when
-    possible. Note that these arrays may need to be slightly larger than what
-    one might expect due to padding or extra memory needed in intermediate FFTW
-    steps. This depends on the transform, dimensions, fftw implementation
-    etc. Resist to guess! The arrays are accessible from the returned plan as
-    attributes ``plan.*put_array``. Note that the physical size of a memory
-    chunk may be slightly larger than what say ``plan.output_array.shape``
-    indicates. For more details, see the FFTW manual on Distributed-memory FFTW
-    with MPI at `<http://fftw.org/fftw3_doc/Distributed_002dmemory-FFTW-with-MPI.html>`_
+    If the ``*put_array`` arguments are set to ``None``, arrays of the
+    proper size to this MPI rank are allocated with SIMD alignment
+    when possible. Note that these arrays may need to be slightly
+    larger than what one might expect due to padding or extra memory
+    needed in intermediate FFTW steps. This depends on the transform,
+    dimensions, fftw implementation etc. Resist to guess!  The arrays
+    are accessible from the returned plan as attributes
+    ``plan.*put_chunk``. Note that the physical size of a memory chunk
+    is given by ``plan.output_chunk.size``, which can be larger than
+    than ``plan.output_array.size`` indicates. For more details, see
+    the FFTW manual on Distributed-memory FFTW with MPI at
+    `<http://fftw.org/fftw3_doc/Distributed_002dmemory-FFTW-with-MPI.html>`_
 
-    Construct an in-place transform with ``output_chunk='INPUT'``.
+    Construct an in-place transform with ``output_chunk='INPUT'`` This
+    saves about half the memory and can significantly speed up the
+    transform. Think twice before *not* using this option.
 
-    All other arguments are passed forward to :py:func:`local_size`
-    and :py:class:`FFTW_MPI` in order to allocate byte-aligned
+    All other arguments are passed forward to func:`~pyfftw.local_size`
+    and :class:`~pyfftw.FFTW_MPI` in order to allocate byte-aligned
     input/output arrays and to create the appropriate FFT plan.
 
     The ``direction`` argument is ignored for r2c and c2r transforms,
-    and should be one of 'FFTW_FORWARD' or 'FFTW_BACKWARD' for c2c.
+    and should be either 'FFTW_FORWARD' or 'FFTW_BACKWARD' for c2c.
 
-    Return a :class:`FFTW_MPI` object ``plan``. Execute the plan as
-    ``plan(*args, *kwargs)``.
+    Return a :class:`~pyfftw.FFTW_MPI` object ``plan``. Execute the
+    ``plan`` as ``plan(*args, *kwargs)``;
+    cf. :meth:`~pyfftw.FFTW_MPI.__call__`.
 
     '''
 
@@ -887,13 +892,10 @@ def create_mpi_plan(input_shape, input_chunk=None, input_dtype=None,
 
     # need padding for r2c; cf. FFTW manual 6.5 'Multi-dimensional MPI DFTs of Real Data'
     local_input_shape, local_output_shape = mpi_local_shapes[functions['fft_shape_lookup']](input_shape, res, flags)
-    # print 'shapes in plan', input_shape, local_size_input_shape, local_input_shape, local_output_shape
-    # print 'scheme', scheme, 'n_in', n_elements_in, 'howmany', howmany, 'n_out', n_elements_out
 
     ###
     # Check or allocate input array
     ###
-    # TODO replace np.prod with 64 bit version, see bug comment above for windows
     if input_chunk is None:
         # due to extra bytes for intermediate step, the conceptual size may
         # differ from the actual memory accessed. The extra bytes come after the last
@@ -903,7 +905,7 @@ def create_mpi_plan(input_shape, input_chunk=None, input_dtype=None,
     if output_chunk is 'INPUT':
         output_chunk = np.frombuffer(input_chunk.data, output_dtype)
     elif output_chunk is None:
-        # consider this is a 1D chunk of memory
+        # treat this as a 1D chunk of memory
         output_chunk = n_byte_align_empty(n_elements_out, simd_alignment, dtype=output_dtype)
 
     # check both input and output
@@ -912,9 +914,6 @@ def create_mpi_plan(input_shape, input_chunk=None, input_dtype=None,
         _mpi_validate_array(locals()[name + '_chunk'],
                             locals()['n_elements_' + s],
                             name)
-
-    # print 'Leaving create_mpi_plan: ', n_elements_in, n_elements_out, \
-    #     input_shape, input_chunk.shape, output_chunk.shape
 
     fftw_object = FFTW_MPI(input_shape, input_chunk, output_chunk,
                            **kwargs)
@@ -1452,38 +1451,21 @@ cdef class FFTW_MPI:
                 raise TypeError('Invalid planning timelimit: '
                         'The planning timelimit needs to be a float.')
 
-        # save communicator and this process' rank
+        # save communicator
         cdef int ierr = 0
-        cdef int comm_size = 0
         self._comm = extract_communicator(comm)
         ierr = libmpi.MPI_Comm_rank(self._comm, &self._MPI_rank)
         if ierr:
             raise RuntimeError('MPI_Comm_rank returned %d' % ierr)
+
+        # and the rank of this process for debugging
+        cdef int comm_size = 0
         ierr = libmpi.MPI_Comm_size(self._comm, &comm_size)
         if ierr:
             raise RuntimeError('MPI_Comm_size returned %d' % ierr)
 
-        # TODO still needed? ducktyping!
-        # if not isinstance(input_chunk, np.ndarray):
-        #     raise TypeError('Invalid input array: '
-        #
-
-        # 'The input array needs to be an instance '
-        #             'of numpy.ndarray')
-
-        # if not isinstance(output_chunk, np.ndarray):
-        #     raise TypeError('Invalid output array: '
-        #             'The output array needs to be an instance '
-        #             'of numpy.ndarray')
-
-
         input_dtype = input_chunk.dtype
         output_dtype = output_chunk.dtype
-
-        # # what if in place r2c? would assume r2r transform, so guess the type if not given
-        #     if <intptr_t>np.PyArray_DATA(input_chunk) == <intptr_t>np.PyArray_DATA(output_chunk):
-        #         # output_dtype = np.dtype(
-        #         pass
 
         try:
             scheme = fftw_schemes[(input_dtype, output_dtype)]
@@ -1589,8 +1571,6 @@ cdef class FFTW_MPI:
                                     n_transforms, block0, block1, flags, direction, comm)
         self._local_input_shape, self._local_output_shape = mpi_local_shapes[functions['fft_shape_lookup']] \
                                                                 (input_shape, local_size_res, flags)
-
-        # print 'In rank', self._MPI_rank, 'local_size_res', local_size_res
 
         # Now we can validate the arrays
         for name in ('input', 'output'):
@@ -1928,7 +1908,7 @@ cdef class FFTW_MPI:
         an inverse DFT (i.e. when the direction flag is ``'FFTW_BACKWARD'``) is
         scaled by 1/N, where N is the product of the lengths of input array on
         which the FFT is taken. If the direction is ``'FFTW_FORWARD'``, this
-        flag makes no difference to the output array.
+        flag has no effect.
 
         When ``input_chunk`` is something other than None, then the passed in
         array is coerced to be the same dtype as the input array used when the
@@ -1964,10 +1944,12 @@ cdef class FFTW_MPI:
         A ``None`` argument to either keyword means that that array is not
         updated.
 
-        The result of the FFT is returned. This is the same array that is used
-        internally and will be overwritten again on subsequent calls. If you
-        need the data to persist longer than a subsequent call, you should
-        copy the returned array.
+        Check ``self.has_output()``, then obtain the result of the FFT
+        computed on this rank via
+        :attr:`~pyfftw.FFTW_MPI.get_output_array`. If you need the
+        data to persist longer than a subsequent call, you should make
+        a copy before the next execution of the plan.
+
         '''
 
         if input_chunk is not None or output_chunk is not None:
@@ -2017,22 +1999,18 @@ cdef class FFTW_MPI:
         if self._direction == FFTW_BACKWARD and normalise_idft:
             self._output_chunk *= self._normalisation_scaling
 
-        # TODO should we still return it? Just a part if howmany > 1
-        return self._output_chunk
-
-    # TODO update to MPI
     cpdef update_arrays(self,
             new_input_chunk, new_output_chunk):
         '''update_arrays(new_input_chunk, new_output_chunk)
 
         Update the arrays upon which the DFT is taken.
 
-        The new arrays should be of the same dtypes as the originals, the same
-        shapes as the originals and should have the same strides between axes.
-        If the original data was aligned so as to allow SIMD instructions
-        (e.g. by being aligned on a 16-byte boundary), then the new array must
-        also be aligned so as to allow SIMD instructions (assuming, of
-        course, that the ``FFTW_UNALIGNED`` flag was not enabled).
+        The new arrays should be of the same sizes and dtypes as the
+        originals. If the original data was aligned so as to allow
+        SIMD instructions (e.g. by being aligned on a 16-byte
+        boundary), then the new array must also be aligned so as to
+        allow SIMD instructions (assuming, of course, that the
+        ``FFTW_UNALIGNED`` flag was not enabled).
 
         The byte alignment requirement extends to requiring natural
         alignment in the non-SIMD cases as well, but this is much less
@@ -2043,6 +2021,7 @@ cdef class FFTW_MPI:
         If all these conditions are not met, a ``ValueError`` will
         be raised and the data will *not* be updated (though the
         object will still be in a sane state).
+
         '''
         if not isinstance(new_input_chunk, np.ndarray):
             raise ValueError('Invalid input array: '
@@ -2078,36 +2057,13 @@ cdef class FFTW_MPI:
                     'The new output array is not of the same '
                     'dtype as was originally planned for.')
 
-        new_input_shape = new_input_chunk.shape
-        new_output_shape = new_output_chunk.shape
-
-        new_input_strides = new_input_chunk.strides
-        new_output_strides = new_output_chunk.strides
-
-        if not new_input_shape == self._input_shape:
-            raise ValueError('Invalid input shape: '
-                    'The new input array should be the same shape as '
-                    'the input array used to instantiate the object.')
-
-        if not new_output_shape == self._output_shape:
-            raise ValueError('Invalid output shape: '
-                    'The new output array should be the same shape as '
-                    'the output array used to instantiate the object.')
-
-        if not new_input_strides == self._input_strides:
-            raise ValueError('Invalid input striding: '
-                    'The strides should be identical for the new '
-                    'input array as for the old.')
-
-        if not new_output_strides == self._output_strides:
-            raise ValueError('Invalid output striding: '
-                    'The strides should be identical for the new '
-                    'output array as for the old.')
+        for name in ('input', 'output'):
+            _mpi_validate_array(locals()['new_' + name + '_chunk'],
+                                self._local_n_elements, name)
 
         self._update_arrays(new_input_chunk, new_output_chunk)
 
-    cdef _update_arrays(self,
-            np.ndarray new_input_chunk, np.ndarray new_output_chunk):
+    cdef _update_arrays(self, np.ndarray new_input_chunk, np.ndarray new_output_chunk):
         ''' A C interface to the update_arrays method that does not
         perform any checks on strides being correct and so on.
         '''
@@ -2115,13 +2071,7 @@ cdef class FFTW_MPI:
         self._output_chunk = new_output_chunk
 
     cpdef execute(self):
-        '''execute()
-
-        Execute the planned operation, taking the correct kind of FFT of
-        the input array (i.e. :attr:`FFTW.input_chunk`),
-        and putting the result in the output array (i.e.
-        :attr:`FFTW.output_chunk`).
-        '''
+        '''Execute the plan.'''
         cdef void *input_pointer = (
                 <void *>np.PyArray_DATA(self._input_chunk))
         cdef void *output_pointer = (

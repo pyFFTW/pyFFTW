@@ -689,11 +689,47 @@ class MPITest(unittest.TestCase):
                                        atol=1e-13, **msg)
 
 
+
+    def test_update_arrays(self):
+        forward_flags = ('FFTW_ESTIMATE',)
+        input_shape  = (6, 4)
+        kwargs = dict(input_dtype='complex128',
+                      output_dtype='complex128', flags=forward_flags,
+                      direction='FFTW_FORWARD',
+                      comm=comm, threads=3)
+        p = create_mpi_plan(input_shape, **kwargs)
+
+        # align by hand
+        new_input_chunk = n_byte_align_empty((p.input_chunk.size,), p.input_alignment, dtype=kwargs['input_dtype'])
+        new_output_chunk = n_byte_align_empty((p.output_chunk.size,), p.output_alignment, dtype=kwargs['output_dtype'])
+
+        # this should not throw
+        p.update_arrays(new_input_chunk, new_output_chunk)
+
+        # now misalign
+        # new_input_chunk = n_byte_align_empty((p.input_chunk.size,), p.input_alignment, dtype=kwargs['input_dtype'])
+        misaligned_input_chunk = np.frombuffer(new_input_chunk[1:].data)
+        with self.assertRaises(ValueError):
+            p.update_arrays(misaligned_input_chunk, new_output_chunk)
+
+        misaligned_output_chunk = np.frombuffer(new_output_chunk[1:].data)
+        with self.assertRaises(ValueError):
+            p.update_arrays(new_input_chunk, misaligned_output_chunk)
+
+        # chunk too small
+        new_input_chunk = n_byte_align_empty((p.input_chunk.size - 1,), p.input_alignment, dtype=kwargs['input_dtype'])
+        with self.assertRaises(ValueError):
+            p.update_arrays(new_input_chunk, new_output_chunk)
+
+        # too large a chunk is OK
+        new_input_chunk = n_byte_align_empty((p.input_chunk.size + 1,), p.input_alignment, dtype=kwargs['input_dtype'])
+        p.update_arrays(new_input_chunk, new_output_chunk)
+
 if __name__ == '__main__':
     '''Start as mpirun -n 4 python test_pyfftw_mpi.py'''
     unittest.main(verbosity=2)
 
-# compile-command: "mpirun -n 1 nosetests test_pyfftw_mpi.py:MPITest.test_attributes"
+# remove C source file to force recompilation
 # Local Variables:
-# compile-command: "cd ../ && rm pyfftw/pyfftw.c ; CC=mpicc python setup.py build_ext --inplace && mpirun -n 2 python test/test_pyfftw_mpi.py"
+# compile-command: "cd ../ && rm pyfftw/pyfftw.c ; CC=mpicc python setup.py build_ext --inplace && mpirun -n 2 nosetests test_pyfftw_mpi.py:MPITest"
 # End:
