@@ -1,4 +1,4 @@
-# Copyright 2014
+# Copyright 2015
 #
 # Frederik.Beaujean@lmu.de
 #
@@ -15,8 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from pyfftw import FFTW, export_wisdom, forget_wisdom, import_wisdom, n_byte_align_empty, simd_alignment
 try:
-    from pyfftw import FFTW, FFTW_MPI, create_mpi_plan, local_size, n_byte_align_empty, simd_alignment, supported_mpi_types
+    from pyfftw import FFTW_MPI, broadcast_wisdom, create_mpi_plan, \
+                       gather_wisdom, local_size, \
+                       supported_mpi_types
     from mpi4py import MPI
 
     # MPI
@@ -24,6 +27,21 @@ try:
     rank = comm.Get_rank()
     master = (rank == 0)
     msg = dict(err_msg='Error on rank %d' % rank)
+
+    # map of `input dtype => output dtype`
+    schemes = []
+    if '32' in supported_mpi_types:
+        schemes.append(dict(input_dtype='float32', output_dtype='complex64'))
+        schemes.append(dict(input_dtype='complex64', output_dtype='complex64'))
+        schemes.append(dict(input_dtype='complex64', output_dtype='float32'))
+    if '64' in supported_mpi_types:
+        schemes.append(dict(input_dtype='float64', output_dtype='complex128'))
+        schemes.append(dict(input_dtype='complex128', output_dtype='complex128'))
+        schemes.append(dict(input_dtype='complex128', output_dtype='float64'))
+    if 'ld' in supported_mpi_types:
+        schemes.append(dict(input_dtype='longdouble', output_dtype='clongdouble'))
+        schemes.append(dict(input_dtype='clongdouble', output_dtype='clongdouble'))
+        schemes.append(dict(input_dtype='clongdouble', output_dtype='longdouble'))
 
     mpi_import_failed = False
 except ImportError:
@@ -723,11 +741,57 @@ class MPITest(unittest.TestCase):
         new_input_chunk = n_byte_align_empty((p.input_chunk.size + 1,), p.input_alignment, dtype=kwargs['input_dtype'])
         p.update_arrays(new_input_chunk, new_output_chunk)
 
+class MPIWisdomTest(unittest.TestCase):
+    def setUp(self):
+        if mpi_import_failed:
+            self.skipTest('FFTW MPI does not exist')
+
+    def wisdom(self, shape, kwargs, factor=5):
+        # start with clean sheet
+        forget_wisdom()
+
+        # accumulate wisdom
+        t = Timer(lambda: create_mpi_plan(shape, **kwargs))
+        t1 = t.timeit(number=1)
+
+        # gather
+        gather_wisdom(comm)
+
+        # store in a string for each data type
+        if master:
+            wisdom = export_wisdom()
+
+        forget_wisdom()
+
+        if master:
+            import_wisdom(wisdom)
+
+        # broadcast
+        broadcast_wisdom(comm)
+
+        # recreating the plan from wisdom should be much faster now
+        t2 = t.timeit(number=1)
+
+        self.assertTrue(factor * t2 < t1,
+                        msg='Wisdom should speed up plan creation by at least a factor of %g' % factor +
+                            ' but got only %g' % (t1 / t2) + ' for %s => %s' % (kwargs['input_dtype'], kwargs['output_dtype']))
+
+        return t1, t2
+
+    def test_wisdom(self):
+        input_shape = (16, 2)
+        kwargs = dict(flags=['FFTW_EXHAUSTIVE'], direction='FFTW_FORWARD', comm=comm, threads=1)
+
+        # create plan to gather wisdom
+        for scheme in schemes:
+            kwargs.update(scheme)
+            self.wisdom(input_shape, kwargs)
+
 if __name__ == '__main__':
     '''Start as mpirun -n 4 python test_pyfftw_mpi.py'''
     unittest.main(verbosity=2)
 
 # remove C source file to force recompilation
 # Local Variables:
-# compile-command: "cd ../ && rm pyfftw/pyfftw.c ; CC=mpicc python setup.py build_ext --inplace && mpirun -n 2 nosetests test_pyfftw_mpi.py:MPITest"
+# compile-command: "cd ../ && rm pyfftw/pyfftw.c ; CC=mpicc python setup.py build_ext --inplace && mpirun -n 2 nosetests test/test_pyfftw_mpi.py"
 # End:

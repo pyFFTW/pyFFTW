@@ -2066,3 +2066,19 @@ cdef class FFTW_MPI:
                 fftw_execute(plan, input_pointer, output_pointer)
         else:
             fftw_execute(self._plan, input_pointer, output_pointer)
+
+def broadcast_wisdom(Comm comm=None):
+    IF HAVE_DOUBLE:
+        fftw_mpi_broadcast_wisdom(extract_communicator(comm))
+    IF HAVE_SINGLE:
+        fftwf_mpi_broadcast_wisdom(extract_communicator(comm))
+    IF HAVE_LONG:
+        fftwl_mpi_broadcast_wisdom(extract_communicator(comm))
+
+def gather_wisdom(Comm comm=None):
+    IF HAVE_DOUBLE:
+        fftw_mpi_gather_wisdom(extract_communicator(comm))
+    IF HAVE_SINGLE:
+        fftwf_mpi_gather_wisdom(extract_communicator(comm))
+    IF HAVE_LONG:
+        fftwl_mpi_gather_wisdom(extract_communicator(comm))

@@ -1670,15 +1670,21 @@ def export_wisdom():
     argument to :func:`~pyfftw.import_wisdom`.
     '''
 
-    cdef bytes py_wisdom  = 0
-    cdef bytes py_wisdomf = 0
-    cdef bytes py_wisdoml = 0
+    cdef:
+        # can't directly initialize `bytes` with ''
+        const char* empty = ''
+        bytes py_wisdom  = empty
+        bytes py_wisdomf = empty
+        bytes py_wisdoml = empty
 
-    cdef int counter, counterf, counterl = (0, 0, 0)
+        # default init to zero
+        int counter  = 0
+        int counterf = 0
+        int counterl = 0
 
-    cdef char* c_wisdom  = NULL
-    cdef char* c_wisdomf = NULL
-    cdef char* c_wisdoml = NULL
+        char* c_wisdom  = NULL
+        char* c_wisdomf = NULL
+        char* c_wisdoml = NULL
 
     IF HAVE_DOUBLE:
         fftw_export_wisdom(&count_char, <void *>&counter)
@@ -1740,13 +1746,15 @@ def import_wisdom(wisdom):
     and long double, in that order).
     '''
 
-    cdef char* c_wisdom = wisdom[0]
-    cdef char* c_wisdomf = wisdom[1]
-    cdef char* c_wisdoml = wisdom[2]
+    cdef:
+        char* c_wisdom = wisdom[0]
+        char* c_wisdomf = wisdom[1]
+        char* c_wisdoml = wisdom[2]
 
-    cdef bint success  = False
-    cdef bint successf = False
-    cdef bint successl = False
+        bint success  = False
+        bint successf = False
+        bint successl = False
+
     IF HAVE_DOUBLE:
         success = fftw_import_wisdom_from_string(c_wisdom)
     IF HAVE_SINGLE:
