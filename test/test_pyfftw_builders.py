@@ -38,6 +38,7 @@ from .test_pyfftw_base import run_test_suites
 
 import unittest
 import numpy
+import numpy as np
 from numpy import fft as np_fft
 import copy
 import inspect
@@ -55,24 +56,29 @@ def make_real_data(shape, dtype):
     return dtype(numpy.random.randn(*shape))
 
 
-io_dtypes = {
+input_dtypes = {
     'complex': (complex_dtypes, make_complex_data),
     'r2c': (real_dtypes, make_real_data),
     'c2r': (complex_dtypes, make_complex_data)}
 
+output_dtypes = {
+    'complex': complex_dtypes,
+    'r2c': complex_dtypes,
+    'c2r': real_dtypes}
+
 functions = {
-        'fft': 'complex',
-        'ifft': 'complex', 
-        'rfft': 'r2c',
-        'irfft': 'c2r',
-        'rfftn': 'r2c',
-        'irfftn': 'c2r',
-        'rfft2': 'r2c',
-        'irfft2': 'c2r',
-        'fft2': 'complex',
-        'ifft2': 'complex',
-        'fftn': 'complex',
-        'ifftn': 'complex'}
+    'fft': 'complex',
+    'ifft': 'complex', 
+    'rfft': 'r2c',
+    'irfft': 'c2r',
+    'rfftn': 'r2c',
+    'irfftn': 'c2r',
+    'rfft2': 'r2c',
+    'irfft2': 'c2r',
+    'fft2': 'complex',
+    'ifft2': 'complex',
+    'fftn': 'complex',
+    'ifftn': 'complex'}
 
 
 class BuildersTestFFT(unittest.TestCase):
@@ -123,10 +129,11 @@ class BuildersTestFFT(unittest.TestCase):
 
         input_array = array_type(test_shape, dtype)
         
-        if input_array.dtype == 'clongdouble':
+        # Use char because of potential MSVC related bug.
+        if input_array.dtype.char == np.dtype('clongdouble').char:
             np_input_array = numpy.complex128(input_array)
 
-        elif input_array.dtype == 'longdouble':
+        elif input_array.dtype.char == np.dtype('longdouble').char:
             np_input_array = numpy.float64(input_array)
 
         else:
@@ -242,7 +249,7 @@ class BuildersTestFFT(unittest.TestCase):
         return s
 
     def test_valid(self):
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
@@ -253,8 +260,31 @@ class BuildersTestFFT(unittest.TestCase):
 
                 self.assertTrue(type(FFTW_object) == FFTW)
 
+    def test_output_dtype_correct(self):
+        '''The output dtype should be correct given the input dtype.
+
+        It was noted that this is a particular problem on windows 64
+        due longdouble being mapped to double, but the dtype().char attribute
+        still being different.
+        '''
+        inp_dtype_tuple = input_dtypes[functions[self.func]]
+        output_dtype_tuple = output_dtypes[functions[self.func]]
+
+        for input_dtype, output_dtype in zip(inp_dtype_tuple[0], 
+                                             output_dtype_tuple):
+
+            for test_shape, s, kwargs in self.test_data:
+                s = None
+
+                FFTW_object = self.validate_pyfftw_object(inp_dtype_tuple[1], 
+                        test_shape, input_dtype, s, kwargs)
+
+                self.assertTrue(
+                    FFTW_object.output_array.dtype.char == 
+                    np.dtype(output_dtype).char)
+
     def test_fail_on_invalid_s_or_axes(self):
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         
         for dtype in dtype_tuple[0]:
 
@@ -267,7 +297,7 @@ class BuildersTestFFT(unittest.TestCase):
 
 
     def test_same_sized_s(self):
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
 
@@ -279,7 +309,7 @@ class BuildersTestFFT(unittest.TestCase):
     def test_bigger_s_overwrite_input(self):
         '''Test that FFTWWrapper deals with a destroyed input properly.
         '''
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
 
@@ -302,7 +332,7 @@ class BuildersTestFFT(unittest.TestCase):
                         type(FFTW_object) == utils._FFTWWrapper)
     
     def test_bigger_s(self):
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
 
@@ -319,7 +349,7 @@ class BuildersTestFFT(unittest.TestCase):
                         type(FFTW_object) == utils._FFTWWrapper)
 
     def test_smaller_s(self):
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
 
@@ -336,7 +366,7 @@ class BuildersTestFFT(unittest.TestCase):
                         type(FFTW_object) == utils._FFTWWrapper)                
 
     def test_bigger_and_smaller_s(self):
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         for dtype in dtype_tuple[0]:
             i = -1
             for test_shape, s, kwargs in self.test_data:
@@ -356,7 +386,7 @@ class BuildersTestFFT(unittest.TestCase):
                         type(FFTW_object) == utils._FFTWWrapper)
     
     def test_auto_contiguous_input(self):
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
@@ -427,7 +457,7 @@ class BuildersTestFFT(unittest.TestCase):
 
 
     def test_auto_align_input(self):
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
@@ -474,9 +504,9 @@ class BuildersTestFFT(unittest.TestCase):
     def test_dtype_coercian(self):
         # Make sure we input a dtype that needs to be coerced
         if functions[self.func] == 'r2c':
-            dtype_tuple = io_dtypes['complex']
+            dtype_tuple = input_dtypes['complex']
         else:
-            dtype_tuple = io_dtypes['r2c']
+            dtype_tuple = input_dtypes['r2c']
 
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
@@ -490,7 +520,7 @@ class BuildersTestFFT(unittest.TestCase):
     def test_persistent_padding(self):
         '''Test to confirm the padding it not touched after creation.
         '''
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
 
@@ -531,7 +561,7 @@ class BuildersTestFFT(unittest.TestCase):
     def test_planner_effort(self):
         '''Test the planner effort arg
         '''
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         test_shape = (16,)
         
         for dtype in dtype_tuple[0]:
@@ -560,7 +590,7 @@ class BuildersTestFFT(unittest.TestCase):
     def test_threads_arg(self):
         '''Test the threads argument
         '''
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         test_shape = (16,)
         
         for dtype in dtype_tuple[0]:
@@ -587,7 +617,7 @@ class BuildersTestFFT(unittest.TestCase):
     def test_overwrite_input(self):
         '''Test the overwrite_input flag
         '''
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         
         for dtype in dtype_tuple[0]:
             for test_shape, s, _kwargs in self.test_data:
@@ -612,7 +642,7 @@ class BuildersTestFFT(unittest.TestCase):
     def test_input_maintained(self):
         '''Test to make sure the input is maintained
         '''
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
 
@@ -629,7 +659,7 @@ class BuildersTestFFT(unittest.TestCase):
     def test_avoid_copy(self):
         '''Test the avoid_copy flag
         '''
-        dtype_tuple = io_dtypes[functions[self.func]]
+        dtype_tuple = input_dtypes[functions[self.func]]
         
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
