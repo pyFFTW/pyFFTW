@@ -1,4 +1,4 @@
-# Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2015 Knowledge Economy Developments Ltd
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
@@ -804,9 +804,9 @@ cdef class FFTW:
     axes = property(_get_axes)
 
     def __cinit__(self, input_array, output_array, axes=(-1,),
-            direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
-            unsigned int threads=1, planning_timelimit=None,
-            *args, **kwargs):
+                  direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
+                  unsigned int threads=1, planning_timelimit=None,
+                  *args, **kwargs):
         
         # Initialise the pointers that need to be freed
         self._plan = NULL
@@ -1096,8 +1096,7 @@ cdef class FFTW:
 
     def __init__(self, input_array, output_array, axes=(-1,), 
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',), 
-            int threads=1, planning_timelimit=None, 
-            *args, **kwargs):
+            int threads=1, planning_timelimit=None):
         '''
         **Arguments**:
 

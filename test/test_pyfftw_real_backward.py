@@ -68,6 +68,17 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
                 '2d': (256, 2048),
                 '3d': (5, 256, 2048)}
 
+    def test_invalid_args_raise(self):
+        in_shape = self.input_shapes['1d']
+        out_shape = self.output_shapes['1d']
+        
+        axes=(-1,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        # Note "thread" is incorrect, it should be "threads"
+        self.assertRaises(TypeError, FFTW, a, b, axes, 
+                          direction='FFTW_BACKWARD', thread=4)
+
     def create_test_arrays(self, input_shape, output_shape, axes=None):
 
         a = self.input_dtype(numpy.random.randn(*input_shape)

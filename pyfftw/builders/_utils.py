@@ -203,7 +203,7 @@ class _FFTWWrapper(pyfftw.FFTW):
 
     def __init__(self, input_array, output_array, axes=[-1], 
             direction='FFTW_FORWARD', flags=['FFTW_MEASURE'], 
-            threads=1, *args, **kwargs):
+            threads=1, input_array_slicer=None, FFTW_array_slicer=None):
         '''The arguments are as per :class:`pyfftw.FFTW`, but with the addition
         of 2 keyword arguments: ``input_array_slicer`` and
         ``FFTW_array_slicer``.
@@ -217,16 +217,16 @@ class _FFTWWrapper(pyfftw.FFTW):
         input array into the sliced internal array.
         '''
 
-        self._input_array_slicer = kwargs.pop('input_array_slicer')
-        self._FFTW_array_slicer = kwargs.pop('FFTW_array_slicer')
+        self._input_array_slicer = input_array_slicer
+        self._FFTW_array_slicer = FFTW_array_slicer
 
         if 'FFTW_DESTROY_INPUT' in flags:
             self._input_destroyed = True
         else:
             self._input_destroyed = False
 
-        super(_FFTWWrapper, self).__init__(input_array, output_array, 
-                axes, direction, flags, threads, *args, **kwargs)
+        pyfftw.FFTW.__init__(self, input_array, output_array, 
+                             axes, direction, flags, threads)
 
     def __call__(self, input_array=None, output_array=None, 
             normalise_idft=True):

@@ -63,6 +63,17 @@ class Complex64FFTW1DTest(object):
                 lambda: self.np_fft_comparison(a))
         self.assertTrue(True)
 
+    def test_invalid_args_raise(self):
+
+        in_shape = self.input_shapes['1d']
+        out_shape = self.output_shapes['1d']
+        
+        axes=(-1,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+
+        # Note "thread" is incorrect, it should be "threads"
+        self.assertRaises(TypeError, FFTW, a, b, axes, thread=4)
+
     def test_1d(self):
         in_shape = self.input_shapes['1d']
         out_shape = self.output_shapes['1d']
