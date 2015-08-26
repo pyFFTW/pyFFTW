@@ -1007,6 +1007,10 @@ def local_size(input_shape, ptrdiff_t howmany=1,
     if howmany <= 0:
         raise ValueError('Invalid howmany: %d. Needs to be >= 1' % howmany)
 
+    if (np.array(input_shape) <= 0).any():
+        raise ValueError('Invalid input shape. '
+                         'Need at least one element in every dimension: ' + str(input_shape))
+
     _howmany = howmany
 
     _block0 = validate_block(block0)
