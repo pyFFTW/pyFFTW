@@ -11,7 +11,7 @@ library <http://www.fftw.org/>`_. However, users may find it easier to
 use the helper routines provided in :mod:`pyfftw.builders`.
 '''
 
-from ._version import version
+from .version import version as __version__
 
 from .pyfftw import (
         FFTW,

@@ -1,4 +1,4 @@
-# Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2015 Knowledge Economy Developments Ltd
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
@@ -32,90 +32,104 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-from setuptools import setup, Command, Extension
-from pkg_resources import get_build_platform
+try:
+    # use setuptools if we can
+    from setuptools import setup, Command, Extension
+    from setuptools.command.build_ext import build_ext
+    using_setuptools = True
+except ImportError:
+    from distutils.core import setup, Command, Extension
+    from distutils.command.build_ext import build_ext
+    using_setuptools = False
+
 from distutils.ccompiler import get_default_compiler
 
 import os
-import numpy
 import sys
 
-# Get the version string in rather a roundabout way.
-# We can't import it directly as the module may not yet be
-# built in pyfftw.
-import imp
-ver_file, ver_pathname, ver_description = imp.find_module(
-            '_version', ['pyfftw'])
-try:
-    _version = imp.load_module('version', ver_file, ver_pathname, 
-            ver_description)
-finally:
-    ver_file.close()
+MAJOR = 1
+MINOR = 0
+MICRO = 0
+ISRELEASED = False
+VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
-version = _version.version
+def get_package_data():
+    from pkg_resources import get_build_platform
 
-try:
-    from Cython.Distutils import build_ext as build_ext
-    sources = [os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')]
-except ImportError as e:
-    sources = [os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.c')]
-    if not os.path.exists(sources[0]):
-        raise ImportError(str(e) + '. ' +
-                'Cython is required to build the initial .c file.')
+    package_data = {}
 
-    # We can't cythonize, but that's ok as it's been done already.
-    from setuptools.command.build_ext import build_ext
-
-include_dirs = [os.path.join(os.getcwd(), 'include'), 
-        os.path.join(os.getcwd(), 'pyfftw'),
-        numpy.get_include()]
-library_dirs = []
-package_data = {}
-
-if get_build_platform() in ('win32', 'win-amd64'):
-    libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
-    include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
-    library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
-    package_data['pyfftw'] = [
+    if get_build_platform() in ('win32', 'win-amd64'):
+        package_data['pyfftw'] = [
             'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
-else:
-    libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads', 
-            'fftw3f_threads', 'fftw3l_threads']
 
-class custom_build_ext(build_ext):
-    def finalize_options(self):
+    return package_data
 
-        build_ext.finalize_options(self)
+def get_include_dirs():
+    import numpy
+    from pkg_resources import get_build_platform
 
-        if self.compiler is None:
-            compiler = get_default_compiler()
-        else:
-            compiler = self.compiler
+    include_dirs = [os.path.join(os.getcwd(), 'include'), 
+                    os.path.join(os.getcwd(), 'pyfftw'),
+                    numpy.get_include()]
 
-        if compiler == 'msvc':
-            # Add msvc specific hacks
-            
-            if (sys.version_info.major, sys.version_info.minor) < (3, 3):
-                # The check above is a nasty hack. We're using the python
-                # version as a proxy for the MSVC version. 2008 doesn't
-                # have stdint.h, so is needed. 2010 does.
-                #
-                # We need to add the path to msvc includes
-                include_dirs.append(os.path.join(os.getcwd(), 
-                    'include', 'msvc_2008'))
+    if get_build_platform() in ('win32', 'win-amd64'):
+        include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
 
-            # We need to prepend lib to all the library names
-            _libraries = []
-            for each_lib in self.libraries:
-                _libraries.append('lib' + each_lib)
+    return include_dirs
 
-            self.libraries = _libraries
+def get_library_dirs():
+    from pkg_resources import get_build_platform
 
-ext_modules = [Extension('pyfftw.pyfftw',
-    sources=sources,
-    libraries=libraries,
-    library_dirs=library_dirs,
-    include_dirs=include_dirs)]
+    library_dirs = []
+    if get_build_platform() in ('win32', 'win-amd64'):
+        library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
+
+    return library_dirs
+
+def get_libraries():
+    from pkg_resources import get_build_platform
+
+    if get_build_platform() in ('win32', 'win-amd64'):
+        libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
+
+    else:
+        libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads', 
+                     'fftw3f_threads', 'fftw3l_threads']
+
+    return libraries
+
+def get_extensions():
+    from distutils.extension import Extension
+
+    common_extension_args = {
+        'include_dirs': get_include_dirs(),
+        'library_dirs': get_library_dirs(),
+        'libraries': get_libraries()}
+
+    try:
+        from Cython.Build import cythonize        
+        sources = [os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')]
+        have_cython = True
+
+    except ImportError as e:
+        # no cython
+        sources = [os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.c')]
+        if not os.path.exists(sources[0]):
+            raise ImportError(
+                str(e) + '. ' + 
+                'Cython is required to build the initial .c file.')
+        
+        have_cython = True
+
+    ext_modules = [
+        Extension('pyfftw.pyfftw', sources=sources, 
+                  **common_extension_args)]
+
+    if have_cython:
+        return cythonize(ext_modules)
+
+    else:
+        return ext_modules
 
 long_description = '''
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
@@ -148,6 +162,54 @@ The documentation can be found
 is on `github <https://github.com/hgomersall/pyFFTW>`_.
 '''
 
+class custom_build_ext(build_ext):
+    def finalize_options(self):
+
+        build_ext.finalize_options(self)
+
+        if self.compiler is None:
+            compiler = get_default_compiler()
+        else:
+            compiler = self.compiler
+
+        if compiler == 'msvc':
+            # Add msvc specific hacks
+            
+            if (sys.version_info.major, sys.version_info.minor) < (3, 3):
+                # The check above is a nasty hack. We're using the python
+                # version as a proxy for the MSVC version. 2008 doesn't
+                # have stdint.h, so is needed. 2010 does.
+                #
+                # We need to add the path to msvc includes
+                include_dirs.append(os.path.join(os.getcwd(), 
+                    'include', 'msvc_2008'))
+
+            # We need to prepend lib to all the library names
+            _libraries = []
+            for each_lib in self.libraries:
+                _libraries.append('lib' + each_lib)
+
+            self.libraries = _libraries
+
+class CreateChangelogCommand(Command):
+
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import subprocess        
+        github_token_file = 'github_changelog_generator_token'
+
+        with open(github_token_file) as f:
+            github_token = f.readline().strip()
+
+        subprocess.call(['github_changelog_generator', '-t', github_token])
+
 class TestCommand(Command):
     user_options = []
 
@@ -158,7 +220,7 @@ class TestCommand(Command):
         pass
 
     def run(self):
-        import sys, subprocess
+        import subprocess
         errno = subprocess.call([sys.executable, '-m', 
             'unittest', 'discover'])
         raise SystemExit(errno)
@@ -204,17 +266,104 @@ class QuickTestCommand(Command):
             'test.test_pyfftw_builders.BuildersTestIRFFT2',
         ]
 
-        import sys, subprocess
+        import subprocess
         errno = subprocess.call([sys.executable, '-m', 
             'unittest'] + quick_test_cases)
         raise SystemExit(errno)
 
-setup_args = {
+
+# borrowed from scipy via pyNFFT
+def git_version():
+
+    import subprocess
+
+    def _minimal_ext_cmd(cmd):
+        # construct minimal environment
+        env = {}
+        for k in ['SYSTEMROOT', 'PATH']:
+            v = os.environ.get(k)
+            if v is not None:
+                env[k] = v
+        # LANGUAGE is used on win32
+        env['LANGUAGE'] = 'C'
+        env['LANG'] = 'C'
+        env['LC_ALL'] = 'C'
+        out = subprocess.Popen(cmd, stdout = subprocess.PIPE, env=env).communicate()[0]
+        return out
+
+    try:
+        out = _minimal_ext_cmd(['git', 'rev-parse', 'HEAD'])
+        GIT_REVISION = out.strip().decode('ascii')
+    except OSError:
+        GIT_REVISION = "Unknown"
+
+    return GIT_REVISION
+
+# borrowed from scipy via pyNFFT
+def get_version_info():
+    FULLVERSION = VERSION
+    if os.path.exists('.git'):
+        GIT_REVISION = git_version()
+    elif os.path.exists('pyfftw/version.py'):
+        # must be a source distribution, use existing version file
+        # load it as a separate module in order not to load __init__.py
+        import imp
+        version = imp.load_source('pyfftw.version', 'pyfftw/version.py')
+        GIT_REVISION = version.git_revision
+    else:
+        GIT_REVISION = "Unknown"
+
+    if not ISRELEASED:
+        FULLVERSION += '.dev-' + GIT_REVISION[:7]
+
+    return FULLVERSION, GIT_REVISION
+
+# borrowed from scipy via pyNFFT
+def write_version_py(filename='pyfftw/version.py'):
+    cnt = """
+# THIS FILE IS GENERATED FROM SETUP.PY
+short_version = '%(version)s'
+version = '%(version)s'
+full_version = '%(full_version)s'
+git_revision = '%(git_revision)s'
+release = %(isrelease)s
+if not release:
+    version = full_version
+"""
+    FULLVERSION, GIT_REVISION = get_version_info()
+
+    f = open(filename, 'w')
+    try:
+        f.write(cnt % {'version': VERSION,
+                       'full_version' : FULLVERSION,
+                       'git_revision' : GIT_REVISION,
+                       'isrelease': str(ISRELEASED)})
+    finally:
+        f.close()
+
+def setup_package():
+
+    # Get current version
+    FULLVERSION, GIT_REVISION = get_version_info()
+
+    # Refresh version file
+    write_version_py()
+
+    # Figure out whether to add ``*_requires = ['numpy']``.
+    build_requires = []
+    try:
+        import numpy
+    except:
+        build_requires = ['numpy>=1.6',]
+
+    setup_args = {
         'name': 'pyFFTW',
-        'version': version,
+        'version': FULLVERSION,
         'author': 'Henry Gomersall',
         'author_email': 'heng@kedevelopments.co.uk',
-        'description': 'A pythonic wrapper around FFTW, the FFT library, presenting a unified interface for all the supported transforms.',
+        'description': (
+            'A pythonic wrapper around FFTW, the FFT library, presenting a '
+            'unified interface for all the supported transforms.'),
         'url': 'http://hgomersall.github.com/pyFFTW/',
         'long_description': long_description,
         'classifiers': [
@@ -227,16 +376,30 @@ setup_args = {
             'Intended Audience :: Science/Research',
             'Topic :: Scientific/Engineering',
             'Topic :: Scientific/Engineering :: Mathematics',
-            'Topic :: Multimedia :: Sound/Audio :: Analysis',
-            ],
-        'packages':['pyfftw', 'pyfftw.builders', 'pyfftw.interfaces'],
-        'ext_modules': ext_modules,
-        'include_dirs': include_dirs,
-        'package_data': package_data,
+            'Topic :: Multimedia :: Sound/Audio :: Analysis'],
         'cmdclass': {'test': TestCommand,
                      'quick_test': QuickTestCommand,
-                     'build_ext': custom_build_ext},
-  }
+                     'build_ext': custom_build_ext,
+                     'create_changelog': CreateChangelogCommand}
+    }
+
+    if using_setuptools:
+        setup_args['setup_requires'] = build_requires
+        setup_args['install_requires'] = build_requires
+
+    if len(sys.argv) >= 2 and (
+        '--help' in sys.argv[1:] or
+        sys.argv[1] in ('--help-commands', 'egg_info', '--version',
+                        'clean')):
+        # For these actions, NumPy is not required.
+        pass
+    else:
+        setup_args['packages'] = [
+            'pyfftw', 'pyfftw.builders', 'pyfftw.interfaces']
+        setup_args['ext_modules'] = get_extensions()
+        setup_args['package_data'] = get_package_data()
+
+    setup(**setup_args)
 
 if __name__ == '__main__':
-    setup(**setup_args)
+    setup_package()
