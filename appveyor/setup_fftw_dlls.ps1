@@ -1,15 +1,5 @@
 
 
-function Expand-ZIPFile($file, $destination)
-{
-    $shell = new-object -com shell.application
-    $zip = $shell.NameSpace($file)
-    foreach($item in $zip.items())
-    {
-        $shell.Namespace($destination).copyhere($item)
-    }
-}
-
 function SetupFFTWDLLs(){
     Write-Host "Downloading and configuring the FFTW DLLs."
 
@@ -20,13 +10,15 @@ function SetupFFTWDLLs(){
         $source_file = "ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4-dll64.zip"
     }
 
-    $zip_destination = "fftw-3.3.4-dll.zip"
+    $zip_destination = "\fftw-3.3.4-dll.zip"
     Invoke-WebRequest $source_file -OutFile $zip_destination
 
-    
-    Expand-ZIPFile -file $zip_destination -destination "c:\temp\fftw"
-    Copy-Item c:\temp\fftw\*.dll pyfftw
-    Copy-Item c:\temp\fftw\*.def pyfftw
+    iex "dir"
+    Write-Host $env:WIN_SDK_ROOT
+    Write-Host $env:WIN_SDK_VERSION
+
+    iex "7z.exe e $zip_destination -opyfftw *.dll"    
+    iex "7z.exe e $zip_destination -opyfftw *.def"
 
     iex "lib /def:pyfftw\libfftw3-3.def"
     iex "lib /def:pyfftw\libfftw3f-3.def"
