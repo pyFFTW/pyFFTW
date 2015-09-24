@@ -4,10 +4,10 @@
 
 ECHO Downloading DLL files
 IF %PYTHON_ARCH% == 64 (
-    appveyor DownloadFile "ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4-dll64.zip"
+    call appveyor DownloadFile "ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4-dll64.zip"
     SET FFTW_DLL_FILENAME=fftw-3.3.4-dll64.zip
 ) ELSE (
-    appveyor DownloadFile "ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4-dll32.zip"
+    call appveyor DownloadFile "ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4-dll32.zip"
     SET FFTW_DLL_FILENAME=fftw-3.3.4-dll32.zip
 )
 call ls pyfftw

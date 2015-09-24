@@ -59,11 +59,11 @@ cache:
   - wheelhouse -> appveyor\build_*.ps1
 
 install:
-  - ECHO "Filesystem root:"
-  - ps: "ls \"C:/\""
+  #- ECHO "Filesystem root:"
+  #- ps: "ls \"C:/\""
 
-  - ECHO "Installed SDKs:"
-  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
+  #- ECHO "Installed SDKs:"
+  #- ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
 
   # Get and configure the FFTW libs
   - "%CMD_IN_ENV% ./appveyor/setup_fftw_dlls.cmd"
