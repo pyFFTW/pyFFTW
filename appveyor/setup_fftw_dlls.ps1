@@ -16,9 +16,9 @@ function SetupFFTWDLLs(){
     iex "7z.exe e $zip_destination -opyfftw *.dll"    
     iex "7z.exe e $zip_destination -opyfftw *.def"
 
-    iex "$env:WIN_SDK_ROOT\$env:WINDOWS_SDK_VERSION\Bin\lib.exe /def:pyfftw\libfftw3-3.def"
-    iex "$env:WIN_SDK_ROOT\$env:WINDOWS_SDK_VERSION\Bin\lib.exe /def:pyfftw\libfftw3f-3.def"
-    iex "$env:WIN_SDK_ROOT\$env:WINDOWS_SDK_VERSION\Bin\lib.exe /def:pyfftw\libfftw3l-3.def"
+    Invoke-Expression -command & "$env:WIN_SDK_ROOT\$env:WINDOWS_SDK_VERSION\Bin\lib.exe /def:pyfftw\libfftw3-3.def"
+    Invoke-Expression -command & "$env:WIN_SDK_ROOT\$env:WINDOWS_SDK_VERSION\Bin\lib.exe /def:pyfftw\libfftw3f-3.def"
+    Invoke-Expression -command & "$env:WIN_SDK_ROOT\$env:WINDOWS_SDK_VERSION\Bin\lib.exe /def:pyfftw\libfftw3l-3.def"
 
 }
 
