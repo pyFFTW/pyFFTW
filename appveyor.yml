@@ -66,7 +66,7 @@ install:
   - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
 
   # Get and configure the FFTW libs
-  - "%CMD_IN_ENV% cmd ./appveyor/setup_fftw_dlls.cmd"
+  - "%CMD_IN_ENV% ./appveyor/setup_fftw_dlls.cmd"
 
   # Install Python (from the official .msi of http://python.org) and pip when
   # not already installed.
