@@ -23,7 +23,8 @@ function SetupFFTWDLLs(){
     $zip_destination = "fftw-3.3.4-dll.zip"
     Invoke-WebRequest $source_file -OutFile $zip_destination
 
-    Expand-ZIPFile -File $zip_destination -Destination "c:\temp\fftw"
+    
+    Expand-ZIPFile -file $zip_destination -destination "c:\temp\fftw"
     Copy-Item c:\temp\fftw\*.dll pyfftw
     Copy-Item c:\temp\fftw\*.def pyfftw
 
