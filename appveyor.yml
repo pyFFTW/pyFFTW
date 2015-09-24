@@ -86,17 +86,20 @@ install:
   - "pip install --disable-pip-version-check --user --upgrade pip"
   
   # We need wheel for the next bits...
-  - "pip install --upgrade wheel"
+  #- "pip install --upgrade wheel"
+  - "conda install --yes numpy scipy cython setuptools"
+  
+  - "%CMD_IN_ENV% python setup.py build_ext --inplace"
 
   # build the dependencies as wheels
-  - ps: "./appveyor/build_numpy.ps1"
-  - ps: "./appveyor/build_scipy.ps1"
+  #- ps: "./appveyor/build_numpy.ps1"
+  #- ps: "./appveyor/build_scipy.ps1"
 
   # Install the build dependencies of the project. If some dependencies contain
   # compiled extensions and are not provided as pre-built wheel packages,
   # pip will build them from source using the MSVC compiler matching the
   # target Python version and architecture
-  - "%CMD_IN_ENV% pip install --find-links=wheelhouse -r requirements.txt"
+  #- "%CMD_IN_ENV% pip install --find-links=wheelhouse -r requirements.txt"
 
 build: false  # Not a C# project, build stuff at the test step instead.
 
