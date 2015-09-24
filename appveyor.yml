@@ -88,7 +88,7 @@ install:
   # We need wheel for the next bits...
   #- "pip install --upgrade wheel"
   - ps: "ls $env:PYTHON/Scripts/"
-  - ps: "ls c:\Anaconda"
+  - ps: "ls c:\\Anaconda"
   - "conda install --yes numpy scipy cython setuptools"
   
   - "%CMD_IN_ENV% python setup.py build_ext --inplace"
