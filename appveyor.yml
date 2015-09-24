@@ -64,6 +64,8 @@ install:
 
   - ECHO "Installed SDKs:"
   - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
+  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows/v7.0\""
+  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows/v7.0/Bin\""
 
   # Get and configure the FFTW libs
   - "%CMD_IN_ENV% powershell ./appveyor/setup_fftw_dlls.ps1"
@@ -89,8 +91,8 @@ install:
   - "pip install --upgrade wheel"
 
   # build the dependencies as wheels
-  - "powershell ./appveyor/build_numpy.ps1"
-  - "powershell ./appveyor/build_scipy.ps1"
+  - ps: "./appveyor/build_numpy.ps1"
+  - ps: "./appveyor/build_scipy.ps1"
 
   # Install the build dependencies of the project. If some dependencies contain
   # compiled extensions and are not provided as pre-built wheel packages,
