@@ -65,7 +65,8 @@ install:
   - ECHO "Installed SDKs:"
   - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
   - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows/v7.0\""
-  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows/v7.0/Bin\""
+  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows/v7.0/Bin\""    
+  - ps: "ls \"C:/Program Files/Microsoft SDKs/Windows/v7.0/Setup\""
 
   # Get and configure the FFTW libs
   - "%CMD_IN_ENV% powershell ./appveyor/setup_fftw_dlls.ps1"
