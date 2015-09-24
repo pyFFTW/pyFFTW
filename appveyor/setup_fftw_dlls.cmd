@@ -1,6 +1,6 @@
 @ECHO OFF
-"%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe" -q -version:%WINDOWS_SDK_VERSION%
-"%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd"
+call %WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Setup\WindowsSdkVer.exe -q -version:%WINDOWS_SDK_VERSION%
+call %WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd
 
 ECHO Downloading DLL files
 IF %PYTHON_ARCH% == 64 (
