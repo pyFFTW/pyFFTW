@@ -181,8 +181,15 @@ class custom_build_ext(build_ext):
                 # have stdint.h, so is needed. 2010 does.
                 #
                 # We need to add the path to msvc includes
-                include_dirs.append(os.path.join(os.getcwd(), 
-                    'include', 'msvc_2008'))
+
+                msvc_2008_path = (
+                    os.path.join(os.getcwd(), 'include', 'msvc_2008'))
+
+                if self.include_dirs is not None:
+                    self.include_dirs.append(msvc_2008_path)
+
+                else:
+                    self.include_dirs = [msvc_2008_path]
 
             # We need to prepend lib to all the library names
             _libraries = []
