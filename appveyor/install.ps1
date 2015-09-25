@@ -226,7 +226,6 @@ function InstallMinicondaPip ($python_home) {
 function main () {
     #InstallPython $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
     #InstallPip $env:PYTHON
-    Write-Hose "Installing minicon
     InstallMiniconda $env:PYTHON_VERSION $env:PYTHON_ARCH $env:PYTHON
     InstallMinicondaPip $env:PYTHON
 
