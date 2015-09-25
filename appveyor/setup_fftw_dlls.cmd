@@ -12,7 +12,6 @@ IF %PYTHON_ARCH% == 64 (
     SET MACHINE=X86
     SET FFTW_DLL_FILENAME=fftw-3.3.4-dll32.zip
 )
-call ls pyfftw
 ECHO Extracting DLLs from %FFTW_DLL_FILENAME%
 call 7z.exe e %FFTW_DLL_FILENAME% -opyfftw *.dll
 call 7z.exe e %FFTW_DLL_FILENAME% -opyfftw *.def
