@@ -119,7 +119,7 @@ def get_extensions():
                 str(e) + '. ' + 
                 'Cython is required to build the initial .c file.')
         
-        have_cython = True
+        have_cython = False
 
     ext_modules = [
         Extension('pyfftw.pyfftw', sources=sources, 
