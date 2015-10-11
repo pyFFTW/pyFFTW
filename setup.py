@@ -47,8 +47,8 @@ from distutils.ccompiler import get_default_compiler
 import os
 import sys
 
-MAJOR = 1
-MINOR = 0
+MAJOR = 0
+MINOR = 10
 MICRO = 0
 ISRELEASED = False
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
