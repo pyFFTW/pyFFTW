@@ -383,7 +383,6 @@ def setup_package():
                      'quick_test': QuickTestCommand,
                      'build_ext': custom_build_ext,
                      'create_changelog': CreateChangelogCommand},
-        'install_requires' = install_requires
     }
 
     if using_setuptools:
