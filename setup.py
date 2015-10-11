@@ -355,8 +355,8 @@ def setup_package():
     build_requires = []
     try:
         import numpy
-    except:
-        build_requires = ['numpy>=1.6',]
+    except ImportError:
+        build_requires = ['numpy>=1.6, <2.0']
 
     setup_args = {
         'name': 'pyFFTW',
@@ -382,7 +382,8 @@ def setup_package():
         'cmdclass': {'test': TestCommand,
                      'quick_test': QuickTestCommand,
                      'build_ext': custom_build_ext,
-                     'create_changelog': CreateChangelogCommand}
+                     'create_changelog': CreateChangelogCommand},
+        'install_requires' = install_requires
     }
 
     if using_setuptools:
