@@ -161,6 +161,10 @@ class CacheTest(unittest.TestCase):
     def test_cache_parent_thread_ended(self):
         '''Test ending cache parent thread ends cache thread.
         '''
+        # Firstly make sure we've exited any lingering threads from other
+        # tests.
+        time.sleep(0.1)                
+
         self.assertTrue(threading.active_count() == 1)
 
         def cache_parent_thread():
@@ -182,12 +186,15 @@ class CacheTest(unittest.TestCase):
     def test_delete_cache_object(self):
         '''Test deleting a cache object ends cache thread.
         '''
+        # Firstly make sure we've exited any lingering threads from other
+        # tests.
+        time.sleep(0.1)
         self.assertTrue(threading.active_count() == 1)
 
         _cache = interfaces.cache._Cache()
         time.sleep(0.1)
         self.assertTrue(threading.active_count() == 2)
-
+        
         del _cache
         time.sleep(0.1)
         self.assertTrue(threading.active_count() == 1)
