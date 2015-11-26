@@ -191,6 +191,20 @@ class custom_build_ext(build_ext):
                 else:
                     self.include_dirs = [msvc_2008_path]
 
+            elif (sys.version_info.major, sys.version_info.minor) < (3, 5):
+                # Actually, it seems that appveyor doesn't have a stdint that
+                # works, so even for 2010 we use our own (hacked) version
+                # of stdint.
+                # This should be pretty safe in whatever case.
+                msvc_2010_path = (
+                    os.path.join(os.getcwd(), 'include', 'msvc_2010'))
+
+                if self.include_dirs is not None:
+                    self.include_dirs.append(msvc_2010_path)
+
+                else:
+                    self.include_dirs = [msvc_2010_path]
+
             # We need to prepend lib to all the library names
             _libraries = []
             for each_lib in self.libraries:
