@@ -47,8 +47,8 @@ from distutils.ccompiler import get_default_compiler
 import os
 import sys
 
-MAJOR = 1
-MINOR = 0
+MAJOR = 0
+MINOR = 10
 MICRO = 0
 ISRELEASED = False
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
@@ -362,8 +362,8 @@ def setup_package():
     build_requires = []
     try:
         import numpy
-    except:
-        build_requires = ['numpy>=1.6',]
+    except ImportError:
+        build_requires = ['numpy>=1.6, <2.0']
 
     setup_args = {
         'name': 'pyFFTW',

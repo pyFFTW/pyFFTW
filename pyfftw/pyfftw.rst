@@ -74,15 +74,22 @@ Utility Functions
    inspecting the CPU (e.g. if AVX is supported, its value will be 32).
 
    This can be used as ``n`` in the arguments for :func:`byte_align`,
-   :func:`byte_align_empty`, :func:`zeros_aligned`, and :func:`ones_aligned` to
+   :func:`empty_aligned`, :func:`zeros_aligned`, and :func:`ones_aligned` to
    create optimally aligned arrays for the running platform.
 
 .. autofunction:: pyfftw.byte_align
 
-.. autofunction:: pyfftw.byte_align_empty
-
-.. autofunction:: pyfftw.is_byte_aligned
+.. autofunction:: pyfftw.empty_aligned
 
 .. autofunction:: pyfftw.zeros_aligned
 
 .. autofunction:: pyfftw.ones_aligned
+
+.. autofunction:: pyfftw.is_byte_aligned
+
+.. autofunction:: pyfftw.n_byte_align
+
+.. autofunction:: pyfftw.n_byte_align_empty
+
+.. autofunction:: pyfftw.is_n_byte_aligned
+

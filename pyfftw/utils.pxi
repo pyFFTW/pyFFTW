@@ -58,8 +58,8 @@ else:
 
 cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
     '''n_byte_align_empty(shape, n, dtype='float64', order='C')
-    This function is deprecated: ``empty_aligned`` should be used
-    instead.
+    **This function is deprecated:** ``empty_aligned`` **should be used
+    instead.**
 
     Function that returns an empty numpy array that is n-byte aligned.
 
@@ -76,7 +76,7 @@ cpdef n_byte_align_empty(shape, n, dtype='float64', order='C'):
 cpdef n_byte_align(array, n, dtype=None):
     '''n_byte_align(array, n, dtype=None)
 
-    This function is deprecated: ``byte_align`` should be used instead.
+    **This function is deprecated:** ``byte_align`` **should be used instead.**
 
     Function that takes a numpy array and checks it is aligned on an n-byte
     boundary, where ``n`` is an optional parameter. If ``n`` is not provided
@@ -159,8 +159,8 @@ cpdef is_byte_aligned(array, n=None):
 
 cpdef is_n_byte_aligned(array, n):
     ''' is_n_byte_aligned(array, n)
-    This function is deprecated: ``is_byte_aligned`` should be used
-    instead.
+    **This function is deprecated:** ``is_byte_aligned`` **should be used
+    instead.**
 
     Function that takes a numpy array and checks it is aligned on an n-byte
     boundary, where ``n`` is a passed parameter, returning ``True`` if it is,

@@ -49,11 +49,11 @@ complex_dtypes = (numpy.complex64, numpy.complex128, numpy.clongdouble)
 real_dtypes = (numpy.float32, numpy.float64, numpy.longdouble)
 
 def make_complex_data(shape, dtype):
-    ar, ai = dtype(numpy.random.randn(2, *shape))
+    ar, ai = numpy.random.randn(2, *shape).astype(dtype)
     return ar + 1j*ai
 
 def make_real_data(shape, dtype):
-    return dtype(numpy.random.randn(*shape))
+    return numpy.random.randn(*shape).astype(dtype)
 
 
 input_dtypes = {

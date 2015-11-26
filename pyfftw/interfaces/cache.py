@@ -177,7 +177,6 @@ class _Cache(object):
         # be raised).
         try:
             self._close_thread_now.set()
-            self._thread_object.join()
         
         except TypeError:
             # Not sure what's going on here, but IPython baulks on exit
