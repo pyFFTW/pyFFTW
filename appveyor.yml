@@ -55,9 +55,6 @@ environment:
       #      PYTHON_VERSION: "3.5.0"
       #      PYTHON_ARCH: "64"
 
-init:
-    - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-
 cache:
   - wheelhouse -> appveyor\build_*.ps1
 
@@ -113,6 +110,9 @@ test_script:
   # Build the compiled extension and run the project tests
   - "python setup.py test"
 
+
+on_finish:
+    - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 #after_test:
   # If tests are successful, create binary packages for the project.
   #- "%CMD_IN_ENV% python setup.py bdist_wheel"
