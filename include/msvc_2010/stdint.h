@@ -41,12 +41,14 @@
 #pragma once
 #endif
 
+// We comment out the restriction to use the default stdint.h
 // This fix is to make sure the stdint we define here is used by appveyor
-// for msvc 2010. This shouldn't need to be done, but it does.
+// for msvc 2010. This shouldn't need to be done, but it does. It's
+// probably safe regardless.
 //#if _MSC_VER >= 1600 // [
-#if _MSC_VER >= 1600
-#include <stdint.h>
-#else // ] _MSC_VER >= 1600 [
+//#if _MSC_VER >= 1600
+//#include <stdint.h>
+//#else // ] _MSC_VER >= 1600 [
 
 #include <limits.h>
 
@@ -257,6 +259,6 @@ typedef uint64_t  uintmax_t;
 
 #endif // __STDC_CONSTANT_MACROS ]
 
-#endif // _MSC_VER >= 1600 ]
+//#endif // _MSC_VER >= 1600 ]
 
 #endif // _MSC_STDINT_H_ ]
