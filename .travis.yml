@@ -23,7 +23,7 @@ before_install:
 
 install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy cython setuptools
-  - source active test-environment
+  - source activate test-environment
   - python setup.py build_ext --inplace
 
 script: python setup.py test
