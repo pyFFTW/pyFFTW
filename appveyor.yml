@@ -9,29 +9,29 @@ environment:
 
   matrix:
 
-    - PYTHON_VERSION: "2.7" # currently 2.7.9
-      PYTHON_ARCH: "32"
-            
+      #    - PYTHON_VERSION: "2.7" # currently 2.7.9
+      #      PYTHON_ARCH: "32"
+      #            
     - PYTHON_VERSION: "2.7" # currently 2.7.9
       PYTHON_ARCH: "64"
   
-    - PYTHON_VERSION: "3.3" # currently 3.3.5
-      PYTHON_ARCH: "32"
-
-    - PYTHON_VERSION: "3.3" # currently 3.3.5
-      PYTHON_ARCH: "64"
-
-    - PYTHON_VERSION: "3.4" # currently 3.4.3
-      PYTHON_ARCH: "32"
-      
-    - PYTHON_VERSION: "3.4" # currently 3.4.3
-      PYTHON_ARCH: "64"
-
-    - PYTHON_VERSION: "3.5"
-      PYTHON_ARCH: "32"
-      
-    - PYTHON_VERSION: "3.5"
-      PYTHON_ARCH: "64"
+      #    - PYTHON_VERSION: "3.3" # currently 3.3.5
+      #      PYTHON_ARCH: "32"
+      #
+      #    - PYTHON_VERSION: "3.3" # currently 3.3.5
+      #      PYTHON_ARCH: "64"
+      #
+      #    - PYTHON_VERSION: "3.4" # currently 3.4.3
+      #      PYTHON_ARCH: "32"
+      #      
+      #    - PYTHON_VERSION: "3.4" # currently 3.4.3
+      #      PYTHON_ARCH: "64"
+      #
+      #    - PYTHON_VERSION: "3.5"
+      #      PYTHON_ARCH: "32"
+      #      
+      #    - PYTHON_VERSION: "3.5"
+      #      PYTHON_ARCH: "64"
 
 install:
   #- ECHO "Filesystem root:"
@@ -65,8 +65,8 @@ test_script:
 
 
 on_finish:
-    # Uncomment the following to enable the remove environment
-    #- ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+    # Uncomment the following to enable the remote environment
+    - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 #after_test:
   # If tests are successful, create binary packages for the project.
   #- "%CMD_IN_ENV% python setup.py bdist_wheel"
