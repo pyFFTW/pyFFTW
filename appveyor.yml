@@ -46,11 +46,6 @@ environment:
         #          PYTHON_ARCH: "64"
 
 install:
-    #- ECHO "Filesystem root:"
-    #- ps: "ls \"C:/\""
-  
-    #- ECHO "Installed SDKs:"
-    #- ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
   
     # Get and configure the FFTW libs
     - "%CMD_IN_ENV% ./appveyor/setup_fftw_dlls.cmd"
@@ -68,6 +63,8 @@ install:
     - "activate build_env"
     - "%CMD_IN_ENV% python setup.py bdist_wheel"
     - "%CMD_IN_ENV% python setup.py build_ext --inplace"
+
+    - ps: "ls dist"
 
 build: false  # Not a C# project, build stuff at the test step instead.
 
