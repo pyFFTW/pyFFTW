@@ -337,7 +337,7 @@ def get_version_info():
         GIT_REVISION = "Unknown"
 
     if not ISRELEASED:
-        FULLVERSION += '.dev-' + GIT_REVISION[:7]
+        FULLVERSION += '.dev0+' + GIT_REVISION[:7]
 
     return FULLVERSION, GIT_REVISION
 
@@ -352,6 +352,10 @@ git_revision = '%(git_revision)s'
 release = %(isrelease)s
 if not release:
     version = full_version
+
+if __name__ == "__main__":
+    print(short_version)
+    print(version)
 """
     FULLVERSION, GIT_REVISION = get_version_info()
 
