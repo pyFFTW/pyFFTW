@@ -12,6 +12,12 @@ environment:
 
     pypi_password:
         secure: zoj3LRJPmMpEKGa0nPGMsg==
+
+    bintray_username:
+        secure: mP8uIV/V4v9+zu0jCAU5mQ==
+
+    bintray_api_key:
+        secure: aBy9OwJetm6O29iWuEoWIsJc7Ml9NkiqTXDMClyHRePJcNdoTBZGOaMcHzm2ji77
   
     matrix:
   
@@ -19,7 +25,7 @@ environment:
         #      PYTHON_ARCH: "32"
         #            
         - PYTHON_VERSION: "2.7" # currently 2.7.9
-        PYTHON_ARCH: "64"
+          PYTHON_ARCH: "64"
     
         #    - PYTHON_VERSION: "3.3" # currently 3.3.5
         #      PYTHON_ARCH: "32"
