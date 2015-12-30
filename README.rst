@@ -72,7 +72,8 @@ normal C extension in the ``pyfftw`` directory.
 Further building does not depend on cython (as long as the .c file remains).
 
 For more ways of building and installing, see the 
-`distutils documentation <http://docs.python.org/distutils/builtdist.html>`_
+`distutils documentation <http://docs.python.org/distutils/builtdist.html>`_ 
+and `setuptools documentation <https://pythonhosted.org/setuptools/>`_.
 
 Platform specific build info
 ----------------------------
@@ -91,7 +92,7 @@ The builds on PyPI use mingw for the 32-bit release and the Windows SDK
 C++ compiler for the 64-bit release. The scripts should handle this 
 automatically. If you want to compile for 64-bit Windows, you have to use
 the MS Visual C++ compiler. Set up your environment as described 
-`here <http://wiki.cython.org/64BitCythonExtensionsOnWindows>`_ and then
+`here <https://github.com/cython/cython/wiki/CythonExtensionsOnWindows>`_ and then
 run `setup.py` with the version of python you wish to target and a suitable
 build command.
 

@@ -1,4 +1,4 @@
-# Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2015 Knowledge Economy Developments Ltd
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
@@ -35,13 +35,13 @@
 from pyfftw import builders, empty_aligned, byte_align, FFTW
 from pyfftw.builders import _utils as utils
 from .test_pyfftw_base import run_test_suites
+from ._get_default_args import get_default_args
 
 import unittest
 import numpy
 import numpy as np
 from numpy import fft as np_fft
 import copy
-import inspect
 import warnings
 warnings.filterwarnings('always')
 
@@ -182,9 +182,7 @@ class BuildersTestFFT(unittest.TestCase):
 
     def axes_from_kwargs(self, kwargs):
         
-        argspec = inspect.getargspec(getattr(builders, self.func))
-        default_args = dict(list(zip(
-            argspec.args[-len(argspec.defaults):], argspec.defaults)))
+        default_args = get_default_args(getattr(builders, self.func))
 
         if 'axis' in kwargs:
             axes = (kwargs['axis'],)
@@ -211,9 +209,7 @@ class BuildersTestFFT(unittest.TestCase):
         ''' Return either a scalar s or a tuple depending on
         whether axis or axes is specified
         '''
-        argspec = inspect.getargspec(getattr(builders, self.func))
-        default_args = dict(list(zip(
-            argspec.args[-len(argspec.defaults):], argspec.defaults)))
+        default_args = get_default_args(getattr(builders, self.func))
 
         if 'axis' in kwargs:
             s = test_shape[kwargs['axis']]

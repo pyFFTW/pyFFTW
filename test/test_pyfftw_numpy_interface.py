@@ -1,4 +1,4 @@
-# Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2015 Knowledge Economy Developments Ltd
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
@@ -35,11 +35,11 @@
 from pyfftw import interfaces
 
 from .test_pyfftw_base import run_test_suites
+from ._get_default_args import get_default_args
 
 import unittest
 import numpy
 from numpy import fft as np_fft
-import inspect
 import warnings
 import copy
 warnings.filterwarnings('always')
@@ -235,10 +235,8 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
         return output_array
 
     def axes_from_kwargs(self, kwargs):
-        
-        argspec = inspect.getargspec(getattr(self.test_interface, self.func))
-        default_args = dict(list(zip(
-            argspec.args[-len(argspec.defaults):], argspec.defaults)))
+        default_args = get_default_args(
+            getattr(self.test_interface, self.func))
 
         if 'axis' in kwargs:
             axes = (kwargs['axis'],)
@@ -265,9 +263,8 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
         ''' Return either a scalar s or a tuple depending on
         whether axis or axes is specified
         '''
-        argspec = inspect.getargspec(getattr(self.test_interface, self.func))
-        default_args = dict(list(zip(
-            argspec.args[-len(argspec.defaults):], argspec.defaults)))
+        default_args = get_default_args(
+            getattr(self.test_interface, self.func))
 
         if 'axis' in kwargs:
             s = test_shape[kwargs['axis']]

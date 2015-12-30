@@ -1,126 +1,83 @@
 environment:
-  global:
-    # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
-    # /E:ON and /V:ON options are not enabled in the batch script intepreter
-    # See: http://stackoverflow.com/a/13751649/163740
-    CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\appveyor\\run_with_env.cmd"
+    global:
+        # SDK v7.0 MSVC Express 2008's SetEnv.cmd script will fail if the
+        # /E:ON and /V:ON options are not enabled in the batch script intepreter
+        # See: http://stackoverflow.com/a/13751649/163740
+        CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\appveyor\\run_with_env.cmd"
+        # The miniconda installations are put in pyfftw_miniconda        
+        PYTHON_HOME: "C:\\pyfftw_miniconda"
 
-  matrix:
+    pypi_username:
+        secure: qFSpEDsIOj6gzynjuHTX5A==
 
-    # Pre-installed Python versions, which Appveyor may upgrade to
-    # a later point release.
+    pypi_password:
+        secure: zoj3LRJPmMpEKGa0nPGMsg==
 
-    - PYTHON: "C:\\Python27"
-      PYTHON_VERSION: "2.7.x" # currently 2.7.9
-      PYTHON_ARCH: "32"
+    bintray_username:
+        secure: mP8uIV/V4v9+zu0jCAU5mQ==
 
-    - PYTHON: "C:\\Python27-x64"
-      PYTHON_VERSION: "2.7.x" # currently 2.7.9
-      PYTHON_ARCH: "64"
-
-    - PYTHON: "C:\\Python33"
-      PYTHON_VERSION: "3.3.x" # currently 3.3.5
-      PYTHON_ARCH: "32"
-
-    - PYTHON: "C:\\Python33-x64"
-      PYTHON_VERSION: "3.3.x" # currently 3.3.5
-      PYTHON_ARCH: "64"
-
-    - PYTHON: "C:\\Python34"
-      PYTHON_VERSION: "3.4.x" # currently 3.4.3
-      PYTHON_ARCH: "32"
-
-    - PYTHON: "C:\\Python34-x64"
-      PYTHON_VERSION: "3.4.x" # currently 3.4.3
-      PYTHON_ARCH: "64"
-
-    # Python versions not pre-installed
-
-    # Python 2.6.6 is the latest Python 2.6 with a Windows installer
-    # See: https://github.com/ogrisel/python-appveyor-demo/issues/10
-
-    - PYTHON: "C:\\Python266"
-      PYTHON_VERSION: "2.6.6"
-      PYTHON_ARCH: "32"
-
-    - PYTHON: "C:\\Python266-x64"
-      PYTHON_VERSION: "2.6.6"
-      PYTHON_ARCH: "64"
-
-    - PYTHON: "C:\\Python35"
-      PYTHON_VERSION: "3.5.0"
-      PYTHON_ARCH: "32"
-
-    - PYTHON: "C:\\Python35-x64"
-      PYTHON_VERSION: "3.5.0"
-      PYTHON_ARCH: "64"
-
-cache:
-  - wheelhouse -> appveyor\build_*.ps1
+    bintray_api_key:
+        secure: aBy9OwJetm6O29iWuEoWIsJc7Ml9NkiqTXDMClyHRePJcNdoTBZGOaMcHzm2ji77
+  
+    matrix:
+  
+        - PYTHON_VERSION: "2.7" # currently 2.7.9
+          PYTHON_ARCH: "32"
+        
+        - PYTHON_VERSION: "2.7" # currently 2.7.9
+          PYTHON_ARCH: "64"
+    
+        - PYTHON_VERSION: "3.3" # currently 3.3.5
+          PYTHON_ARCH: "32"
+        
+        - PYTHON_VERSION: "3.3" # currently 3.3.5
+          PYTHON_ARCH: "64"
+        
+        - PYTHON_VERSION: "3.4" # currently 3.4.3
+          PYTHON_ARCH: "32"
+          
+        - PYTHON_VERSION: "3.4" # currently 3.4.3
+          PYTHON_ARCH: "64"
+        
+        - PYTHON_VERSION: "3.5"
+          PYTHON_ARCH: "32"
+          
+        - PYTHON_VERSION: "3.5"
+          PYTHON_ARCH: "64"
 
 install:
-  #- ECHO "Filesystem root:"
-  #- ps: "ls \"C:/\""
-
-  #- ECHO "Installed SDKs:"
-  #- ps: "ls \"C:/Program Files/Microsoft SDKs/Windows\""
-
-  # Get and configure the FFTW libs
-  - "%CMD_IN_ENV% ./appveyor/setup_fftw_dlls.cmd"
-
-  # Install Python (from the official .msi of http://python.org) and pip when
-  # not already installed.
-  #- ps: if (-not(Test-Path($env:PYTHON))) { & appveyor\install.ps1 }
-  - ps: "./appveyor/install.ps1"
-
-  # Prepend newly installed Python to the PATH of this build (this cannot be
-  # done from inside the powershell script as it would require to restart
-  # the parent CMD process).
-  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-
-  # Check that we have the expected version and architecture for Python
-  - "python --version"
-  - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
-
-  # Upgrade to the latest version of pip to avoid it displaying warnings
-  # about it being out of date.
-  - "pip install --disable-pip-version-check --user --upgrade pip"
+    # Get and configure the FFTW libs
+    - "%CMD_IN_ENV% ./appveyor/setup_fftw_dlls.cmd"
   
-  # We need wheel for the next bits...
-  #- "pip install --upgrade wheel"
-  - ps: "ls $env:PYTHON/Scripts/"
-  - ps: "ls c:\\Miniconda/Scripts/"
-  - "conda install --yes numpy scipy cython setuptools"
+    - ps: "./appveyor/install_miniconda.ps1"
   
-  - "%CMD_IN_ENV% python setup.py build_ext --inplace"
+    # Prepend newly installed Python to the PATH of this build (this cannot be
+    # done from inside the powershell script as it would require to restart
+    # the parent CMD process).
+    - "SET PATH=%PYTHON_HOME%;%PYTHON_HOME%\\Scripts;%PATH%"
+  
+    - "conda config --set always_yes yes"
+    - "conda update -q conda"
+    - "conda create -n build_env python=%PYTHON_VERSION% numpy scipy cython setuptools"
+    - "activate build_env"
+    - "%CMD_IN_ENV% python setup.py bdist_wheel"
+    - "%CMD_IN_ENV% python setup.py build_ext --inplace"
 
-  # build the dependencies as wheels
-  #- ps: "./appveyor/build_numpy.ps1"
-  #- ps: "./appveyor/build_scipy.ps1"
-
-  # Install the build dependencies of the project. If some dependencies contain
-  # compiled extensions and are not provided as pre-built wheel packages,
-  # pip will build them from source using the MSVC compiler matching the
-  # target Python version and architecture
-  #- "%CMD_IN_ENV% pip install --find-links=wheelhouse -r requirements.txt"
-
-build: false  # Not a C# project, build stuff at the test step instead.
+build: false  # Not a C# project, build stuff somewhere else.
 
 test_script:
-  # Build the compiled extension and run the project tests
-  - "%CMD_IN_ENV% python setup.py test"
+  # Run the project tests
+  - "python setup.py test"
 
+deploy_script:
+    - "echo [pypi] > %USERPROFILE%\\.pypirc"
+    - "echo username: %pypi_username% >> %USERPROFILE%\\.pypirc"
+    - "echo password: %pypi_password% >> %USERPROFILE%\\.pypirc"
+    - ps: "./appveyor/deploy.ps1"
+
+on_finish:
+    # Uncomment the following to enable the remote environment
+    #- ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 #after_test:
-  # If tests are successful, create binary packages for the project.
-  #- "%CMD_IN_ENV% python setup.py bdist_wheel"
-  #- "%CMD_IN_ENV% python setup.py bdist_wininst"
-  #- "%CMD_IN_ENV% python setup.py bdist_msi"
-  #- ps: "ls dist"
-
-  #artifacts:
-  ## Archive the generated packages in the ci.appveyor.com build report.
-  #- path: dist\*
 
 #on_success:
-#  - TODO: upload the content of dist/*.whl to a public wheelhouse
-#
