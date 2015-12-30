@@ -17,8 +17,10 @@ function deploy_to_bintray() {
     $filepath = ".\dist\$filename"
     $username_password = "${env:bintray_username}:${env:bintray_api_key}"
 
-    Write-Host "$filepath https://api.bintray.com/content/hgomersall/generic/PyFFTW-development-builds/$short_version/$filename"
-    iex "curl.exe -T $filepath -u$username_password https://api.bintray.com/content/hgomersall/generic/PyFFTW-development-builds/$short_version/$filename"
+    Write-Host "Uploading: $filepath"
+    Write-Host "to https://api.bintray.com/content/hgomersall/generic/PyFFTW-development-builds/$short_version/$filename"
+    iex "curl.exe -T $filepath -u$username_password -H `"X-Bintray-Package:PyFFTW-development-builds`" -H `"X-Bintray-Version:$short_version`" -H `"X-Bintray-Publish: 1`" -H `"X-Bintray-Override: 1`" https://api.bintray.com/content/hgomersall/generic/$filename"
+    #iex "curl.exe -s -T $filepath -u$username_password https://api.bintray.com/content/hgomersall/generic/PyFFTW-development-builds/$short_version/$filename"
 }
 
 function deploy_to_pypi () {
