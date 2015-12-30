@@ -24,6 +24,7 @@ function deploy_to_bintray() {
 }
 
 function deploy_to_pypi () {
+    iex "activate build_env"
     iex "python setup.py bdist_wheel upload"
 }
 

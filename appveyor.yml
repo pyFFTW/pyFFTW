@@ -73,7 +73,7 @@ build: false  # Not a C# project, build stuff at the test step instead.
 
 test_script:
   # Build the compiled extension and run the project tests
-  #- "python setup.py test"
+  - "python setup.py test"
 
 deploy_script:
     - "echo [pypi] > %USERPROFILE%\\.pypirc"

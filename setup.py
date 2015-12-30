@@ -243,10 +243,11 @@ class TestCommand(Command):
         pass
 
     def run(self):
-        import subprocess
-        errno = subprocess.call([sys.executable, '-m', 
-            'unittest', 'discover'])
-        raise SystemExit(errno)
+        raise SystemExit(1)
+        #import subprocess
+        #errno = subprocess.call([sys.executable, '-m', 
+        #    'unittest', 'discover'])
+        #raise SystemExit(errno)
 
 class QuickTestCommand(Command):
     '''Runs a set of test cases that covers a limited set of the 
