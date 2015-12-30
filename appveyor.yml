@@ -64,8 +64,6 @@ install:
     - "%CMD_IN_ENV% python setup.py bdist_wheel"
     - "%CMD_IN_ENV% python setup.py build_ext --inplace"
 
-    - ps: "ls dist"
-
 build: false  # Not a C# project, build stuff at the test step instead.
 
 test_script:
