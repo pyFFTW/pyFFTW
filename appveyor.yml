@@ -24,29 +24,28 @@ environment:
         - PYTHON_VERSION: "2.7" # currently 2.7.9
           PYTHON_ARCH: "32"
         
-        #        - PYTHON_VERSION: "2.7" # currently 2.7.9
-        #          PYTHON_ARCH: "64"
-        #    
-        #        - PYTHON_VERSION: "3.3" # currently 3.3.5
-        #          PYTHON_ARCH: "32"
-        #        
-        #        - PYTHON_VERSION: "3.3" # currently 3.3.5
-        #          PYTHON_ARCH: "64"
-        #        
-        #        - PYTHON_VERSION: "3.4" # currently 3.4.3
-        #          PYTHON_ARCH: "32"
-        #          
-        #        - PYTHON_VERSION: "3.4" # currently 3.4.3
-        #          PYTHON_ARCH: "64"
-        #        
-        #        - PYTHON_VERSION: "3.5"
-        #          PYTHON_ARCH: "32"
-        #          
-        #        - PYTHON_VERSION: "3.5"
-        #          PYTHON_ARCH: "64"
+        - PYTHON_VERSION: "2.7" # currently 2.7.9
+          PYTHON_ARCH: "64"
+    
+        - PYTHON_VERSION: "3.3" # currently 3.3.5
+          PYTHON_ARCH: "32"
+        
+        - PYTHON_VERSION: "3.3" # currently 3.3.5
+          PYTHON_ARCH: "64"
+        
+        - PYTHON_VERSION: "3.4" # currently 3.4.3
+          PYTHON_ARCH: "32"
+          
+        - PYTHON_VERSION: "3.4" # currently 3.4.3
+          PYTHON_ARCH: "64"
+        
+        - PYTHON_VERSION: "3.5"
+          PYTHON_ARCH: "32"
+          
+        - PYTHON_VERSION: "3.5"
+          PYTHON_ARCH: "64"
 
 install:
-  
     # Get and configure the FFTW libs
     - "%CMD_IN_ENV% ./appveyor/setup_fftw_dlls.cmd"
   
@@ -64,11 +63,11 @@ install:
     - "%CMD_IN_ENV% python setup.py bdist_wheel"
     - "%CMD_IN_ENV% python setup.py build_ext --inplace"
 
-build: false  # Not a C# project, build stuff at the test step instead.
+build: false  # Not a C# project, build stuff somewhere else.
 
 test_script:
   # Run the project tests
-  #- "python setup.py test"
+  - "python setup.py test"
 
 deploy_script:
     - "echo [pypi] > %USERPROFILE%\\.pypirc"
@@ -82,5 +81,3 @@ on_finish:
 #after_test:
 
 #on_success:
-#  Nothing yet
-#
