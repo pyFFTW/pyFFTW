@@ -66,7 +66,7 @@ install:
     - "conda update -q conda"
     - "conda create -n build_env python=%PYTHON_VERSION% numpy scipy cython setuptools"
     - "activate build_env"
-
+    - "%CMD_IN_ENV% python setup.py bdist_wheel"
     - "%CMD_IN_ENV% python setup.py build_ext --inplace"
 
 build: false  # Not a C# project, build stuff at the test step instead.

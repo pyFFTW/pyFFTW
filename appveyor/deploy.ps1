@@ -1,17 +1,21 @@
 
 function deploy_to_bintray() {
+    iex "activate build_env"
+    iex "conda install numpy"
     $version_string = (iex "python -m pyfftw.version") | Out-String
-    $version_list = $version_string.Split("\n")
-    $short_version = $version_list[0]
-    $version = $version_list[1]
+    $version_list = $version_string.Split("`r`n")
+    $short_version = [string]$version_list[0]
+    $version = [string]$version_list[2]
 
     if ($env:PYTHON_ARCH -eq "32") {
         $platform_suffix = "x86"
     } else {
-        $platform_suffix = "x86_64"
+        $platform_suffix = "amd64"
     }
 
-    $filename = "dist/$version-py$env:PYTHON_VERSION-win-$platform_suffix.whl"
+    $python_version = $env:PYTHON_VERSION -replace '\.',''
+
+    $filename = "dist/$version-py$python_version-win_$platform_suffix.whl"
 
     iex "curl -T $filename -u$env:bintray_username:$env:bintray_api_key https://api.bintray.com/content/hgomersall/generic/PyFFTW-development-builds/$short_version/$filename"
 }
