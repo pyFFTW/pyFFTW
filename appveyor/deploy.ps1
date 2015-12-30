@@ -15,9 +15,11 @@ function deploy_to_bintray() {
 
     $python_version = $env:PYTHON_VERSION -replace '\.',''
 
-    $filename = "dist/$version-py$python_version-win_$platform_suffix.whl"
+    $filename = "pyFFTW-$version-cp$python_version-none-win_$platform_suffix.whl"
+    $filepath = ".\dist\$filename"
+    $username_password = $env:bintray_username:$env:bintray_api_key
 
-    iex "curl -T $filename -u$env:bintray_username:$env:bintray_api_key https://api.bintray.com/content/hgomersall/generic/PyFFTW-development-builds/$short_version/$filename"
+    iex "curl.exe -T $filepath -u$username_password https://api.bintray.com/content/hgomersall/generic/PyFFTW-development-builds/$short_version/$filename"
 }
 
 function deploy_to_pypi () {
