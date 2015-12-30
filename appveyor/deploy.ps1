@@ -17,7 +17,7 @@ function deploy_to_bintray() {
 
     $filename = "pyFFTW-$version-cp$python_version-none-win_$platform_suffix.whl"
     $filepath = ".\dist\$filename"
-    $username_password = $env:bintray_username:$env:bintray_api_key
+    $username_password = "$env:bintray_username:$env:bintray_api_key"
 
     iex "curl.exe -T $filepath -u$username_password https://api.bintray.com/content/hgomersall/generic/PyFFTW-development-builds/$short_version/$filename"
 }
