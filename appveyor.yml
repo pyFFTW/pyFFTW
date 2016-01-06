@@ -67,11 +67,9 @@ build: false  # Not a C# project, build stuff somewhere else.
 
 test_script:
   # Run the project tests
-  - "activate build_env"
   - "python setup.py test"
 
 deploy_script:
-    - "activate build_env"
     - "echo [pypi] > %USERPROFILE%\\.pypirc"
     - "echo username: %pypi_username% >> %USERPROFILE%\\.pypirc"
     - "echo password: %pypi_password% >> %USERPROFILE%\\.pypirc"
