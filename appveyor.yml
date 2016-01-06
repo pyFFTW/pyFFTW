@@ -58,7 +58,7 @@ install:
   
     - "conda config --set always_yes yes"
     - "conda update -q conda"
-    - "conda create -q -n build_env python=%PYTHON_VERSION% numpy=1.9.2 scipy cython setuptools"
+    - "conda create -q -n build_env python=%PYTHON_VERSION% numpy=1.9 scipy cython setuptools"
     - "activate build_env"
     - "%CMD_IN_ENV% python setup.py bdist_wheel"
     - "%CMD_IN_ENV% python setup.py build_ext --inplace"
@@ -71,6 +71,7 @@ test_script:
   - "python setup.py test"
 
 deploy_script:
+    - "activate build_env"
     - "echo [pypi] > %USERPROFILE%\\.pypirc"
     - "echo username: %pypi_username% >> %USERPROFILE%\\.pypirc"
     - "echo password: %pypi_password% >> %USERPROFILE%\\.pypirc"

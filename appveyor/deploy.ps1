@@ -1,6 +1,5 @@
 
 function deploy_to_bintray() {
-    iex "activate build_env"
     $version_string = (iex "python -m pyfftw.version") | Out-String
     $version_list = $version_string.Split("`r`n")
     $short_version = [string]$version_list[0]
@@ -24,7 +23,6 @@ function deploy_to_bintray() {
 
 function deploy_to_pypi () {
     Write-Host "Uploading to PyPI..."
-    iex "activate build_env"
     iex "python setup.py bdist_wheel upload"
 }
 
