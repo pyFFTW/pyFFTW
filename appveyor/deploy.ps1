@@ -23,10 +23,6 @@ function deploy_to_bintray() {
 
 function deploy_to_pypi () {
     Write-Host "Uploading to PyPI..."
-<<<<<<< HEAD
-    iex "activate build_env"
-=======
->>>>>>> master
     iex "python setup.py bdist_wheel upload"
 }
 
