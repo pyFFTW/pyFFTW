@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2015 Knowledge Economy Developments Ltd
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
@@ -124,8 +124,9 @@ def set_keepalive_time(keepalive_time):
     removed from the cache. Using the object zeros the timer.
 
     The time is not precise, and sets a minimum time to be alive. In 
-    practice, it may be up to twice as long before the object is
-    deleted from the cache (due to implementational details).
+    practice, it may be quite a bit longer before the object is
+    deleted from the cache (due to implementational details - e.g. contention
+    from other threads).
     '''
     global _fftw_cache
     

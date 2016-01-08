@@ -1,5 +1,18 @@
-.. image:: https://travis-ci.org/hgomersall/pyFFTW.png?branch=master
++----------+---------------+
+| CI       | Master branch |
++==========+===============+
+| Travis   | |travis_ci|   |
++----------+---------------+
+| Appveyor | |appveyor_ci| |
++----------+---------------+
+
+.. |travis_ci| image:: https://travis-ci.org/hgomersall/pyFFTW.png?branch=master
+   :align: middle
    :target: https://travis-ci.org/hgomersall/pyFFTW
+
+.. |appveyor_ci| image:: https://ci.appveyor.com/api/projects/status/uf854abck4x1qsjj/branch/master?svg=true
+   :align: middle
+   :target: https://ci.appveyor.com/project/hgomersall/pyfftw
 
 PyFFTW
 ======
@@ -53,6 +66,15 @@ Installers are on the PyPI page for both 32- and 64-bit Windows, which include
 all the necessary DLLs.
 
 With FFTW installed, the PyPI release should install fine on Linux and Mac OSX. It doesn't mean it won't work anywhere else, just we don't have any information on it.
+
+Windows development builds are also automatically uploaded to 
+`bintray <https://bintray.com/hgomersall/generic/PyFFTW-development-builds/view>`_ 
+as wheels (which are built against numpy 1.9), from where they can be 
+downloaded and installed with something like::
+
+  pip install pyFFTW-0.10.0.dev0+79ec589-cp35-none-win_amd64.whl
+
+where the version and the revision hash are set accordingly.
 
 Read on if you do want to build from source...
 

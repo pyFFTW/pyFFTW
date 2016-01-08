@@ -188,15 +188,15 @@ class CacheTest(unittest.TestCase):
         '''
         # Firstly make sure we've exited any lingering threads from other
         # tests.
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.assertTrue(threading.active_count() == 1)
 
         _cache = interfaces.cache._Cache()
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.assertTrue(threading.active_count() == 2)
         
         del _cache
-        time.sleep(0.1)
+        time.sleep(0.2)
         self.assertTrue(threading.active_count() == 1)
 
     def test_insert_and_lookup_item(self):
@@ -267,7 +267,7 @@ class CacheTest(unittest.TestCase):
 
         keepalive_time = _cache.keepalive_time
 
-        time.sleep(_cache.keepalive_time*3)
+        time.sleep(_cache.keepalive_time*8)
         self.assertRaises(KeyError, _cache.lookup, key)
 
         _cache.insert(obj, key)
@@ -276,7 +276,7 @@ class CacheTest(unittest.TestCase):
 
         self.assertIs(_cache.lookup(key), obj)
 
-        time.sleep(old_keepalive_time * 3)
+        time.sleep(old_keepalive_time * 5)
         self.assertIs(_cache.lookup(key), obj)
 
         time.sleep(old_keepalive_time * 8)

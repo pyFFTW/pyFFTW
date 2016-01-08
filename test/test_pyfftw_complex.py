@@ -149,9 +149,11 @@ class Complex64FFTW1DTest(object):
 
         import sys
         if sys.platform == 'win32':
-            # Give a 4x margin on windows. The timers are low
-            # precision and FFTW seems to take longer anyway
-            self.assertTrue(limited_time < time_limit*4)
+            # Give a 6x margin on windows. The timers are low
+            # precision and FFTW seems to take longer anyway.
+            # Also, we need to allow for processor contention which 
+            # Appveyor seems prone to.
+            self.assertTrue(limited_time < time_limit*6)
         else:
             # Otherwise have a 2x margin
             self.assertTrue(limited_time < time_limit*2)
