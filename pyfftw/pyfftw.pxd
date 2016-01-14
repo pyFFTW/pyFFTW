@@ -79,63 +79,63 @@ cdef extern from 'fftw3.h':
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             cdouble *_in, cdouble *_out,
-            int sign, unsigned flags)
+            int sign, unsigned flags) nogil
     
     # Single precision complex planner
     fftwf_plan fftwf_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             cfloat *_in, cfloat *_out,
-            int sign, unsigned flags)
+            int sign, unsigned flags) nogil
 
     # Single precision complex planner
     fftwl_plan fftwl_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             clongdouble *_in, clongdouble *_out,
-            int sign, unsigned flags)
+            int sign, unsigned flags) nogil
     
     # Double precision real to complex planner
     fftw_plan fftw_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             double *_in, cdouble *_out,
-            unsigned flags)
+            unsigned flags) nogil
     
     # Single precision real to complex planner
     fftwf_plan fftwf_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             float *_in, cfloat *_out,
-            unsigned flags)
+            unsigned flags) nogil
 
     # Single precision real to complex planner
     fftwl_plan fftwl_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             long double *_in, clongdouble *_out,
-            unsigned flags)
+            unsigned flags) nogil
 
     # Double precision complex to real planner
     fftw_plan fftw_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             cdouble *_in, double *_out,
-            unsigned flags)
+            unsigned flags) nogil
     
     # Single precision complex to real planner
     fftwf_plan fftwf_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             cfloat *_in, float *_out,
-            unsigned flags)
+            unsigned flags) nogil
 
     # Single precision complex to real planner
     fftwl_plan fftwl_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             clongdouble *_in, long double *_out,
-            unsigned flags)
+            unsigned flags) nogil
 
     # Double precision complex new array execute
     void fftw_execute_dft(fftw_plan,
@@ -243,7 +243,7 @@ ctypedef void * (*fftw_generic_plan_guru)(
         int rank, fftw_iodim *dims,
         int howmany_rank, fftw_iodim *howmany_dims,
         void *_in, void *_out,
-        int sign, int flags)
+        int sign, int flags) nogil
 
 ctypedef void (*fftw_generic_execute)(void *_plan, void *_in, void *_out) nogil
 
