@@ -1540,7 +1540,10 @@ cdef class FFTW:
         cdef void *output_pointer = (
                 <void *>np.PyArray_DATA(self._output_array))
         
-        self._fftw_execute(self._plan, input_pointer, output_pointer)
+        cdef void *plan = self._plan
+        cdef fftw_generic_execute fftw_execute = self._fftw_execute
+        with nogil:
+            fftw_execute(plan, input_pointer, output_pointer)
 
 cdef void count_char(char c, void *counter_ptr):
     '''
