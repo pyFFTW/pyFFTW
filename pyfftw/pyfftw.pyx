@@ -66,7 +66,7 @@ _flag_dict = flag_dict.copy()
 
 # Need a global lock to protect FFTW planning so that multiple Python threads
 # do not attempt to plan simultaneously.
-PLAN_LOCK = threading.Lock()
+cdef object plan_lock = threading.Lock()
 
 # Function wrappers
 # =================
@@ -1103,11 +1103,11 @@ cdef class FFTW:
         cdef int sign = self._direction
         cdef int c_flags = self._flags
         
-        PLAN_LOCK.acquire()
+        plan_lock.acquire()
         with nogil:
             plan = fftw_planner(rank, dims, howmany_rank, howmany_dims, 
                 _in, _out, sign, c_flags)
-        PLAN_LOCK.release()
+        plan_lock.release()
         self._plan = plan
         
         if self._plan == NULL:
