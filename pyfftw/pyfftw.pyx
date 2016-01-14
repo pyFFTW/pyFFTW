@@ -39,6 +39,7 @@ from libc.stdint cimport intptr_t, int64_t
 from libc cimport limits
 
 import warnings
+import threading
 
 include 'utils.pxi'
 
@@ -63,6 +64,10 @@ flag_dict = {'FFTW_MEASURE': FFTW_MEASURE,
 
 _flag_dict = flag_dict.copy()
 
+# Need a global lock to protect FFTW planning so that multiple Python threads
+# do not attempt to plan simultaneously.
+PLAN_LOCK = threading.Lock()
+
 # Function wrappers
 # =================
 # All of these have the same signature as the fftw_generic functions
@@ -80,7 +85,7 @@ cdef void* _fftw_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, int flags) nogil:
 
     return <void *>fftw_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
@@ -92,7 +97,7 @@ cdef void* _fftwf_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, int flags) nogil:
 
     return <void *>fftwf_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
@@ -104,7 +109,7 @@ cdef void* _fftwl_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, int flags) nogil:
 
     return <void *>fftwl_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
@@ -116,7 +121,7 @@ cdef void* _fftw_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, int flags) nogil:
 
     return <void *>fftw_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
@@ -128,7 +133,7 @@ cdef void* _fftwf_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, int flags) nogil:
 
     return <void *>fftwf_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
@@ -140,7 +145,7 @@ cdef void* _fftwl_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, int flags) nogil:
 
     return <void *>fftwl_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
@@ -152,7 +157,7 @@ cdef void* _fftw_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, int flags) nogil:
 
     return <void *>fftw_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -164,7 +169,7 @@ cdef void* _fftwf_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, int flags) nogil:
 
     return <void *>fftwf_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -176,7 +181,7 @@ cdef void* _fftwl_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, int flags) nogil:
 
     return <void *>fftwl_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -1082,14 +1087,29 @@ cdef class FFTW:
         # Set the timelimit
         set_timelimit_func(_planning_timelimit)
 
-        # Finally, construct the plan
-        self._plan = self._fftw_planner(
-            self._rank, <fftw_iodim *>self._dims,
-            self._howmany_rank, <fftw_iodim *>self._howmany_dims,
-            <void *>np.PyArray_DATA(self._input_array),
-            <void *>np.PyArray_DATA(self._output_array),
-            self._direction, self._flags)
-
+        # Finally, construct the plan, after acquiring the global planner lock
+        # (so that only one python thread can plan at a time, as the FFTW
+        # planning functions are not thread-safe)
+        
+        # no self-lookups allowed in nogil block, so must grab all these first
+        cdef void *plan
+        cdef fftw_generic_plan_guru fftw_planner = self._fftw_planner
+        cdef int rank = self._rank
+        cdef fftw_iodim *dims = <fftw_iodim *>self._dims
+        cdef int howmany_rank = self._howmany_rank
+        cdef fftw_iodim *howmany_dims = <fftw_iodim *>self._howmany_dims
+        cdef void *_in = <void *>np.PyArray_DATA(self._input_array)
+        cdef void *_out = <void *>np.PyArray_DATA(self._output_array)
+        cdef int sign = self._direction
+        cdef int c_flags = self._flags
+        
+        PLAN_LOCK.acquire()
+        with nogil:
+            plan = fftw_planner(rank, dims, howmany_rank, howmany_dims, 
+                _in, _out, sign, c_flags)
+        PLAN_LOCK.release()
+        self._plan = plan
+        
         if self._plan == NULL:
             raise RuntimeError('The data has an uncaught error that led '+
                     'to the planner returning NULL. This is a bug.')
