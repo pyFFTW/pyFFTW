@@ -81,7 +81,7 @@ cdef void* _fftw_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, unsigned flags):
 
     return <void *>fftw_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
@@ -93,7 +93,7 @@ cdef void* _fftwf_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, unsigned flags):
 
     return <void *>fftwf_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
@@ -105,7 +105,7 @@ cdef void* _fftwl_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, unsigned flags):
 
     return <void *>fftwl_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
@@ -117,7 +117,7 @@ cdef void* _fftw_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, unsigned flags):
 
     return <void *>fftw_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
@@ -129,7 +129,7 @@ cdef void* _fftwf_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, unsigned flags):
 
     return <void *>fftwf_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
@@ -141,7 +141,7 @@ cdef void* _fftwl_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, unsigned flags):
 
     return <void *>fftwl_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
@@ -153,7 +153,7 @@ cdef void* _fftw_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, unsigned flags):
 
     return <void *>fftw_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -165,7 +165,7 @@ cdef void* _fftwf_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, unsigned flags):
 
     return <void *>fftwf_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -177,7 +177,7 @@ cdef void* _fftwl_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags):
+            int sign, unsigned flags):
 
     return <void *>fftwl_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -632,7 +632,7 @@ cdef class FFTW:
     cdef np.ndarray _input_array
     cdef np.ndarray _output_array
     cdef int _direction
-    cdef int _flags
+    cdef unsigned _flags
 
     cdef bint _simd_allowed
     cdef int _input_array_alignment
