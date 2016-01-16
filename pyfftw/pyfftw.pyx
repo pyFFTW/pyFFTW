@@ -54,15 +54,17 @@ directions_lookup = {FFTW_FORWARD: 'FFTW_FORWARD',
         FFTW_BACKWARD: 'FFTW_BACKWARD'}
 
 cdef object flag_dict
-flag_dict = {'FFTW_MEASURE': FFTW_MEASURE,
-        'FFTW_EXHAUSTIVE': FFTW_EXHAUSTIVE,
-        'FFTW_PATIENT': FFTW_PATIENT,
-        'FFTW_ESTIMATE': FFTW_ESTIMATE,
-        'FFTW_UNALIGNED': FFTW_UNALIGNED,
-        'FFTW_DESTROY_INPUT': FFTW_DESTROY_INPUT,
-        'FFTW_WISDOM_ONLY': FFTW_WISDOM_ONLY}
-
+flag_dict = {'FFTW_MEASURE': 0,
+        'FFTW_EXHAUSTIVE': 1 << 3,
+        'FFTW_PATIENT': 1 << 5,
+        'FFTW_ESTIMATE': 1 << 6,
+        'FFTW_UNALIGNED': 1 << 1,
+        'FFTW_DESTROY_INPUT': 1,
+        'FFTW_WISDOM_ONLY': 1 << 21}
 _flag_dict = flag_dict.copy()
+
+# not a valid flag for a user to pass in, but used internally
+cdef unsigned FFTW_PRESERVE_INPUT = 1U << 4
 
 # Function wrappers
 # =================

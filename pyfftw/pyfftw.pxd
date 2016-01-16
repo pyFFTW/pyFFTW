@@ -263,15 +263,3 @@ ctypedef bint (*validator)(np.ndarray input_array,
 cdef enum:
     FFTW_FORWARD = -1
     FFTW_BACKWARD = 1
-
-# Documented flags
-cdef enum:
-    FFTW_MEASURE = 0
-    FFTW_DESTROY_INPUT = 1
-    FFTW_UNALIGNED = 2
-    FFTW_CONSERVE_MEMORY = 4
-    FFTW_EXHAUSTIVE = 8
-    FFTW_PRESERVE_INPUT = 16
-    FFTW_PATIENT = 32
-    FFTW_ESTIMATE = 64
-    FFTW_WISDOM_ONLY = 2097152
