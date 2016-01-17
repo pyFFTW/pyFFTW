@@ -1095,7 +1095,7 @@ cdef class FFTW:
 
         if self._plan == NULL:
             if 'FFTW_WISDOM_ONLY' in flags:
-                raise RuntimeError('No FFTW wisdom is known for this plan. Flags: {}'.format(self._flags))
+                raise RuntimeError('No FFTW wisdom is known for this plan.')
             else:
                 raise RuntimeError('The data has an uncaught error that led '+
                     'to the planner returning NULL. This is a bug.')
