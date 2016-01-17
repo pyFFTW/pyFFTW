@@ -198,14 +198,22 @@ class Complex64FFTW1DTest(object):
         a, b = self.create_test_arrays(in_shape, out_shape)
         forget_wisdom()
         # with no wisdom, an error should be raised with FFTW_WISDOM_ONLY
+        # (NB: wisdom is specific to aligned/unaligned distinction, so we
+        # ensure that the arrays are always treated as unaligned. Internally, 
+        # run_validate_fft copies the input arrays, which can randomly
+        # cause them to be aligned or unaligned. Without forcing unaligned, this
+        # could otherwise make the wisdom invalid for future planning...
         self.assertRaisesRegex(RuntimeError, 'No FFTW wisdom', 
                 self.run_validate_fft, *(a, b, axes), 
-                **{'flags':('FFTW_ESTIMATE', 'FFTW_WISDOM_ONLY')})
+                **{'flags':('FFTW_ESTIMATE', 'FFTW_WISDOM_ONLY'), 
+                   'force_unaligned_data': True})
         # now plan the FFT
-        self.run_validate_fft(a, b, axes, flags=('FFTW_ESTIMATE',))
-        # now FFTW_WISDOM_ONLY should not raise an error
+        self.run_validate_fft(a, b, axes, flags=('FFTW_ESTIMATE',),
+                force_unaligned_data=True)
+        # now FFTW_WISDOM_ONLY should not raise an error because the plan should
+        # be in the wisdom
         self.run_validate_fft(a, b, axes, flags=('FFTW_ESTIMATE', 
-                'FFTW_WISDOM_ONLY'))
+                'FFTW_WISDOM_ONLY'), force_unaligned_data=True)
 
     def test_destroy_input(self):
         '''Test the destroy input flag

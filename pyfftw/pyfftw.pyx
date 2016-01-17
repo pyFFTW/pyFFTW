@@ -1166,6 +1166,13 @@ cdef class FFTW:
             wisdom derived from that level of planning effort (or higher) is 
             not present. If no planning-effort flag is used, the default of
             ``'FFTW_ESTIMATE'`` is assumed.
+            Note that wisdom is specific to all the parameters, including the
+            data alignment. That is, if wisdom was generated with input/output
+            arrays with one specific alignment, using ``'FFTW_WISDOM_ONLY'``
+            to create a plan for arrays with any different alignment will 
+            cause the ``'FFTW_WISDOM_ONLY'`` planning to fail. Thus it is
+            important to specifically control the data alignment to make the
+            best use of ``'FFTW_WISDOM_ONLY'``.
 
           The `FFTW planner flags documentation 
           <http://www.fftw.org/fftw3_doc/Planner-Flags.html#Planner-Flags>`_
