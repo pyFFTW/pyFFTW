@@ -60,7 +60,8 @@ flag_dict = {'FFTW_MEASURE': FFTW_MEASURE,
         'FFTW_PATIENT': FFTW_PATIENT,
         'FFTW_ESTIMATE': FFTW_ESTIMATE,
         'FFTW_UNALIGNED': FFTW_UNALIGNED,
-        'FFTW_DESTROY_INPUT': FFTW_DESTROY_INPUT}
+        'FFTW_DESTROY_INPUT': FFTW_DESTROY_INPUT,
+        'FFTW_WISDOM_ONLY': FFTW_WISDOM_ONLY}
 
 _flag_dict = flag_dict.copy()
 
@@ -85,7 +86,7 @@ cdef void* _fftw_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags) nogil:
+            int sign, unsigned flags) nogil:
 
     return <void *>fftw_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
@@ -97,7 +98,7 @@ cdef void* _fftwf_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags) nogil:
+            int sign, unsigned flags) nogil:
 
     return <void *>fftwf_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
@@ -109,7 +110,7 @@ cdef void* _fftwl_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags) nogil:
+            int sign, unsigned flags) nogil:
 
     return <void *>fftwl_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
@@ -121,7 +122,7 @@ cdef void* _fftw_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags) nogil:
+            int sign, unsigned flags) nogil:
 
     return <void *>fftw_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
@@ -133,7 +134,7 @@ cdef void* _fftwf_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags) nogil:
+            int sign, unsigned flags) nogil:
 
     return <void *>fftwf_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
@@ -145,7 +146,7 @@ cdef void* _fftwl_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags) nogil:
+            int sign, unsigned flags) nogil:
 
     return <void *>fftwl_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
@@ -157,7 +158,7 @@ cdef void* _fftw_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags) nogil:
+            int sign, unsigned flags) nogil:
 
     return <void *>fftw_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -169,7 +170,7 @@ cdef void* _fftwf_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags) nogil:
+            int sign, unsigned flags) nogil:
 
     return <void *>fftwf_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -181,7 +182,7 @@ cdef void* _fftwl_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int sign, int flags) nogil:
+            int sign, unsigned flags) nogil:
 
     return <void *>fftwl_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -636,7 +637,7 @@ cdef class FFTW:
     cdef np.ndarray _input_array
     cdef np.ndarray _output_array
     cdef int _direction
-    cdef int _flags
+    cdef unsigned _flags
 
     cdef bint _simd_allowed
     cdef int _input_array_alignment
@@ -1109,7 +1110,10 @@ cdef class FFTW:
         self._plan = plan
         
         if self._plan == NULL:
-            raise RuntimeError('The data has an uncaught error that led '+
+            if 'FFTW_WISDOM_ONLY' in flags:
+                raise RuntimeError('No FFTW wisdom is known for this plan.')
+            else:
+                raise RuntimeError('The data has an uncaught error that led '+
                     'to the planner returning NULL. This is a bug.')
 
     def __init__(self, input_array, output_array, axes=(-1,), 
@@ -1170,6 +1174,23 @@ cdef class FFTW:
             possible to preserve the input, making this flag implicit
             in that case. A little more on this is given 
             :ref:`below<scheme_table>`.
+          * ``'FFTW_WISDOM_ONLY'`` is supported.
+            This tells FFTW to raise an error if no plan for this transform
+            and data type is already in the wisdom. It thus provides a method
+            to determine whether planning would require additional effor or the
+            cached wisdom can be used. This flag should be combined with the
+            various planning-effort flags (``'FFTW_ESTIMATE'``,
+            ``'FFTW_MEASURE'``, etc.); if so, then an error will be raised if
+            wisdom derived from that level of planning effort (or higher) is 
+            not present. If no planning-effort flag is used, the default of
+            ``'FFTW_ESTIMATE'`` is assumed.
+            Note that wisdom is specific to all the parameters, including the
+            data alignment. That is, if wisdom was generated with input/output
+            arrays with one specific alignment, using ``'FFTW_WISDOM_ONLY'``
+            to create a plan for arrays with any different alignment will 
+            cause the ``'FFTW_WISDOM_ONLY'`` planning to fail. Thus it is
+            important to specifically control the data alignment to make the
+            best use of ``'FFTW_WISDOM_ONLY'``.
 
           The `FFTW planner flags documentation 
           <http://www.fftw.org/fftw3_doc/Planner-Flags.html#Planner-Flags>`_
