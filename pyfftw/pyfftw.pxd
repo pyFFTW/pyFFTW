@@ -243,7 +243,7 @@ ctypedef void * (*fftw_generic_plan_guru)(
         int rank, fftw_iodim *dims,
         int howmany_rank, fftw_iodim *howmany_dims,
         void *_in, void *_out,
-        int sign, int flags)
+        int sign, unsigned flags)
 
 ctypedef void (*fftw_generic_execute)(void *_plan, void *_in, void *_out) nogil
 
@@ -274,4 +274,4 @@ cdef enum:
     FFTW_PRESERVE_INPUT = 16
     FFTW_PATIENT = 32
     FFTW_ESTIMATE = 64
-
+    FFTW_WISDOM_ONLY = 2097152
