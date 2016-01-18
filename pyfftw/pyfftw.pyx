@@ -642,7 +642,6 @@ cdef class FFTW:
     cdef bint _simd_allowed
     cdef int _input_array_alignment
     cdef int _output_array_alignment    
-    cdef bint _use_threads
 
     cdef object _input_item_strides
     cdef object _input_strides
@@ -1078,12 +1077,7 @@ cdef class FFTW:
 
         ## Point at which FFTW calls are made
         ## (and none should be made before this)
-        if threads > 1:
-            self._use_threads = True
-            self._nthreads_plan_setter(threads)
-        else:
-            self._use_threads = False
-            self._nthreads_plan_setter(1)
+        self._nthreads_plan_setter(threads)
 
         # Set the timelimit
         set_timelimit_func(_planning_timelimit)
@@ -1198,9 +1192,7 @@ cdef class FFTW:
           Note that only the flags documented here are supported.
 
         * ``threads`` tells the wrapper how many threads to use
-          when invoking FFTW, with a default of 1. If the number
-          of threads is greater than 1, then the GIL is released
-          by necessity.
+          when invoking FFTW, with a default of 1.
 
         * ``planning_timelimit`` is a floating point number that 
           indicates to the underlying FFTW planner the maximum number of
@@ -1589,12 +1581,8 @@ cdef class FFTW:
         
         cdef void *plan = self._plan
         cdef fftw_generic_execute fftw_execute = self._fftw_execute
-        
-        if self._use_threads:
-            with nogil:
-                fftw_execute(plan, input_pointer, output_pointer)
-        else:
-            fftw_execute(self._plan, input_pointer, output_pointer)
+        with nogil:
+            fftw_execute(plan, input_pointer, output_pointer)
 
 cdef void count_char(char c, void *counter_ptr):
     '''
