@@ -1101,13 +1101,11 @@ cdef class FFTW:
         cdef void *_in = <void *>np.PyArray_DATA(self._input_array)
         cdef void *_out = <void *>np.PyArray_DATA(self._output_array)
         cdef int sign = self._direction
-        cdef int c_flags = self._flags
-        
-        plan_lock.acquire()
-        with nogil:
-            plan = fftw_planner(rank, dims, howmany_rank, howmany_dims, 
-                _in, _out, sign, c_flags)
-        plan_lock.release()
+        cdef unsigned c_flags = self._flags
+
+        with plan_lock, nogil:
+            plan = fftw_planner(rank, dims, howmany_rank, howmany_dims,
+                                _in, _out, sign, c_flags)
         self._plan = plan
         
         if self._plan == NULL:
