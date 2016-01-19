@@ -178,6 +178,8 @@ class Complex64FFTW1DTest(object):
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         for each_flag in pyfftw.pyfftw._flag_dict:
+            if each_flag == 'FFTW_WISDOM_ONLY':
+                continue
             fft, ifft = self.run_validate_fft(a, b, axes, 
                     flags=(each_flag,))
 
@@ -187,6 +189,30 @@ class Complex64FFTW1DTest(object):
         # also, test no flags (which should still work)
         fft, ifft = self.run_validate_fft(a, b, axes, 
                     flags=())
+
+    def test_wisdom_only(self):
+        in_shape = self.input_shapes['small_1d']
+        out_shape = self.output_shapes['small_1d']
+
+        axes=(0,)
+        a, b = self.create_test_arrays(in_shape, out_shape)
+        forget_wisdom()
+        # with no wisdom, an error should be raised with FFTW_WISDOM_ONLY
+        # 
+        # NB: wisdom is specific to aligned/unaligned distinction, so we must
+        # ensure that the arrays don't get copied (and potentially
+        # switched between aligned and unaligned) by run_validate_fft()... 
+        self.assertRaisesRegex(RuntimeError, 'No FFTW wisdom', 
+                self.run_validate_fft, *(a, b, axes), 
+                **{'flags':('FFTW_ESTIMATE', 'FFTW_WISDOM_ONLY'), 
+                   'create_array_copies': False})
+        # now plan the FFT
+        self.run_validate_fft(a, b, axes, flags=('FFTW_ESTIMATE',),
+                create_array_copies=False)
+        # now FFTW_WISDOM_ONLY should not raise an error because the plan should
+        # be in the wisdom
+        self.run_validate_fft(a, b, axes, flags=('FFTW_ESTIMATE', 
+                'FFTW_WISDOM_ONLY'), create_array_copies=False)
 
     def test_destroy_input(self):
         '''Test the destroy input flag
