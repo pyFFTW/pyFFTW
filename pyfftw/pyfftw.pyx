@@ -1062,7 +1062,7 @@ cdef class FFTW:
         else:
             fft_shape = fft_shape_lookup(input_array, output_array)
 
-        # Fillstride and shape information
+        # Fill in the stride and shape information
         input_strides_array = self._input_item_strides
         output_strides_array = self._output_item_strides
         for i in range(0, self._rank):
