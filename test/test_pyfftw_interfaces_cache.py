@@ -273,10 +273,10 @@ class CacheTest(unittest.TestCase):
             # A hack to keep appveyor from falling over here. I suspect the 
             # contention is too much to work properly. Either way, let's
             # assume it's a windows problem for now...
-            time.sleep(old_keepalive_time * 8)
+            time.sleep(keepalive_time * 8)
         else:
             # Relax a bit more otherwise
-            time.sleep(old_keepalive_time * 4)
+            time.sleep(keepalive_time * 4)
 
         self.assertRaises(KeyError, _cache.lookup, key)
 
