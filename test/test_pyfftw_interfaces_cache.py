@@ -44,6 +44,8 @@ from .test_pyfftw_numpy_interface import InterfacesNumpyFFTTestFFT
 import threading
 import time
 
+import os
+
 '''Test the caching functionality of the interfaces package.
 '''
 
@@ -267,7 +269,15 @@ class CacheTest(unittest.TestCase):
 
         keepalive_time = _cache.keepalive_time
 
-        time.sleep(_cache.keepalive_time*8)
+        if os.name == 'nt':
+            # A hack to keep appveyor from falling over here. I suspect the 
+            # contention is too much to work properly. Either way, let's
+            # assume it's a windows problem for now...
+            time.sleep(old_keepalive_time * 8)
+        else:
+            # Relax a bit more otherwise
+            time.sleep(old_keepalive_time * 4)
+
         self.assertRaises(KeyError, _cache.lookup, key)
 
         _cache.insert(obj, key)
@@ -276,10 +286,16 @@ class CacheTest(unittest.TestCase):
 
         self.assertIs(_cache.lookup(key), obj)
 
-        time.sleep(old_keepalive_time * 5)
+        time.sleep(old_keepalive_time * 3.5)
+        # still should be there
         self.assertIs(_cache.lookup(key), obj)
 
-        time.sleep(old_keepalive_time * 8)
+        if os.name == 'nt':
+            # As above, but with a bit longer
+            time.sleep(old_keepalive_time * 16)
+        else:
+            time.sleep(old_keepalive_time * 8)
+
         self.assertRaises(KeyError, _cache.lookup, key)
 
 class InterfacesNumpyFFTCacheTestIFFT(InterfacesNumpyFFTCacheTestFFT):
