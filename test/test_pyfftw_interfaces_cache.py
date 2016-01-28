@@ -171,7 +171,7 @@ class CacheTest(unittest.TestCase):
 
         def cache_parent_thread():
             cache = interfaces.cache._Cache()
-            time.sleep(0.2)
+            time.sleep(0.5)
 
         parent_t = threading.Thread(target=cache_parent_thread)
         parent_t.start()
