@@ -6,7 +6,7 @@
 | Appveyor | |appveyor_ci| |
 +----------+---------------+
 
-.. |travis_ci| image:: https://travis-ci.org/hgomersall/pyFFTW.png?branch=master
+.. |travis_ci| image:: https://travis-ci.org/pyFFTW/pyFFTW.svg?branch=master
    :align: middle
    :target: https://travis-ci.org/hgomersall/pyFFTW
 
@@ -36,8 +36,8 @@ A comprehensive unittest suite can be found with the source on the github
 repository or with the source distribution on PyPI.
 
 The documentation can be found on 
-`github pages <http://hgomersall.github.com/pyFFTW>`_, the source is 
-on `github <https://github.com/hgomersall/pyFFTW>`_ and the python package 
+`github pages <http://pyfftw.github.com/pyFFTW>`_, the source is 
+on `github <https://github.com/pyFFTW/pyFFTW>`_ and the python package 
 index page is `here <http://pypi.python.org/pypi/pyFFTW>`_.
 
 Requirements (i.e. what it was designed for)
