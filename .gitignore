@@ -1,4 +1,6 @@
 MANIFEST
+github_changelog_generator_token
+pyFFTW.egg-info
 build
 *.swp
 *.pyc

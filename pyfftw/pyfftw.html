@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -8,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pyfftw - The core &mdash; pyFFTW 0.9.2 documentation</title>
+    <title>pyfftw - The core &mdash; pyFFTW 0.10.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.9.2',
+        VERSION:     '0.10.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +23,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="pyFFTW 0.9.2 documentation" href="../index.html" />
+    <link rel="top" title="pyFFTW 0.10.1 documentation" href="../index.html" />
     <link rel="up" title="API Reference" href="../sphinx/api.html" />
     <link rel="next" title="pyfftw.builders - Get FFTW objects using a numpy.fft like interface" href="builders/builders.html" />
     <link rel="prev" title="API Reference" href="../sphinx/api.html" /> 
@@ -46,7 +44,7 @@
         <li class="right" >
           <a href="../sphinx/api.html" title="API Reference"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">pyFFTW 0.9.2 documentation</a> &raquo;</li>
+        <li><a href="../index.html">pyFFTW 0.10.1 documentation</a> &raquo;</li>
           <li><a href="../sphinx/api.html" accesskey="U">API Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -102,7 +100,7 @@ dtypes for the arrays is <a class="reference internal" href="#scheme-table"><em>
 This should be a valid list of axes. Repeated axes are 
 only transformed once. Invalid axes will raise an <tt class="docutils literal"><span class="pre">IndexError</span></tt> 
 exception. This argument is equivalent to the same
-argument in <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fftn.html#numpy.fft.fftn" title="(in NumPy v1.7)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fftn()</span></tt></a>, except for the fact that
+argument in <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fftn.html#numpy.fft.fftn" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fftn()</span></tt></a>, except for the fact that
 the behaviour of repeated axes is different (<tt class="docutils literal"><span class="pre">numpy.fft</span></tt>
 will happily take the fft of the same axis if it is repeated
 in the <tt class="docutils literal"><span class="pre">axes</span></tt> argument). Rudimentary testing has suggested
@@ -284,8 +282,8 @@ the data arrays will be checked for similar alignment. SIMD
 instructions can be explicitly disabled by setting the
 FFTW_UNALIGNED flags, to allow for updates with unaligned
 data.</p>
-<p><a class="reference internal" href="#pyfftw.n_byte_align" title="pyfftw.n_byte_align"><tt class="xref py py-func docutils literal"><span class="pre">n_byte_align()</span></tt></a> and 
-<a class="reference internal" href="#pyfftw.n_byte_align_empty" title="pyfftw.n_byte_align_empty"><tt class="xref py py-func docutils literal"><span class="pre">n_byte_align_empty()</span></tt></a> are two methods
+<p><a class="reference internal" href="#pyfftw.byte_align" title="pyfftw.byte_align"><tt class="xref py py-func docutils literal"><span class="pre">byte_align()</span></tt></a> and
+<a class="reference internal" href="#pyfftw.empty_aligned" title="pyfftw.empty_aligned"><tt class="xref py py-func docutils literal"><span class="pre">empty_aligned()</span></tt></a> are two methods
 included with this module for producing aligned arrays.</p>
 <p>The optimum alignment for the running platform is provided
 by <a class="reference internal" href="#pyfftw.pyfftw.simd_alignment" title="pyfftw.pyfftw.simd_alignment"><tt class="xref py py-data docutils literal"><span class="pre">pyfftw.simd_alignment</span></tt></a>, though a different alignment
@@ -340,6 +338,71 @@ byte boundary will result in a ValueError being raised.</p>
 <tt class="descname">flags</tt><a class="headerlink" href="#pyfftw.FFTW.flags" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return which flags were used to construct the FFTW object.</p>
 <p>This includes flags that were added during initialisation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyfftw.FFTW.input_array">
+<tt class="descname">input_array</tt><a class="headerlink" href="#pyfftw.FFTW.input_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the input array that is associated with the FFTW 
+instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyfftw.FFTW.output_array">
+<tt class="descname">output_array</tt><a class="headerlink" href="#pyfftw.FFTW.output_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the output array that is associated with the FFTW 
+instance.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyfftw.FFTW.input_shape">
+<tt class="descname">input_shape</tt><a class="headerlink" href="#pyfftw.FFTW.input_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shape of the input array for which the FFT is planned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyfftw.FFTW.output_shape">
+<tt class="descname">output_shape</tt><a class="headerlink" href="#pyfftw.FFTW.output_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shape of the output array for which the FFT is planned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyfftw.FFTW.input_strides">
+<tt class="descname">input_strides</tt><a class="headerlink" href="#pyfftw.FFTW.input_strides" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the strides of the input array for which the FFT is planned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyfftw.FFTW.output_strides">
+<tt class="descname">output_strides</tt><a class="headerlink" href="#pyfftw.FFTW.output_strides" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the strides of the output array for which the FFT is planned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyfftw.FFTW.input_dtype">
+<tt class="descname">input_dtype</tt><a class="headerlink" href="#pyfftw.FFTW.input_dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the dtype of the input array for which the FFT is planned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyfftw.FFTW.output_dtype">
+<tt class="descname">output_dtype</tt><a class="headerlink" href="#pyfftw.FFTW.output_dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shape of the output array for which the FFT is planned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyfftw.FFTW.direction">
+<tt class="descname">direction</tt><a class="headerlink" href="#pyfftw.FFTW.direction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the planned FFT direction. Either <cite>&#8216;FFTW_FORWARD&#8217;</cite> or 
+<cite>&#8216;FFTW_BACKWARD&#8217;</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyfftw.FFTW.axes">
+<tt class="descname">axes</tt><a class="headerlink" href="#pyfftw.FFTW.axes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the axes for the planned FFT in canonical form. That is, as
+a tuple of positive integers. The order in which they were passed
+is maintained.</p>
 </dd></dl>
 
 <dl class="method">
@@ -413,9 +476,9 @@ object will still be in a sane state).</p>
 <dt id="pyfftw.FFTW.execute">
 <tt class="descname">execute</tt><big>(</big><big>)</big><a class="headerlink" href="#pyfftw.FFTW.execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the planned operation, taking the correct kind of FFT of
-the input array (what is returned by <a class="reference internal" href="#pyfftw.FFTW.get_input_array" title="pyfftw.FFTW.get_input_array"><tt class="xref py py-meth docutils literal"><span class="pre">get_input_array()</span></tt></a>), 
-and putting the result in the output array (what is returned by
-<a class="reference internal" href="#pyfftw.FFTW.get_output_array" title="pyfftw.FFTW.get_output_array"><tt class="xref py py-meth docutils literal"><span class="pre">get_output_array()</span></tt></a>).</p>
+the input array (i.e. <a class="reference internal" href="#pyfftw.FFTW.input_array" title="pyfftw.FFTW.input_array"><tt class="xref py py-attr docutils literal"><span class="pre">FFTW.input_array</span></tt></a>), 
+and putting the result in the output array (i.e.
+<a class="reference internal" href="#pyfftw.FFTW.output_array" title="pyfftw.FFTW.output_array"><tt class="xref py py-attr docutils literal"><span class="pre">FFTW.output_array</span></tt></a>).</p>
 </dd></dl>
 
 <dl class="method">
@@ -423,6 +486,8 @@ and putting the result in the output array (what is returned by
 <tt class="descname">get_input_array</tt><big>(</big><big>)</big><a class="headerlink" href="#pyfftw.FFTW.get_input_array" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the input array that is associated with the FFTW 
 instance.</p>
+<p><em>Deprecated since 0.10. Consider using the</em> <a class="reference internal" href="#pyfftw.FFTW.input_array" title="pyfftw.FFTW.input_array"><tt class="xref py py-attr docutils literal"><span class="pre">FFTW.input_array</span></tt></a> 
+<em>property instead.</em></p>
 </dd></dl>
 
 <dl class="method">
@@ -430,6 +495,8 @@ instance.</p>
 <tt class="descname">get_output_array</tt><big>(</big><big>)</big><a class="headerlink" href="#pyfftw.FFTW.get_output_array" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the output array that is associated with the FFTW
 instance.</p>
+<p><em>Deprecated since 0.10. Consider using the</em> <a class="reference internal" href="#pyfftw.FFTW.output_array" title="pyfftw.FFTW.output_array"><tt class="xref py py-attr docutils literal"><span class="pre">FFTW.output_array</span></tt></a> 
+<em>property instead.</em></p>
 </dd></dl>
 
 </dd></dl>
@@ -482,18 +549,80 @@ and long double, in that order).</p>
 <tt class="descclassname">pyfftw.</tt><tt class="descname">simd_alignment</tt><a class="headerlink" href="#pyfftw.pyfftw.simd_alignment" title="Permalink to this definition">¶</a></dt>
 <dd><p>An integer giving the optimum SIMD alignment in bytes, found by
 inspecting the CPU (e.g. if AVX is supported, its value will be 32).</p>
-<p>This can be used as <tt class="docutils literal"><span class="pre">n</span></tt> in the arguments for <a class="reference internal" href="#pyfftw.n_byte_align" title="pyfftw.n_byte_align"><tt class="xref py py-func docutils literal"><span class="pre">n_byte_align()</span></tt></a> and
-<a class="reference internal" href="#pyfftw.n_byte_align_empty" title="pyfftw.n_byte_align_empty"><tt class="xref py py-func docutils literal"><span class="pre">n_byte_align_empty()</span></tt></a> to create optimally aligned arrays for
-the running platform.</p>
+<p>This can be used as <tt class="docutils literal"><span class="pre">n</span></tt> in the arguments for <a class="reference internal" href="#pyfftw.byte_align" title="pyfftw.byte_align"><tt class="xref py py-func docutils literal"><span class="pre">byte_align()</span></tt></a>,
+<a class="reference internal" href="#pyfftw.empty_aligned" title="pyfftw.empty_aligned"><tt class="xref py py-func docutils literal"><span class="pre">empty_aligned()</span></tt></a>, <a class="reference internal" href="#pyfftw.zeros_aligned" title="pyfftw.zeros_aligned"><tt class="xref py py-func docutils literal"><span class="pre">zeros_aligned()</span></tt></a>, and <a class="reference internal" href="#pyfftw.ones_aligned" title="pyfftw.ones_aligned"><tt class="xref py py-func docutils literal"><span class="pre">ones_aligned()</span></tt></a> to
+create optimally aligned arrays for the running platform.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.byte_align">
+<tt class="descclassname">pyfftw.</tt><tt class="descname">byte_align</tt><big>(</big><em>array</em>, <em>n=None</em>, <em>dtype=None</em><big>)</big><a class="headerlink" href="#pyfftw.byte_align" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that takes a numpy array and checks it is aligned on an n-byte
+boundary, where <tt class="docutils literal"><span class="pre">n</span></tt> is an optional parameter. If <tt class="docutils literal"><span class="pre">n</span></tt> is not provided
+then this function will inspect the CPU to determine alignment. If the
+array is aligned then it is returned without further ado.  If it is not
+aligned then a new array is created and the data copied in, but aligned
+on the n-byte boundary.</p>
+<p><tt class="docutils literal"><span class="pre">dtype</span></tt> is an optional argument that forces the resultant array to be
+of that dtype.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.empty_aligned">
+<tt class="descclassname">pyfftw.</tt><tt class="descname">empty_aligned</tt><big>(</big><em>shape</em>, <em>dtype='float64'</em>, <em>order='C'</em>, <em>n=None</em><big>)</big><a class="headerlink" href="#pyfftw.empty_aligned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that returns an empty numpy array that is n-byte aligned,
+where <tt class="docutils literal"><span class="pre">n</span></tt> is determined by inspecting the CPU if it is not
+provided.</p>
+<p>The alignment is given by the final optional argument, <tt class="docutils literal"><span class="pre">n</span></tt>. If
+<tt class="docutils literal"><span class="pre">n</span></tt> is not provided then this function will inspect the CPU to
+determine alignment. The rest of the arguments are as per
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.empty.html#numpy.empty" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.empty()</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.zeros_aligned">
+<tt class="descclassname">pyfftw.</tt><tt class="descname">zeros_aligned</tt><big>(</big><em>shape</em>, <em>dtype='float64'</em>, <em>order='C'</em>, <em>n=None</em><big>)</big><a class="headerlink" href="#pyfftw.zeros_aligned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that returns a numpy array of zeros that is n-byte aligned,
+where <tt class="docutils literal"><span class="pre">n</span></tt> is determined by inspecting the CPU if it is not
+provided.</p>
+<p>The alignment is given by the final optional argument, <tt class="docutils literal"><span class="pre">n</span></tt>. If
+<tt class="docutils literal"><span class="pre">n</span></tt> is not provided then this function will inspect the CPU to
+determine alignment. The rest of the arguments are as per
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.zeros.html#numpy.zeros" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.zeros()</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.ones_aligned">
+<tt class="descclassname">pyfftw.</tt><tt class="descname">ones_aligned</tt><big>(</big><em>shape</em>, <em>dtype='float64'</em>, <em>order='C'</em>, <em>n=None</em><big>)</big><a class="headerlink" href="#pyfftw.ones_aligned" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that returns a numpy array of ones that is n-byte aligned,
+where <tt class="docutils literal"><span class="pre">n</span></tt> is determined by inspecting the CPU if it is not
+provided.</p>
+<p>The alignment is given by the final optional argument, <tt class="docutils literal"><span class="pre">n</span></tt>. If
+<tt class="docutils literal"><span class="pre">n</span></tt> is not provided then this function will inspect the CPU to
+determine alignment. The rest of the arguments are as per
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.ones.html#numpy.ones" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.ones()</span></tt></a>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyfftw.is_byte_aligned">
+<tt class="descclassname">pyfftw.</tt><tt class="descname">is_byte_aligned</tt><big>(</big><big>)</big><a class="headerlink" href="#pyfftw.is_byte_aligned" title="Permalink to this definition">¶</a></dt>
+<dd><p>is_n_byte_aligned(array, n=None)</p>
+<p>Function that takes a numpy array and checks it is aligned on an n-byte
+boundary, where <tt class="docutils literal"><span class="pre">n</span></tt> is an optional parameter, returning <tt class="docutils literal"><span class="pre">True</span></tt> if it is,
+and <tt class="docutils literal"><span class="pre">False</span></tt> if it is not. If <tt class="docutils literal"><span class="pre">n</span></tt> is not provided then this function will
+inspect the CPU to determine alignment.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.n_byte_align">
 <tt class="descclassname">pyfftw.</tt><tt class="descname">n_byte_align</tt><big>(</big><em>array</em>, <em>n</em>, <em>dtype=None</em><big>)</big><a class="headerlink" href="#pyfftw.n_byte_align" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function that takes a numpy array and checks it is aligned on an n-byte
-boundary, where <tt class="docutils literal"><span class="pre">n</span></tt> is a passed parameter. If it is, the array is
-returned without further ado.  If it is not, a new array is created and
-the data copied in, but aligned on the n-byte boundary.</p>
+<dd><p><strong>This function is deprecated:</strong> <tt class="docutils literal"><span class="pre">byte_align</span></tt> <strong>should be used instead.</strong></p>
+<p>Function that takes a numpy array and checks it is aligned on an n-byte
+boundary, where <tt class="docutils literal"><span class="pre">n</span></tt> is an optional parameter. If <tt class="docutils literal"><span class="pre">n</span></tt> is not provided
+then this function will inspect the CPU to determine alignment. If the
+array is aligned then it is returned without further ado.  If it is not
+aligned then a new array is created and the data copied in, but aligned
+on the n-byte boundary.</p>
 <p><tt class="docutils literal"><span class="pre">dtype</span></tt> is an optional argument that forces the resultant array to be
 of that dtype.</p>
 </dd></dl>
@@ -501,16 +630,21 @@ of that dtype.</p>
 <dl class="function">
 <dt id="pyfftw.n_byte_align_empty">
 <tt class="descclassname">pyfftw.</tt><tt class="descname">n_byte_align_empty</tt><big>(</big><em>shape</em>, <em>n</em>, <em>dtype='float64'</em>, <em>order='C'</em><big>)</big><a class="headerlink" href="#pyfftw.n_byte_align_empty" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function that returns an empty numpy array
-that is n-byte aligned.</p>
-<p>The alignment is given by the second argument, <tt class="docutils literal"><span class="pre">n</span></tt>.
-The rest of the arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.empty.html#numpy.empty" title="(in NumPy v1.7)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.empty()</span></tt></a>.</p>
+<dd><p><strong>This function is deprecated:</strong> <tt class="docutils literal"><span class="pre">empty_aligned</span></tt> <strong>should be used
+instead.</strong></p>
+<p>Function that returns an empty numpy array that is n-byte aligned.</p>
+<p>The alignment is given by the first optional argument, <tt class="docutils literal"><span class="pre">n</span></tt>. If
+<tt class="docutils literal"><span class="pre">n</span></tt> is not provided then this function will inspect the CPU to
+determine alignment. The rest of the arguments are as per
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.empty.html#numpy.empty" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.empty()</span></tt></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.is_n_byte_aligned">
 <tt class="descclassname">pyfftw.</tt><tt class="descname">is_n_byte_aligned</tt><big>(</big><em>array</em>, <em>n</em><big>)</big><a class="headerlink" href="#pyfftw.is_n_byte_aligned" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function that takes a numpy array and checks it is aligned on an n-byte
+<dd><p><strong>This function is deprecated:</strong> <tt class="docutils literal"><span class="pre">is_byte_aligned</span></tt> <strong>should be used
+instead.</strong></p>
+<p>Function that takes a numpy array and checks it is aligned on an n-byte
 boundary, where <tt class="docutils literal"><span class="pre">n</span></tt> is a passed parameter, returning <tt class="docutils literal"><span class="pre">True</span></tt> if it is,
 and <tt class="docutils literal"><span class="pre">False</span></tt> if it is not.</p>
 </dd></dl>
@@ -539,7 +673,7 @@ and <tt class="docutils literal"><span class="pre">False</span></tt> if it is no
                         title="previous chapter">API Reference</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="builders/builders.html"
-                        title="next chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">pyfftw.builders</span></tt> - Get <tt class="docutils literal docutils literal docutils literal"><span class="pre">FFTW</span></tt> objects using a <tt class="xref py py-mod docutils literal docutils literal docutils literal"><span class="pre">numpy.fft</span></tt> like interface</a></p>
+                        title="next chapter"><tt class="docutils literal"><span class="pre">pyfftw.builders</span></tt> - Get <tt class="docutils literal"><span class="pre">FFTW</span></tt> objects using a <tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt> like interface</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/pyfftw/pyfftw.txt"
@@ -577,13 +711,13 @@ and <tt class="docutils literal"><span class="pre">False</span></tt> if it is no
         <li class="right" >
           <a href="../sphinx/api.html" title="API Reference"
              >previous</a> |</li>
-        <li><a href="../index.html">pyFFTW 0.9.2 documentation</a> &raquo;</li>
+        <li><a href="../index.html">pyFFTW 0.10.1 documentation</a> &raquo;</li>
           <li><a href="../sphinx/api.html" >API Reference</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013, Henry Gomersall.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+        &copy; Copyright 2016, Henry Gomersall.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>
 </html>
