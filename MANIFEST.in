@@ -1,5 +1,4 @@
-include ChangeLog
-include COPYING.txt
+include CHANGELOG.md
 include LICENSE.txt
 include requirements.txt
 include README.rst

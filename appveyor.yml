@@ -70,9 +70,10 @@ test_script:
   - "python setup.py test"
 
 deploy_script:
-    - "echo [pypi] > %USERPROFILE%\\.pypirc"
-    - "echo username: %pypi_username% >> %USERPROFILE%\\.pypirc"
-    - "echo password: %pypi_password% >> %USERPROFILE%\\.pypirc"
+    - "SET HOME=%USERPROFILE%"
+    - "echo [server-login] > %USERPROFILE%\\.pypirc"
+    - "echo username:%pypi_username% >> %USERPROFILE%\\.pypirc"
+    - "echo password:%pypi_password% >> %USERPROFILE%\\.pypirc"
     - ps: "./appveyor/deploy.ps1"
 
 on_finish:
