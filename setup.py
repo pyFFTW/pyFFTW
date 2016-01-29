@@ -49,7 +49,7 @@ import sys
 
 MAJOR = 0
 MINOR = 10
-MICRO = 0
+MICRO = 1
 ISRELEASED = True
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
