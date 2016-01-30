@@ -327,11 +327,12 @@ def get_version_info():
     FULLVERSION = VERSION
     if os.path.exists('.git'):
         GIT_REVISION = git_version()
-    elif os.path.exists('pyfftw/version.py'):
+    elif os.path.exists(os.path.join('pyfftw', 'version.py')):
         # must be a source distribution, use existing version file
         # load it as a separate module in order not to load __init__.py
         import imp
-        version = imp.load_source('pyfftw.version', 'pyfftw/version.py')
+        version = imp.load_source(
+            'pyfftw.version', os.path.join('pyfftw', 'version.py'))
         GIT_REVISION = version.git_revision
     else:
         GIT_REVISION = "Unknown"
@@ -342,7 +343,11 @@ def get_version_info():
     return FULLVERSION, GIT_REVISION
 
 # borrowed from scipy via pyNFFT
-def write_version_py(filename='pyfftw/version.py'):
+def write_version_py(filename=None):
+
+    if filename is None:
+        filename = os.path.join('pyfftw', 'version.py')
+
     cnt = """
 # THIS FILE IS GENERATED FROM SETUP.PY
 short_version = '%(version)s'
@@ -374,7 +379,7 @@ def setup_package():
     FULLVERSION, GIT_REVISION = get_version_info()
 
     # Refresh version file if we're not a source release
-    if ISRELEASED and os.path.exists('pyfftw/version.py'):
+    if ISRELEASED and os.path.exists(os.path.join('pyfftw', 'version.py')):
         pass
     else:
         write_version_py()
