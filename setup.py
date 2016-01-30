@@ -373,8 +373,11 @@ def setup_package():
     # Get current version
     FULLVERSION, GIT_REVISION = get_version_info()
 
-    # Refresh version file
-    write_version_py()
+    # Refresh version file if we're not a source release
+    if ISRELEASED and os.path.exists('pyfftw/version.py'):
+        pass
+    else:
+        write_version_py()
 
     # Figure out whether to add ``*_requires = ['numpy']``.
     build_requires = []
