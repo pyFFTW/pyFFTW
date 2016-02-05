@@ -97,8 +97,15 @@ class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
     '''
 
     def test_scipy_overwrite(self):
-        scipy_fftn = scipy.signal.signaltools.fftn
-        scipy_ifftn = scipy.signal.signaltools.ifftn
+
+        new_style_scipy_fftn = False
+        try:
+            scipy_fftn = scipy.signal.signaltools.fftn
+            scipy_ifftn = scipy.signal.signaltools.ifftn
+        except AttributeError:
+            scipy_fftn = scipy.fftpack.fftn
+            scipy_ifftn = scipy.fftpack.ifftn
+            new_style_scipy_fftn = True
 
         a = pyfftw.empty_aligned((128, 64), dtype='complex128', n=16)
         b = pyfftw.empty_aligned((128, 64), dtype='complex128', n=16)
@@ -111,15 +118,25 @@ class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
 
         scipy_c = scipy.signal.fftconvolve(a, b)
 
-        scipy.signal.signaltools.fftn = scipy_fftpack.fftn
-        scipy.signal.signaltools.ifftn = scipy_fftpack.ifftn
+        if new_style_scipy_fftn:
+            scipy.fftpack.fftn = scipy_fftpack.fftn
+            scipy.fftpack.ifftn = scipy_fftpack.ifftn
+
+        else:
+            scipy.signal.signaltools.fftn = scipy_fftpack.fftn
+            scipy.signal.signaltools.ifftn = scipy_fftpack.ifftn
 
         scipy_replaced_c = scipy.signal.fftconvolve(a, b)
 
         self.assertTrue(numpy.allclose(scipy_c, scipy_replaced_c))
 
-        scipy.signal.signaltools.fftn = scipy_fftn
-        scipy.signal.signaltools.ifftn = scipy_ifftn
+        if new_style_scipy_fftn:
+            scipy.fftpack.fftn = scipy_fftn
+            scipy.fftpack.ifftn = scipy_ifftn
+
+        else:
+            scipy.signal.signaltools.fftn = scipy_fftn
+            scipy.signal.signaltools.ifftn = scipy_ifftn
 
     def test_funcs(self):
 
