@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Knowledge Economy Developments Ltd
+ * Copyright 2016 Knowledge Economy Developments Ltd
  * 
  * Henry Gomersall
  * heng@kedevelopments.co.uk
@@ -41,7 +41,7 @@
 #if __STDC_VERSION__ >= 199901L
   /* "inline" is a keyword */
 #else
-# define inline static
+# define inline
 #endif
 
 #if defined(__amd64__) || defined (_M_X64) || defined(__i386__) || defined(_M_IX86) || defined(_X86_)
@@ -76,7 +76,7 @@
   #endif
 
 /* Returns the byte alignment for optimum simd operations */
-inline int simd_alignment(void){
+static inline int simd_alignment(void){
     int cpuinfo[4];
 
     /* This gets the cpuinfo (set by 1)*/
@@ -92,7 +92,7 @@ inline int simd_alignment(void){
 
 #else
 
-inline int simd_alignment(void){
+static inline int simd_alignment(void){
     return 4;
 }
 #endif
