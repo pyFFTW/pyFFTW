@@ -556,6 +556,41 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 self.assertTrue(
                         numpy.alltrue(input_array == orig_input_array))
 
+    def test_on_non_writeable_array_issue_92(self):
+        '''Test to make sure that locked arrays work.
+
+        Regression test for issue 92.
+
+        **** This does not work because a copy is always made on line
+        **** 192 which negates the setting of writeable here...
+        '''
+        dtype_tuple = self.io_dtypes[functions[self.func]]
+
+        def array_type(test_shape, dtype):
+            a = dtype_tuple[1](test_shape, dtype)
+            a.flags.writeable = False
+            return a
+
+        for dtype in dtype_tuple[0]:
+            for test_shape, s, kwargs in self.test_data:
+                s = None
+
+                self.validate(array_type,
+                              test_shape, dtype, s, kwargs)
+
+    def test_regression_issue_92(self):
+        '''Quick regression test for issue 92.
+
+        The previous unit tests do not cover this when quick_tests is
+        run because one needs the complex dtype for failure.
+        '''
+        numpy.random.seed(1)
+        a = numpy.random.random((100,)) + 1j
+        interfaces.numpy_fft.fft(a)
+        a = numpy.random.random((4, 4)) + 1j
+        a.flags.writeable = False
+        assert numpy.allclose(np_fft.fft(a), interfaces.numpy_fft.fft(a))
+
 
 class InterfacesNumpyFFTTestIFFT(InterfacesNumpyFFTTestFFT):
     func = 'ifft'
