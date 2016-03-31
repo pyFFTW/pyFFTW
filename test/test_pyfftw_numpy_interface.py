@@ -591,6 +591,12 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
         a.flags.writeable = False
         assert numpy.allclose(np_fft.fft(a), interfaces.numpy_fft.fft(a))
 
+        self.assertRaisesRegex(
+            ValueError,
+            'Cannot set overwrite_input when not a.flags.writeable',
+            interfaces.numpy_fft.fft,
+            a, overwrite_input=True)
+
 
 class InterfacesNumpyFFTTestIFFT(InterfacesNumpyFFTTestFFT):
     func = 'ifft'
