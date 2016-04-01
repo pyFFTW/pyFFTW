@@ -83,8 +83,8 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
             work_with_copy = True
 
             if overwrite_input:
-                raise ValueError(
-                    "Cannot set overwrite_input when not a.flags.writeable")
+                raise ValueError('overwrite_input cannot be True when the ' +
+                                 'input array flags.writeable is False')
 
     if work_with_copy:
         # We make the copy before registering the key so that the

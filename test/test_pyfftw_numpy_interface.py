@@ -593,7 +593,8 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
 
         self.assertRaisesRegex(
             ValueError,
-            'Cannot set overwrite_input when not a.flags.writeable',
+            'overwrite_input cannot be True when the ' +
+            'input array flags.writeable is False',
             interfaces.numpy_fft.fft,
             a, overwrite_input=True)
 
