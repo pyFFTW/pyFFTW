@@ -89,8 +89,11 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
     if work_with_copy:
         # We make the copy before registering the key so that the
         # copy's stride information will be cached since this will be
-        # used for planning.
-        a = a.copy()
+        # used for planning.  Make sure the copy is byte aligned to
+        # prevent further copying
+        a_original = a
+        a = pyfftw.empty_aligned(shape=a.shape, dtype=a.dtype)
+        a[...] = a_original
 
     if cache.is_enabled():
         key = (calling_func, a.shape, a.strides, a.dtype, s.__hash__(), 
