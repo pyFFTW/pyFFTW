@@ -1104,6 +1104,9 @@ cdef class FFTW:
                 if self._direction[n] == FFTW_RODFT00:
                     total_N *= 2*(self._input_shape[self._axes[n]] + 1)
                 elif self._direction[n] == FFTW_REDFT00:
+                    if (self._input_shape[self._axes[n]] < 2):
+                        raise ValueError('FFTW_REDFT00 (also known as DCT-1) is'
+                                ' not defined for inputs of length less than two.')
                     total_N *= 2*(self._input_shape[self._axes[n]] - 1)
                 else:
                     total_N *= 2*self._input_shape[self._axes[n]]
