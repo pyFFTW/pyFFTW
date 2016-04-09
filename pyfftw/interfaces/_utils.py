@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2014 David Wells
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
@@ -44,8 +45,8 @@ import numpy
 from . import cache
 
 def _Xfftn(a, s, axes, overwrite_input, planner_effort,
-        threads, auto_align_input, auto_contiguous, 
-        calling_func, normalise_idft=True):
+           threads, auto_align_input, auto_contiguous, 
+           calling_func, normalise_idft=True, real_direction_flag=None):
 
     reload_after_transform = False
 
@@ -61,7 +62,13 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
     except TypeError:
         pass
 
-    if calling_func in ('irfft2', 'irfftn'):
+    if calling_func in ('dct', 'dst'):
+        # real-to-real transforms require passing an additional flag argument
+        avoid_copy = False
+        args = (a, s, axes, overwrite_input, planner_effort, threads,
+                auto_align_input, auto_contiguous, avoid_copy,
+                real_direction_flag)
+    elif calling_func in ('irfft2', 'irfftn'):
         # overwrite_input is not an argument to irfft2 or irfftn
         args = (a, s, axes, planner_effort, threads, 
                 auto_align_input, auto_contiguous)
