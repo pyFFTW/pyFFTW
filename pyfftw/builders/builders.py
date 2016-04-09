@@ -5,8 +5,6 @@
 #
 # Henry Gomersall
 # heng@kedevelopments.co.uk
-# David Wells
-# drwells <at> vt.edu
 #
 # All rights reserved.
 #
@@ -119,7 +117,8 @@ Supported Functions and Caveats
 
 The following functions are supported. They can be used with the
 same calling signature as their respective functions in
-:mod:`numpy.fft`.
+:mod:`numpy.fft` or (in the case of real-to-real transforms)
+:mod:`scipy.fftpack`.
 
 **Standard FFTs**
 
@@ -138,6 +137,11 @@ same calling signature as their respective functions in
 * :func:`~pyfftw.builders.irfft2`
 * :func:`~pyfftw.builders.rfftn`
 * :func:`~pyfftw.builders.irfftn`
+
+**DCTs and DSTs**
+
+* :func:`~pyfftw.builders.dct`
+* :func:`~pyfftw.builders.dst`
 
 The first caveat is that the dtype of the input array must match the
 transform. For example, for ``fft`` and ``ifft``, the dtype must
@@ -268,8 +272,7 @@ from ._utils import (_precook_1d_args, _Xfftn, _norm_args, _default_effort,
 
 __all__ = ['fft','ifft', 'fft2', 'ifft2', 'fftn',
            'ifftn', 'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn',
-           'irfftn']
-
+           'irfftn', 'dct', 'dst']
 
 def fft(a, n=None, axis=-1, overwrite_input=False,
         planner_effort=None, threads=None,
@@ -543,3 +546,67 @@ def irfftn(a, s=None, axes=None,
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,
             avoid_copy, inverse, real, **_norm_args(norm))
+
+
+def dct(a, n=None, axis=-1, overwrite_input=False,
+        planner_effort='FFTW_MEASURE', threads=1,
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False, type=2):
+    '''Return a :class:`pyfftw.FFTW` object representing a 1D DCT.
+
+    The first three arguments and 'type' are as per
+    :func:`scipy.fftpack.dct`; the rest of the arguments are documented
+    :ref:`in the module docs <builders_args>`.
+    '''
+    dct_types = ['FFTW_REDFT00', 'FFTW_REDFT10', 'FFTW_REDFT01',
+                 'FFTW_REDFT11', 1, 2, 3, 4]
+    if type not in dct_types:
+        raise ValueError("Unrecognised DCT type {}".format(type))
+
+    if n is not None and n != a.shape[axis]:
+        raise NotImplementedError
+
+    if isinstance(type, str):
+        direction = type
+    else:
+        direction = _dct_types[int(type) - 1]
+
+    s, axes = _precook_1d_args(a, n, axis)
+    inverse = False
+    real = False
+
+    return _Xfftn(a, s, axes, overwrite_input, planner_effort,
+            threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, real_direction_flag=direction)
+
+
+def dst(a, n=None, axis=-1, overwrite_input=False,
+        planner_effort='FFTW_MEASURE', threads=1,
+        auto_align_input=True, auto_contiguous=True,
+        avoid_copy=False, type=2):
+    '''Return a :class:`pyfftw.FFTW` object representing a 1D DST.
+
+    The first three arguments and 'type' are as per
+    :func:`scipy.fftpack.dst`; the rest of the arguments are documented
+    :ref:`in the module docs <builders_args>`.
+    '''
+    dst_types = ['FFTW_RODFT00', 'FFTW_RODFT10', 'FFTW_RODFT01',
+                 'FFTW_RODFT11', 1, 2, 3, 4]
+    if type not in dst_types:
+        raise ValueError("Unrecognised DST type {}".format(type))
+
+    if n is not None and n != a.shape[axis]:
+        raise NotImplementedError
+
+    if isinstance(type, str):
+        direction = type
+    else:
+        direction = _dct_types[int(type) - 1]
+
+    s, axes = _precook_1d_args(a, n, axis)
+    inverse = False
+    real = False
+
+    return _Xfftn(a, s, axes, overwrite_input, planner_effort,
+            threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, real_direction_flag=direction)
