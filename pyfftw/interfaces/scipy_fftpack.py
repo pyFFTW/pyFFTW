@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 #
+# Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2014 David Wells
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -48,13 +51,15 @@ a 2D `shape` argument will return without exception whereas
 :func:`pyfftw.interfaces.scipy_fftpack.fft2` will raise a `ValueError`.
 '''
 
+import itertools as it
 from . import numpy_fft
 
 from ..builders._utils import _default_effort, _default_threads
+from ._utils import _Xfftn
 import numpy
 
 # Complete the namespace (these are not actually used in this module)
-from scipy.fftpack import (dct, idct, dst, idst, diff, tilbert, itilbert,
+from scipy.fftpack import (diff, tilbert, itilbert,
         hilbert, ihilbert, cs_diff, sc_diff, ss_diff, cc_diff,
         shift, fftshift, ifftshift, fftfreq, rfftfreq,
         convolve)
@@ -74,7 +79,6 @@ try:
     __all__ += ['dctn', 'idctn', 'dstn', 'idstn']
 except ImportError:
     pass
-
 
 def fft(x, n=None, axis=-1, overwrite_x=False,
         planner_effort=None, threads=None,
@@ -304,3 +308,175 @@ def irfft(x, n=None, axis=-1, overwrite_x=False,
 
     return numpy_fft.irfft(complex_input, n, axis, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
+
+def dct(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
+        planner_effort='FFTW_MEASURE', threads=1,
+        auto_align_input=True, auto_contiguous=True):
+    '''Perform a 1D discrete cosine transform.
+
+    The first three arguments are as per :func:`scipy.fftpack.dct`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    '''
+    if not numpy.isrealobj(x):
+        raise TypeError("1st argument must be real sequence")
+
+    x = numpy.asanyarray(x)
+    if n is None:
+        n = x.shape[axis]
+    else:
+        raise NotImplementedError("Padding/truncating not yet implemented")
+
+    if norm:
+        if norm != 'ortho':
+            raise ValueError("Unknown normalize mode %s" % norm)
+
+    if type == 3 and norm == 'ortho':
+        x = numpy.copy(x)
+        sp = list(it.repeat(slice(None), len(x.shape)))
+        sp[axis] = 0
+        x[sp] /= numpy.sqrt(x.shape[axis])
+        sp[axis] = slice(1, None, None)
+        x[sp] /= numpy.sqrt(2*x.shape[axis])
+
+    type_flag_lookup = {
+        1: 'FFTW_REDFT00',
+        2: 'FFTW_REDFT10',
+        3: 'FFTW_REDFT01',
+        4: 'FFTW_REDFT11',
+    }
+    try:
+        type_flag = type_flag_lookup[type]
+    except KeyError:
+        raise ValueError("Type %d not understood" % type)
+
+    calling_func = 'dct'
+
+    result_unnormalized = _Xfftn(x, n, axis, overwrite_x, planner_effort,
+                                 threads, auto_align_input, auto_contiguous,
+                                 calling_func, real_direction_flag=type_flag)
+    if not norm:
+        return result_unnormalized
+    else:
+        if type == 1:
+            result_unnormalized /= numpy.sqrt(2*(x.shape[axis] - 1))
+            result = result_unnormalized
+        if type == 2:
+            sp = list(it.repeat(slice(None), len(x.shape)))
+            sp[axis] = 0
+            result_unnormalized[sp] /= numpy.sqrt(4*x.shape[axis])
+            sp[axis] = slice(1, None, None)
+            result_unnormalized[sp] /= numpy.sqrt(2*x.shape[axis])
+            result = result_unnormalized
+        elif type == 3:
+            # normalization implemented as data preprocessing
+            result = result_unnormalized
+        elif type == 4:
+            result_unnormalized /= numpy.sqrt(2*x.shape[axis])
+            result = result_unnormalized
+        return result
+
+def idct(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
+        planner_effort='FFTW_MEASURE', threads=1,
+        auto_align_input=True, auto_contiguous=True):
+    '''Perform an inverse 1D discrete cosine transform.
+
+    The first three arguments are as per :func:`scipy.fftpack.idct`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    '''
+    try:
+        inverse_type = {1: 1, 2: 3, 3: 2}[type]
+    except KeyError:
+        raise ValueError("Type %d not understood" % type)
+
+    return dct(x, n=n, axis=axis, norm=norm, overwrite_x=overwrite_x,
+               type=inverse_type, planner_effort=planner_effort,
+               threads=threads, auto_align_input=auto_align_input,
+               auto_contiguous=auto_contiguous)
+
+def dst(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
+        planner_effort='FFTW_MEASURE', threads=1,
+        auto_align_input=True, auto_contiguous=True):
+    '''Perform a 1D discrete sine transform.
+
+    The first three arguments are as per :func:`scipy.fftpack.dst`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    '''
+    if not numpy.isrealobj(x):
+        raise TypeError("1st argument must be real sequence")
+
+    x = numpy.asanyarray(x)
+    if n is None:
+        n = x.shape[axis]
+    else:
+        raise NotImplementedError("Padding/truncating not yet implemented")
+
+    if norm:
+        if norm != 'ortho':
+            raise ValueError("Unknown normalize mode %s" % norm)
+
+    if type == 3 and norm == 'ortho':
+        x = numpy.copy(x)
+        sp = list(it.repeat(Ellipsis, len(x.shape)))
+        sp[axis] = 0
+        x[sp] /= numpy.sqrt(x.shape[axis])
+        sp[axis] = slice(1, None, None)
+        x[sp] /= numpy.sqrt(2*x.shape[axis])
+
+    type_flag_lookup = {
+        1: 'FFTW_RODFT00',
+        2: 'FFTW_RODFT10',
+        3: 'FFTW_RODFT01',
+        4: 'FFTW_RODFT11',
+    }
+    try:
+        type_flag = type_flag_lookup[type]
+    except KeyError:
+        raise ValueError("Type %d not understood" % type)
+
+    calling_func = 'dst'
+
+    result_unnormalized = _Xfftn(x, n, axis, overwrite_x, planner_effort,
+                                 threads, auto_align_input, auto_contiguous,
+                                 calling_func, real_direction_flag=type_flag)
+    if not norm:
+        return result_unnormalized
+    else:
+        if type == 1:
+            result_unnormalized /= numpy.sqrt(2*(x.shape[axis] + 1))
+            result = result_unnormalized
+        elif type == 2:
+            sp = list(it.repeat(Ellipsis, len(x.shape)))
+            sp[axis] = 0
+            result_unnormalized[sp] *= 1.0/(2*numpy.sqrt(x.shape[axis]))
+            sp = list(it.repeat(Ellipsis, len(x.shape)))
+            sp[axis] = slice(1, None, None)
+            result_unnormalized[sp] *= 1.0/numpy.sqrt(2*x.shape[axis])
+            result = result_unnormalized
+        elif type == 3:
+            result = result_unnormalized
+        elif type == 4:
+            result_unnormalized /= numpy.sqrt(2*x.shape[axis])
+            result = result_unnormalized
+        return result
+
+def idst(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
+        planner_effort='FFTW_MEASURE', threads=1,
+        auto_align_input=True, auto_contiguous=True):
+    '''Perform an inverse 1D discrete sine transform.
+
+    The first three arguments are as per :func:`scipy.fftpack.idst`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    '''
+    try:
+        inverse_type = {1: 1, 2: 3, 3:2}[type]
+    except KeyError:
+        raise ValueError("Type %d not understood" % type)
+
+    return dst(x, n=n, axis=axis, norm=norm, overwrite_x=overwrite_x,
+               type=inverse_type, planner_effort=planner_effort,
+               threads=threads, auto_align_input=auto_align_input,
+               auto_contiguous=auto_contiguous)
