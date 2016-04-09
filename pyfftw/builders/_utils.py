@@ -5,8 +5,6 @@
 # 
 # Henry Gomersall
 # heng@kedevelopments.co.uk
-# David Wells
-# drwells <at> vt.edu
 #
 # All rights reserved.
 #
@@ -60,6 +58,8 @@ __all__ = ['_FFTWWrapper', '_rc_dtype_pairs', '_default_dtype', '_Xfftn',
 _valid_efforts = ('FFTW_ESTIMATE', 'FFTW_MEASURE', 
         'FFTW_PATIENT', 'FFTW_EXHAUSTIVE')
 
+_real_to_real_dtypes = [numpy.dtype('float32'), numpy.dtype('float64'),
+                        numpy.dtype('longdouble')]
 # Looking up a dtype in here returns the complex complement of the same
 # precision.
 # It is necessary to use .char as the keys due to MSVC mapping long
@@ -74,18 +74,30 @@ _rc_dtype_pairs = {numpy.dtype('float32').char: numpy.dtype('complex64'),
 _default_dtype = numpy.dtype('float64')
 
 def _Xfftn(a, s, axes, overwrite_input, 
-        planner_effort, threads, auto_align_input, auto_contiguous, 
-        avoid_copy, inverse, real):
+           planner_effort, threads, auto_align_input, auto_contiguous, 
+           avoid_copy, inverse, real, real_direction_flag=None):
     '''Generic transform interface for all the transforms. No
     defaults exist. The transform must be specified exactly.
+
+    The argument ``real_direction_flag`` is a slight exception to this
+    rule: for backwards compatibility this function defaults to standard
+    Fourier transforms (and not the specialized real to real variants).
+    If this flag is set to one of the standard real transform types
+    (e.g., 'FFTW_RODFT00') then the arguments ``inverse`` and ``real``
+    are ignored.
     '''
     a_orig = a
     invreal = inverse and real
 
-    if inverse:
+    if real_direction_flag is not None:
+        direction = real_direction_flag
+        real_to_real = True
+    elif inverse:
         direction = 'FFTW_BACKWARD'
+        real_to_real = False
     else:
         direction = 'FFTW_FORWARD'
+        real_to_real = False
 
     if planner_effort not in _valid_efforts:
         raise ValueError('Invalid planner effort: ', planner_effort)
@@ -97,25 +109,28 @@ def _Xfftn(a, s, axes, overwrite_input,
 
     a_is_complex = numpy.iscomplexobj(a)
 
-    # Make the input dtype correct
-    if a.dtype.char not in _rc_dtype_pairs:
-        # We make it the default dtype
-        if not real or inverse:
-            # It's going to be complex
-            a = numpy.asarray(a, dtype=_rc_dtype_pairs[_default_dtype.char])
-        else:
+    if real_to_real:
+        if a.dtype not in _real_to_real_dtypes:
             a = numpy.asarray(a, dtype=_default_dtype)
-    
-    elif not (real and not inverse) and not a_is_complex:
-        # We need to make it a complex dtype
-        a = numpy.asarray(a, dtype=_rc_dtype_pairs[a.dtype.char])
+    else:
+        if a.dtype.char not in _rc_dtype_pairs:
+            # We make it the default dtype
+            if not real or inverse:
+                # It's going to be complex
+                a = numpy.asarray(a, dtype=_rc_dtype_pairs[_default_dtype.char])
+            else:
+                a = numpy.asarray(a, dtype=_default_dtype)
 
-    elif (real and not inverse) and a_is_complex:
-        # It should be real
-        a = numpy.asarray(a, dtype=_rc_dtype_pairs[a.dtype.char])
+        elif not (real and not inverse) and not a_is_complex:
+            # We need to make it a complex dtype
+            a = numpy.asarray(a, dtype=_rc_dtype_pairs[a.dtype.char])
+
+        elif (real and not inverse) and a_is_complex:
+            # It should be real
+            a = numpy.asarray(a, dtype=_rc_dtype_pairs[a.dtype.char])
 
     # Make the output dtype correct
-    if not real:
+    if not real: # 'real' implies c2r or r2c; hence 'not real' means r2r or c2c.
         output_dtype = a.dtype
     
     else:
