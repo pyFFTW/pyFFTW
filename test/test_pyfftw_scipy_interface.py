@@ -1,4 +1,5 @@
 # Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2014 David Wells
 #
 # Henry Gomersall
 # heng@kedevelopments.co.uk
@@ -51,15 +52,16 @@ import unittest
 from .test_pyfftw_base import run_test_suites, miss
 from . import test_pyfftw_numpy_interface
 
-'''pyfftw.interfaces.scipy_fftpack just wraps pyfftw.interfaces.numpy_fft.
+'''pyfftw.interfaces.scipy_fftpack wraps pyfftw.interfaces.numpy_fft and
+implements the dct and dst functions.
 
 All the tests here just check that the call is made correctly.
 '''
 
-funcs = ('fft','ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
-           'rfft', 'irfft')
+funcs = ('fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
+         'rfft', 'irfft')
 
-acquired_names = ('dct', 'idct', 'diff', 'tilbert', 'itilbert', 'hilbert',
+acquired_names = ('diff', 'tilbert', 'itilbert', 'hilbert',
         'ihilbert', 'cs_diff', 'sc_diff', 'ss_diff', 'cc_diff', 'shift',
         'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve')
 
@@ -185,9 +187,54 @@ class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
 
             self.assertIs(fftpack_attr, acquired_attr)
 
+class InterfacesScipyFFTTest(unittest.TestCase):
+    # unittest is not very smart and will always turn this class into a test,
+    # even though it is not on the list. Hence this value is given as 'dct' and
+    # we just run those twice.
+    func_name = 'dct'
 
-# Construct all the test classes automatically.
+    def runTest(self):
+        scipy_func = getattr(scipy.fftpack, self.func_name)
+        pyfftw_func = getattr(scipy_fftpack, self.func_name)
+        ndims = numpy.random.randint(1, high=3)
+        axis = numpy.random.randint(0, high=ndims) % ndims
+        shape = numpy.random.randint(2, high=10, size=ndims)
+        data = numpy.random.rand(*shape)
+        data_copy = data.copy()
+
+        # test unnormalized.
+        for transform_type in range(1, 4):
+            data_hat_p = pyfftw_func(data, type=transform_type,
+                                     overwrite_x=False)
+            self.assertEqual(numpy.linalg.norm(data - data_copy), 0.0)
+            data_hat_s = scipy_func(data, type=transform_type,
+                                    overwrite_x=False)
+            self.assertTrue(numpy.allclose(data_hat_p, data_hat_s))
+
+        # test normalized. These are not all implemented in scipy.
+        for transform_type in range(1, 4):
+            data_hat_p = pyfftw_func(data, type=transform_type, norm='ortho',
+                                     overwrite_x=False)
+            self.assertEqual(numpy.linalg.norm(data - data_copy), 0.0)
+            try:
+                data_hat_s = scipy_func(data, type=transform_type, norm='ortho',
+                                        overwrite_x=False)
+            except NotImplementedError:
+                continue
+            self.assertTrue(numpy.allclose(data_hat_p, data_hat_s))
+
 built_classes = []
+# Construct the r2r test classes.
+for transform_name in ('dct', 'idct', 'dst', 'idst'):
+    class_name = 'InterfacesScipyFFTTest' + transform_name.upper()
+
+    globals()[class_name] = type(class_name, (InterfacesScipyFFTTest,),
+                                 {'func_name': transform_name})
+
+    built_classes.append(globals()[class_name])
+
+
+# Construct the test classes derived from the numpy tests.
 for each_func in funcs:
 
     class_name = 'InterfacesScipyFFTPackTest' + each_func.upper()
