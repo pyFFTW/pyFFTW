@@ -192,7 +192,7 @@ class InterfacesScipyFFTTest(unittest.TestCase):
         data_copy = data.copy()
 
         # test unnormalized.
-        for transform_type in range(1, 4):
+        for transform_type in range(1, 5):
             data_hat_p = pyfftw_func(data, type=transform_type,
                                      overwrite_x=False)
             self.assertEqual(numpy.linalg.norm(data - data_copy), 0.0)
@@ -200,8 +200,9 @@ class InterfacesScipyFFTTest(unittest.TestCase):
                                     overwrite_x=False)
             self.assertTrue(numpy.allclose(data_hat_p, data_hat_s))
 
-        # test normalized. These are not all implemented in scipy.
-        for transform_type in range(1, 4):
+        # test normalized against scipy results. Note that scipy does not
+        # support normalization for all transformations.
+        for transform_type in range(1, 5):
             data_hat_p = pyfftw_func(data, type=transform_type, norm='ortho',
                                      overwrite_x=False)
             self.assertEqual(numpy.linalg.norm(data - data_copy), 0.0)
