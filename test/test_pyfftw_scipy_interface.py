@@ -213,6 +213,16 @@ class InterfacesScipyFFTTest(unittest.TestCase):
                 continue
             self.assertTrue(numpy.allclose(data_hat_p, data_hat_s))
 
+        # test normalization by inverses.
+        for transform_type in range(1, 5):
+            inverse_type = {1: 1, 2: 3, 3:2}[transform_type]
+            forward = pyfftw_func(data, type=transform_type, norm='ortho',
+                                  overwrite_x=False)
+            result = pyfftw_func(data, type=inverse_type, norm='ortho',
+                                  overwrite_x=False)
+            self.assertTrue(numpy.allclose(data, result))
+
+
 built_classes = []
 # Construct the r2r test classes.
 for transform_name in ('dct', 'idct', 'dst', 'idst'):
