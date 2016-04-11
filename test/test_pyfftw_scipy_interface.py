@@ -176,6 +176,8 @@ class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
 
             self.assertIs(fftpack_attr, acquired_attr)
 
+@unittest.skipIf(scipy_missing, 'scipy is not installed, so this feature is'
+                 'unavailable')
 class InterfacesScipyFFTTest(unittest.TestCase):
     # unittest is not very smart and will always turn this class into a test,
     # even though it is not on the list. Hence this value is given as 'dct' and
