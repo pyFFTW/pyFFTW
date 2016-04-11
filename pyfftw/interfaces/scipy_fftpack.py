@@ -312,7 +312,7 @@ def dct(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
     else:
         raise NotImplementedError("Padding/truncating not yet implemented")
 
-    if norm:
+    if norm is not None:
         if norm != 'ortho':
             raise ValueError("Unknown normalize mode %s" % norm)
 
@@ -340,7 +340,7 @@ def dct(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
     result_unnormalized = _Xfftn(x, n, axis, overwrite_x, planner_effort,
                                  threads, auto_align_input, auto_contiguous,
                                  calling_func, real_direction_flag=type_flag)
-    if not norm:
+    if norm is None:
         return result_unnormalized
     else:
         if type == 1:
@@ -398,7 +398,7 @@ def dst(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
     else:
         raise NotImplementedError("Padding/truncating not yet implemented")
 
-    if norm:
+    if norm is not None:
         if norm != 'ortho':
             raise ValueError("Unknown normalize mode %s" % norm)
 
@@ -426,7 +426,7 @@ def dst(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
     result_unnormalized = _Xfftn(x, n, axis, overwrite_x, planner_effort,
                                  threads, auto_align_input, auto_contiguous,
                                  calling_func, real_direction_flag=type_flag)
-    if not norm:
+    if norm is None:
         return result_unnormalized
     else:
         if type == 1:
