@@ -179,61 +179,79 @@ class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
 @unittest.skipIf(scipy_missing, 'scipy is not installed, so this feature is'
                  'unavailable')
 class InterfacesScipyFFTTest(unittest.TestCase):
+    ''' Class template for building the scipy real to real tests.
+    '''
+
     # unittest is not very smart and will always turn this class into a test,
-    # even though it is not on the list. Hence this value is given as 'dct' and
-    # we just run those twice.
+    # even though it is not on the list. Hence mark test-dependent values as
+    # constants (so this particular test ends up being run twice).
     func_name = 'dct'
+    floating_type = numpy.float64
 
-    def runTest(self):
-        scipy_func = getattr(scipy.fftpack, self.func_name)
-        pyfftw_func = getattr(scipy_fftpack, self.func_name)
-        ndims = numpy.random.randint(1, high=3)
-        axis = numpy.random.randint(0, high=ndims) % ndims
-        shape = numpy.random.randint(2, high=10, size=ndims)
-        data = numpy.random.rand(*shape)
-        data_copy = data.copy()
+    def setUp(self):
+        self.scipy_func = getattr(scipy.fftpack, self.func_name)
+        self.pyfftw_func = getattr(scipy_fftpack, self.func_name)
+        self.ndims = numpy.random.randint(1, high=3)
+        self.shape = numpy.random.randint(2, high=10, size=self.ndims)
+        self.data = numpy.random.rand(*self.shape).astype(floating_type)
+        self.data_copy = self.data.copy()
 
-        # test unnormalized.
+    def test_unnormalized(self):
+        '''Test unnormalized pyfftw transformations against their scipy
+        equivalents.
+        '''
         for transform_type in range(1, 4):
-            data_hat_p = pyfftw_func(data, type=transform_type,
-                                     overwrite_x=False)
-            self.assertEqual(numpy.linalg.norm(data - data_copy), 0.0)
-            data_hat_s = scipy_func(data, type=transform_type,
-                                    overwrite_x=False)
+            data_hat_p = self.pyfftw_func(self.data, type=transform_type,
+                                          overwrite_x=False)
+            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy), 0.0)
+            data_hat_s = self.scipy_func(self.data, type=transform_type,
+                                         overwrite_x=False)
             self.assertTrue(numpy.allclose(data_hat_p, data_hat_s))
 
-        # test normalized against scipy results. Note that scipy does not
-        # support normalization for all transformations.
+    def test_normalized(self):
+        '''Test normalized against scipy results. Note that scipy does
+        not support normalization for all transformations.
+        '''
         for transform_type in range(1, 4):
-            data_hat_p = pyfftw_func(data, type=transform_type, norm='ortho',
-                                     overwrite_x=False)
-            self.assertEqual(numpy.linalg.norm(data - data_copy), 0.0)
+            data_hat_p = self.pyfftw_func(self.data, type=transform_type,
+                                          norm='ortho',
+                                          overwrite_x=False)
+            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy), 0.0)
             try:
-                data_hat_s = scipy_func(data, type=transform_type, norm='ortho',
-                                        overwrite_x=False)
+                data_hat_s = self.scipy_func(self.data, type=transform_type,
+                                             norm='ortho',
+                                             overwrite_x=False)
+                self.assertTrue(numpy.allclose(data_hat_p, data_hat_s))
             except NotImplementedError:
-                continue
-            self.assertTrue(numpy.allclose(data_hat_p, data_hat_s))
+                return None
 
-        # test normalization by inverses.
+    def test_normalization_inverses(self):
+        '''Test normalization in all of the pyfftw scipy wrappers.
+        '''
         for transform_type in range(1, 4):
             inverse_type = {1: 1, 2: 3, 3:2}[transform_type]
-            forward = pyfftw_func(data, type=transform_type, norm='ortho',
-                                  overwrite_x=False)
-            result = pyfftw_func(data, type=inverse_type, norm='ortho',
-                                  overwrite_x=False)
-            self.assertTrue(numpy.allclose(data, result))
+            forward = self.pyfftw_func(self.data, type=transform_type,
+                                       norm='ortho',
+                                       overwrite_x=False)
+            result = self.pyfftw_func(forward, type=inverse_type,
+                                      norm='ortho',
+                                      overwrite_x=False)
+            self.assertTrue(numpy.allclose(self.data, result))
 
 
 built_classes = []
 # Construct the r2r test classes.
-for transform_name in ('dct', 'idct', 'dst', 'idst'):
-    class_name = 'InterfacesScipyFFTTest' + transform_name.upper()
+for floating_type, floating_name in [[numpy.float32, 'Float32'],
+                                     [numpy.float64, 'Float64']]:
+    for transform_name in ('dct', 'idct', 'dst', 'idst'):
+        class_name = ('InterfacesScipyFFTTest' + transform_name.upper()
+                      + floating_name)
 
-    globals()[class_name] = type(class_name, (InterfacesScipyFFTTest,),
-                                 {'func_name': transform_name})
+        globals()[class_name] = type(class_name, (InterfacesScipyFFTTest,),
+                                    {'func_name': transform_name,
+                                     'float_type': floating_type})
 
-    built_classes.append(globals()[class_name])
+        built_classes.append(globals()[class_name])
 
 
 # Construct the test classes derived from the numpy tests.
