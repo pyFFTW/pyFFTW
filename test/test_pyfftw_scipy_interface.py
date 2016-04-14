@@ -194,7 +194,7 @@ class InterfacesScipyFFTTest(unittest.TestCase):
         data_copy = data.copy()
 
         # test unnormalized.
-        for transform_type in range(1, 5):
+        for transform_type in range(1, 4):
             data_hat_p = pyfftw_func(data, type=transform_type,
                                      overwrite_x=False)
             self.assertEqual(numpy.linalg.norm(data - data_copy), 0.0)
@@ -204,7 +204,7 @@ class InterfacesScipyFFTTest(unittest.TestCase):
 
         # test normalized against scipy results. Note that scipy does not
         # support normalization for all transformations.
-        for transform_type in range(1, 5):
+        for transform_type in range(1, 4):
             data_hat_p = pyfftw_func(data, type=transform_type, norm='ortho',
                                      overwrite_x=False)
             self.assertEqual(numpy.linalg.norm(data - data_copy), 0.0)
@@ -216,7 +216,7 @@ class InterfacesScipyFFTTest(unittest.TestCase):
             self.assertTrue(numpy.allclose(data_hat_p, data_hat_s))
 
         # test normalization by inverses.
-        for transform_type in range(1, 5):
+        for transform_type in range(1, 4):
             inverse_type = {1: 1, 2: 3, 3:2}[transform_type]
             forward = pyfftw_func(data, type=transform_type, norm='ortho',
                                   overwrite_x=False)
