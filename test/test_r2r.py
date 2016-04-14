@@ -40,7 +40,8 @@ from __future__ import division
 import itertools as it
 import random as rand
 import unittest
-import numpy as np
+import numpy
+
 import pyfftw
 
 discrete_sine_directions = ['FFTW_RODFT00', 'FFTW_RODFT01', 'FFTW_RODFT10',
@@ -74,27 +75,27 @@ inverse_lookup = {
 }
 
 interpolated_function_lookup = {
-    'FFTW_RODFT00': lambda k, x: np.sin(np.pi*(k + 1)*x),
-    'FFTW_RODFT01': lambda k, x: np.sin(np.pi*(k + 0.5)*x),
-    'FFTW_RODFT10': lambda k, x: np.sin(np.pi*(k + 1)*x),
-    'FFTW_RODFT11': lambda k, x: np.sin(np.pi*(k + 0.5)*x),
+    'FFTW_RODFT00': lambda k, x: numpy.sin(numpy.pi*(k + 1)*x),
+    'FFTW_RODFT01': lambda k, x: numpy.sin(numpy.pi*(k + 0.5)*x),
+    'FFTW_RODFT10': lambda k, x: numpy.sin(numpy.pi*(k + 1)*x),
+    'FFTW_RODFT11': lambda k, x: numpy.sin(numpy.pi*(k + 0.5)*x),
 
-    'FFTW_REDFT00': lambda k, x: np.cos(np.pi*k*x),
-    'FFTW_REDFT10': lambda k, x: np.cos(np.pi*k*x),
-    'FFTW_REDFT01': lambda k, x: np.cos(np.pi*(k + 0.5)*x),
-    'FFTW_REDFT11': lambda k, x: np.cos(np.pi*(k + 0.5)*x),
+    'FFTW_REDFT00': lambda k, x: numpy.cos(numpy.pi*k*x),
+    'FFTW_REDFT10': lambda k, x: numpy.cos(numpy.pi*k*x),
+    'FFTW_REDFT01': lambda k, x: numpy.cos(numpy.pi*(k + 0.5)*x),
+    'FFTW_REDFT11': lambda k, x: numpy.cos(numpy.pi*(k + 0.5)*x),
 }
 
 nodes_lookup = {
-    'FFTW_RODFT00': lambda n: np.arange(n + 2)[1:-1]/(n + 1),
-    'FFTW_RODFT01': lambda n: np.arange(1, n + 1)/n,
-    'FFTW_RODFT10': lambda n: (np.arange(n) + 0.5)/n,
-    'FFTW_RODFT11': lambda n: (np.arange(n) + 0.5)/n,
+    'FFTW_RODFT00': lambda n: numpy.arange(n + 2)[1:-1]/(n + 1),
+    'FFTW_RODFT01': lambda n: numpy.arange(1, n + 1)/n,
+    'FFTW_RODFT10': lambda n: (numpy.arange(n) + 0.5)/n,
+    'FFTW_RODFT11': lambda n: (numpy.arange(n) + 0.5)/n,
 
-    'FFTW_REDFT00': lambda n: np.arange(n)/(n - 1),
-    'FFTW_REDFT10': lambda n: (np.arange(n) + 0.5)/n,
-    'FFTW_REDFT01': lambda n: np.arange(n)/n,
-    'FFTW_REDFT11': lambda n: (np.arange(n) + 0.5)/n,
+    'FFTW_REDFT00': lambda n: numpy.arange(n)/(n - 1),
+    'FFTW_REDFT10': lambda n: (numpy.arange(n) + 0.5)/n,
+    'FFTW_REDFT01': lambda n: numpy.arange(n)/n,
+    'FFTW_REDFT11': lambda n: (numpy.arange(n) + 0.5)/n,
 }
 
 class TestRandomRealTransforms(unittest.TestCase):
@@ -122,7 +123,7 @@ def test_lookups():
     for transform in real_transforms:
         nodes   = nodes_lookup[transform](n)
         data    = interpolated_function_lookup[transform](j, nodes)
-        output  = np.empty_like(data)
+        output  = numpy.empty_like(data)
         plan    = pyfftw.FFTW(data, output, direction=[transform])
         data[:] = interpolated_function_lookup[transform](j, nodes)
         plan.execute()
@@ -173,8 +174,8 @@ class TestRealTransform(object):
             self._input_array = empty_noncontiguous(dims)
             self._output_array = empty_noncontiguous(dims)
         else:
-            self._input_array = np.zeros(dims)
-            self._output_array = np.zeros(dims)
+            self._input_array = numpy.zeros(dims)
+            self._output_array = numpy.zeros(dims)
         self.plan = pyfftw.FFTW(self._input_array, self._output_array,
             axes=self.axes, direction=self.directions)
         self.inverse_plan = pyfftw.FFTW(self._input_array, self._output_array,
@@ -184,19 +185,19 @@ class TestRealTransform(object):
         return self._normalisation_factor == float(self.plan._get_N())
 
     def test_against_random_data(self):
-        data = np.random.rand(*self.dims)
+        data = numpy.random.rand(*self.dims)
         self._input_array[:] = data
         self.plan.execute()
         self._input_array[:] = self._output_array[:]
         self.inverse_plan.execute()
 
         data *= self._normalisation_factor
-        err = np.mean(np.abs(data - self._output_array))/self._normalisation_factor
+        err = numpy.mean(numpy.abs(data - self._output_array))/self._normalisation_factor
         return err < 10e-8
 
     def test_against_exact_data(self):
         points = grid(self.dims, self.axes, self.directions)
-        data   = np.ones_like(points[0])
+        data   = numpy.ones_like(points[0])
         wavenumbers = list()
         factors = list()
 
@@ -215,24 +216,24 @@ class TestRealTransform(object):
                 self.directions[index]]
             data *= sum((factor*interpolated_function(wavenumber, points[axis])
                          for factor, wavenumber in zip(_factors, _wavenumbers)))
-            wavenumbers.append(np.array(_wavenumbers))
-            factors.append(np.array(_factors))
+            wavenumbers.append(numpy.array(_wavenumbers))
+            factors.append(numpy.array(_factors))
 
         self._input_array[:] = data
         self.plan.execute()
 
         # zero all of the entries that do not correspond to a wavenumber.
-        exact_coefficients = np.ones(data.shape)
+        exact_coefficients = numpy.ones(data.shape)
         for index, axis in enumerate(self.axes):
             dim = self.dims[axis]
             sp = list(it.repeat(slice(None), len(data.shape)))
-            zero_indicies = (np.array(list(set(np.arange(0, dim))
+            zero_indicies = (numpy.array(list(set(numpy.arange(0, dim))
                                       - set(wavenumbers[index]))))
             if len(zero_indicies) == 0:
                 pass
             else:
                 sp[axis] = zero_indicies
-                mask = np.ones(data.shape)
+                mask = numpy.ones(data.shape)
                 mask[sp] = 0.0
                 exact_coefficients *= mask
 
@@ -244,7 +245,7 @@ class TestRealTransform(object):
                 sp[axis] = wavenumber
                 exact_coefficients[sp] *= factor
 
-        error = np.mean(np.abs(self._output_array/normalisation
+        error = numpy.mean(numpy.abs(self._output_array/normalisation
                               - exact_coefficients))
         return error < 1e-8
 
@@ -276,18 +277,18 @@ def meshgrid(*x):
         # tuple due to the * operator.
         return x
     else:
-        args = np.atleast_1d(*x)
+        args = numpy.atleast_1d(*x)
         s0 = (1,)*len(args)
-        return list(map(np.squeeze,
-                        np.broadcast_arrays(*[x.reshape(s0[:i] + (-1,) + s0[i + 1::])
+        return list(map(numpy.squeeze,
+                        numpy.broadcast_arrays(*[x.reshape(s0[:i] + (-1,) + s0[i + 1::])
                                               for i, x in enumerate(args)])))
 
 def grid(shape, axes, directions, aspect_ratio=None):
-    grids = [np.linspace(1, 2, dim) for dim in shape]
+    grids = [numpy.linspace(1, 2, dim) for dim in shape]
     for index, (axis, direction) in enumerate(zip(axes, directions)):
         grids[axis] = nodes_lookup[direction](shape[axes[index]])
 
-    return np.array(meshgrid(*grids))
+    return numpy.array(meshgrid(*grids))
 
 def empty_noncontiguous(shape):
     """Create a non-contiguous empty array with shape `shape`.
@@ -310,7 +311,7 @@ def empty_noncontiguous(shape):
         else:
             child_slice.append(slice(left_offset, -1*right_offset, stride))
 
-    child = np.empty(parent_shape)[child_slice]
+    child = numpy.empty(parent_shape)[child_slice]
     if list(child.shape) != list(shape):
         raise ValueError("The shape of the noncontiguous array is incorrect."
                          " This is a bug.")
