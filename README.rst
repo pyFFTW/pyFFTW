@@ -36,7 +36,7 @@ A comprehensive unittest suite can be found with the source on the github
 repository or with the source distribution on PyPI.
 
 The documentation can be found on 
-`github pages <http://pyfftw.github.com/pyFFTW>`_, the source is 
+`github pages <http://pyfftw.github.io/pyFFTW>`_, the source is 
 on `github <https://github.com/pyFFTW/pyFFTW>`_ and the python package 
 index page is `here <http://pypi.python.org/pypi/pyFFTW>`_.
 
