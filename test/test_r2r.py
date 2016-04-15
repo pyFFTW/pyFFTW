@@ -314,21 +314,18 @@ def random_testcase():
 
 class RealToRealNormalisation(unittest.TestCase):
     def test_normalisation(self):
-        print "real to real normalisation"
         for _ in range(50):
             testcase = random_testcase()
             self.assertTrue(testcase.test_normalisation())
 
 class RealToRealExactData(unittest.TestCase):
     def test_exact_data(self):
-        print "real to real exact data"
         for _ in range(50):
             testcase = random_testcase()
             self.assertTrue(testcase.test_against_exact_data())
 
 class RealToRealRandomData(unittest.TestCase):
     def test_random_data(self):
-        print "real to real random data"
         for _ in range(50):
             testcase = random_testcase()
             self.assertTrue(testcase.test_against_random_data())
