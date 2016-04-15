@@ -148,24 +148,25 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
     def validate(self, array_type, test_shape, dtype, 
-            s, kwargs):
+                 s, kwargs, copy_func=copy.copy):
 
         # Do it without the cache
 
         # without:
         interfaces.cache.disable()
-        self._validate(array_type, test_shape, dtype, s, kwargs)
+        self._validate(array_type, test_shape, dtype, s, kwargs,
+                       copy_func=copy_func)
 
     def munge_input_array(self, array, kwargs):
         return array
 
     def _validate(self, array_type, test_shape, dtype, 
-            s, kwargs):
+                  s, kwargs, copy_func=copy.copy):
 
         input_array = self.munge_input_array(
                 array_type(test_shape, dtype), kwargs)
 
-        orig_input_array = copy.copy(input_array)
+        orig_input_array = copy_func(input_array)
 
         np_input_array = numpy.asarray(input_array)
         
@@ -189,13 +190,13 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
 
             try:
                 test_out_array = getattr(self.validator_module, self.func)(
-                        copy.copy(np_input_array), s, **axes)
+                        copy_func(np_input_array), s, **axes)
 
             except Exception as e:
                 interface_exception = None
                 try:
                     getattr(self.test_interface, self.func)(
-                            copy.copy(input_array), s, **kwargs)
+                            copy_func(input_array), s, **kwargs)
                 except Exception as _interface_exception:
                     # It's necessary to assign the exception to the
                     # already defined variable in Python 3.
@@ -209,7 +210,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 return
 
             output_array = getattr(self.test_interface, self.func)(
-                    copy.copy(input_array), s, **kwargs)
+                    copy_func(input_array), s, **kwargs)
 
             if (functions[self.func] == 'r2c'):
                 if numpy.iscomplexobj(input_array):
@@ -560,10 +561,12 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
         '''Test to make sure that locked arrays work.
 
         Regression test for issue 92.
-
-        **** This does not work because a copy is always made on line
-        **** 192 which negates the setting of writeable here...
         '''
+        def copy_with_writeable(array_to_copy):
+            array_copy = array_to_copy.copy()
+            array_copy.flags.writeable = array_to_copy.flags.writeable
+            return array_copy
+
         dtype_tuple = self.io_dtypes[functions[self.func]]
 
         def array_type(test_shape, dtype):
@@ -576,7 +579,8 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 s = None
 
                 self.validate(array_type,
-                              test_shape, dtype, s, kwargs)
+                              test_shape, dtype, s, kwargs,
+                              copy_func=copy_with_writeable)
 
     def test_regression_issue_92(self):
         '''Quick regression test for issue 92.
