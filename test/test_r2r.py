@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 # Copyright 2014 Knowledge Economy Developments Ltd
-# Copyright 2014 David Wells
+# Copyright 2014 - 2016 David Wells
 #
 # Henry Gomersall
 # heng@kedevelopments.co.uk
@@ -43,6 +42,7 @@ import unittest
 import numpy
 
 import pyfftw
+from .test_pyfftw_base import run_test_suites
 
 discrete_sine_directions = ['FFTW_RODFT00', 'FFTW_RODFT01', 'FFTW_RODFT10',
                             'FFTW_RODFT11']
@@ -98,22 +98,6 @@ nodes_lookup = {
     'FFTW_REDFT11': lambda n: (numpy.arange(n) + 0.5)/n,
 }
 
-class TestRandomRealTransforms(unittest.TestCase):
-    def test_normalisation(self):
-        for _ in range(50):
-            testcase = random_testcase()
-            self.assertTrue(testcase.test_normalisation())
-
-    def test_exact_data(self):
-        for _ in range(50):
-            testcase = random_testcase()
-            self.assertTrue(testcase.test_against_exact_data())
-
-    def test_random_data(self):
-        for _ in range(50):
-            testcase = random_testcase()
-            self.assertTrue(testcase.test_against_random_data())
-
 def test_lookups():
     """Test that the lookup tables correctly pair node choices and
     function choices for using the DCT/DST as interpolators.
@@ -136,6 +120,12 @@ def test_lookups():
             assert abs(output[j] - n) < tol
 
 class TestRealTransform(object):
+    '''Common set of functionality for performing tests on the real to
+    real transforms. This is not implemented as a distinct test class
+    (inheriting from unittest.TestCase) because its `__init__` method
+    takes multiple arguments as input which set up the size and
+    directions of the transform.
+    '''
     def __init__(self, directions, dims, axes=None, noncontiguous=True):
         """
         Arguments:
@@ -249,27 +239,6 @@ class TestRealTransform(object):
                               - exact_coefficients))
         return error < 1e-8
 
-def random_testcase():
-    ndims = rand.randint(1, 5)
-
-    axes = list()
-    directions = list()
-    dims = list()
-    for dim in range(ndims):
-        if ndims > 3:
-            dims.append(rand.randint(3, 10))
-        else:
-            dims.append(rand.randint(3, 100))
-        # throw out some dimensions randomly
-        if rand.choice([True, True, False]):
-            directions.append(rand.choice(real_transforms))
-            axes.append(dim)
-
-    if len(axes) == 0:
-        # reroll.
-        return random_testcase()
-    else:
-        return TestRealTransform(directions, dims, axes=axes)
 
 def meshgrid(*x):
     if len(x) == 1:
@@ -283,6 +252,7 @@ def meshgrid(*x):
                         numpy.broadcast_arrays(*[x.reshape(s0[:i] + (-1,) + s0[i + 1::])
                                               for i, x in enumerate(args)])))
 
+
 def grid(shape, axes, directions, aspect_ratio=None):
     grids = [numpy.linspace(1, 2, dim) for dim in shape]
     for index, (axis, direction) in enumerate(zip(axes, directions)):
@@ -290,9 +260,10 @@ def grid(shape, axes, directions, aspect_ratio=None):
 
     return numpy.array(meshgrid(*grids))
 
+
 def empty_noncontiguous(shape):
-    """Create a non-contiguous empty array with shape `shape`.
-    """
+    '''Create a non-contiguous empty array with shape `shape`.
+    '''
     offsets = lambda s: [rand.randint(0, 3) for _ in s]
     strides = lambda s: [rand.randint(1, 3) for _ in s]
     parent_left_offsets = offsets(shape)
@@ -317,5 +288,54 @@ def empty_noncontiguous(shape):
                          " This is a bug.")
     return child
 
+
+def random_testcase():
+    ndims = rand.randint(1, 5)
+
+    axes = list()
+    directions = list()
+    dims = list()
+    for dim in range(ndims):
+        if ndims > 3:
+            dims.append(rand.randint(3, 10))
+        else:
+            dims.append(rand.randint(3, 100))
+        # throw out some dimensions randomly
+        if rand.choice([True, True, False]):
+            directions.append(rand.choice(real_transforms))
+            axes.append(dim)
+
+    if len(axes) == 0:
+        # reroll.
+        return random_testcase()
+    else:
+        return TestRealTransform(directions, dims, axes=axes)
+
+
+class RealToRealNormalisation(unittest.TestCase):
+    def test_normalisation(self):
+        print "real to real normalisation"
+        for _ in range(50):
+            testcase = random_testcase()
+            self.assertTrue(testcase.test_normalisation())
+
+class RealToRealExactData(unittest.TestCase):
+    def test_exact_data(self):
+        print "real to real exact data"
+        for _ in range(50):
+            testcase = random_testcase()
+            self.assertTrue(testcase.test_against_exact_data())
+
+class RealToRealRandomData(unittest.TestCase):
+    def test_random_data(self):
+        print "real to real random data"
+        for _ in range(50):
+            testcase = random_testcase()
+            self.assertTrue(testcase.test_against_random_data())
+
+test_cases = (RealToRealNormalisation,
+              RealToRealExactData,
+              RealToRealRandomData,)
+
 if __name__ == '__main__':
-    unittest.main()
+    run_test_suites(test_cases)
