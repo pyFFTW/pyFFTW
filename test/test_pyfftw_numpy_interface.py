@@ -582,19 +582,11 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                               test_shape, dtype, s, kwargs,
                               copy_func=copy_with_writeable)
 
-    def test_regression_issue_92(self):
-        '''Quick regression test for issue 92.
-
-        The previous unit tests do not cover this when quick_tests is
-        run because one needs the complex dtype for failure.
+    def test_overwrite_input_for_issue_92(self):
+        '''Tests that trying to overwrite a locked array fails.
         '''
-        numpy.random.seed(1)
-        a = numpy.random.random((100,)) + 1j
-        interfaces.numpy_fft.fft(a)
-        a = numpy.random.random((4, 4)) + 1j
+        a = numpy.zeros((4,))
         a.flags.writeable = False
-        assert numpy.allclose(np_fft.fft(a), interfaces.numpy_fft.fft(a))
-
         self.assertRaisesRegex(
             ValueError,
             'overwrite_input cannot be True when the ' +
