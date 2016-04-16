@@ -1,5 +1,5 @@
 # Copyright 2015 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # henry.gomersall@kedevelopments.co.uk
 #

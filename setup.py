@@ -1,5 +1,5 @@
 # Copyright 2015 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -68,7 +68,7 @@ def get_include_dirs():
     import numpy
     from pkg_resources import get_build_platform
 
-    include_dirs = [os.path.join(os.getcwd(), 'include'), 
+    include_dirs = [os.path.join(os.getcwd(), 'include'),
                     os.path.join(os.getcwd(), 'pyfftw'),
                     numpy.get_include()]
 
@@ -93,7 +93,7 @@ def get_libraries():
         libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
 
     else:
-        libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads', 
+        libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads',
                      'fftw3f_threads', 'fftw3l_threads']
 
     return libraries
@@ -107,7 +107,7 @@ def get_extensions():
         'libraries': get_libraries()}
 
     try:
-        from Cython.Build import cythonize        
+        from Cython.Build import cythonize
         sources = [os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')]
         have_cython = True
 
@@ -116,13 +116,13 @@ def get_extensions():
         sources = [os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.c')]
         if not os.path.exists(sources[0]):
             raise ImportError(
-                str(e) + '. ' + 
+                str(e) + '. ' +
                 'Cython is required to build the initial .c file.')
-        
+
         have_cython = False
 
     ext_modules = [
-        Extension('pyfftw.pyfftw', sources=sources, 
+        Extension('pyfftw.pyfftw', sources=sources,
                   **common_extension_args)]
 
     if have_cython:
@@ -138,18 +138,18 @@ the possible transforms that FFTW can perform.
 
 Both the complex DFT and the real DFT are supported, as well as arbitrary
 axes of abitrary shaped and strided arrays, which makes it almost
-feature equivalent to standard and real FFT functions of ``numpy.fft`` 
+feature equivalent to standard and real FFT functions of ``numpy.fft``
 (indeed, it supports the ``clongdouble`` dtype which ``numpy.fft`` does not).
 
 Operating FFTW in multithreaded mode is supported.
 
-A comprehensive unittest suite can be found with the source on the github 
+A comprehensive unittest suite can be found with the source on the github
 repository.
 
 To build for windows from source, download the fftw dlls for your system
 and the header file from here (they're in a zip file):
 http://www.fftw.org/install/windows.html and place them in the pyfftw
-directory. The files are libfftw3-3.dll, libfftw3l-3.dll, libfftw3f-3.dll 
+directory. The files are libfftw3-3.dll, libfftw3l-3.dll, libfftw3f-3.dll
 and libfftw3.h.
 
 Under linux, to build from source, the FFTW library must be installed already.
@@ -157,7 +157,7 @@ This should probably work for OSX, though I've not tried it.
 
 Numpy is a dependency for both.
 
-The documentation can be found 
+The documentation can be found
 `here <http://hgomersall.github.com/pyFFTW/>`_, and the source
 is on `github <https://github.com/hgomersall/pyFFTW>`_.
 '''
@@ -174,7 +174,7 @@ class custom_build_ext(build_ext):
 
         if compiler == 'msvc':
             # Add msvc specific hacks
-            
+
             if (sys.version_info.major, sys.version_info.minor) < (3, 3):
                 # The check above is a nasty hack. We're using the python
                 # version as a proxy for the MSVC version. 2008 doesn't
@@ -225,7 +225,7 @@ class CreateChangelogCommand(Command):
         pass
 
     def run(self):
-        import subprocess        
+        import subprocess
         github_token_file = 'github_changelog_generator_token'
 
         with open(github_token_file) as f:
@@ -244,12 +244,12 @@ class TestCommand(Command):
 
     def run(self):
         import subprocess
-        errno = subprocess.call([sys.executable, '-m', 
+        errno = subprocess.call([sys.executable, '-m',
             'unittest', 'discover'])
         raise SystemExit(errno)
 
 class QuickTestCommand(Command):
-    '''Runs a set of test cases that covers a limited set of the 
+    '''Runs a set of test cases that covers a limited set of the
     functionality. It is intended that this class be used as a sanity check
     that everything is loaded and basically working as expected. It is not
     meant to replace the comprehensive test suite.
@@ -283,14 +283,14 @@ class QuickTestCommand(Command):
             'test.test_pyfftw_multithreaded',
             'test.test_pyfftw_numpy_interface.InterfacesNumpyFFTTestModule',
             'test.test_pyfftw_numpy_interface.InterfacesNumpyFFTTestFFT2',
-            'test.test_pyfftw_numpy_interface.InterfacesNumpyFFTTestIFFT2',            
+            'test.test_pyfftw_numpy_interface.InterfacesNumpyFFTTestIFFT2',
             'test.test_pyfftw_builders.BuildersTestFFTWWrapper',
             'test.test_pyfftw_builders.BuildersTestFFT2',
             'test.test_pyfftw_builders.BuildersTestIRFFT2',
         ]
 
         import subprocess
-        errno = subprocess.call([sys.executable, '-m', 
+        errno = subprocess.call([sys.executable, '-m',
             'unittest'] + quick_test_cases)
         raise SystemExit(errno)
 

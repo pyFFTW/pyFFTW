@@ -42,7 +42,7 @@ The exceptions raised by each of these functions are mostly as per their
 equivalents in :mod:`scipy.fftpack`, though there are some corner cases in
 which this may not be true.
 
-It is notable that unlike :mod:`scipy.fftpack`, these functions will 
+It is notable that unlike :mod:`scipy.fftpack`, these functions will
 generally return an output array with the same precision as the input
 array, and the transform that is chosen is chosen based on the precision
 of the input array. That is, if the input array is 32-bit floating point,
@@ -52,7 +52,7 @@ precision.
 
 Some corner (mis)usages of :mod:`scipy.fftpack` may not transfer neatly.
 For example, using :func:`scipy.fftpack.fft2` with a non 1D array and
-a 2D `shape` argument will return without exception whereas 
+a 2D `shape` argument will return without exception whereas
 :func:`pyfftw.interfaces.scipy_fftpack.fft2` will raise a `ValueError`.
 '''
 
@@ -60,9 +60,9 @@ from . import numpy_fft
 import numpy
 
 # Complete the namespace (these are not actually used in this module)
-from scipy.fftpack import (dct, idct, diff, tilbert, itilbert, 
-        hilbert, ihilbert, cs_diff, sc_diff, ss_diff, cc_diff, 
-        shift, fftshift, ifftshift, fftfreq, rfftfreq, 
+from scipy.fftpack import (dct, idct, diff, tilbert, itilbert,
+        hilbert, ihilbert, cs_diff, sc_diff, ss_diff, cc_diff,
+        shift, fftshift, ifftshift, fftfreq, rfftfreq,
         convolve, _fftpack)
 
 try:
@@ -70,17 +70,17 @@ try:
 except ImportError:
     pass
 
-__all__ = ['fft','ifft','fftn','ifftn','rfft','irfft', 'fft2','ifft2', 
+__all__ = ['fft','ifft','fftn','ifftn','rfft','irfft', 'fft2','ifft2',
         'diff', 'tilbert','itilbert','hilbert','ihilbert', 'sc_diff',
         'cs_diff','cc_diff','ss_diff', 'shift', 'rfftfreq']
 
-def fft(x, n=None, axis=-1, overwrite_x=False, 
+def fft(x, n=None, axis=-1, overwrite_x=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D FFT.
-    
-    The first three arguments are as per :func:`scipy.fftpack.fft`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`scipy.fftpack.fft`;
+    the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
     return numpy_fft.fft(x, n, axis, overwrite_x, planner_effort,
@@ -90,9 +90,9 @@ def ifft(x, n=None, axis=-1, overwrite_x=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D inverse FFT.
-    
-    The first three arguments are as per :func:`scipy.fftpack.ifft`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`scipy.fftpack.ifft`;
+    the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
 
@@ -104,9 +104,9 @@ def fft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D FFT.
-    
-    The first three arguments are as per :func:`scipy.fftpack.fft2`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`scipy.fftpack.fft2`;
+    the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
 
@@ -118,8 +118,8 @@ def ifft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D inverse FFT.
-    
-    The first three arguments are as per :func:`scipy.fftpack.ifft2`; 
+
+    The first three arguments are as per :func:`scipy.fftpack.ifft2`;
     the rest of the arguments are documented in the
     :ref:`additional argument docs <interfaces_additional_args>`.
     '''
@@ -132,9 +132,9 @@ def fftn(x, shape=None, axes=None, overwrite_x=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D FFT.
-    
-    The first three arguments are as per :func:`scipy.fftpack.fftn`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`scipy.fftpack.fftn`;
+    the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
 
@@ -156,9 +156,9 @@ def ifftn(x, shape=None, axes=None, overwrite_x=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D inverse FFT.
-    
-    The first three arguments are as per :func:`scipy.fftpack.ifftn`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`scipy.fftpack.ifftn`;
+    the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
 
@@ -176,7 +176,7 @@ def ifftn(x, shape=None, axes=None, overwrite_x=False,
             threads, auto_align_input, auto_contiguous)
 
 def _complex_to_rfft_output(complex_output, output_shape, axis):
-    '''Convert the complex output from pyfftw to the real output expected 
+    '''Convert the complex output from pyfftw to the real output expected
     from :func:`scipy.fftpack.rfft`.
     '''
 
@@ -249,9 +249,9 @@ def rfft(x, n=None, axis=-1, overwrite_x=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D real FFT.
-    
-    The first three arguments are as per :func:`scipy.fftpack.rfft`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`scipy.fftpack.rfft`;
+    the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
     if not numpy.isrealobj(x):
@@ -273,9 +273,9 @@ def irfft(x, n=None, axis=-1, overwrite_x=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D real inverse FFT.
-    
-    The first three arguments are as per :func:`scipy.fftpack.irfft`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`scipy.fftpack.irfft`;
+    the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
     if not numpy.isrealobj(x):
@@ -289,6 +289,5 @@ def irfft(x, n=None, axis=-1, overwrite_x=False,
 
     complex_input = _irfft_input_to_complex(x, axis)
 
-    return numpy_fft.irfft(complex_input, n, axis, overwrite_x, 
+    return numpy_fft.irfft(complex_input, n, axis, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
-

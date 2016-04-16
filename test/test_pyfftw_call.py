@@ -1,5 +1,5 @@
 # Copyright 2014 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -48,7 +48,7 @@ class FFTWCallTest(unittest.TestCase):
 
         if not hasattr(self, 'assertRaisesRegex'):
             self.assertRaisesRegex = self.assertRaisesRegexp
-   
+
     def setUp(self):
 
         self.input_array = empty_aligned((256, 512), dtype='complex128', n=16)
@@ -56,22 +56,22 @@ class FFTWCallTest(unittest.TestCase):
 
         self.fft = FFTW(self.input_array, self.output_array)
 
-        self.input_array[:] = (numpy.random.randn(*self.input_array.shape) 
+        self.input_array[:] = (numpy.random.randn(*self.input_array.shape)
                 + 1j*numpy.random.randn(*self.input_array.shape))
 
-    
+
     def test_call(self):
         '''Test a call to an instance of the class.
         '''
 
-        self.input_array[:] = (numpy.random.randn(*self.input_array.shape) 
+        self.input_array[:] = (numpy.random.randn(*self.input_array.shape)
                 + 1j*numpy.random.randn(*self.input_array.shape))
 
         output_array = self.fft()
 
         self.assertTrue(numpy.alltrue(output_array == self.output_array))
 
-    
+
     def test_call_with_positional_input_update(self):
         '''Test the class call with a positional input update.
         '''
@@ -86,7 +86,7 @@ class FFTWCallTest(unittest.TestCase):
         self.fft.execute()
 
         self.assertTrue(numpy.alltrue(output_array == self.output_array))
-        
+
     def test_call_with_keyword_input_update(self):
         '''Test the class call with a keyword input update.
         '''
@@ -101,8 +101,8 @@ class FFTWCallTest(unittest.TestCase):
         self.fft.execute()
 
         self.assertTrue(numpy.alltrue(output_array == self.output_array))
-    
-        
+
+
     def test_call_with_keyword_output_update(self):
         '''Test the class call with a keyword output update.
         '''
@@ -158,7 +158,7 @@ class FFTWCallTest(unittest.TestCase):
         self.fft.execute()
 
         self.assertTrue(numpy.alltrue(returned_output_array == output_array))
-    
+
     def test_call_with_different_input_dtype(self):
         '''Test the class call with an array with a different input dtype
         '''
@@ -177,7 +177,7 @@ class FFTWCallTest(unittest.TestCase):
         self.fft.execute()
 
         self.assertTrue(numpy.alltrue(output_array == self.output_array))
-    
+
     def test_call_with_list_input(self):
         '''Test the class call with a list rather than an array
         '''
@@ -194,21 +194,21 @@ class FFTWCallTest(unittest.TestCase):
         '''
 
         new_shape = self.input_array.shape + (2, )
-        invalid_array = (numpy.random.randn(*new_shape) 
+        invalid_array = (numpy.random.randn(*new_shape)
                 + 1j*numpy.random.randn(*new_shape))
-        
-        self.assertRaises(ValueError, self.fft, 
+
+        self.assertRaises(ValueError, self.fft,
                 *(),
                 **{'output_array':invalid_array})
 
-        self.assertRaises(ValueError, self.fft, 
+        self.assertRaises(ValueError, self.fft,
                 *(),
                 **{'input_array':invalid_array})
 
     def test_call_with_auto_input_alignment(self):
         '''Test the class call with a keyword input update.
         '''
-        input_array = (numpy.random.randn(*self.input_array.shape) 
+        input_array = (numpy.random.randn(*self.input_array.shape)
                 + 1j*numpy.random.randn(*self.input_array.shape))
 
         output_array = self.fft(
@@ -224,11 +224,11 @@ class FFTWCallTest(unittest.TestCase):
         a_[:] = a
 
         # Just confirm that a usual update will fail
-        self.assertRaisesRegex(ValueError, 'Invalid input alignment', 
+        self.assertRaisesRegex(ValueError, 'Invalid input alignment',
                 self.fft.update_arrays, *(a_, self.output_array))
-        
+
         self.fft(a_, self.output_array)
-        
+
         self.assertTrue(numpy.alltrue(output_array == self.output_array))
 
         # now try with a single byte offset and SIMD off
@@ -271,7 +271,7 @@ class FFTWCallTest(unittest.TestCase):
                 + 1j*numpy.random.randn(*shape), n=16)
 
         fft = FFTW(input_array[:,:,0], self.output_array)
-        
+
         test_output_array = fft().copy()
 
         new_input_array = byte_align(
@@ -294,14 +294,14 @@ class FFTWCallTest(unittest.TestCase):
                 + 1j*numpy.random.randn(*shape), n=16)
 
         fft = FFTW(self.input_array, self.output_array)
-        
+
         self.assertRaisesRegex(ValueError, 'Invalid input shape',
                 self.fft, **{'input_array': input_array[:,:,0]})
 
     def test_call_with_unaligned(self):
         '''Make sure the right thing happens with unaligned data.
         '''
-        input_array = (numpy.random.randn(*self.input_array.shape) 
+        input_array = (numpy.random.randn(*self.input_array.shape)
                 + 1j*numpy.random.randn(*self.input_array.shape))
 
         output_array = self.fft(
@@ -333,30 +333,30 @@ class FFTWCallTest(unittest.TestCase):
         output_array = fft().copy()
 
         # Check a_ is not aligned...
-        self.assertRaisesRegex(ValueError, 'Invalid input alignment', 
+        self.assertRaisesRegex(ValueError, 'Invalid input alignment',
                 self.fft.update_arrays, *(a_, output_array))
 
         # and b_ too
-        self.assertRaisesRegex(ValueError, 'Invalid output alignment', 
+        self.assertRaisesRegex(ValueError, 'Invalid output alignment',
                 self.fft.update_arrays, *(input_array, b_))
-        
+
         # But it should still work with the a_
         fft(a_)
 
         # However, trying to update the output will raise an error
-        self.assertRaisesRegex(ValueError, 'Invalid output alignment', 
+        self.assertRaisesRegex(ValueError, 'Invalid output alignment',
                 self.fft.update_arrays, *(input_array, b_))
 
         # Same with SIMD off
         fft = FFTW(input_array, output_array, flags=('FFTW_UNALIGNED',))
         fft(a_)
-        self.assertRaisesRegex(ValueError, 'Invalid output alignment', 
+        self.assertRaisesRegex(ValueError, 'Invalid output alignment',
                 self.fft.update_arrays, *(input_array, b_))
 
     def test_call_with_normalisation_on(self):
         _input_array = empty_aligned((256, 512), dtype='complex128', n=16)
 
-        ifft = FFTW(self.output_array, _input_array, 
+        ifft = FFTW(self.output_array, _input_array,
                 direction='FFTW_BACKWARD')
 
         self.fft(normalise_idft=True) # Shouldn't make any difference
@@ -380,7 +380,7 @@ class FFTWCallTest(unittest.TestCase):
     def test_call_with_normalisation_default(self):
         _input_array = empty_aligned((256, 512), dtype='complex128', n=16)
 
-        ifft = FFTW(self.output_array, _input_array, 
+        ifft = FFTW(self.output_array, _input_array,
                 direction='FFTW_BACKWARD')
 
         self.fft()
@@ -395,7 +395,7 @@ class FFTWCallTest(unittest.TestCase):
         # Should be the case for double inputs...
         _input_array = empty_aligned((256, 512), dtype='complex128', n=16)
 
-        ifft = FFTW(self.output_array, _input_array, 
+        ifft = FFTW(self.output_array, _input_array,
                 direction='FFTW_BACKWARD')
 
         ref_output = ifft(normalise_idft=False).copy()/numpy.float64(ifft.N)
@@ -406,8 +406,8 @@ class FFTWCallTest(unittest.TestCase):
         # ... and single inputs.
         _input_array = empty_aligned((256, 512), dtype='complex64', n=16)
 
-        ifft = FFTW(numpy.array(self.output_array, _input_array.dtype), 
-                    _input_array, 
+        ifft = FFTW(numpy.array(self.output_array, _input_array.dtype),
+                    _input_array,
                     direction='FFTW_BACKWARD')
 
         ref_output = ifft(normalise_idft=False).copy()/numpy.float64(ifft.N)
@@ -415,7 +415,7 @@ class FFTWCallTest(unittest.TestCase):
 
         self.assertTrue(numpy.alltrue(ref_output == test_output))
 
-        
+
 test_cases = (
         FFTWCallTest,)
 
@@ -424,4 +424,3 @@ test_set = None
 if __name__ == '__main__':
 
     run_test_suites(test_cases, test_set)
-

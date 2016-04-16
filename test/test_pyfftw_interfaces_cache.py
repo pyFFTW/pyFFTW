@@ -1,6 +1,6 @@
 #
 # Copyright 2014 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -58,17 +58,17 @@ class InterfacesNumpyFFTCacheTestFFT(InterfacesNumpyFFTTestFFT):
             ((32, 64), {}),
             )
 
-    def validate(self, array_type, test_shape, dtype, 
+    def validate(self, array_type, test_shape, dtype,
                  s, kwargs, copy_func=copy.copy):
 
         # Do it with the cache
-        interfaces.cache.enable()        
+        interfaces.cache.enable()
         output = self._validate(array_type, test_shape, dtype, s, kwargs,
                                 copy_func=copy_func)
         output2 = self._validate(array_type, test_shape, dtype, s, kwargs,
                                  copy_func=copy_func)
 
-        self.assertIsNot(output, output2) 
+        self.assertIsNot(output, output2)
 
         # Turn it off to finish
         interfaces.cache.disable()
@@ -82,7 +82,7 @@ class CacheSpecificInterfacesUtils(unittest.TestCase):
         data_shape = (128,)
 
         # Monkey patch the module with a custom _Cache object
-        _Cache_class = interfaces.cache._Cache        
+        _Cache_class = interfaces.cache._Cache
         class _SlowLookupCache(_Cache_class):
 
             def _lookup(self, key):
@@ -113,10 +113,10 @@ class CacheSpecificInterfacesUtils(unittest.TestCase):
         finally:
             # Revert the monkey patching
             interfaces.cache._Cache = _Cache_class
-    
+
 
 class InterfacesCacheTest(unittest.TestCase):
-    
+
     def test_missing_threading(self):
         self.assertIs(interfaces.cache._fftw_cache, None)
 
@@ -126,7 +126,7 @@ class InterfacesCacheTest(unittest.TestCase):
         with self.assertRaises(ImportError):
             interfaces.cache.enable()
 
-        interfaces.cache._threading = mod_threading        
+        interfaces.cache._threading = mod_threading
 
     def test_is_enabled(self):
         self.assertIs(interfaces.cache._fftw_cache, None)
@@ -168,7 +168,7 @@ class CacheTest(unittest.TestCase):
         '''
         # Firstly make sure we've exited any lingering threads from other
         # tests.
-        time.sleep(0.1)                
+        time.sleep(0.1)
 
         self.assertTrue(threading.active_count() == 1)
 
@@ -178,8 +178,8 @@ class CacheTest(unittest.TestCase):
 
         parent_t = threading.Thread(target=cache_parent_thread)
         parent_t.start()
-        
-        time.sleep(0.1)                
+
+        time.sleep(0.1)
         # Check it's running
         self.assertTrue(threading.active_count() == 3)
 
@@ -199,7 +199,7 @@ class CacheTest(unittest.TestCase):
         _cache = interfaces.cache._Cache()
         time.sleep(0.2)
         self.assertTrue(threading.active_count() == 2)
-        
+
         del _cache
         time.sleep(0.2)
         self.assertTrue(threading.active_count() == 1)
@@ -273,7 +273,7 @@ class CacheTest(unittest.TestCase):
         keepalive_time = _cache.keepalive_time
 
         if os.name == 'nt':
-            # A hack to keep appveyor from falling over here. I suspect the 
+            # A hack to keep appveyor from falling over here. I suspect the
             # contention is too much to work properly. Either way, let's
             # assume it's a windows problem for now...
             time.sleep(keepalive_time * 8)
@@ -309,10 +309,10 @@ class InterfacesNumpyFFTCacheTestRFFT(InterfacesNumpyFFTCacheTestFFT):
 
 class InterfacesNumpyFFTCacheTestIRFFT(InterfacesNumpyFFTCacheTestFFT):
     func = 'irfft'
-    realinv = True    
+    realinv = True
 
 class InterfacesNumpyFFTCacheTestFFT2(InterfacesNumpyFFTCacheTestFFT):
-    axes_kw = 'axes'    
+    axes_kw = 'axes'
     func = 'ifft2'
     test_shapes = (
             ((128, 64), {'axes': None}),
@@ -320,7 +320,7 @@ class InterfacesNumpyFFTCacheTestFFT2(InterfacesNumpyFFTCacheTestFFT):
             ((32, 64), {'axes': (-2, -1)}),
             ((4, 6, 8, 4), {'axes': (0, 3)}),
             )
-    
+
     invalid_args = (
             ((100,), ((100, 200),), ValueError, 'Shape error'),
             ((100, 200), ((100, 200, 100),), ValueError, 'Shape error'),
@@ -338,7 +338,7 @@ class InterfacesNumpyFFTCacheTestRFFT2(InterfacesNumpyFFTCacheTestFFT2):
 
 class InterfacesNumpyFFTCacheTestIRFFT2(InterfacesNumpyFFTCacheTestFFT2):
     func = 'irfft2'
-    realinv = True    
+    realinv = True
 
 class InterfacesNumpyFFTCacheTestFFTN(InterfacesNumpyFFTCacheTestFFT2):
     func = 'ifftn'

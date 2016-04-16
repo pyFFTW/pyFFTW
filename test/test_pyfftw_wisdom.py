@@ -1,5 +1,5 @@
 # Copyright 2014 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -44,9 +44,9 @@ import pickle
 import unittest
 
 class FFTWWisdomTest(unittest.TestCase):
-    
+
     def generate_wisdom(self):
-        for each_dtype in (numpy.complex128, numpy.complex64, 
+        for each_dtype in (numpy.complex128, numpy.complex64,
                 numpy.clongdouble):
 
             a = empty_aligned((1,1024), each_dtype, n=16)
@@ -66,7 +66,7 @@ class FFTWWisdomTest(unittest.TestCase):
 
         for n in range(0,2):
             self.assertNotEqual(before_wisdom[n], after_wisdom[n])
-    
+
     def test_import(self):
 
         forget_wisdom()
@@ -94,4 +94,3 @@ test_set = None
 if __name__ == '__main__':
 
     run_test_suites(test_cases, test_set)
-

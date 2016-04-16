@@ -1,5 +1,5 @@
 # Copyright 2014 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -41,13 +41,13 @@ ctypedef struct _fftw_iodim:
     int _os
 
 cdef extern from 'pyfftw_complex.h':
-    
+
     ctypedef float cfloat[2]
     ctypedef double cdouble[2]
     ctypedef long double clongdouble[2]
 
 cdef extern from 'fftw3.h':
-    
+
     # Double precision plans
     ctypedef struct fftw_plan_struct:
         pass
@@ -73,14 +73,14 @@ cdef extern from 'fftw3.h':
     # we ignore the distinction in order to simplify the code.
     ctypedef struct fftw_iodim:
         pass
-    
+
     # Double precision complex planner
     fftw_plan fftw_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             cdouble *_in, cdouble *_out,
             int sign, unsigned flags) nogil
-    
+
     # Single precision complex planner
     fftwf_plan fftwf_plan_guru_dft(
             int rank, fftw_iodim *dims,
@@ -94,14 +94,14 @@ cdef extern from 'fftw3.h':
             int howmany_rank, fftw_iodim *howmany_dims,
             clongdouble *_in, clongdouble *_out,
             int sign, unsigned flags) nogil
-    
+
     # Double precision real to complex planner
     fftw_plan fftw_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             double *_in, cdouble *_out,
             unsigned flags) nogil
-    
+
     # Single precision real to complex planner
     fftwf_plan fftwf_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
@@ -122,7 +122,7 @@ cdef extern from 'fftw3.h':
             int howmany_rank, fftw_iodim *howmany_dims,
             cdouble *_in, double *_out,
             unsigned flags) nogil
-    
+
     # Single precision complex to real planner
     fftwf_plan fftwf_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
@@ -140,36 +140,36 @@ cdef extern from 'fftw3.h':
     # Double precision complex new array execute
     void fftw_execute_dft(fftw_plan,
           cdouble *_in, cdouble *_out) nogil
-    
-    # Single precision complex new array execute    
+
+    # Single precision complex new array execute
     void fftwf_execute_dft(fftwf_plan,
           cfloat *_in, cfloat *_out) nogil
 
-    # Long double precision complex new array execute    
+    # Long double precision complex new array execute
     void fftwl_execute_dft(fftwl_plan,
           clongdouble *_in, clongdouble *_out) nogil
-   
+
     # Double precision real to complex new array execute
     void fftw_execute_dft_r2c(fftw_plan,
           double *_in, cdouble *_out) nogil
-    
-    # Single precision real to complex new array execute    
+
+    # Single precision real to complex new array execute
     void fftwf_execute_dft_r2c(fftwf_plan,
           float *_in, cfloat *_out) nogil
 
-    # Long double precision real to complex new array execute    
+    # Long double precision real to complex new array execute
     void fftwl_execute_dft_r2c(fftwl_plan,
           long double *_in, clongdouble *_out) nogil
 
     # Double precision complex to real new array execute
     void fftw_execute_dft_c2r(fftw_plan,
           cdouble *_in, double *_out) nogil
-    
-    # Single precision complex to real new array execute    
+
+    # Single precision complex to real new array execute
     void fftwf_execute_dft_c2r(fftwf_plan,
           cfloat *_in, float *_out) nogil
 
-    # Long double precision complex to real new array execute    
+    # Long double precision complex to real new array execute
     void fftwl_execute_dft_c2r(fftwl_plan,
           clongdouble *_in, long double *_out) nogil
 
@@ -237,7 +237,7 @@ cdef extern from 'fftw3.h':
 
 # Define function pointers that can act as a placeholder
 # for whichever dtype is used (the problem being that fftw
-# has different function names and signatures for all the 
+# has different function names and signatures for all the
 # different precisions and dft types).
 ctypedef void * (*fftw_generic_plan_guru)(
         int rank, fftw_iodim *dims,
@@ -255,8 +255,8 @@ ctypedef void (*fftw_generic_plan_with_nthreads)(int n)
 
 ctypedef void (*fftw_generic_set_timelimit)(double seconds)
 
-ctypedef bint (*validator)(np.ndarray input_array, 
-        np.ndarray output_array, int64_t *axes, int64_t *not_axes, 
+ctypedef bint (*validator)(np.ndarray input_array,
+        np.ndarray output_array, int64_t *axes, int64_t *not_axes,
         int64_t axes_length)
 
 # Direction enum

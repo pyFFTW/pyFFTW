@@ -37,7 +37,7 @@ function Download ($filename, $url) {
 
 
 function DownloadMiniconda ($platform_suffix) {
-    
+
     $filename = "Miniconda-latest-Windows-" + $platform_suffix + ".exe"
     $url = $MINICONDA_URL + $filename
     $filepath = Download $filename $url
@@ -48,7 +48,7 @@ function DownloadMiniconda ($platform_suffix) {
 function InstallMiniconda ($architecture, $python_home) {
     Write-Host "Installing Miniconda for" $architecture "bit architecture to" $python_home
     if (Test-Path $python_home) {
-        Write-Host $python_home "already exists; removing it before continuing."    
+        Write-Host $python_home "already exists; removing it before continuing."
         Remove-Item -Recurse -Force $python_home
         #Write-Host $python_home "already exists, skipping."
         #return $false

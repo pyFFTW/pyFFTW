@@ -19,8 +19,8 @@ amount of the flexibility compared to accessing the :class:`pyfftw.FFTW`
 object directly, but implements a reasonable set of defaults and optional
 tweaks that should satisfy most situations.
 
-The precision of the transform that is used is selected from the array that 
-is passed in, defaulting to double precision if any type conversion is 
+The precision of the transform that is used is selected from the array that
+is passed in, defaulting to double precision if any type conversion is
 required.
 
 This module works by generating a :class:`pyfftw.FFTW` object behind the
@@ -82,7 +82,7 @@ Implemented Functions
 The implemented functions are listed below. :mod:`numpy.fft` is implemented
 by :mod:`pyfftw.interfaces.numpy_fft` and :mod:`scipy.fftpack` by
 :mod:`pyfftw.interfaces.scipy_fftpack`. All the implemented functions are
-extended by the use of additional arguments, which are 
+extended by the use of additional arguments, which are
 :ref:`documented below<interfaces_additional_args>`.
 
 Not all the functions provided by :mod:`numpy.fft` and :mod:`scipy.fftpack`
@@ -91,11 +91,11 @@ not implemented, the function is imported into the namespace from the
 corresponding library. This means that all the documented functionality of the
 library *is* provided through :mod:`pyfftw.interfaces`.
 
-One known caveat is that repeated axes are potentially handled 
+One known caveat is that repeated axes are potentially handled
 differently. This is certainly the case for :mod:`numpy.fft` and probably
-also true for :mod:`scipy.fftpack` (though it is not defined in the 
-docs); axes that are repeated in the axes argument are considered only once, as 
-compared to :mod:`numpy.fft` in which repeated axes results in the DFT 
+also true for :mod:`scipy.fftpack` (though it is not defined in the
+docs); axes that are repeated in the axes argument are considered only once, as
+compared to :mod:`numpy.fft` in which repeated axes results in the DFT
 being taken along that axes as many times as the axis occurs.
 
 :mod:`~pyfftw.interfaces.numpy_fft`
@@ -136,8 +136,8 @@ Additional Arguments
 
 In addition to the equivalent arguments in :mod:`numpy.fft` and
 :mod:`scipy.fftpack`, all these functions also add several additional
-arguments for finer control over the FFT. These additional arguments are 
-largely a subset of the 
+arguments for finer control over the FFT. These additional arguments are
+largely a subset of the
 keyword arguments in :mod:`pyfftw.builders` with a few exceptions and with
 different defaults.
 
@@ -149,18 +149,18 @@ different defaults.
   *every* function in this package.
 
   In :mod:`~pyfftw.interfaces.scipy_fftpack`, this argument is replaced
-  by ``overwrite_x``, to which it is equivalent (albeit at the same 
+  by ``overwrite_x``, to which it is equivalent (albeit at the same
   position).
 
   The default is ``False`` to be consistent with :mod:`numpy.fft`.
 
-* ``planner_effort``: A string dictating how much effort is spent 
+* ``planner_effort``: A string dictating how much effort is spent
   in planning the FFTW routines. This is passed to the creation
-  of the intermediate :class:`pyfftw.FFTW` object as an entry 
-  in the flags list. They correspond to flags passed to the 
+  of the intermediate :class:`pyfftw.FFTW` object as an entry
+  in the flags list. They correspond to flags passed to the
   :class:`pyfftw.FFTW` object.
 
-  The valid strings, in order of their increasing impact on the time 
+  The valid strings, in order of their increasing impact on the time
   to compute  are:
   ``'FFTW_ESTIMATE'``, ``'FFTW_MEASURE'`` (default), ``'FFTW_PATIENT'``
   and ``'FFTW_EXHAUSTIVE'``.
@@ -204,9 +204,9 @@ different defaults.
   memory before performing the transform on it. If the array is not
   contiguous, it is copied into an interim array. This is because it
   is often faster to copy the data before the transform and then transform
-  a contiguous array than it is to try to take the transform of a 
+  a contiguous array than it is to try to take the transform of a
   non-contiguous array. This is particularly true in conjunction with
-  the ``auto_align_input`` argument which is used to make sure that the 
+  the ``auto_align_input`` argument which is used to make sure that the
   transform is taken of an aligned array.
 
   The default is ``True``.
@@ -224,4 +224,3 @@ except ImportError:
 else:
     del scipy
     from . import scipy_fftpack
-

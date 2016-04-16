@@ -19,4 +19,3 @@ ECHO Generating def files
 call lib /machine:%MACHINE% /def:pyfftw\libfftw3-3.def
 call lib /machine:%MACHINE% /def:pyfftw\libfftw3f-3.def
 call lib /machine:%MACHINE% /def:pyfftw\libfftw3l-3.def
-

@@ -1,5 +1,5 @@
 # Copyright 2014 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -43,15 +43,15 @@ import unittest
 from .test_pyfftw_complex import Complex64FFTWTest
 
 class RealForwardDoubleFFTWTest(Complex64FFTWTest):
-    
+
     def setUp(self):
 
         self.input_dtype = numpy.float64
-        self.output_dtype = numpy.complex128 
+        self.output_dtype = numpy.complex128
         self.np_fft_comparison = numpy.fft.rfft
 
         self.direction = 'FFTW_FORWARD'
-    
+
     def make_shapes(self):
         self.input_shapes = {
                 'small_1d': (16,),
@@ -72,15 +72,15 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
                 +1j*numpy.random.randn(*output_shape))
 
         return a, b
-    
+
     def reference_fftn(self, a, axes):
 
         return numpy.fft.rfftn(a, axes=axes)
-    
+
     def test_wrong_direction_fail(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
-        
+
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
@@ -90,7 +90,7 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
     def test_non_contiguous_2d(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
-        
+
         axes=(-2,-1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
@@ -115,21 +115,21 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
         self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
 class RealForwardSingleFFTWTest(RealForwardDoubleFFTWTest):
-    
+
     def setUp(self):
 
         self.input_dtype = numpy.float32
         self.output_dtype = numpy.complex64
-        self.np_fft_comparison = numpy.fft.rfft        
-        
+        self.np_fft_comparison = numpy.fft.rfft
+
         self.direction = 'FFTW_FORWARD'
 
 class RealForwardLongDoubleFFTWTest(RealForwardDoubleFFTWTest):
-    
+
     def setUp(self):
 
         self.input_dtype = numpy.longdouble
-        self.output_dtype = numpy.clongdouble 
+        self.output_dtype = numpy.clongdouble
         self.np_fft_comparison = numpy.fft.rfft
 
         self.direction = 'FFTW_FORWARD'
@@ -138,7 +138,7 @@ class RealForwardLongDoubleFFTWTest(RealForwardDoubleFFTWTest):
     def test_time(self):
         pass
 
-    @unittest.skip('numpy.fft has issues with this dtype.')    
+    @unittest.skip('numpy.fft has issues with this dtype.')
     def test_time_with_array_update(self):
         pass
 

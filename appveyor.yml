@@ -4,7 +4,7 @@ environment:
         # /E:ON and /V:ON options are not enabled in the batch script intepreter
         # See: http://stackoverflow.com/a/13751649/163740
         CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\appveyor\\run_with_env.cmd"
-        # The miniconda installations are put in pyfftw_miniconda        
+        # The miniconda installations are put in pyfftw_miniconda
         PYTHON_HOME: "C:\\pyfftw_miniconda"
 
     pypi_username:
@@ -18,44 +18,44 @@ environment:
 
     bintray_api_key:
         secure: aBy9OwJetm6O29iWuEoWIsJc7Ml9NkiqTXDMClyHRePJcNdoTBZGOaMcHzm2ji77
-  
+
     matrix:
-  
+
         - PYTHON_VERSION: "2.7" # currently 2.7.9
           PYTHON_ARCH: "32"
-        
+
         - PYTHON_VERSION: "2.7" # currently 2.7.9
           PYTHON_ARCH: "64"
-    
+
         - PYTHON_VERSION: "3.3" # currently 3.3.5
           PYTHON_ARCH: "32"
-        
+
         - PYTHON_VERSION: "3.3" # currently 3.3.5
           PYTHON_ARCH: "64"
-        
+
         - PYTHON_VERSION: "3.4" # currently 3.4.3
           PYTHON_ARCH: "32"
-          
+
         - PYTHON_VERSION: "3.4" # currently 3.4.3
           PYTHON_ARCH: "64"
-        
+
         - PYTHON_VERSION: "3.5"
           PYTHON_ARCH: "32"
-          
+
         - PYTHON_VERSION: "3.5"
           PYTHON_ARCH: "64"
 
 install:
     # Get and configure the FFTW libs
     - "%CMD_IN_ENV% ./appveyor/setup_fftw_dlls.cmd"
-  
+
     - ps: "./appveyor/install_miniconda.ps1"
-  
+
     # Prepend newly installed Python to the PATH of this build (this cannot be
     # done from inside the powershell script as it would require to restart
     # the parent CMD process).
     - "SET PATH=%PYTHON_HOME%;%PYTHON_HOME%\\Scripts;%PATH%"
-  
+
     - "conda config --set always_yes yes"
     - "conda update -q conda"
     - "conda create -q -n build_env python=%PYTHON_VERSION% numpy=1.9 scipy cython setuptools"
