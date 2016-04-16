@@ -826,18 +826,21 @@ cdef void make_axes_unique(int64_t *axes, int64_t axes_length,
 #
 cdef class FFTW:
     '''
-    FFTW is a class for computing the complex N-Dimensional DFT or
-    inverse DFT of an array using the FFTW library. The interface is
-    designed to be somewhat pythonic, with the correct transform being
-    inferred from the dtypes of the passed arrays.
+    FFTW is a class for computing a variety of discrete Fourier
+    transforms of multidimensional, strided arrays using the FFTW
+    library. The interface is designed to be somewhat pythonic, with
+    the correct transform being inferred from the dtypes of the passed
+    arrays.
 
-    On instantiation, the dtypes and relative shapes of the input array and
-    output arrays are compared to the set of valid (and implemented)
-    :ref:`FFTW schemes <scheme_table>`.  If a match is found, the plan that
-    corresponds to that scheme is created, operating on the arrays that are
-    passed in. If no scheme can be created, then ``ValueError`` is raised.
+    The exact scheme may be either directly specified with the
+    ``direction`` parameter or inferred from the dtypes and relative
+    shapes of the input arrays. Information on which shapes and dtypes
+    imply which transformations is available in the :ref:`FFTW schemes
+    <scheme_table>`. If a match is found, the plan corresponding to that
+    scheme is created, operating on the arrays that are passed in. If no
+    scheme can be created then a ``ValueError`` is raised.
 
-    The actual FFT or iFFT is performed by calling the
+    The actual transformation is performed by calling the
     :meth:`~pyfftw.FFTW.execute` method.
 
     The arrays can be updated by calling the
@@ -1446,16 +1449,69 @@ cdef class FFTW:
           this is down to the underlying FFTW library and so unlikely
           to be fixed in these wrappers.
 
-        * ``direction`` should be a string and one of ``'FFTW_FORWARD'``
-          or ``'FFTW_BACKWARD'``, which dictate whether to take the
-          DFT (forwards) or the inverse DFT (backwards) respectively
-          (specifically, it dictates the sign of the exponent in the
-          DFT formulation).
+        * The ``direction`` parameter describes what sort of
+          transformation the object should compute. This parameter is
+          poorly named for historical reasons: older versions of pyFFTW
+          only supported forward and backward transformations, for which
+          this name made sense. Since then pyFFTW has been expanded to
+          support real to real transforms as well and the name is not
+          quite as descriptive.
 
-          Note that only the Complex schemes allow a free choice
-          for ``direction``. The direction *must* agree with the
-          the :ref:`table below <scheme_table>` if a Real scheme
-          is used, otherwise a ``ValueError`` is raised.
+          ``direction`` should either be a string, or, in the case of
+          multiple real transforms, a list of strings. The two values
+          corresponding to the DFT are
+
+          * ``'FFTW_FORWARD'``, which is the forward discrete Fourier
+            transform, and
+          * ``'FFTW_BACKWARD'``, which is the backward discrete Fourier
+            transform.
+
+          Note that, for the two above options, only the Complex schemes
+          allow a free choice for ``direction``. The direction *must*
+          agree with the the :ref:`table below <scheme_table>` if a Real
+          scheme is used, otherwise a ``ValueError`` is raised.
+
+
+          Alternatively, if you are interested in one of the real to real
+          transforms, then pyFFTW supports four different discrete cosine
+          transforms:
+
+          * ``'FFTW_REDFT00'``,
+          * ``'FFTW_REDFT01'``,
+          * ``'FFTW_REDFT10'``, and
+          * ``'FFTW_REDFT01'``,
+
+          and four discrete sine transforms:
+
+          * ``'FFTW_RODFT00'``,
+          * ``'FFTW_RODFT01'``,
+          * ``'FFTW_RODFT10'``, and
+          * ``'FFTW_RODFT01'``.
+
+          pyFFTW uses the same naming convention for these flags as FFTW:
+          the ``'REDFT'`` part of the name is an acronym for 'real even
+          discrete Fourier transform, and, similarly, ``'RODFT'`` stands
+          for 'real odd discrete Fourier transform'. The trailing ``'0'``
+          is notation for even data (in terms of symmetry) and the
+          trailing ``'1'`` is for odd data.
+
+          Unlike the plain discrete Fourier transform, one may specify a
+          different real to real transformation over each axis: for example,
+
+          .. code-block:: none
+             a = pyfftw.empty_aligned((128,128,128))
+             b = pyfftw.empty_aligned((128,128,128))
+             directions = ['FFTW_REDFT00', 'FFTW_RODFT11']
+             transform = pyfftw.FFTW(a, b, axes=(0, 2), direction=directions)
+
+          will create a transformation across the first and last axes
+          with a discrete cosine transform over the first and a discrete
+          sine transform over the last.
+
+          Unfortunately, since this class is ultimately just a wrapper
+          for various transforms implemented in FFTW, one cannot combine
+          real transformations with real to complex transformations in a
+          single object.
 
         .. _FFTW_flags:
 
@@ -1525,7 +1581,8 @@ cdef class FFTW:
 
         **Schemes**
 
-        The currently supported schemes are as follows:
+        The currently supported full (so not discrete sine or discrete
+        cosine) DFT schemes are as follows:
 
         .. _scheme_table:
 
@@ -1561,6 +1618,9 @@ cdef class FFTW:
         some speed gain may be achieved by allowing the input array to
         be destroyed by passing the ``'FFTW_DESTROY_INPUT'``
         :ref:`flag <FFTW_flags>`.
+
+        The discrete sine and discrete cosine transforms are supported
+        for all three real types.
 
         ``clongdouble`` typically maps directly to ``complex256``
         or ``complex192``, and ``longdouble`` to ``float128`` or
