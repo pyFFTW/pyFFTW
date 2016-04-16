@@ -688,18 +688,21 @@ cdef void make_axes_unique(int64_t *axes, int64_t axes_length,
 #
 cdef class FFTW:
     '''
-    FFTW is a class for computing the complex N-Dimensional DFT or
-    inverse DFT of an array using the FFTW library. The interface is 
-    designed to be somewhat pythonic, with the correct transform being 
-    inferred from the dtypes of the passed arrays.
+    FFTW is a class for computing a variety of discrete Fourier
+    transforms of multidimensional, strided arrays using the FFTW
+    library. The interface is designed to be somewhat pythonic, with
+    the correct transform being inferred from the dtypes of the passed
+    arrays.
 
-    On instantiation, the dtypes and relative shapes of the input array and
-    output arrays are compared to the set of valid (and implemented)
-    :ref:`FFTW schemes <scheme_table>`.  If a match is found, the plan that
-    corresponds to that scheme is created, operating on the arrays that are
-    passed in. If no scheme can be created, then ``ValueError`` is raised.
+    The exact scheme may be either directly specified with the
+    ``direction`` parameter or inferred from the dtypes and relative
+    shapes of the input arrays. Information on which shapes and dtypes
+    imply which transformations is available in the :ref:`FFTW schemes
+    <scheme_table>`. If a match is found, the plan corresponding to that
+    scheme is created, operating on the arrays that are passed in. If no
+    scheme can be created then a ``ValueError`` is raised.
 
-    The actual FFT or iFFT is performed by calling the 
+    The actual transformation is performed by calling the
     :meth:`~pyfftw.FFTW.execute` method.
     
     The arrays can be updated by calling the 
@@ -1401,7 +1404,8 @@ cdef class FFTW:
 
         **Schemes**
 
-        The currently supported schemes are as follows:
+        The currently supported full (so not discrete sine or discrete
+        cosine) DFT schemes are as follows:
 
         .. _scheme_table:
 
