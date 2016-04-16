@@ -98,26 +98,27 @@ nodes_lookup = {
     'FFTW_REDFT11': lambda n: (numpy.arange(n) + 0.5)/n,
 }
 
-def test_lookups():
-    """Test that the lookup tables correctly pair node choices and
+class TestRealToRealLookups(unittest.TestCase):
+    '''Test that the lookup tables correctly pair node choices and
     function choices for using the DCT/DST as interpolators.
-    """
-    n = rand.randint(10, 20)
-    j = rand.randint(5, n) - 3
-    for transform in real_transforms:
-        nodes   = nodes_lookup[transform](n)
-        data    = interpolated_function_lookup[transform](j, nodes)
-        output  = numpy.empty_like(data)
-        plan    = pyfftw.FFTW(data, output, direction=[transform])
-        data[:] = interpolated_function_lookup[transform](j, nodes)
-        plan.execute()
-        tol = 4*j*n*1e-16
-        if transform == 'FFTW_RODFT00':
-            assert abs(output[j] - n - 1) < tol
-        elif transform == 'FFTW_REDFT00':
-            assert abs(output[j] - n + 1) < tol
-        else:
-            assert abs(output[j] - n) < tol
+    '''
+    def test_lookups(self):
+        n = rand.randint(10, 20)
+        j = rand.randint(5, n) - 3
+        for transform in real_transforms:
+            nodes   = nodes_lookup[transform](n)
+            data    = interpolated_function_lookup[transform](j, nodes)
+            output  = numpy.empty_like(data)
+            plan    = pyfftw.FFTW(data, output, direction=[transform])
+            data[:] = interpolated_function_lookup[transform](j, nodes)
+            plan.execute()
+            tol = 4*j*n*1e-16
+            if transform == 'FFTW_RODFT00':
+                self.assertTrue(abs(output[j] - n - 1) < tol)
+            elif transform == 'FFTW_REDFT00':
+                self.assertTrue(abs(output[j] - n + 1) < tol)
+            else:
+                self.assertTrue(abs(output[j] - n) < tol)
 
 class TestRealTransform(object):
     '''Common set of functionality for performing tests on the real to
@@ -330,7 +331,8 @@ class RealToRealRandomData(unittest.TestCase):
             testcase = random_testcase()
             self.assertTrue(testcase.test_against_random_data())
 
-test_cases = (RealToRealNormalisation,
+test_cases = (TestRealToRealLookups,
+              RealToRealNormalisation,
               RealToRealExactData,
               RealToRealRandomData,)
 
