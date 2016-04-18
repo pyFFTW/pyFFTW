@@ -2,7 +2,7 @@
 #
 # Copyright 2014 Knowledge Economy Developments Ltd
 # Copyright 2014 David Wells
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 # David Wells
@@ -43,10 +43,10 @@ not need to use the functions directly, but they are included here for
 completeness and to aid with understanding of what is happening behind
 the scenes.
 
-Certainly, users may encounter instances of 
+Certainly, users may encounter instances of
 :class:`~pyfftw.builders._utils._FFTWWrapper`.
 
-These everything documented in this module is *not* part of the public API 
+These everything documented in this module is *not* part of the public API
 and may change in future versions.
 '''
 
@@ -57,7 +57,7 @@ __all__ = ['_FFTWWrapper', '_rc_dtype_pairs', '_default_dtype', '_Xfftn',
         '_setup_input_slicers', '_compute_array_shapes', '_precook_1d_args',
         '_cook_nd_args']
 
-_valid_efforts = ('FFTW_ESTIMATE', 'FFTW_MEASURE', 
+_valid_efforts = ('FFTW_ESTIMATE', 'FFTW_MEASURE',
         'FFTW_PATIENT', 'FFTW_EXHAUSTIVE')
 
 # Looking up a dtype in here returns the complex complement of the same
@@ -73,8 +73,8 @@ _rc_dtype_pairs = {numpy.dtype('float32').char: numpy.dtype('complex64'),
 
 _default_dtype = numpy.dtype('float64')
 
-def _Xfftn(a, s, axes, overwrite_input, 
-        planner_effort, threads, auto_align_input, auto_contiguous, 
+def _Xfftn(a, s, axes, overwrite_input,
+        planner_effort, threads, auto_align_input, auto_contiguous,
         avoid_copy, inverse, real):
     '''Generic transform interface for all the transforms. No
     defaults exist. The transform must be specified exactly.
@@ -91,7 +91,7 @@ def _Xfftn(a, s, axes, overwrite_input,
         raise ValueError('Invalid planner effort: ', planner_effort)
 
     s, axes = _cook_nd_args(a, s, axes, invreal)
-    
+
     input_shape, output_shape = _compute_array_shapes(
             a, s, axes, inverse, real)
 
@@ -105,7 +105,7 @@ def _Xfftn(a, s, axes, overwrite_input,
             a = numpy.asarray(a, dtype=_rc_dtype_pairs[_default_dtype.char])
         else:
             a = numpy.asarray(a, dtype=_default_dtype)
-    
+
     elif not (real and not inverse) and not a_is_complex:
         # We need to make it a complex dtype
         a = numpy.asarray(a, dtype=_rc_dtype_pairs[a.dtype.char])
@@ -117,7 +117,7 @@ def _Xfftn(a, s, axes, overwrite_input,
     # Make the output dtype correct
     if not real:
         output_dtype = a.dtype
-    
+
     else:
         output_dtype = _rc_dtype_pairs[a.dtype.char]
 
@@ -146,7 +146,7 @@ def _Xfftn(a, s, axes, overwrite_input,
         update_input_array_slicer, FFTW_array_slicer = (
                 _setup_input_slicers(a.shape, input_shape))
 
-        # Also, the input array will be a different shape to the shape of 
+        # Also, the input array will be a different shape to the shape of
         # `a`, so we need to create a new array.
         input_array = pyfftw.empty_aligned(input_shape, a.dtype)
 
@@ -166,7 +166,7 @@ def _Xfftn(a, s, axes, overwrite_input,
         input_array = a
 
         if auto_contiguous:
-            # We only need to create a new array if it's not already 
+            # We only need to create a new array if it's not already
             # contiguous
             if not (a.flags['C_CONTIGUOUS'] or a.flags['F_CONTIGUOUS']):
                 if avoid_copy:
@@ -192,7 +192,7 @@ def _Xfftn(a, s, axes, overwrite_input,
         if not avoid_copy:
             # Copy the data back into the (likely) destroyed array
             FFTW_object.input_array[:] = a_copy
-    
+
     return FFTW_object
 
 
@@ -201,8 +201,8 @@ class _FFTWWrapper(pyfftw.FFTW):
     stage during calls to :meth:`~pyfftw.builders._utils._FFTWWrapper.__call__`.
     '''
 
-    def __init__(self, input_array, output_array, axes=[-1], 
-            direction='FFTW_FORWARD', flags=['FFTW_MEASURE'], 
+    def __init__(self, input_array, output_array, axes=[-1],
+            direction='FFTW_FORWARD', flags=['FFTW_MEASURE'],
             threads=1, input_array_slicer=None, FFTW_array_slicer=None):
         '''The arguments are as per :class:`pyfftw.FFTW`, but with the addition
         of 2 keyword arguments: ``input_array_slicer`` and
@@ -225,12 +225,12 @@ class _FFTWWrapper(pyfftw.FFTW):
         else:
             self._input_destroyed = False
 
-        pyfftw.FFTW.__init__(self, input_array, output_array, 
+        pyfftw.FFTW.__init__(self, input_array, output_array,
                              axes, direction, flags, threads)
 
-    def __call__(self, input_array=None, output_array=None, 
+    def __call__(self, input_array=None, output_array=None,
             normalise_idft=True):
-        '''Wrap :meth:`pyfftw.FFTW.__call__` by firstly slicing the 
+        '''Wrap :meth:`pyfftw.FFTW.__call__` by firstly slicing the
         passed-in input array and then copying it into a sliced version
         of the internal array. These slicers are set at instantiation.
 
@@ -276,7 +276,7 @@ def _setup_input_slicers(a_shape, input_shape):
 
     ``(update_input_array_slicer, FFTW_array_slicer)``
 
-    On calls to :class:`~pyfftw.builders._utils._FFTWWrapper` objects, 
+    On calls to :class:`~pyfftw.builders._utils._FFTWWrapper` objects,
     the input array is copied in as:
 
     ``FFTW_array[FFTW_array_slicer] = input_array[update_input_array_slicer]``
@@ -309,9 +309,9 @@ def _setup_input_slicers(a_shape, input_shape):
 
 def _compute_array_shapes(a, s, axes, inverse, real):
     '''Given a passed in array ``a``, and the rest of the arguments
-    (that have been fleshed out with 
+    (that have been fleshed out with
     :func:`~pyfftw.builders._utils._cook_nd_args`), compute
-    the shape the input and output arrays need to be in order 
+    the shape the input and output arrays need to be in order
     to satisfy all the requirements for the transform. The input
     shape *may* be different to the shape of a.
 
@@ -321,7 +321,7 @@ def _compute_array_shapes(a, s, axes, inverse, real):
     # Start with the shape of a
     orig_domain_shape = list(a.shape)
     fft_domain_shape = list(a.shape)
-    
+
     try:
         for n, axis in enumerate(axes):
             orig_domain_shape[axis] = s[n]
@@ -385,4 +385,3 @@ def _cook_nd_args(a, s=None, axes=None, invreal=False):
                 'of the input array, a.')
 
     return tuple(s), tuple(axes)
-

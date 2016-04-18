@@ -1,5 +1,5 @@
 # Copyright 2014 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -43,11 +43,11 @@ import unittest
 from .test_pyfftw_base import FFTWBaseTest
 
 class Complex64MultiThreadedTest(FFTWBaseTest):
-    
+
     def run_multithreaded_test(self, threads):
         in_shape = self.input_shapes['2d'];
         out_shape = self.output_shapes['2d']
-        
+
         axes=(-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
@@ -55,7 +55,7 @@ class Complex64MultiThreadedTest(FFTWBaseTest):
 
         fft_, ifft_ = self.run_validate_fft(a, b, axes, threads=1)
 
-        self.timer_routine(fft.execute, fft_.execute, 
+        self.timer_routine(fft.execute, fft_.execute,
                 comparison_string='singled threaded')
         self.assertTrue(True)
 
@@ -67,27 +67,27 @@ class Complex64MultiThreadedTest(FFTWBaseTest):
         self.run_multithreaded_test(4)
 
     def test_7_threads(self):
-        self.run_multithreaded_test(7)        
+        self.run_multithreaded_test(7)
 
     def test_25_threads(self):
-        self.run_multithreaded_test(25)        
+        self.run_multithreaded_test(25)
 
 class Complex128MultiThreadedTest(Complex64MultiThreadedTest):
-    
+
     def setUp(self):
 
         self.input_dtype = numpy.complex128
         self.output_dtype = numpy.complex128
-        self.np_fft_comparison = numpy.fft.fft        
+        self.np_fft_comparison = numpy.fft.fft
         return
 
 class ComplexLongDoubleMultiThreadedTest(Complex64MultiThreadedTest):
-    
+
     def setUp(self):
 
         self.input_dtype = numpy.clongdouble
         self.output_dtype = numpy.clongdouble
-        self.np_fft_comparison = self.reference_fftn       
+        self.np_fft_comparison = self.reference_fftn
         return
 
     def reference_fftn(self, a, axes):

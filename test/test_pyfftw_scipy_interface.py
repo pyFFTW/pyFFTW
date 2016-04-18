@@ -1,5 +1,5 @@
 # Copyright 2014 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -56,12 +56,12 @@ from . import test_pyfftw_numpy_interface
 All the tests here just check that the call is made correctly.
 '''
 
-funcs = ('fft','ifft', 'fft2', 'ifft2', 'fftn', 'ifftn', 
+funcs = ('fft','ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
            'rfft', 'irfft')
 
-acquired_names = ('dct', 'idct', 'diff', 'tilbert', 'itilbert', 'hilbert', 
-        'ihilbert', 'cs_diff', 'sc_diff', 'ss_diff', 'cc_diff', 'shift', 
-        'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve', 
+acquired_names = ('dct', 'idct', 'diff', 'tilbert', 'itilbert', 'hilbert',
+        'ihilbert', 'cs_diff', 'sc_diff', 'ss_diff', 'cc_diff', 'shift',
+        'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve',
         '_fftpack')
 
 def make_complex_data(shape, dtype):
@@ -79,10 +79,10 @@ make_complex_data = test_pyfftw_numpy_interface.make_complex_data
 complex_dtypes = test_pyfftw_numpy_interface.complex_dtypes
 real_dtypes = test_pyfftw_numpy_interface.real_dtypes
 
-def numpy_fft_replacement(a, s, axes, overwrite_input, planner_effort, 
+def numpy_fft_replacement(a, s, axes, overwrite_input, planner_effort,
         threads, auto_align_input, auto_contiguous):
 
-    return (a, s, axes, overwrite_input, planner_effort, 
+    return (a, s, axes, overwrite_input, planner_effort,
         threads, auto_align_input, auto_contiguous)
 
 io_dtypes = {
@@ -110,9 +110,9 @@ class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
         a = pyfftw.empty_aligned((128, 64), dtype='complex128', n=16)
         b = pyfftw.empty_aligned((128, 64), dtype='complex128', n=16)
 
-        a[:] = (numpy.random.randn(*a.shape) + 
+        a[:] = (numpy.random.randn(*a.shape) +
                 1j*numpy.random.randn(*a.shape))
-        b[:] = (numpy.random.randn(*b.shape) + 
+        b[:] = (numpy.random.randn(*b.shape) +
                 1j*numpy.random.randn(*b.shape))
 
 
@@ -151,7 +151,7 @@ class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
             args = tuple(args)
 
             try:
-                setattr(scipy_fftpack, each_func, 
+                setattr(scipy_fftpack, each_func,
                         numpy_fft_replacement)
 
                 return_args = getattr(scipy_fftpack, each_func)(*args)
@@ -163,11 +163,11 @@ class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
                 raise
 
             finally:
-                setattr(scipy_fftpack, each_func, 
+                setattr(scipy_fftpack, each_func,
                         func_being_replaced)
 
     def test_acquired_names(self):
-        for each_name in acquired_names: 
+        for each_name in acquired_names:
 
             fftpack_attr = getattr(scipy.fftpack, each_name)
             acquired_attr = getattr(scipy_fftpack, each_name)
@@ -184,7 +184,7 @@ for each_func in funcs:
     parent_class_name = 'InterfacesNumpyFFTTest' + each_func.upper()
     parent_class = getattr(test_pyfftw_numpy_interface, parent_class_name)
 
-    class_dict = {'validator_module': scipy.fftpack, 
+    class_dict = {'validator_module': scipy.fftpack,
                 'test_interface': scipy_fftpack,
                 'io_dtypes': io_dtypes,
                 'overwrite_input_flag': 'overwrite_x',

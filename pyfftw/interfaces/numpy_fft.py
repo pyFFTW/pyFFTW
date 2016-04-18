@@ -34,12 +34,12 @@
 
 '''
 This module implements those functions that replace aspects of the
-:mod:`numpy.fft` module. This module *provides* the entire documented namespace 
+:mod:`numpy.fft` module. This module *provides* the entire documented namespace
 of :mod:`numpy.fft`, but those functions that are not included here are imported
 directly from :mod:`numpy.fft`.
 
 
-It is notable that unlike :mod:`numpy.fftpack`, these functions will 
+It is notable that unlike :mod:`numpy.fftpack`, these functions will
 generally return an output array with the same precision as the input
 array, and the transform that is chosen is chosen based on the precision
 of the input array. That is, if the input array is 32-bit floating point,
@@ -63,39 +63,39 @@ from ._utils import _Xfftn
 from numpy.fft import fftfreq, fftshift, ifftshift
 import numpy
 
-__all__ = ['fft','ifft', 'fft2', 'ifft2', 'fftn', 'ifftn', 
+__all__ = ['fft','ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
            'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn', 'irfftn',
            'hfft', 'ihfft', 'fftfreq', 'fftshift', 'ifftshift']
 
-def fft(a, n=None, axis=-1, overwrite_input=False, 
+def fft(a, n=None, axis=-1, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D FFT.
-    
-    The first three arguments are as per :func:`numpy.fft.fft`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`numpy.fft.fft`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
 
     calling_func = 'fft'
 
     return _Xfftn(a, n, axis, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous, 
+            threads, auto_align_input, auto_contiguous,
             calling_func)
 
 def ifft(a, n=None, axis=-1, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D inverse FFT.
-    
-    The first three arguments are as per :func:`numpy.fft.ifft`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`numpy.fft.ifft`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     calling_func = 'ifft'
 
     return _Xfftn(a, n, axis, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous, 
+            threads, auto_align_input, auto_contiguous,
             calling_func)
 
 
@@ -103,30 +103,30 @@ def fft2(a, s=None, axes=(-2,-1), overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D FFT.
-    
-    The first three arguments are as per :func:`numpy.fft.fft2`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`numpy.fft.fft2`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     calling_func = 'fft2'
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous, 
+            threads, auto_align_input, auto_contiguous,
             calling_func)
 
 def ifft2(a, s=None, axes=(-2,-1), overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D inverse FFT.
-    
-    The first three arguments are as per :func:`numpy.fft.ifft2`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`numpy.fft.ifft2`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     calling_func = 'ifft2'
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous, 
+            threads, auto_align_input, auto_contiguous,
             calling_func)
 
 
@@ -134,90 +134,90 @@ def fftn(a, s=None, axes=None, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D FFT.
-    
-    The first three arguments are as per :func:`numpy.fft.fftn`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`numpy.fft.fftn`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     calling_func = 'fftn'
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous, 
+            threads, auto_align_input, auto_contiguous,
             calling_func)
 
 def ifftn(a, s=None, axes=None, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D inverse FFT.
-    
-    The first three arguments are as per :func:`numpy.fft.ifftn`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`numpy.fft.ifftn`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     calling_func = 'ifftn'
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous, 
+            threads, auto_align_input, auto_contiguous,
             calling_func)
 
 def rfft(a, n=None, axis=-1, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D real FFT.
-    
-    The first three arguments are as per :func:`numpy.fft.rfft`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`numpy.fft.rfft`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     calling_func = 'rfft'
 
     return _Xfftn(a, n, axis, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous, 
+            threads, auto_align_input, auto_contiguous,
             calling_func)
 
 def irfft(a, n=None, axis=-1, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D real inverse FFT.
-    
-    The first three arguments are as per :func:`numpy.fft.irfft`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`numpy.fft.irfft`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     calling_func = 'irfft'
 
     return _Xfftn(a, n, axis, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous, 
+            threads, auto_align_input, auto_contiguous,
             calling_func)
 
 def rfft2(a, s=None, axes=(-2,-1), overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D real FFT.
-    
-    The first three arguments are as per :func:`numpy.fft.rfft2`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`numpy.fft.rfft2`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     calling_func = 'rfft2'
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous, 
+            threads, auto_align_input, auto_contiguous,
             calling_func)
 
 def irfft2(a, s=None, axes=(-2,-1), overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D real inverse FFT.
-    
-    The first three arguments are as per :func:`numpy.fft.irfft2`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`numpy.fft.irfft2`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     calling_func = 'irfft2'
-    
+
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous, 
+            threads, auto_align_input, auto_contiguous,
             calling_func)
 
 
@@ -225,15 +225,15 @@ def rfftn(a, s=None, axes=None, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D real FFT.
-    
-    The first three arguments are as per :func:`numpy.fft.rfftn`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`numpy.fft.rfftn`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     calling_func = 'rfftn'
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous, 
+            threads, auto_align_input, auto_contiguous,
             calling_func)
 
 
@@ -241,15 +241,15 @@ def irfftn(a, s=None, axes=None, overwrite_input=False,
         planner_effort='FFTW_MEASURE', threads=1,
         auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D real inverse FFT.
-    
-    The first three arguments are as per :func:`numpy.fft.rfftn`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`numpy.fft.rfftn`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     calling_func = 'irfftn'
-    
+
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous, 
+            threads, auto_align_input, auto_contiguous,
             calling_func)
 
 def hfft(a, n=None, axis=-1, overwrite_input=False,
@@ -259,21 +259,21 @@ def hfft(a, n=None, axis=-1, overwrite_input=False,
     This yields a real output spectrum. See :func:`numpy.fft.hfft`
     for more information.
 
-    The first three arguments are as per :func:`numpy.fft.hfft`; 
-    the rest of the arguments are documented 
+    The first three arguments are as per :func:`numpy.fft.hfft`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
 
-    # The hermitian symmetric transform is equivalent to the 
+    # The hermitian symmetric transform is equivalent to the
     # irfft of the conjugate of the input (do the maths!) without
-    # any normalisation of the result (so normalise_idft is set to 
+    # any normalisation of the result (so normalise_idft is set to
     # False).
     a = numpy.conjugate(a)
 
     calling_func = 'irfft'
 
     return _Xfftn(a, n, axis, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous, 
+            threads, auto_align_input, auto_contiguous,
             calling_func, normalise_idft=False)
 
 def ihfft(a, n=None, axis=-1, overwrite_input=False,
@@ -282,9 +282,9 @@ def ihfft(a, n=None, axis=-1, overwrite_input=False,
     '''Perform a 1D inverse FFT of a real-spectrum, yielding
     a signal with hermitian symmetry. See :func:`numpy.fft.ihfft`
     for more information.
-    
-    The first three arguments are as per :func:`numpy.fft.ihfft`; 
-    the rest of the arguments are documented 
+
+    The first three arguments are as per :func:`numpy.fft.ihfft`;
+    the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
 
@@ -302,4 +302,3 @@ def ihfft(a, n=None, axis=-1, overwrite_input=False,
 
     return scaling * rfft(a, n, axis, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous).conj()
-

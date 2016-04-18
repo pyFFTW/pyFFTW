@@ -1,6 +1,6 @@
 /*
  * Copyright 2016 Knowledge Economy Developments Ltd
- * 
+ *
  * Henry Gomersall
  * heng@kedevelopments.co.uk
  *
@@ -72,7 +72,7 @@
        :"+a" (cpuinfo[0]), "=S" (cpuinfo[1]), /* eax rw, esi read */ \
        "=c" (cpuinfo[2]), "=d" (cpuinfo[3]) /* ecx read, edx read */\
        : :"edi")
-  
+
   #endif
 
 /* Returns the byte alignment for optimum simd operations */

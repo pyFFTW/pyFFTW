@@ -1,5 +1,5 @@
 # Copyright 2015 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -68,7 +68,7 @@ output_dtypes = {
 
 functions = {
     'fft': 'complex',
-    'ifft': 'complex', 
+    'ifft': 'complex',
     'rfft': 'r2c',
     'irfft': 'c2r',
     'rfftn': 'r2c',
@@ -124,11 +124,11 @@ class BuildersTestFFT(unittest.TestCase):
 
             yield test_shape, s, kwargs
 
-    def validate_pyfftw_object(self, array_type, test_shape, dtype, 
+    def validate_pyfftw_object(self, array_type, test_shape, dtype,
             s, kwargs):
 
         input_array = array_type(test_shape, dtype)
-        
+
         # Use char because of potential MSVC related bug.
         if input_array.dtype.char == np.dtype('clongdouble').char:
             np_input_array = numpy.complex128(input_array)
@@ -147,7 +147,7 @@ class BuildersTestFFT(unittest.TestCase):
                     input_array.copy(), s, **kwargs)
 
             # We run FFT twice to check two operations don't
-            # yield different results (which they might if 
+            # yield different results (which they might if
             # the state is buggered up).
             output_array = FFTW_object(input_array.copy())
             output_array_2 = FFTW_object(input_array.copy())
@@ -169,19 +169,19 @@ class BuildersTestFFT(unittest.TestCase):
                         # Make sure a warning is raised
                         self.assertIs(
                                 w[-1].category, numpy.ComplexWarning)
-        
+
         self.assertTrue(
-                numpy.allclose(output_array, test_out_array, 
+                numpy.allclose(output_array, test_out_array,
                     rtol=1e-2, atol=1e-4))
 
         self.assertTrue(
-                numpy.allclose(output_array_2, test_out_array, 
+                numpy.allclose(output_array_2, test_out_array,
                     rtol=1e-2, atol=1e-4))
 
         return FFTW_object
 
     def axes_from_kwargs(self, kwargs):
-        
+
         default_args = get_default_args(getattr(builders, self.func))
 
         if 'axis' in kwargs:
@@ -246,12 +246,12 @@ class BuildersTestFFT(unittest.TestCase):
 
     def test_valid(self):
         dtype_tuple = input_dtypes[functions[self.func]]
-        
+
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
                 s = None
 
-                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
                 self.assertTrue(type(FFTW_object) == FFTW)
@@ -266,29 +266,29 @@ class BuildersTestFFT(unittest.TestCase):
         inp_dtype_tuple = input_dtypes[functions[self.func]]
         output_dtype_tuple = output_dtypes[functions[self.func]]
 
-        for input_dtype, output_dtype in zip(inp_dtype_tuple[0], 
+        for input_dtype, output_dtype in zip(inp_dtype_tuple[0],
                                              output_dtype_tuple):
 
             for test_shape, s, kwargs in self.test_data:
                 s = None
 
-                FFTW_object = self.validate_pyfftw_object(inp_dtype_tuple[1], 
+                FFTW_object = self.validate_pyfftw_object(inp_dtype_tuple[1],
                         test_shape, input_dtype, s, kwargs)
 
                 self.assertTrue(
-                    FFTW_object.output_array.dtype.char == 
+                    FFTW_object.output_array.dtype.char ==
                     np.dtype(output_dtype).char)
 
     def test_fail_on_invalid_s_or_axes(self):
         dtype_tuple = input_dtypes[functions[self.func]]
-        
+
         for dtype in dtype_tuple[0]:
 
             for test_shape, args, exception, e_str in self.invalid_args:
                 input_array = dtype_tuple[1](test_shape, dtype)
-                
+
                 self.assertRaisesRegex(exception, e_str,
-                        getattr(builders, self.func), 
+                        getattr(builders, self.func),
                         *((input_array,) + args))
 
 
@@ -297,7 +297,7 @@ class BuildersTestFFT(unittest.TestCase):
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
 
-                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
                 self.assertTrue(type(FFTW_object) == FFTW)
@@ -321,12 +321,12 @@ class BuildersTestFFT(unittest.TestCase):
                     # They implicitly overwrite the input anyway
                     _kwargs['overwrite_input'] = True
 
-                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1],
                         test_shape, dtype, s, _kwargs)
 
                 self.assertTrue(
                         type(FFTW_object) == utils._FFTWWrapper)
-    
+
     def test_bigger_s(self):
         dtype_tuple = input_dtypes[functions[self.func]]
         for dtype in dtype_tuple[0]:
@@ -338,7 +338,7 @@ class BuildersTestFFT(unittest.TestCase):
                 except TypeError:
                     s += 2
 
-                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
                 self.assertTrue(
@@ -355,11 +355,11 @@ class BuildersTestFFT(unittest.TestCase):
                 except TypeError:
                     s -= 2
 
-                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
                 self.assertTrue(
-                        type(FFTW_object) == utils._FFTWWrapper)                
+                        type(FFTW_object) == utils._FFTWWrapper)
 
     def test_bigger_and_smaller_s(self):
         dtype_tuple = input_dtypes[functions[self.func]]
@@ -375,15 +375,15 @@ class BuildersTestFFT(unittest.TestCase):
                     s += i * 2
                     i *= i
 
-                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
                 self.assertTrue(
                         type(FFTW_object) == utils._FFTWWrapper)
-    
+
     def test_auto_contiguous_input(self):
         dtype_tuple = input_dtypes[functions[self.func]]
-        
+
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
                 _kwargs = kwargs.copy()
@@ -403,14 +403,14 @@ class BuildersTestFFT(unittest.TestCase):
 
                 input_array = dtype_tuple[1](_test_shape, dtype)[slices]
                 # check the input is non contiguous
-                self.assertFalse(input_array.flags['C_CONTIGUOUS'] or 
+                self.assertFalse(input_array.flags['C_CONTIGUOUS'] or
                     input_array.flags['F_CONTIGUOUS'])
 
 
                 # Firstly check the non-contiguous case (for both
                 # FFTW and _FFTWWrapper)
                 _kwargs['auto_contiguous'] = False
-                
+
                 # We also need to make sure we're not copying due
                 # to a trivial misalignment
                 _kwargs['auto_align_input'] = False
@@ -421,7 +421,7 @@ class BuildersTestFFT(unittest.TestCase):
                 internal_input_array = FFTW_object.input_array
                 flags = internal_input_array.flags
                 self.assertTrue(input_array is internal_input_array)
-                self.assertFalse(flags['C_CONTIGUOUS'] or 
+                self.assertFalse(flags['C_CONTIGUOUS'] or
                     flags['F_CONTIGUOUS'])
 
                 FFTW_object = getattr(builders, self.func)(
@@ -440,9 +440,9 @@ class BuildersTestFFT(unittest.TestCase):
 
                 internal_input_array = FFTW_object.input_array
                 flags = internal_input_array.flags
-                self.assertTrue(flags['C_CONTIGUOUS'] or 
+                self.assertTrue(flags['C_CONTIGUOUS'] or
                     flags['F_CONTIGUOUS'])
-                
+
                 FFTW_object = getattr(builders, self.func)(
                         input_array, s2, **_kwargs)
 
@@ -454,7 +454,7 @@ class BuildersTestFFT(unittest.TestCase):
 
     def test_auto_align_input(self):
         dtype_tuple = input_dtypes[functions[self.func]]
-        
+
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
                 _kwargs = kwargs.copy()
@@ -489,7 +489,7 @@ class BuildersTestFFT(unittest.TestCase):
 
                 self.assertTrue(FFTW_object.simd_aligned)
 
-                self.assertTrue('FFTW_UNALIGNED' not in FFTW_object.flags)                
+                self.assertTrue('FFTW_UNALIGNED' not in FFTW_object.flags)
                 FFTW_object = getattr(builders, self.func)(
                         input_array.copy(), s2, **_kwargs)
 
@@ -508,7 +508,7 @@ class BuildersTestFFT(unittest.TestCase):
             for test_shape, s, kwargs in self.test_data:
                 s = None
 
-                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
                 self.assertTrue(type(FFTW_object) == FFTW)
@@ -536,7 +536,7 @@ class BuildersTestFFT(unittest.TestCase):
                     padding_slicer[axes[0]] = slice(s, None)
 
                 # Get a valid object
-                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
                 internal_array = FFTW_object.input_array
@@ -559,7 +559,7 @@ class BuildersTestFFT(unittest.TestCase):
         '''
         dtype_tuple = input_dtypes[functions[self.func]]
         test_shape = (16,)
-        
+
         for dtype in dtype_tuple[0]:
             s = None
             if self.axes_kw == 'axis':
@@ -567,11 +567,11 @@ class BuildersTestFFT(unittest.TestCase):
             else:
                 kwargs = {'axes': (-1,)}
 
-            for each_effort in ('FFTW_ESTIMATE', 'FFTW_MEASURE', 
+            for each_effort in ('FFTW_ESTIMATE', 'FFTW_MEASURE',
                     'FFTW_PATIENT', 'FFTW_EXHAUSTIVE'):
-                
+
                 kwargs['planner_effort'] = each_effort
-                
+
                 FFTW_object = self.validate_pyfftw_object(
                         dtype_tuple[1], test_shape, dtype, s, kwargs)
 
@@ -580,7 +580,7 @@ class BuildersTestFFT(unittest.TestCase):
             kwargs['planner_effort'] = 'garbage'
 
             self.assertRaisesRegex(ValueError, 'Invalid planner effort',
-                    self.validate_pyfftw_object, 
+                    self.validate_pyfftw_object,
                     *(dtype_tuple[1], test_shape, dtype, s, kwargs))
 
     def test_threads_arg(self):
@@ -588,7 +588,7 @@ class BuildersTestFFT(unittest.TestCase):
         '''
         dtype_tuple = input_dtypes[functions[self.func]]
         test_shape = (16,)
-        
+
         for dtype in dtype_tuple[0]:
             s = None
             if self.axes_kw == 'axis':
@@ -597,16 +597,16 @@ class BuildersTestFFT(unittest.TestCase):
                 kwargs = {'axes': (-1,)}
 
             kwargs['threads'] = 2
-            
+
             # Should just work
             FFTW_object = self.validate_pyfftw_object(
                     dtype_tuple[1], test_shape, dtype, s, kwargs)
 
             kwargs['threads'] = 'bleh'
-            
+
             # Should not work
             self.assertRaises(TypeError,
-                    self.validate_pyfftw_object, 
+                    self.validate_pyfftw_object,
                     *(dtype_tuple[1], test_shape, dtype, s, kwargs))
 
 
@@ -614,13 +614,13 @@ class BuildersTestFFT(unittest.TestCase):
         '''Test the overwrite_input flag
         '''
         dtype_tuple = input_dtypes[functions[self.func]]
-        
+
         for dtype in dtype_tuple[0]:
             for test_shape, s, _kwargs in self.test_data:
                 s = None
 
                 kwargs = _kwargs.copy()
-                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1], 
+                FFTW_object = self.validate_pyfftw_object(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
                 if self.func not in ('irfft2', 'irfftn'):
@@ -643,7 +643,7 @@ class BuildersTestFFT(unittest.TestCase):
             for test_shape, s, kwargs in self.test_data:
 
                 input_array = dtype_tuple[1](test_shape, dtype)
-                
+
                 FFTW_object = getattr(
                         builders, self.func)(input_array, s, **kwargs)
 
@@ -656,7 +656,7 @@ class BuildersTestFFT(unittest.TestCase):
         '''Test the avoid_copy flag
         '''
         dtype_tuple = input_dtypes[functions[self.func]]
-        
+
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
                 _kwargs = kwargs.copy()
@@ -672,7 +672,7 @@ class BuildersTestFFT(unittest.TestCase):
 
                 input_array = dtype_tuple[1](test_shape, dtype)
 
-                self.assertRaisesRegex(ValueError, 
+                self.assertRaisesRegex(ValueError,
                         'Cannot avoid copy.*transform shape.*',
                         getattr(builders, self.func),
                         input_array, s2, **_kwargs)
@@ -685,7 +685,7 @@ class BuildersTestFFT(unittest.TestCase):
                 misaligned_input_array = dtype_tuple[1](
                         non_contiguous_shape, dtype)[non_contiguous_slices]
 
-                self.assertRaisesRegex(ValueError, 
+                self.assertRaisesRegex(ValueError,
                         'Cannot avoid copy.*not contiguous.*',
                         getattr(builders, self.func),
                         misaligned_input_array, s, **_kwargs)
@@ -699,7 +699,7 @@ class BuildersTestFFT(unittest.TestCase):
                 misaligned_input_array = _input_array[1:].view(
                          dtype=input_array.dtype).reshape(*test_shape)
 
-                self.assertRaisesRegex(ValueError, 
+                self.assertRaisesRegex(ValueError,
                         'Cannot avoid copy.*not aligned.*',
                         getattr(builders, self.func),
                         misaligned_input_array, s, **_kwargs)

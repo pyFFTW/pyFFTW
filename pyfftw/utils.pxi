@@ -106,7 +106,7 @@ cpdef byte_align(array, n=None, dtype=None):
     ``dtype`` is an optional argument that forces the resultant array to be
     of that dtype.
     '''
-    
+
     if not isinstance(array, np.ndarray):
         raise TypeError('Invalid array: byte_align requires a subclass '
                 'of ndarray')
@@ -117,11 +117,11 @@ cpdef byte_align(array, n=None, dtype=None):
     if dtype is not None:
         if not array.dtype == dtype:
             update_dtype = True
-    
+
     else:
         dtype = array.dtype
         update_dtype = False
-    
+
     # See if we're already n byte aligned. If so, do nothing.
     offset = <intptr_t>np.PyArray_DATA(array) %n
 
@@ -132,7 +132,7 @@ cpdef byte_align(array, n=None, dtype=None):
         _array_aligned[:] = array
 
         array = _array_aligned.view(type=array.__class__)
-    
+
     return array
 
 

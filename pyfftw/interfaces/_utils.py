@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2014 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -47,7 +47,7 @@ import numpy
 from . import cache
 
 def _Xfftn(a, s, axes, overwrite_input, planner_effort,
-        threads, auto_align_input, auto_contiguous, 
+        threads, auto_align_input, auto_contiguous,
         calling_func, normalise_idft=True):
 
     work_with_copy = False
@@ -70,13 +70,13 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
 
         if not overwrite_input:
             # Only irfft2 and irfftn have overwriting the input
-            # as the default (and so require the input array to 
+            # as the default (and so require the input array to
             # be reloaded).
             work_with_copy = True
     else:
         args = (overwrite_input, planner_effort, threads,
                 auto_align_input, auto_contiguous)
-    
+
         if not a.flags.writeable:
             # Special case of a locked array - always work with a
             # copy.  See issue #92.
@@ -96,7 +96,7 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         a[...] = a_original
 
     if cache.is_enabled():
-        key = (calling_func, a.shape, a.strides, a.dtype, s.__hash__(), 
+        key = (calling_func, a.shape, a.strides, a.dtype, s.__hash__(),
                axes.__hash__(), args)
 
         try:
@@ -123,7 +123,7 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         planner_args = (a, s, axes) + args
 
         FFTW_object = getattr(builders, calling_func)(*planner_args)
-    
+
         # Only copy if the input array is what was actually used
         # (otherwise it shouldn't be overwritten)
         if not work_with_copy and FFTW_object.input_array is a:
@@ -131,7 +131,7 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
 
         if cache.is_enabled():
             cache._fftw_cache.insert(FFTW_object, key)
-        
+
         output_array = FFTW_object(normalise_idft=normalise_idft)
 
     else:
@@ -143,7 +143,7 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         output_array = pyfftw.empty_aligned(
             output_shape, output_dtype, n=output_alignment)
 
-        FFTW_object(input_array=a, output_array=output_array, 
+        FFTW_object(input_array=a, output_array=output_array,
                 normalise_idft=normalise_idft)
-    
+
     return output_array
