@@ -5,6 +5,9 @@
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
+# Michael McNeil Forbes
+# michael.forbes+pyfftw@gmail.com
+#
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -47,7 +50,7 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         threads, auto_align_input, auto_contiguous, 
         calling_func, normalise_idft=True):
 
-    reload_after_transform = False
+    work_with_copy = False
 
     a = numpy.asanyarray(a)
 
@@ -63,21 +66,38 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
 
     if calling_func in ('irfft2', 'irfftn'):
         # overwrite_input is not an argument to irfft2 or irfftn
-        args = (a, s, axes, planner_effort, threads, 
-                auto_align_input, auto_contiguous)
+        args = (planner_effort, threads, auto_align_input, auto_contiguous)
 
         if not overwrite_input:
             # Only irfft2 and irfftn have overwriting the input
             # as the default (and so require the input array to 
             # be reloaded).
-            reload_after_transform = True
+            work_with_copy = True
     else:
-        args = (a, s, axes, overwrite_input, planner_effort, threads, 
+        args = (overwrite_input, planner_effort, threads,
                 auto_align_input, auto_contiguous)
     
+        if not a.flags.writeable:
+            # Special case of a locked array - always work with a
+            # copy.  See issue #92.
+            work_with_copy = True
+
+            if overwrite_input:
+                raise ValueError('overwrite_input cannot be True when the ' +
+                                 'input array flags.writeable is False')
+
+    if work_with_copy:
+        # We make the copy before registering the key so that the
+        # copy's stride information will be cached since this will be
+        # used for planning.  Make sure the copy is byte aligned to
+        # prevent further copying
+        a_original = a
+        a = pyfftw.empty_aligned(shape=a.shape, dtype=a.dtype)
+        a[...] = a_original
+
     if cache.is_enabled():
         key = (calling_func, a.shape, a.strides, a.dtype, s.__hash__(), 
-                axes.__hash__(), args[3:])
+               axes.__hash__(), args)
 
         try:
             if key in cache._fftw_cache:
@@ -92,18 +112,21 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
 
     if not cache.is_enabled() or FFTW_object is None:
 
-        # If we're going to create a new FFTW object, we need to copy
-        # the input array to preserve it, otherwise we can't actually
-        # take the transform of the input array! (in general, we have
-        # to assume that the input array will be destroyed during 
-        # planning).
-        a_copy = a.copy()
+        # If we're going to create a new FFTW object and are not
+        # working with a copy, then we need to copy the input array to
+        # preserve it, otherwise we can't actually  take the transform
+        # of the input array! (in general, we have to assume that the
+        # input array will be destroyed during planning).
+        if not work_with_copy:
+            a_copy = a.copy()
 
-        FFTW_object = getattr(builders, calling_func)(*args)
+        planner_args = (a, s, axes) + args
+
+        FFTW_object = getattr(builders, calling_func)(*planner_args)
     
         # Only copy if the input array is what was actually used
         # (otherwise it shouldn't be overwritten)
-        if FFTW_object.input_array is a:
+        if not work_with_copy and FFTW_object.input_array is a:
             a[:] = a_copy
 
         if cache.is_enabled():
@@ -112,9 +135,6 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         output_array = FFTW_object(normalise_idft=normalise_idft)
 
     else:
-        if reload_after_transform:
-            a_copy = a.copy()
-
         orig_output_array = FFTW_object.output_array
         output_shape = orig_output_array.shape
         output_dtype = orig_output_array.dtype
@@ -126,7 +146,4 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         FFTW_object(input_array=a, output_array=output_array, 
                 normalise_idft=normalise_idft)
     
-    if reload_after_transform:
-        a[:] = a_copy
-
     return output_array

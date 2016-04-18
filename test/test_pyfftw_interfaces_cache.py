@@ -33,6 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
+import copy
 
 from pyfftw import interfaces, builders
 import numpy
@@ -58,12 +59,14 @@ class InterfacesNumpyFFTCacheTestFFT(InterfacesNumpyFFTTestFFT):
             )
 
     def validate(self, array_type, test_shape, dtype, 
-            s, kwargs):
+                 s, kwargs, copy_func=copy.copy):
 
         # Do it with the cache
         interfaces.cache.enable()        
-        output = self._validate(array_type, test_shape, dtype, s, kwargs)
-        output2 = self._validate(array_type, test_shape, dtype, s, kwargs)
+        output = self._validate(array_type, test_shape, dtype, s, kwargs,
+                                copy_func=copy_func)
+        output2 = self._validate(array_type, test_shape, dtype, s, kwargs,
+                                 copy_func=copy_func)
 
         self.assertIsNot(output, output2) 
 
