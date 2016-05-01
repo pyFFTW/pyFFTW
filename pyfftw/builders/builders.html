@@ -58,7 +58,7 @@
 <span id="pyfftw-builders-get-fftw-objects-using-a-numpy-fft-like-interface"></span><h1><tt class="docutils literal"><span class="pre">pyfftw.builders</span></tt> - Get <tt class="xref py py-class docutils literal"><span class="pre">FFTW</span></tt> objects using a <tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt> like interface<a class="headerlink" href="#module-pyfftw.builders" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>This module contains a set of functions that return 
+<p>This module contains a set of functions that return
 <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> objects.</p>
 <p>The interface to create these objects is mostly the same as
 <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.10)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, only instead of the call returning the result of the
@@ -101,7 +101,7 @@ complexity. This results in a copy being made.</p>
 <p>Although the array that is internal to the <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object
 will be correctly loaded with the values within the input array, it is
 not necessarily the case that the internal array <em>is</em> the input array.
-The actual internal input array can always be retrieved with 
+The actual internal input array can always be retrieved with
 <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW.input_array" title="pyfftw.FFTW.input_array"><tt class="xref py py-attr docutils literal"><span class="pre">pyfftw.FFTW.input_array</span></tt></a>.</p>
 <p><strong>Example:</strong></p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pyfftw</span>
@@ -143,7 +143,7 @@ be complex, for <tt class="docutils literal"><span class="pre">rfft</span></tt> 
 to note from this is that the precision of the transform matches the
 precision of the input array. So, if a single precision input array is
 passed in, then a single precision transform will be used.</p>
-<p>The second caveat is that repeated axes are handled differently; with 
+<p>The second caveat is that repeated axes are handled differently; with
 the returned <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object, axes that are repeated in the
 axes argument are considered only once, as compared to <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.10)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>
 in which repeated axes results in the DFT being taken along that axes
@@ -170,11 +170,11 @@ flag to be passed to the <a class="reference internal" href="../pyfftw.html#pyff
 offered for the multi-dimensional inverse real transforms, as FFTW is
 unable to not overwrite the input in that case.</p>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">planner_effort</span></tt>: A string dictating how much effort is spent 
+<li><p class="first"><tt class="docutils literal"><span class="pre">planner_effort</span></tt>: A string dictating how much effort is spent
 in planning the FFTW routines. This is passed to the creation
-of the <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object as an entry in the flags list. 
+of the <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object as an entry in the flags list.
 They correspond to flags passed to the <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object.</p>
-<p>The valid strings, in order of their increasing impact on the time 
+<p>The valid strings, in order of their increasing impact on the time
 to compute  are:
 <tt class="docutils literal"><span class="pre">'FFTW_ESTIMATE'</span></tt>, <tt class="docutils literal"><span class="pre">'FFTW_MEASURE'</span></tt> (default), <tt class="docutils literal"><span class="pre">'FFTW_PATIENT'</span></tt>
 and <tt class="docutils literal"><span class="pre">'FFTW_EXHAUSTIVE'</span></tt>.</p>
@@ -213,16 +213,16 @@ the array is contiguous or not.</p>
 memory before performing the transform on it. If the array is not
 contiguous, it is copied into an interim array. This is because it
 is often faster to copy the data before the transform and then transform
-a contiguous array than it is to try to take the transform of a 
+a contiguous array than it is to try to take the transform of a
 non-contiguous array. This is particularly true in conjunction with
-the <tt class="docutils literal"><span class="pre">auto_align_input</span></tt> argument which is used to make sure that the 
+the <tt class="docutils literal"><span class="pre">auto_align_input</span></tt> argument which is used to make sure that the
 transform is taken of an aligned array.</p>
-<p>Like <tt class="docutils literal"><span class="pre">auto_align_input</span></tt>, If a new array is created, it is 
-up to the calling code to acquire that new input array using 
+<p>Like <tt class="docutils literal"><span class="pre">auto_align_input</span></tt>, If a new array is created, it is
+up to the calling code to acquire that new input array using
 <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW.input_array" title="pyfftw.FFTW.input_array"><tt class="xref py py-attr docutils literal"><span class="pre">pyfftw.FFTW.input_array</span></tt></a>.</p>
 </li>
-<li><p class="first"><tt class="docutils literal"><span class="pre">avoid_copy</span></tt>: By default, these functions will always create a copy 
-(and sometimes more than one) of the passed in input array. This is 
+<li><p class="first"><tt class="docutils literal"><span class="pre">avoid_copy</span></tt>: By default, these functions will always create a copy
+(and sometimes more than one) of the passed in input array. This is
 because the creation of the <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object generally
 destroys the contents of the input array. Setting this argument to
 <tt class="docutils literal"><span class="pre">True</span></tt> will try not to create a copy of the input array, likely
@@ -235,7 +235,7 @@ to be raised when this flag is set:</p>
 <li>The shape of the FFT input as dictated by <tt class="docutils literal"><span class="pre">s</span></tt> is
 necessarily different from the shape of the passed-in array.</li>
 <li>The dtypes are incompatible with the FFT routine.</li>
-<li>The <tt class="docutils literal"><span class="pre">auto_contiguous</span></tt> or <tt class="docutils literal"><span class="pre">auto_align</span></tt> flags are True and 
+<li>The <tt class="docutils literal"><span class="pre">auto_contiguous</span></tt> or <tt class="docutils literal"><span class="pre">auto_align</span></tt> flags are True and
 the input array is not already contiguous or aligned.</li>
 </ul>
 <p>This argument is distinct from <tt class="docutils literal"><span class="pre">overwrite_input</span></tt> in that it only
@@ -252,18 +252,18 @@ equivalents in <a class="reference external" href="http://docs.scipy.org/doc/num
 <dt id="pyfftw.builders.fft">
 <tt class="descclassname">pyfftw.builders.</tt><tt class="descname">fft</tt><big>(</big><em>a</em>, <em>n=None</em>, <em>axis=-1</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em>, <em>avoid_copy=False</em><big>)</big><a class="headerlink" href="#pyfftw.builders.fft" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a 1D FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fft.html#numpy.fft.fft" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fft()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fft.html#numpy.fft.fft" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fft()</span></tt></a>;
+the rest of the arguments are documented
 <a class="reference internal" href="#builders-args"><em>in the module docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.builders.ifft">
 <tt class="descclassname">pyfftw.builders.</tt><tt class="descname">ifft</tt><big>(</big><em>a</em>, <em>n=None</em>, <em>axis=-1</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em>, <em>avoid_copy=False</em><big>)</big><a class="headerlink" href="#pyfftw.builders.ifft" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a 1D 
+<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a 1D
 inverse FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.ifft.html#numpy.fft.ifft" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.ifft()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.ifft.html#numpy.fft.ifft" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.ifft()</span></tt></a>;
+the rest of the arguments are documented
 <a class="reference internal" href="#builders-args"><em>in the module docs</em></a>.</p>
 </dd></dl>
 
@@ -271,18 +271,18 @@ the rest of the arguments are documented
 <dt id="pyfftw.builders.fft2">
 <tt class="descclassname">pyfftw.builders.</tt><tt class="descname">fft2</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=(-2</em>, <em>-1)</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em>, <em>avoid_copy=False</em><big>)</big><a class="headerlink" href="#pyfftw.builders.fft2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a 2D FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fft2.html#numpy.fft.fft2" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fft2()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fft2.html#numpy.fft.fft2" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fft2()</span></tt></a>;
+the rest of the arguments are documented
 <a class="reference internal" href="#builders-args"><em>in the module docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.builders.ifft2">
 <tt class="descclassname">pyfftw.builders.</tt><tt class="descname">ifft2</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=(-2</em>, <em>-1)</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em>, <em>avoid_copy=False</em><big>)</big><a class="headerlink" href="#pyfftw.builders.ifft2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a 
+<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a
 2D inverse FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.ifft2.html#numpy.fft.ifft2" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.ifft2()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.ifft2.html#numpy.fft.ifft2" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.ifft2()</span></tt></a>;
+the rest of the arguments are documented
 <a class="reference internal" href="#builders-args"><em>in the module docs</em></a>.</p>
 </dd></dl>
 
@@ -290,78 +290,78 @@ the rest of the arguments are documented
 <dt id="pyfftw.builders.fftn">
 <tt class="descclassname">pyfftw.builders.</tt><tt class="descname">fftn</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=None</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em>, <em>avoid_copy=False</em><big>)</big><a class="headerlink" href="#pyfftw.builders.fftn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a n-D FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fftn.html#numpy.fft.fftn" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fftn()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fftn.html#numpy.fft.fftn" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fftn()</span></tt></a>;
+the rest of the arguments are documented
 <a class="reference internal" href="#builders-args"><em>in the module docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.builders.ifftn">
 <tt class="descclassname">pyfftw.builders.</tt><tt class="descname">ifftn</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=None</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em>, <em>avoid_copy=False</em><big>)</big><a class="headerlink" href="#pyfftw.builders.ifftn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing an n-D 
+<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing an n-D
 inverse FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.ifftn.html#numpy.fft.ifftn" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.ifftn()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.ifftn.html#numpy.fft.ifftn" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.ifftn()</span></tt></a>;
+the rest of the arguments are documented
 <a class="reference internal" href="#builders-args"><em>in the module docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.builders.rfft">
 <tt class="descclassname">pyfftw.builders.</tt><tt class="descname">rfft</tt><big>(</big><em>a</em>, <em>n=None</em>, <em>axis=-1</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em>, <em>avoid_copy=False</em><big>)</big><a class="headerlink" href="#pyfftw.builders.rfft" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a 1D 
+<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a 1D
 real FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfft.html#numpy.fft.rfft" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfft()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfft.html#numpy.fft.rfft" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfft()</span></tt></a>;
+the rest of the arguments are documented
 <a class="reference internal" href="#builders-args"><em>in the module docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.builders.irfft">
 <tt class="descclassname">pyfftw.builders.</tt><tt class="descname">irfft</tt><big>(</big><em>a</em>, <em>n=None</em>, <em>axis=-1</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em>, <em>avoid_copy=False</em><big>)</big><a class="headerlink" href="#pyfftw.builders.irfft" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a 1D 
+<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a 1D
 real inverse FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.irfft.html#numpy.fft.irfft" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.irfft()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.irfft.html#numpy.fft.irfft" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.irfft()</span></tt></a>;
+the rest of the arguments are documented
 <a class="reference internal" href="#builders-args"><em>in the module docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.builders.rfft2">
 <tt class="descclassname">pyfftw.builders.</tt><tt class="descname">rfft2</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=(-2</em>, <em>-1)</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em>, <em>avoid_copy=False</em><big>)</big><a class="headerlink" href="#pyfftw.builders.rfft2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a 2D 
+<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a 2D
 real FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfft2.html#numpy.fft.rfft2" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfft2()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfft2.html#numpy.fft.rfft2" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfft2()</span></tt></a>;
+the rest of the arguments are documented
 <a class="reference internal" href="#builders-args"><em>in the module docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.builders.irfft2">
 <tt class="descclassname">pyfftw.builders.</tt><tt class="descname">irfft2</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=(-2</em>, <em>-1)</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em>, <em>avoid_copy=False</em><big>)</big><a class="headerlink" href="#pyfftw.builders.irfft2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a 2D 
+<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing a 2D
 real inverse FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.irfft2.html#numpy.fft.irfft2" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.irfft2()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.irfft2.html#numpy.fft.irfft2" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.irfft2()</span></tt></a>;
+the rest of the arguments are documented
 <a class="reference internal" href="#builders-args"><em>in the module docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.builders.rfftn">
 <tt class="descclassname">pyfftw.builders.</tt><tt class="descname">rfftn</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=None</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em>, <em>avoid_copy=False</em><big>)</big><a class="headerlink" href="#pyfftw.builders.rfftn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing an n-D 
+<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing an n-D
 real FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfftn.html#numpy.fft.rfftn" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfftn()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfftn.html#numpy.fft.rfftn" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfftn()</span></tt></a>;
+the rest of the arguments are documented
 <a class="reference internal" href="#builders-args"><em>in the module docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.builders.irfftn">
 <tt class="descclassname">pyfftw.builders.</tt><tt class="descname">irfftn</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=None</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em>, <em>avoid_copy=False</em><big>)</big><a class="headerlink" href="#pyfftw.builders.irfftn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing an n-D 
+<dd><p>Return a <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW" title="pyfftw.FFTW"><tt class="xref py py-class docutils literal"><span class="pre">pyfftw.FFTW</span></tt></a> object representing an n-D
 real inverse FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfftn.html#numpy.fft.rfftn" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfftn()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfftn.html#numpy.fft.rfftn" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfftn()</span></tt></a>;
+the rest of the arguments are documented
 <a class="reference internal" href="#builders-args"><em>in the module docs</em></a>.</p>
 </dd></dl>
 

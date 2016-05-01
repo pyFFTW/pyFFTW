@@ -60,9 +60,9 @@
 not need to use the functions directly, but they are included here for
 completeness and to aid with understanding of what is happening behind
 the scenes.</p>
-<p>Certainly, users may encounter instances of 
+<p>Certainly, users may encounter instances of
 <a class="reference internal" href="#pyfftw.builders._utils._FFTWWrapper" title="pyfftw.builders._utils._FFTWWrapper"><tt class="xref py py-class docutils literal"><span class="pre">_FFTWWrapper</span></tt></a>.</p>
-<p>These everything documented in this module is <em>not</em> part of the public API 
+<p>These everything documented in this module is <em>not</em> part of the public API
 and may change in future versions.</p>
 <dl class="class">
 <dt id="pyfftw.builders._utils._FFTWWrapper">
@@ -81,7 +81,7 @@ input array into the sliced internal array.</p>
 <dl class="method">
 <dt id="pyfftw.builders._utils._FFTWWrapper.__call__">
 <tt class="descname">__call__</tt><big>(</big><em>input_array=None</em>, <em>output_array=None</em>, <em>normalise_idft=True</em><big>)</big><a class="headerlink" href="#pyfftw.builders._utils._FFTWWrapper.__call__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrap <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW.__call__" title="pyfftw.FFTW.__call__"><tt class="xref py py-meth docutils literal"><span class="pre">pyfftw.FFTW.__call__()</span></tt></a> by firstly slicing the 
+<dd><p>Wrap <a class="reference internal" href="../pyfftw.html#pyfftw.FFTW.__call__" title="pyfftw.FFTW.__call__"><tt class="xref py py-meth docutils literal"><span class="pre">pyfftw.FFTW.__call__()</span></tt></a> by firstly slicing the
 passed-in input array and then copying it into a sliced version
 of the internal array. These slicers are set at instantiation.</p>
 <p>When input array is not <tt class="docutils literal"><span class="pre">None</span></tt>, this method always results in
@@ -107,7 +107,7 @@ defaults exist. The transform must be specified exactly.</p>
 copy the data from the input array to the FFTW object internal
 array, which can then be passed to _FFTWWrapper:</p>
 <p><tt class="docutils literal"><span class="pre">(update_input_array_slicer,</span> <span class="pre">FFTW_array_slicer)</span></tt></p>
-<p>On calls to <a class="reference internal" href="#pyfftw.builders._utils._FFTWWrapper" title="pyfftw.builders._utils._FFTWWrapper"><tt class="xref py py-class docutils literal"><span class="pre">_FFTWWrapper</span></tt></a> objects, 
+<p>On calls to <a class="reference internal" href="#pyfftw.builders._utils._FFTWWrapper" title="pyfftw.builders._utils._FFTWWrapper"><tt class="xref py py-class docutils literal"><span class="pre">_FFTWWrapper</span></tt></a> objects,
 the input array is copied in as:</p>
 <p><tt class="docutils literal"><span class="pre">FFTW_array[FFTW_array_slicer]</span> <span class="pre">=</span> <span class="pre">input_array[update_input_array_slicer]</span></tt></p>
 </dd></dl>
@@ -116,9 +116,9 @@ the input array is copied in as:</p>
 <dt id="pyfftw.builders._utils._compute_array_shapes">
 <tt class="descclassname">pyfftw.builders._utils.</tt><tt class="descname">_compute_array_shapes</tt><big>(</big><em>a</em>, <em>s</em>, <em>axes</em>, <em>inverse</em>, <em>real</em><big>)</big><a class="headerlink" href="#pyfftw.builders._utils._compute_array_shapes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a passed in array <tt class="docutils literal"><span class="pre">a</span></tt>, and the rest of the arguments
-(that have been fleshed out with 
+(that have been fleshed out with
 <a class="reference internal" href="#pyfftw.builders._utils._cook_nd_args" title="pyfftw.builders._utils._cook_nd_args"><tt class="xref py py-func docutils literal"><span class="pre">_cook_nd_args()</span></tt></a>), compute
-the shape the input and output arrays need to be in order 
+the shape the input and output arrays need to be in order
 to satisfy all the requirements for the transform. The input
 shape <em>may</em> be different to the shape of a.</p>
 <p>returns:
