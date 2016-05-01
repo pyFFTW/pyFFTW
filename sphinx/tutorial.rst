@@ -94,7 +94,8 @@ which can be set with :func:`pyfftw.interfaces.cache.set_keepalive_time`,
 then they are removed from the cache (liberating any associated memory).
 The default keepalive time is 0.1 seconds.
 
-**Monkey patching 3rd party libraries**
+Monkey patching 3rd party libraries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Since :mod:`pyfftw.interfaces.numpy_fft` and
 :mod:`pyfftw.interfaces.scipy_fftpack` are drop-in replacements for their
@@ -191,7 +192,8 @@ arrays, the shape of the arrays and the direction flag. For a full
 discussion of the schemes available, see the API documentation for
 :class:`pyfftw.FFTW`.
 
-**One-Dimensional Transforms**
+One-Dimensional Transforms
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We will first consider creating a simple one-dimensional transform of
 a one-dimensional complex array:
@@ -305,7 +307,8 @@ Though it is expected that most of the time
 functionality can be accessed through other methods at a slightly
 lower level.
 
-**Multi-Dimensional Transforms**
+Multi-Dimensional Transforms
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Arrays of more than one dimension are easily supported as well.
 In this case, the ``axes`` argument specifies over which axes the
@@ -333,7 +336,8 @@ instantiation arguments, see the :class:`pyfftw.FFTW` documentation.
 
 .. _wisdom_tutorial:
 
-**Wisdom**
+Wisdom
+~~~~~~
 
 When creating a :class:`pyfftw.FFTW` object, it is possible to instruct
 FFTW how much effort it should put into finding the fastest possible
