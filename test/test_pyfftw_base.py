@@ -1,5 +1,5 @@
 # Copyright 2014 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -40,7 +40,7 @@ from timeit import Timer
 import unittest
 
 class FFTWBaseTest(unittest.TestCase):
-    
+
     def reference_fftn(self, a, axes):
         return numpy.fft.fftn(a, axes=axes)
 
@@ -53,7 +53,7 @@ class FFTWBaseTest(unittest.TestCase):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
     def setUp(self):
-        
+
         self.input_dtype = numpy.complex64
         self.output_dtype = numpy.complex64
         self.np_fft_comparison = numpy.fft.fft
@@ -62,7 +62,7 @@ class FFTWBaseTest(unittest.TestCase):
         return
 
     def tearDown(self):
-        
+
         return
 
     def get_input_dtype_alignment(self):
@@ -100,7 +100,7 @@ class FFTWBaseTest(unittest.TestCase):
 
         t = Timer(stmt=pyfftw_callable)
         t_numpy_fft = Timer(stmt=numpy_fft_callable)
-    
+
         t_str = ("%.2f" % (1000.0/N*t.timeit(N)))+' ms'
         t_numpy_str = ("%.2f" % (1000.0/N*t_numpy_fft.timeit(N)))+' ms'
 
@@ -109,8 +109,8 @@ class FFTWBaseTest(unittest.TestCase):
                 ')')
 
 
-    def run_validate_fft(self, a, b, axes, fft=None, ifft=None, 
-            force_unaligned_data=False, create_array_copies=True, 
+    def run_validate_fft(self, a, b, axes, fft=None, ifft=None,
+            force_unaligned_data=False, create_array_copies=True,
             threads=1, flags=('FFTW_ESTIMATE',)):
         ''' Run a validation of the FFTW routines for the passed pair
         of arrays, a and b, and the axes argument.
@@ -139,7 +139,7 @@ class FFTWBaseTest(unittest.TestCase):
 
         if force_unaligned_data:
             flags.append('FFTW_UNALIGNED')
-        
+
         if fft == None:
             fft = FFTW(a,b,axes=axes, direction='FFTW_FORWARD',
                     flags=flags, threads=threads)
@@ -163,14 +163,14 @@ class FFTWBaseTest(unittest.TestCase):
         # sometimes fails. I assume that numpy.fft has different internals
         # to fftw.
         self.assertTrue(numpy.allclose(b, ref_b, rtol=1e-2, atol=1e-3))
-        
+
         # Test the inverse FFT by comparing the result to the starting
         # value (which is scaled as per FFTW being unnormalised).
         ifft.execute()
         # The scaling is the product of the lengths of the fft along
         # the axes along which the fft is taken.
         scaling = numpy.prod(numpy.array(a.shape)[list(axes)])
-        
+
         self.assertEqual(ifft.N, scaling)
         self.assertEqual(fft.N, scaling)
 
@@ -185,14 +185,14 @@ def run_test_suites(test_suites, run_tests=None):
     If run_tests is not None, then it should be a dictionary with
     keys being the test suite class name, and the values being
     a list of test methods to run. Alternatively, the key can
-    be 'all' in which case all the test suites will be run with 
+    be 'all' in which case all the test suites will be run with
     the provided list of test suites.
     '''
     suite = unittest.TestSuite()
 
     for test_class in test_suites:
         tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
-        
+
         if run_tests is not None:
             if test_class.__name__ in run_tests:
                 this_suite_run = set(run_tests[test_class.__name__])
@@ -211,5 +211,5 @@ def run_test_suites(test_suites, run_tests=None):
 
         suite.addTests(tests)
 
-    
+
     unittest.TextTestRunner(verbosity=2).run(suite)

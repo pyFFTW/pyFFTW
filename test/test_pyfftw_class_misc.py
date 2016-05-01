@@ -1,5 +1,5 @@
 # Copyright 2014 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -45,7 +45,7 @@ import warnings
 # FFTW tests that don't seem to fit anywhere else
 
 class FFTWMiscTest(unittest.TestCase):
-    
+
     def __init__(self, *args, **kwargs):
 
         super(FFTWMiscTest, self).__init__(*args, **kwargs)
@@ -62,7 +62,7 @@ class FFTWMiscTest(unittest.TestCase):
 
         self.fft = FFTW(self.input_array, self.output_array)
 
-        self.output_array[:] = (numpy.random.randn(*self.output_array.shape) 
+        self.output_array[:] = (numpy.random.randn(*self.output_array.shape)
                 + 1j*numpy.random.randn(*self.output_array.shape))
 
     def test_aligned_flag(self):
@@ -71,7 +71,7 @@ class FFTWMiscTest(unittest.TestCase):
         fft = FFTW(self.input_array, self.output_array)
         self.assertTrue(fft.simd_aligned)
 
-        fft = FFTW(self.input_array, self.output_array, 
+        fft = FFTW(self.input_array, self.output_array,
                 flags=('FFTW_UNALIGNED',))
 
         self.assertFalse(fft.simd_aligned)
@@ -82,7 +82,7 @@ class FFTWMiscTest(unittest.TestCase):
         fft = FFTW(self.input_array, self.output_array)
         self.assertEqual(fft.flags, ('FFTW_MEASURE',))
 
-        fft = FFTW(self.input_array, self.output_array, 
+        fft = FFTW(self.input_array, self.output_array,
                 flags=('FFTW_DESTROY_INPUT', 'FFTW_UNALIGNED'))
         self.assertEqual(fft.flags, ('FFTW_DESTROY_INPUT', 'FFTW_UNALIGNED'))
 
@@ -109,7 +109,7 @@ class FFTWMiscTest(unittest.TestCase):
         '''Test to see if the alignment code is working as expected
         '''
 
-        # Start by creating arrays that are only on various byte 
+        # Start by creating arrays that are only on various byte
         # alignments (4, 16 and 32)
         _input_array = empty_aligned(len(self.input_array.ravel())*2+5,
                                      dtype='float32', n=32)
@@ -197,9 +197,9 @@ class FFTWMiscTest(unittest.TestCase):
 
                     else:
                         # This should work (and not segfault!)
-                        fft.update_arrays(input_arrays[update_align], 
+                        fft.update_arrays(input_arrays[update_align],
                                 output_arrays[out_align])
-                        fft.update_arrays(input_arrays[in_align], 
+                        fft.update_arrays(input_arrays[in_align],
                                 output_arrays[update_align])
                         fft.execute()
 
@@ -317,7 +317,7 @@ class FFTWMiscTest(unittest.TestCase):
         '''
         self.assertEqual(self.fft.direction, 'FFTW_FORWARD')
 
-        new_fft = FFTW(self.input_array, self.output_array, 
+        new_fft = FFTW(self.input_array, self.output_array,
                 direction='FFTW_BACKWARD')
 
         self.assertEqual(new_fft.direction, 'FFTW_BACKWARD')

@@ -1,5 +1,5 @@
 # Copyright 2014 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -41,7 +41,7 @@ import platform
 import os
 
 def get_cpus_info():
-    
+
     if 'Linux' in platform.system():
         # A simple /proc/cpuinfo parser
         with open(os.path.join('/', 'proc','cpuinfo'), 'r') as f:
@@ -72,14 +72,14 @@ class UtilsTest(unittest.TestCase):
         return
 
     def tearDown(self):
-        
+
         return
-    
+
     @unittest.skipIf('Linux' not in platform.system(),
             'Skipping as we only have it set up for Linux at present.')
     def test_get_alignment(self):
         cpus_info = get_cpus_info()
-        
+
         for each_cpu in cpus_info:
             if 'avx' in each_cpu['flags']:
                 self.assertTrue(pyfftw.simd_alignment == 32)
@@ -96,4 +96,3 @@ test_set = None
 if __name__ == '__main__':
 
     run_test_suites(test_cases, test_set)
-

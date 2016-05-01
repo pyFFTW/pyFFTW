@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2015 Knowledge Economy Developments Ltd
-# 
+#
 # Henry Gomersall
 # heng@kedevelopments.co.uk
 #
@@ -44,7 +44,7 @@ still take longer than a short transform.
 This module implements a method by which objects that are created through
 :mod:`pyfftw.interfaces` are temporarily cached. If an equivalent
 transform is then performed within a short period, the object is acquired
-from the cache rather than a new one created. The equivalency is quite 
+from the cache rather than a new one created. The equivalency is quite
 conservative and in practice means that if any of the arguments change, or
 if the properties of the array (shape, strides, dtype) change in any way, then
 the cache lookup will fail.
@@ -55,11 +55,11 @@ which can be set with :func:`pyfftw.interfaces.cache.set_keepalive_time`,
 then they are removed from the cache (liberating any associated memory).
 The default keepalive time is 0.1 seconds.
 
-Enable the cache by calling :func:`pyfftw.interfaces.cache.enable`. 
+Enable the cache by calling :func:`pyfftw.interfaces.cache.enable`.
 Disable it by calling :func:`pyfftw.interfaces.cache.disable`. By default,
 the cache is disabled.
 
-Note that even with the cache enabled, there is a fixed overhead associated 
+Note that even with the cache enabled, there is a fixed overhead associated
 with lookups. This means that for small transforms, the overhead may exceed
 the transform. At this point, it's worth looking at using :class:`pyfftw.FFTW`
 directly.
@@ -68,7 +68,7 @@ When the cache is enabled, the module spawns a new thread to keep track
 of the objects. If :mod:`threading` is not available, then the cache
 is not available and trying to use it will raise an ImportError exception.
 
-The actual implementation of the cache is liable to change, but the 
+The actual implementation of the cache is liable to change, but the
 documented API is stable.
 '''
 
@@ -117,19 +117,19 @@ def is_enabled():
 def set_keepalive_time(keepalive_time):
     '''Set the minimum time in seconds for which any :mod:`pyfftw.FFTW` object
     in the cache is kept alive.
-    
+
     When the cache is enabled, the interim objects that are used through
     a :mod:`pyfftw.interfaces` function are cached for the time set through
-    this function. If the object is not used for the that time, it is 
+    this function. If the object is not used for the that time, it is
     removed from the cache. Using the object zeros the timer.
 
-    The time is not precise, and sets a minimum time to be alive. In 
+    The time is not precise, and sets a minimum time to be alive. In
     practice, it may be quite a bit longer before the object is
     deleted from the cache (due to implementational details - e.g. contention
     from other threads).
     '''
     global _fftw_cache
-    
+
     if _fftw_cache is None:
         raise CacheError('Cache is not currently enabled')
     else:
@@ -159,7 +159,7 @@ class _Cache(object):
 
         self._initialised = _threading.Event()
         self._initialised.clear() # Explicitly clear it for clarity
-        
+
         self._thread_object = _threading.Thread(target=_Cache._run,
                 args=(weakref.proxy(self), ))
 
@@ -167,8 +167,8 @@ class _Cache(object):
         self._thread_object.start()
 
         while not self._initialised.is_set():
-            # This loop is necessary to stop the main thread doing 
-            # anything until the exception handler in _run can deal with 
+            # This loop is necessary to stop the main thread doing
+            # anything until the exception handler in _run can deal with
             # the object being deleted.
             pass
 
@@ -178,7 +178,7 @@ class _Cache(object):
         # be raised).
         try:
             self._close_thread_now.set()
-        
+
         except TypeError:
             # Not sure what's going on here, but IPython baulks on exit
             pass
@@ -194,7 +194,7 @@ class _Cache(object):
             self._initialised.set()
 
             while True:
-                if (not self._parent_thread.is_alive() or 
+                if (not self._parent_thread.is_alive() or
                     self._close_thread_now.is_set()):
                     break
 
@@ -230,7 +230,7 @@ class _Cache(object):
         '''Set the minimum time in seconds for which any object in the cache
         is kept alive.
 
-        The time is not precise, and sets a minimum time to be alive. In 
+        The time is not precise, and sets a minimum time to be alive. In
         practice, it may be up to twice as long before the object is
         deleted from the cache (due to implementational details).
         '''
@@ -249,7 +249,7 @@ class _Cache(object):
             self._keepalive_set.add(key)
 
     def insert(self, obj, key):
-        '''Insert the passed object into the cache, referenced by key, 
+        '''Insert the passed object into the cache, referenced by key,
         a hashable.
         '''
         with self._cull_lock:
@@ -260,6 +260,5 @@ class _Cache(object):
         '''Lookup the object referenced by key and return it, refreshing
         the cache at the same time.
         '''
-        self._refresh(key)        
+        self._refresh(key)
         return self._cache_dict[key]
-
