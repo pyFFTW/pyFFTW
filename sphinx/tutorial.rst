@@ -120,10 +120,9 @@ patched in order to speed it up.
    t = Timer(lambda: scipy.signal.fftconvolve(a, b))
 
    print('Time with scipy.fftpack: %1.3f seconds' % t.timeit(number=100))
-
-   # Monkey patch in fftn and ifftn from pyfftw.interfaces.scipy_fftpack
-   scipy.signal.signaltools.fftn = pyfftw.interfaces.scipy_fftpack.fftn
-   scipy.signal.signaltools.ifftn = pyfftw.interfaces.scipy_fftpack.ifftn
+   
+   # Monkey patch fftpack with pyfftw.interfaces.scipy_fftpack
+   scipy.fftpack = pyfftw.interfaces.scipy_fftpack
    scipy.signal.fftconvolve(a, b) # We cheat a bit by doing the planning first
 
    # Turn on the cache for optimum performance
@@ -144,6 +143,14 @@ which outputs something like:
 
    Time with scipy.fftpack: 0.598 seconds
    Time with monkey patched scipy_fftpack: 0.251 seconds
+
+Note that prior to Scipy 0.16, it was necessary to patch the individual
+functions in ``scipy.signal.signaltools``. For example:
+
+.. code-block:: python
+
+   scipy.signal.signaltools.ifftn = pyfftw.interfaces.scipy_fftpack.ifftn
+
 
 .. _FFTW_tutorial:
 
