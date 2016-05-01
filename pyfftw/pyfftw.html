@@ -142,15 +142,30 @@ real transform for greater than one dimension, it is not
 possible to preserve the input, making this flag implicit
 in that case. A little more on this is given 
 <a class="reference internal" href="#scheme-table"><em>below</em></a>.</li>
+<li><tt class="docutils literal"><span class="pre">'FFTW_WISDOM_ONLY'</span></tt> is supported.
+This tells FFTW to raise an error if no plan for this transform
+and data type is already in the wisdom. It thus provides a method
+to determine whether planning would require additional effor or the
+cached wisdom can be used. This flag should be combined with the
+various planning-effort flags (<tt class="docutils literal"><span class="pre">'FFTW_ESTIMATE'</span></tt>,
+<tt class="docutils literal"><span class="pre">'FFTW_MEASURE'</span></tt>, etc.); if so, then an error will be raised if
+wisdom derived from that level of planning effort (or higher) is 
+not present. If no planning-effort flag is used, the default of
+<tt class="docutils literal"><span class="pre">'FFTW_ESTIMATE'</span></tt> is assumed.
+Note that wisdom is specific to all the parameters, including the
+data alignment. That is, if wisdom was generated with input/output
+arrays with one specific alignment, using <tt class="docutils literal"><span class="pre">'FFTW_WISDOM_ONLY'</span></tt>
+to create a plan for arrays with any different alignment will 
+cause the <tt class="docutils literal"><span class="pre">'FFTW_WISDOM_ONLY'</span></tt> planning to fail. Thus it is
+important to specifically control the data alignment to make the
+best use of <tt class="docutils literal"><span class="pre">'FFTW_WISDOM_ONLY'</span></tt>.</li>
 </ul>
 <p>The <a class="reference external" href="http://www.fftw.org/fftw3_doc/Planner-Flags.html#Planner-Flags">FFTW planner flags documentation</a>
 has more information about the various flags and their impact.
 Note that only the flags documented here are supported.</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">threads</span></tt> tells the wrapper how many threads to use
-when invoking FFTW, with a default of 1. If the number
-of threads is greater than 1, then the GIL is released
-by necessity.</p>
+when invoking FFTW, with a default of 1.</p>
 </li>
 <li><p class="first"><tt class="docutils literal"><span class="pre">planning_timelimit</span></tt> is a floating point number that 
 indicates to the underlying FFTW planner the maximum number of

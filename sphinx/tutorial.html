@@ -152,9 +152,8 @@ patched in order to speed it up.</p>
 
 <span class="k">print</span><span class="p">(</span><span class="s">&#39;Time with scipy.fftpack: </span><span class="si">%1.3f</span><span class="s"> seconds&#39;</span> <span class="o">%</span> <span class="n">t</span><span class="o">.</span><span class="n">timeit</span><span class="p">(</span><span class="n">number</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>
 
-<span class="c"># Monkey patch in fftn and ifftn from pyfftw.interfaces.scipy_fftpack</span>
-<span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">signaltools</span><span class="o">.</span><span class="n">fftn</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">interfaces</span><span class="o">.</span><span class="n">scipy_fftpack</span><span class="o">.</span><span class="n">fftn</span>
-<span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">signaltools</span><span class="o">.</span><span class="n">ifftn</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">interfaces</span><span class="o">.</span><span class="n">scipy_fftpack</span><span class="o">.</span><span class="n">ifftn</span>
+<span class="c"># Monkey patch fftpack with pyfftw.interfaces.scipy_fftpack</span>
+<span class="n">scipy</span><span class="o">.</span><span class="n">fftpack</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">interfaces</span><span class="o">.</span><span class="n">scipy_fftpack</span>
 <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">fftconvolve</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="c"># We cheat a bit by doing the planning first</span>
 
 <span class="c"># Turn on the cache for optimum performance</span>
@@ -167,6 +166,11 @@ patched in order to speed it up.</p>
 <p>which outputs something like:</p>
 <div class="highlight-none"><div class="highlight"><pre>Time with scipy.fftpack: 0.598 seconds
 Time with monkey patched scipy_fftpack: 0.251 seconds
+</pre></div>
+</div>
+<p>Note that prior to Scipy 0.16, it was necessary to patch the individual
+functions in <tt class="docutils literal"><span class="pre">scipy.signal.signaltools</span></tt>. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">signaltools</span><span class="o">.</span><span class="n">ifftn</span> <span class="o">=</span> <span class="n">pyfftw</span><span class="o">.</span><span class="n">interfaces</span><span class="o">.</span><span class="n">scipy_fftpack</span><span class="o">.</span><span class="n">ifftn</span>
 </pre></div>
 </div>
 </div>
