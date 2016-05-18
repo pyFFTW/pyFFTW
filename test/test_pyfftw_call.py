@@ -395,6 +395,7 @@ class FFTWCallTest(unittest.TestCase):
         # Should be the case for double inputs...
         _input_array = empty_aligned((256, 512), dtype='complex128', n=16)
 
+        self.fft()
         ifft = FFTW(self.output_array, _input_array,
                 direction='FFTW_BACKWARD')
 
