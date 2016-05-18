@@ -83,7 +83,7 @@ def fft(x, n=None, axis=-1, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-    return numpy_fft.fft(x, n, axis, overwrite_x, planner_effort,
+    return numpy_fft.fft(x, n, axis, None, overwrite_x, planner_effort,
             threads, auto_align_input, auto_contiguous)
 
 def ifft(x, n=None, axis=-1, overwrite_x=False,
@@ -96,8 +96,8 @@ def ifft(x, n=None, axis=-1, overwrite_x=False,
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
 
-    return numpy_fft.ifft(x, n, axis, overwrite_x, planner_effort,
-            threads, auto_align_input, auto_contiguous)
+    return numpy_fft.ifft(x, n, axis, None, overwrite_x,
+            planner_effort, threads, auto_align_input, auto_contiguous)
 
 
 def fft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
@@ -110,8 +110,8 @@ def fft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
 
-    return numpy_fft.fft2(x, shape, axes, overwrite_x, planner_effort,
-            threads, auto_align_input, auto_contiguous)
+    return numpy_fft.fft2(x, shape, axes, None, overwrite_x,
+            planner_effort, threads, auto_align_input, auto_contiguous)
 
 
 def ifft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
@@ -124,8 +124,8 @@ def ifft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
     :ref:`additional argument docs <interfaces_additional_args>`.
     '''
 
-    return numpy_fft.ifft2(x, shape, axes, overwrite_x, planner_effort,
-            threads, auto_align_input, auto_contiguous)
+    return numpy_fft.ifft2(x, shape, axes, None, overwrite_x,
+            planner_effort, threads, auto_align_input, auto_contiguous)
 
 
 def fftn(x, shape=None, axes=None, overwrite_x=False,
@@ -148,8 +148,8 @@ def fftn(x, shape=None, axes=None, overwrite_x=False,
                     'of axes if it is not. If this is problematic, consider '
                     'using the numpy interface.')
 
-    return numpy_fft.fftn(x, shape, axes, overwrite_x, planner_effort,
-            threads, auto_align_input, auto_contiguous)
+    return numpy_fft.fftn(x, shape, axes, None, overwrite_x,
+            planner_effort, threads, auto_align_input, auto_contiguous)
 
 
 def ifftn(x, shape=None, axes=None, overwrite_x=False,
@@ -172,8 +172,8 @@ def ifftn(x, shape=None, axes=None, overwrite_x=False,
                     'of axes if it is not. If this is problematic, consider '
                     'using the numpy interface.')
 
-    return numpy_fft.ifftn(x, shape, axes, overwrite_x, planner_effort,
-            threads, auto_align_input, auto_contiguous)
+    return numpy_fft.ifftn(x, shape, axes, None, overwrite_x,
+            planner_effort, threads, auto_align_input, auto_contiguous)
 
 def _complex_to_rfft_output(complex_output, output_shape, axis):
     '''Convert the complex output from pyfftw to the real output expected
