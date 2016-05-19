@@ -1359,8 +1359,11 @@ cdef class FFTW:
 
         If ``ortho`` is ``True``, then the output of both forward
         and inverse DFT operations is scaled by 1/sqrt(N), where N is the
-        product of the lengths of input array on which the FFT is taken.  If
-        ortho is True then the 2-norm of fft(A) will equal the 2-norm of A.
+        product of the lengths of input array on which the FFT is taken.  This
+        ensures that the DFT is a unitary operation, meaning that it satisfies
+        Parseval's theorem (the sum of the squared values of the transform
+        output is equal to the sum of the squared values of the input).  In
+        other words, the energy of the signal is preserved.
 
         If either ``normalise_idft`` or ``ortho`` are ``True``, then
         ifft(fft(A)) = A.
