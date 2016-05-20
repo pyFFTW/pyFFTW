@@ -416,6 +416,46 @@ class FFTWCallTest(unittest.TestCase):
 
         self.assertTrue(numpy.alltrue(ref_output == test_output))
 
+    def test_call_with_ortho_on(self):
+        _input_array = empty_aligned((256, 512), dtype='complex128', n=16)
+
+        ifft = FFTW(self.output_array, _input_array,
+                    direction='FFTW_BACKWARD')
+
+        self.fft(ortho=True, normalise_idft=False)
+
+        # ortho case preserves the norm in forward direction
+        self.assertTrue(
+            numpy.allclose(numpy.linalg.norm(self.input_array),
+                           numpy.linalg.norm(self.output_array)))
+
+        ifft(ortho=True, normalise_idft=False)
+
+        # ortho case preserves the norm in backward direction
+        self.assertTrue(
+            numpy.allclose(numpy.linalg.norm(_input_array),
+                           numpy.linalg.norm(self.output_array)))
+
+        self.assertTrue(numpy.allclose(self.input_array, _input_array))
+
+        # cant select both ortho and normalise_idft
+        self.assertRaisesRegex(ValueError, 'Invalid options',
+                               self.fft, normalise_idft=True, ortho=True)
+        # cant specify orth=True with default normalise_idft=True
+        self.assertRaisesRegex(ValueError, 'Invalid options',
+                               self.fft, ortho=True)
+
+    def test_call_with_ortho_off(self):
+        _input_array = empty_aligned((256, 512), dtype='complex128', n=16)
+
+        ifft = FFTW(self.output_array, _input_array,
+                    direction='FFTW_BACKWARD')
+
+        self.fft(ortho=False)
+        ifft(ortho=False)
+
+        # Scaling by normalise_idft is performed by default
+        self.assertTrue(numpy.allclose(self.input_array, _input_array))
 
 test_cases = (
         FFTWCallTest,)

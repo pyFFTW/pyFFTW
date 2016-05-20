@@ -229,7 +229,7 @@ class _FFTWWrapper(pyfftw.FFTW):
                              axes, direction, flags, threads)
 
     def __call__(self, input_array=None, output_array=None,
-            normalise_idft=True):
+            normalise_idft=True, ortho=False):
         '''Wrap :meth:`pyfftw.FFTW.__call__` by firstly slicing the
         passed-in input array and then copying it into a sliced version
         of the internal array. These slicers are set at instantiation.
@@ -264,7 +264,8 @@ class _FFTWWrapper(pyfftw.FFTW):
             sliced_internal[:] = sliced_input
 
         output = super(_FFTWWrapper, self).__call__(input_array=None,
-                output_array=output_array, normalise_idft=normalise_idft)
+                output_array=output_array, normalise_idft=normalise_idft,
+                ortho=ortho)
 
         return output
 

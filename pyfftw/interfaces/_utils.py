@@ -48,7 +48,7 @@ from . import cache
 
 def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         threads, auto_align_input, auto_contiguous,
-        calling_func, normalise_idft=True):
+        calling_func, normalise_idft=True, ortho=False):
 
     work_with_copy = False
 
@@ -132,7 +132,7 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         if cache.is_enabled():
             cache._fftw_cache.insert(FFTW_object, key)
 
-        output_array = FFTW_object(normalise_idft=normalise_idft)
+        output_array = FFTW_object(normalise_idft=normalise_idft, ortho=ortho)
 
     else:
         orig_output_array = FFTW_object.output_array
@@ -144,6 +144,6 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
             output_shape, output_dtype, n=output_alignment)
 
         FFTW_object(input_array=a, output_array=output_array,
-                normalise_idft=normalise_idft)
+                normalise_idft=normalise_idft, ortho=ortho)
 
     return output_array

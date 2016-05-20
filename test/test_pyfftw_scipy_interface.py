@@ -193,6 +193,9 @@ for each_func in funcs:
     globals()[class_name] = type(class_name,
             (parent_class,), class_dict)
 
+    # unlike numpy, none of the scipy functions support the norm kwarg
+    globals()[class_name].has_norm_kwarg = False
+
     built_classes.append(globals()[class_name])
 
 built_classes = tuple(built_classes)

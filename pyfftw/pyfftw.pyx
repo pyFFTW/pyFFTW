@@ -654,6 +654,7 @@ cdef class FFTW:
     cdef object _flags_used
 
     cdef double _normalisation_scaling
+    cdef double _sqrt_normalisation_scaling
 
     cdef int _rank
     cdef _fftw_iodim *_dims
@@ -977,6 +978,7 @@ cdef class FFTW:
 
         self._N = total_N
         self._normalisation_scaling = 1/float(self.N)
+        self._sqrt_normalisation_scaling = np.sqrt(self._normalisation_scaling)
 
         # Now we can validate the array shapes
         cdef validator _validator
@@ -1337,8 +1339,9 @@ cdef class FFTW:
             free(self._howmany_dims)
 
     def __call__(self, input_array=None, output_array=None,
-            normalise_idft=True):
-        '''__call__(input_array=None, output_array=None, normalise_idft=True)
+            normalise_idft=True, ortho=False):
+        '''__call__(input_array=None, output_array=None, normalise_idft=True,
+                    ortho=False)
 
         Calling the class instance (optionally) updates the arrays, then
         calls :meth:`~pyfftw.FFTW.execute`, before optionally normalising
@@ -1353,6 +1356,17 @@ cdef class FFTW:
         scaled by 1/N, where N is the product of the lengths of input array on
         which the FFT is taken. If the direction is ``'FFTW_FORWARD'``, this
         flag makes no difference to the output array.
+
+        If ``ortho`` is ``True``, then the output of both forward
+        and inverse DFT operations is scaled by 1/sqrt(N), where N is the
+        product of the lengths of input array on which the FFT is taken.  This
+        ensures that the DFT is a unitary operation, meaning that it satisfies
+        Parseval's theorem (the sum of the squared values of the transform
+        output is equal to the sum of the squared values of the input).  In
+        other words, the energy of the signal is preserved.
+
+        If either ``normalise_idft`` or ``ortho`` are ``True``, then
+        ifft(fft(A)) = A.
 
         When ``input_array`` is something other than None, then the passed in
         array is coerced to be the same dtype as the input array used when the
@@ -1393,6 +1407,10 @@ cdef class FFTW:
         need the data to persist longer than a subsequent call, you should
         copy the returned array.
         '''
+
+        if ortho and normalise_idft:
+            raise ValueError('Invalid options: ortho and normalise_idft cannot'
+                             ' both be True.')
 
         if input_array is not None or output_array is not None:
 
@@ -1438,7 +1456,9 @@ cdef class FFTW:
 
         self.execute()
 
-        if self._direction == FFTW_BACKWARD and normalise_idft:
+        if ortho == True:
+            self._output_array *= self._sqrt_normalisation_scaling
+        elif self._direction == FFTW_BACKWARD and normalise_idft:
             self._output_array *= self._normalisation_scaling
 
         return self._output_array
