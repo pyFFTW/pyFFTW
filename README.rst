@@ -131,7 +131,7 @@ Install FFTW from `homebrew <http://brew.sh>`_::
 Set temporary environmental variables, such that pyfftw finds fftw::
 
   export DYLD_LIBRARY_PATH=/usr/local/lib
-  export LDFLAGS="-L/usr/local/include"
+  export LDFLAGS="-L/usr/local/lib"
   export CFLAGS="-I/usr/local/include"
 
 Now install pyfftw from pip::
