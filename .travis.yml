@@ -27,7 +27,7 @@ before_install:
   - conda info -a
 
 install:
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy cython setuptools
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION nomkl numpy scipy cython setuptools
   - source activate test-environment
   - python setup.py build_ext --inplace
 
