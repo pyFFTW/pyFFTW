@@ -12,7 +12,7 @@ function deploy_to_bintray() {
     }
 
     $python_version = $env:PYTHON_VERSION -replace '\.',''
-    $filename = "pyFFTW-$version-cp$python_version-none-$platform_suffix.whl"
+    $filename = "pyFFTW-$version-cp$python_version-cp${python_version}m-$platform_suffix.whl"
     $filepath = ".\dist\$filename"
     $username_password = "${env:bintray_username}:${env:bintray_api_key}"
 

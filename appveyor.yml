@@ -58,7 +58,7 @@ install:
 
     - "conda config --set always_yes yes"
     - "conda update -q conda"
-    - "conda create -q -n build_env python=%PYTHON_VERSION% numpy=1.9 scipy cython setuptools"
+    - "conda create -q -n build_env python=%PYTHON_VERSION% nomkl numpy=1.9 scipy cython setuptools"
     - "activate build_env"
     - "%CMD_IN_ENV% python setup.py bdist_wheel"
     - "%CMD_IN_ENV% python setup.py build_ext --inplace"
@@ -78,7 +78,7 @@ deploy_script:
 
 on_finish:
     # Uncomment the following to enable the remote environment
-    - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+    #- ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 #after_test:
 
 #on_success:
