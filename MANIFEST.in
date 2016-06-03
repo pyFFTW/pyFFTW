@@ -6,8 +6,7 @@ include pyfftw/pyfftw.pyx
 include pyfftw/pyfftw.pxd
 include pyfftw/cpu.pxd
 include pyfftw/utils.pxi
-include test/test_*.py
-include test/__init__.py
+include test/*.py
 include conf.py
 include index.rst
 recursive-include pyfftw *.rst
