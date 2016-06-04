@@ -53,9 +53,6 @@ MICRO = 1
 ISRELEASED = False
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
-static_fftw_path = os.environ.get('STATIC_FFTW_DIR', None)
-link_static_fftw = static_fftw_path is not None
-
 def get_package_data():
     from pkg_resources import get_build_platform
 
@@ -104,10 +101,13 @@ def get_libraries():
 def get_extensions():
     from distutils.extension import Extension
 
+    # will use static linking if STATIC_FFTW_DIR defined
+    static_fftw_path = os.environ.get('STATIC_FFTW_DIR', None)
+    link_static_fftw = static_fftw_path is not None
+
     common_extension_args = {
         'include_dirs': get_include_dirs(),
-        'library_dirs': get_library_dirs(),
-        'libraries': get_libraries()}
+        'library_dirs': get_library_dirs()}
 
     try:
         from Cython.Build import cythonize
@@ -124,6 +124,7 @@ def get_extensions():
 
         have_cython = False
 
+    libraries = get_libraries()
     if link_static_fftw:
         from pkg_resources import get_build_platform
         if get_build_platform() in ('win32', 'win-amd64'):
@@ -133,18 +134,19 @@ def get_extensions():
             lib_pre = 'lib'
             lib_ext = '.a'
         extra_link_args = []
-        for lib in common_extension_args['libraries']:
+        for lib in libraries:
             extra_link_args.append(
                 os.path.join(static_fftw_path, lib_pre + lib + lib_ext))
-        # now that full paths to libraries are in extra_link_args remove them
-        # from common_extension_args
+
+        common_extension_args['extra_link_args'] = extra_link_args
         common_extension_args['libraries'] = []
     else:
+        # otherwise we use dynamic libraries
         extra_link_args = []
+        common_extension_args['libraries'] = libraries
 
     ext_modules = [
         Extension('pyfftw.pyfftw', sources=sources,
-                  extra_link_args=extra_link_args,
                   **common_extension_args)]
 
     if have_cython:
