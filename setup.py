@@ -142,7 +142,7 @@ def get_extensions():
         common_extension_args['libraries'] = []
     else:
         # otherwise we use dynamic libraries
-        extra_link_args = []
+        common_extension_args['extra_link_args'] = []
         common_extension_args['libraries'] = libraries
 
     ext_modules = [
