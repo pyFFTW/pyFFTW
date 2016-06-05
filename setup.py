@@ -47,10 +47,37 @@ from distutils.ccompiler import get_default_compiler
 import os
 import sys
 
+if os.environ.get('TRAVIS_TAG') is not None:
+    git_tag = os.environ.get('TRAVIS_TAG')
+elif os.environ.get('APPVEYOR_REPO_TAG') == 'True':
+    git_tag = os.environ.get('APPVEYOR_REPO_TAG_NAME')
+else:
+    git_tag = None
+
 MAJOR = 0
 MINOR = 10
 MICRO = 3
-ISRELEASED = False
+
+if git_tag is not None:
+    # Check the tag is properly formed and in agreement with the
+    # expected versio number before declaring a release.
+    import re
+    version_re = re.compile(r'v[0-9]+\.[0-9]+\.[0-9]+')
+    if version_re.match(git_tag) is not None:
+        tag_major, tag_minor, tag_micro = [
+            int(each) for each in git_tag[1:].split('.')]
+        
+        assert tag_major == MAJOR
+        assert tag_minor == MINOR
+        assert tag_micro == MICRO
+        
+        ISRELEASED = True
+    else:
+        raise ValueError("Malformed version tag for release")
+
+else:
+    ISRELEASED = False
+
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 def get_package_data():
@@ -101,10 +128,13 @@ def get_libraries():
 def get_extensions():
     from distutils.extension import Extension
 
+    # will use static linking if STATIC_FFTW_DIR defined
+    static_fftw_path = os.environ.get('STATIC_FFTW_DIR', None)
+    link_static_fftw = static_fftw_path is not None
+
     common_extension_args = {
         'include_dirs': get_include_dirs(),
-        'library_dirs': get_library_dirs(),
-        'libraries': get_libraries()}
+        'library_dirs': get_library_dirs()}
 
     try:
         from Cython.Build import cythonize
@@ -120,6 +150,27 @@ def get_extensions():
                 'Cython is required to build the initial .c file.')
 
         have_cython = False
+
+    libraries = get_libraries()
+    if link_static_fftw:
+        from pkg_resources import get_build_platform
+        if get_build_platform() in ('win32', 'win-amd64'):
+            lib_pre = ''
+            lib_ext = '.lib'
+        else:
+            lib_pre = 'lib'
+            lib_ext = '.a'
+        extra_link_args = []
+        for lib in libraries:
+            extra_link_args.append(
+                os.path.join(static_fftw_path, lib_pre + lib + lib_ext))
+
+        common_extension_args['extra_link_args'] = extra_link_args
+        common_extension_args['libraries'] = []
+    else:
+        # otherwise we use dynamic libraries
+        common_extension_args['extra_link_args'] = []
+        common_extension_args['libraries'] = libraries
 
     ext_modules = [
         Extension('pyfftw.pyfftw', sources=sources,
