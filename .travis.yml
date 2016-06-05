@@ -2,6 +2,11 @@ language: python
 
 sudo: false
 
+env:
+    global:
+        # github_changelog_generator API key
+        - secure: "cVLx3K6GXatYjpLHIPByBHLdNxcYrQyyESvg+JBxSkk7eVqkEDLw8BM4lkoCqG0vtrOcpiWAvV9hUo5pd9KijIbG8BoYWvNfs5rA3fUaK8fef7jhZcpaztZQK8rh05n2s8oheGUxhcIuKgKm0VP4FnoO//yjNmy9GQEm0gz9RJTW3zkd9JbZOkA8FqSgFFKlzSebaj841SKPh1Ax4O1rkf0KbSUPv/IS5eCgmY1yW7VpQJubXMrb6GAnrl+vADJCF/oFs7lM/4exU565dLgFmSFqDvt9re0RYof36rrz7EUSb0n7WV+j62waHf9RNiGVVt1B5/7zpVodJk2hIw+yrbuBXnKcLV7286/31ULxxoAfwL9DWQZdY1HbS/v4VOTdct7Wwftxjqj2D+bMgEBz3LxXSBOoPvpGWDL1N02O5Vs7GmMWGB8E2Q0HiXf7cKmJx8oRAgHY3naGVSWll98IONdx6bNos9Gs/xlYLE92pQYhoABTGELgebBFTcw+lXIv0pg1WVV8XsDieWX9ZWy5NIrbU1CQG4W+kGaTIraegTs9aHQWiHRxgQDE0+VgKsIpi2w7OjcnpewWiNDt8sNkTEi95WQcoMW1VC/mlq9IIK3TqcyVU4lGU6HCK1GvZVqsQMdjJg6oX2v5DtliM6DuNSzGnVjYgud+uqcs2USSRYg="
+
 python:
   - 2.7
   - 3.3
@@ -32,3 +37,21 @@ install:
   - python setup.py build_ext --inplace
 
 script: python setup.py test
+
+before_deploy:
+  - rvm default
+  - gem install github_changelog_generator
+  - github_changelog_generator -u pyFFTW -p pyFFTW
+
+deploy:
+    provider: pypi
+    skip_cleanup: true
+    user: "pyfftw_citools"
+    distributions: "sdist"
+    password:
+        secure: "SrQ6L3Fn3bh/Mv2YLmhf1e62ZAJE3j+NlyjmQg9rehxlsmo8Lh1M4Jl3f6bfnnh72B/zn121vGGKgVWTyNmLPQzc0sD21Y/1m3OOQ5BM/Swi6aOnAoq8A4Xd5m/y+pScKNY6qlTQYOQL9gTBHFxubsedcan8ndCi4Ew+HN2Gd5wAQ1HgSklGmzXE1kRLoeZPWRkkBIVgM6TcCVFgdb+QVTzmTQ9RtUe36sQ7650CGsqUnEI4WiYQKXcqeQ2A60HDzDz0HIz4PL3AYiZsHdgi10uLG4NTph7pzPUzHTPT9jENB5nyjTUg7M5phCgd54FJmHhgYfSk9Pe0uAWkbordL8OZRDIE3eMk1xN9Rx+Pvo1plGBMAMy3WOPwdRhNxK3qoz0fD6/k6GrgOCO3QraqzECaQEMKmVPw93GrHiiQsk6Rc7iYmYglxCIEaX/OPy67Pz447hOmOlr+n03PIeoCZIjZlBcZtwVKljHcLScdnC+2DaXYWc/n+zO0/6YyJlYSDhbwok3I4/SqgfidmhZC12mQjzpuQPUy2zK3wbDLe9214YKiUki1ii1isFl6xYNsTyUwYzedUT/6ffFwtahEL50U6niYzSj3r6foY5YWU2vgT2c9W3vPJxoo9BcFJ15afJbhri5y4PpeC2zqB1QhFMq7ueMydOFUCj7nSBP6Rew="
+    on:
+        repo: pyFFTW/pyFFTW
+        # We only need to build deploy one source release
+        condition: $TRAVIS_PYTHON_VERSION = "2.7"
+        tags: true
