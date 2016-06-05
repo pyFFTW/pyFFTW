@@ -47,7 +47,7 @@ from distutils.ccompiler import get_default_compiler
 import os
 import sys
 
-if os.environ.get('TRAVIS_TAG') is not None:
+if os.environ.get('TRAVIS_TAG') != '':
     git_tag = os.environ.get('TRAVIS_TAG')
 elif os.environ.get('APPVEYOR_REPO_TAG') == 'True':
     git_tag = os.environ.get('APPVEYOR_REPO_TAG_NAME')
