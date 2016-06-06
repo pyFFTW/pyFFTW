@@ -56,8 +56,8 @@ import sys
 
 MAJOR = 0
 MINOR = 10
-MICRO = 4
-ISRELEASED = True
+MICRO = 5
+ISRELEASED = False
 
 #if git_tag is not None:
 #    # Check the tag is properly formed and in agreement with the
