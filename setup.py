@@ -49,7 +49,7 @@ import sys
 
 if os.environ.get('TRAVIS_TAG') != '':
     git_tag = os.environ.get('TRAVIS_TAG')
-elif os.environ.get('APPVEYOR_REPO_TAG') == 'True':
+elif os.environ.get('APPVEYOR_REPO_TAG_NAME') is not None:
     git_tag = os.environ.get('APPVEYOR_REPO_TAG_NAME')
 else:
     git_tag = None
