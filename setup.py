@@ -47,36 +47,37 @@ from distutils.ccompiler import get_default_compiler
 import os
 import sys
 
-if os.environ.get('TRAVIS_TAG') != '':
-    git_tag = os.environ.get('TRAVIS_TAG')
-elif os.environ.get('APPVEYOR_REPO_TAG_NAME') is not None:
-    git_tag = os.environ.get('APPVEYOR_REPO_TAG_NAME')
-else:
-    git_tag = None
+#if os.environ.get('TRAVIS_TAG') != '':
+#    git_tag = os.environ.get('TRAVIS_TAG')
+#elif os.environ.get('APPVEYOR_REPO_TAG_NAME') is not None:
+#    git_tag = os.environ.get('APPVEYOR_REPO_TAG_NAME')
+#else:
+#    git_tag = None
 
 MAJOR = 0
 MINOR = 10
-MICRO = 3
+MICRO = 4
+ISRELEASED = True
 
-if git_tag is not None:
-    # Check the tag is properly formed and in agreement with the
-    # expected versio number before declaring a release.
-    import re
-    version_re = re.compile(r'v[0-9]+\.[0-9]+\.[0-9]+')
-    if version_re.match(git_tag) is not None:
-        tag_major, tag_minor, tag_micro = [
-            int(each) for each in git_tag[1:].split('.')]
-        
-        assert tag_major == MAJOR
-        assert tag_minor == MINOR
-        assert tag_micro == MICRO
-        
-        ISRELEASED = True
-    else:
-        raise ValueError("Malformed version tag for release")
-
-else:
-    ISRELEASED = False
+#if git_tag is not None:
+#    # Check the tag is properly formed and in agreement with the
+#    # expected versio number before declaring a release.
+#    import re
+#    version_re = re.compile(r'v[0-9]+\.[0-9]+\.[0-9]+')
+#    if version_re.match(git_tag) is not None:
+#        tag_major, tag_minor, tag_micro = [
+#            int(each) for each in git_tag[1:].split('.')]
+#        
+#        assert tag_major == MAJOR
+#        assert tag_minor == MINOR
+#        assert tag_micro == MICRO
+#        
+#        ISRELEASED = True
+#    else:
+#        raise ValueError("Malformed version tag for release")
+#
+#else:
+#    ISRELEASED = False
 
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
