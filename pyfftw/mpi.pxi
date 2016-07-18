@@ -1658,7 +1658,12 @@ cdef class FFTW_MPI:
         # thread-parallel execution
         self._threads = threads
 
-        if self._threads > 1 and (not mpi4py.rc.threaded) or (mpi4py.rc.thread_level == 'single'):
+        try:
+            mpi4py_rc_threads = mpi4py.rc.threads
+        except AttributeError:
+            mpi4py_rc_threads = mpi4py.rc.threaded
+
+        if self._threads > 1 and (not mpi4py_rc_threads) or (mpi4py.rc.thread_level == 'single'):
             warnings.warn('MPI was not initialized with proper support for threads. '
                           'FFTW needs at least MPI_THREAD_FUNNELED. Proceeding with a single thread.')
             threads = 1
