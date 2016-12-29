@@ -99,12 +99,21 @@ def _Xfftn(a, s, axes, overwrite_input,
 
     # Make the input dtype correct
     if a.dtype.char not in _rc_dtype_pairs:
-        # We make it the default dtype
-        if not real or inverse:
-            # It's going to be complex
-            a = numpy.asarray(a, dtype=_rc_dtype_pairs[_default_dtype.char])
+        if a.dtype == numpy.dtype('float16'):
+            # convert half-precision to single precision rather than double
+            if not real or inverse:
+                a = numpy.asarray(
+                    a, dtype=_rc_dtype_pairs[numpy.dtype('float32').char])
+            else:
+                a = numpy.asarray(a, dtype=_default_dtype.char)
         else:
-            a = numpy.asarray(a, dtype=_default_dtype)
+            # We make it the default dtype
+            if not real or inverse:
+                # It's going to be complex
+                a = numpy.asarray(
+                    a, dtype=_rc_dtype_pairs[_default_dtype.char])
+            else:
+                a = numpy.asarray(a, dtype=_default_dtype)
 
     elif not (real and not inverse) and not a_is_complex:
         # We need to make it a complex dtype
