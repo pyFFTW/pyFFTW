@@ -105,7 +105,7 @@ def _Xfftn(a, s, axes, overwrite_input,
                 a = numpy.asarray(
                     a, dtype=_rc_dtype_pairs[numpy.dtype('float32').char])
             else:
-                a = numpy.asarray(a, dtype=_default_dtype.char)
+                a = numpy.asarray(a, dtype=numpy.dtype('float32').char)
         else:
             # We make it the default dtype
             if not real or inverse:
