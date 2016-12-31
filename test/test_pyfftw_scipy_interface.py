@@ -76,8 +76,10 @@ def make_c2r_real_data(shape, dtype):
 
 make_complex_data = test_pyfftw_numpy_interface.make_complex_data
 
-complex_dtypes = test_pyfftw_numpy_interface.complex_dtypes
-real_dtypes = test_pyfftw_numpy_interface.real_dtypes
+# scipy.fftpack will raise an error for inputs of type float16, so unlike in
+# the numpy interfaces, we cannot validate vs. scipy.fftpack for float16 input
+complex_dtypes = (numpy.complex64, numpy.complex128, numpy.clongdouble)
+real_dtypes = (numpy.float32, numpy.float64, numpy.longdouble)
 
 def numpy_fft_replacement(a, s, axes, overwrite_input, planner_effort,
         threads, auto_align_input, auto_contiguous):
