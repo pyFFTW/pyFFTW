@@ -50,8 +50,8 @@ if LooseVersion(numpy.version.version) <= LooseVersion('1.6.2'):
     from ._cook_nd_args import _cook_nd_args
     numpy.fft.fftpack._cook_nd_args = _cook_nd_args
 
-complex_dtypes = (numpy.complex64, numpy.complex128, numpy.clongdouble)
-real_dtypes = (numpy.float32, numpy.float64, numpy.longdouble)
+complex_dtypes = (numpy.complex64, numpy.complex64, numpy.complex128, numpy.clongdouble)
+real_dtypes = (numpy.float16, numpy.float32, numpy.float64, numpy.longdouble)
 
 def make_complex_data(shape, dtype):
     ar, ai = dtype(numpy.random.randn(2, *shape))
@@ -243,7 +243,12 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 numpy.allclose(output_array, test_out_array,
                     rtol=1e-2, atol=1e-4))
 
-        input_precision_dtype = numpy.asanyarray(input_array).real.dtype
+        if numpy.asanyarray(input_array).real.dtype == numpy.float16:
+            # FFTW output will never be single precision for half precision
+            # inputs as there is no half-precision FFTW routine
+            input_precision_dtype = numpy.float32
+        else:
+            input_precision_dtype = numpy.asanyarray(input_array).real.dtype
 
         self.assertEqual(input_precision_dtype,
                 output_array.real.dtype)
