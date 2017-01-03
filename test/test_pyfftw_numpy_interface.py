@@ -72,6 +72,39 @@ def _numpy_fft_has_norm_kwarg():
     except TypeError:
         return False
 
+if _numpy_fft_has_norm_kwarg() and numpy.__version__ < '1.13':
+    # use version of numpy.fft.rfft* with normalisation bug fixed
+    # The patched version here, corresponds to the following bugfix PR:
+    #     https://github.com/numpy/numpy/pull/8445
+    from numpy.fft import fftpack as fftpk
+
+    def rfft_fix(a, n=None, axis=-1, norm=None):
+        # from numpy.fft import fftpack_lite as fftpack
+        # from numpy.fft.fftpack import _raw_fft, _unitary, _real_fft_cache
+        a = numpy.array(a, copy=True, dtype=float)
+        output = fftpk._raw_fft(a, n, axis, fftpk.fftpack.rffti,
+                                fftpk.fftpack.rfftf, fftpk._real_fft_cache)
+        if fftpk._unitary(norm):
+            if n is None:
+                n = a.shape[axis]
+            output *= 1 / numpy.sqrt(n)
+        return output
+
+    def rfftn_fix(a, s=None, axes=None, norm=None):
+        a = numpy.array(a, copy=True, dtype=float)
+        s, axes = fftpk._cook_nd_args(a, s, axes)
+        a = rfft_fix(a, s[-1], axes[-1], norm)
+        for ii in range(len(axes)-1):
+            a = fftpk.fft(a, s[ii], axes[ii], norm)
+        return a
+
+    def rfft2_fix(a, s=None, axes=(-2, -1), norm=None):
+        return rfftn_fix(a, s, axes, norm)
+
+    np_fft.rfft = rfft_fix
+    np_fft.rfft2 = rfft2_fix
+    np_fft.rfftn = rfftn_fix
+
 functions = {
         'fft': 'complex',
         'ifft': 'complex',
@@ -629,21 +662,17 @@ class InterfacesNumpyFFTTestIFFT(InterfacesNumpyFFTTestFFT):
 
 class InterfacesNumpyFFTTestRFFT(InterfacesNumpyFFTTestFFT):
     func = 'rfft'
-    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestIRFFT(InterfacesNumpyFFTTestFFT):
     func = 'irfft'
     realinv = True
-    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestHFFT(InterfacesNumpyFFTTestFFT):
     func = 'hfft'
     realinv = True
-    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestIHFFT(InterfacesNumpyFFTTestFFT):
     func = 'ihfft'
-    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestFFT2(InterfacesNumpyFFTTestFFT):
     axes_kw = 'axes'
@@ -688,12 +717,10 @@ class InterfacesNumpyFFTTestIFFT2(InterfacesNumpyFFTTestFFT2):
 
 class InterfacesNumpyFFTTestRFFT2(InterfacesNumpyFFTTestFFT2):
     func = 'rfft2'
-    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestIRFFT2(InterfacesNumpyFFTTestFFT2):
     func = 'irfft2'
     realinv = True
-    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestFFTN(InterfacesNumpyFFTTestFFT2):
     func = 'ifftn'
@@ -710,12 +737,10 @@ class InterfacesNumpyFFTTestIFFTN(InterfacesNumpyFFTTestFFTN):
 
 class InterfacesNumpyFFTTestRFFTN(InterfacesNumpyFFTTestFFTN):
     func = 'rfftn'
-    has_norm_kwarg = False
 
 class InterfacesNumpyFFTTestIRFFTN(InterfacesNumpyFFTTestFFTN):
     func = 'irfftn'
     realinv = True
-    has_norm_kwarg = False
 
 test_cases = (
         InterfacesNumpyFFTTestModule,
