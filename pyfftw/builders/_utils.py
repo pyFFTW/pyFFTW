@@ -73,9 +73,29 @@ _rc_dtype_pairs = {numpy.dtype('float32').char: numpy.dtype('complex64'),
 
 _default_dtype = numpy.dtype('float64')
 
+
+def _unitary(norm):
+    """_unitary() utility copied from numpy"""
+    if norm not in (None, "ortho"):
+        raise ValueError("Invalid norm value %s, should be None or \"ortho\"."
+                         % norm)
+    return norm is not None
+
+
+def _norm_args(norm):
+    """ pass the proper normalization-related keyword arguments. """
+    if _unitary(norm):
+        ortho = True
+        normalise_idft = False
+    else:
+        ortho = False
+        normalise_idft = True
+    return dict(normalise_idft=normalise_idft, ortho=ortho)
+
+
 def _Xfftn(a, s, axes, overwrite_input,
         planner_effort, threads, auto_align_input, auto_contiguous,
-        avoid_copy, inverse, real):
+        avoid_copy, inverse, real, normalise_idft=True, ortho=False):
     '''Generic transform interface for all the transforms. No
     defaults exist. The transform must be specified exactly.
     '''
@@ -161,7 +181,8 @@ def _Xfftn(a, s, axes, overwrite_input,
 
         FFTW_object = _FFTWWrapper(input_array, output_array, axes, direction,
                 flags, threads, input_array_slicer=update_input_array_slicer,
-                FFTW_array_slicer=FFTW_array_slicer)
+                FFTW_array_slicer=FFTW_array_slicer,
+                normalise_idft=normalise_idft, ortho=ortho)
 
         # We copy the data back into the internal FFTW object array
         internal_array = FFTW_object.input_array
@@ -196,7 +217,7 @@ def _Xfftn(a, s, axes, overwrite_input,
 
 
         FFTW_object = pyfftw.FFTW(input_array, output_array, axes, direction,
-                flags, threads)
+                flags, threads, normalise_idft=normalise_idft, ortho=ortho)
 
         if not avoid_copy:
             # Copy the data back into the (likely) destroyed array
@@ -212,7 +233,8 @@ class _FFTWWrapper(pyfftw.FFTW):
 
     def __init__(self, input_array, output_array, axes=[-1],
             direction='FFTW_FORWARD', flags=['FFTW_MEASURE'],
-            threads=1, input_array_slicer=None, FFTW_array_slicer=None):
+            threads=1, input_array_slicer=None, FFTW_array_slicer=None,
+            normalise_idft=True, ortho=False):
         '''The arguments are as per :class:`pyfftw.FFTW`, but with the addition
         of 2 keyword arguments: ``input_array_slicer`` and
         ``FFTW_array_slicer``.
@@ -228,6 +250,8 @@ class _FFTWWrapper(pyfftw.FFTW):
 
         self._input_array_slicer = input_array_slicer
         self._FFTW_array_slicer = FFTW_array_slicer
+        self._normalise_idft = normalise_idft
+        self._ortho = ortho
 
         if 'FFTW_DESTROY_INPUT' in flags:
             self._input_destroyed = True
@@ -238,7 +262,7 @@ class _FFTWWrapper(pyfftw.FFTW):
                              axes, direction, flags, threads)
 
     def __call__(self, input_array=None, output_array=None,
-            normalise_idft=True, ortho=False):
+            normalise_idft=None, ortho=None):
         '''Wrap :meth:`pyfftw.FFTW.__call__` by firstly slicing the
         passed-in input array and then copying it into a sliced version
         of the internal array. These slicers are set at instantiation.
@@ -271,6 +295,12 @@ class _FFTWWrapper(pyfftw.FFTW):
                         'object.')
 
             sliced_internal[:] = sliced_input
+
+        if normalise_idft is None:
+            normalise_idft = self._normalise_idft
+
+        if ortho is None:
+            ortho = self._ortho
 
         output = super(_FFTWWrapper, self).__call__(input_array=None,
                 output_array=output_array, normalise_idft=normalise_idft,
