@@ -44,8 +44,8 @@ generally return an output array with the same precision as the input
 array, and the transform that is chosen is chosen based on the precision
 of the input array. That is, if the input array is 32-bit floating point,
 then the transform will be 32-bit floating point and so will the returned
-array. If any type conversion is required, the default will be double
-precision.
+array. Half precision input will be converted to single precision.  Otherwise,
+if any type conversion is required, the default will be double precision.
 
 One known caveat is that repeated axes are handled differently to
 :mod:`numpy.fft`; axes that are repeated in the axes argument are considered
