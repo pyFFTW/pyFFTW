@@ -103,6 +103,9 @@ def get_include_dirs():
     if get_build_platform() in ('win32', 'win-amd64'):
         include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
 
+    if get_build_platform().startswith('freebsd'):
+        include_dirs.append('/usr/local/include')
+
     return include_dirs
 
 def get_library_dirs():
@@ -111,6 +114,9 @@ def get_library_dirs():
     library_dirs = []
     if get_build_platform() in ('win32', 'win-amd64'):
         library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
+
+    if get_build_platform().startswith('freebsd'):
+        library_dirs.append('/usr/local/lib')
 
     return library_dirs
 

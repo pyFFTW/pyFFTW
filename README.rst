@@ -148,6 +148,17 @@ right ones.
 - DYLD - path for libfftw3.dylib etc - ``find /usr -name libfftw3.dylib``
 - LDFLAGS - path for fftw3.h - ``find /usr -name fftw3.h``
 
+FreeBSD
+~~~~~~~
+
+Install FFTW from ports tree or ``pkg``:
+
+    - math/fftw3
+    - math/fftw3-float
+    - math/fftw3-long
+
+Please install all of them.
+
 Contributions
 -------------
 
