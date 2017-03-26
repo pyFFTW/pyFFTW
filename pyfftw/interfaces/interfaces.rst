@@ -6,6 +6,7 @@
 
    numpy_fft
    scipy_fftpack
+   dask_fft
 
 .. automodule:: pyfftw.interfaces
 
