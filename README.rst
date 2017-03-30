@@ -8,7 +8,7 @@
 
 .. |travis_ci| image:: https://travis-ci.org/pyFFTW/pyFFTW.svg?branch=master
    :align: middle
-   :target: https://travis-ci.org/hgomersall/pyFFTW
+   :target: https://travis-ci.org/pyFFTW/pyFFTW
 
 .. |appveyor_ci| image:: https://ci.appveyor.com/api/projects/status/uf854abck4x1qsjj/branch/master?svg=true
    :align: middle
