@@ -449,6 +449,9 @@ def setup_package():
     except ImportError:
         build_requires = ['numpy>=1.6, <2.0']
 
+    install_requires = []
+    install_requires.extend(build_requires)
+
     setup_args = {
         'name': 'pyFFTW',
         'version': FULLVERSION,
@@ -478,7 +481,7 @@ def setup_package():
 
     if using_setuptools:
         setup_args['setup_requires'] = build_requires
-        setup_args['install_requires'] = build_requires
+        setup_args['install_requires'] = install_requires
 
     if len(sys.argv) >= 2 and (
         '--help' in sys.argv[1:] or
