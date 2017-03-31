@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>numpy.fft interface &mdash; pyFFTW 0.10.1 documentation</title>
+    <title>numpy.fft interface &mdash; pyFFTW 0.10.4 documentation</title>
     
     <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '0.10.1',
+        VERSION:     '0.10.4',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="pyFFTW 0.10.1 documentation" href="../../index.html" />
+    <link rel="top" title="pyFFTW 0.10.4 documentation" href="../../index.html" />
     <link rel="up" title="pyfftw.interfaces - Drop in replacements for other FFT implementations" href="interfaces.html" />
     <link rel="next" title="scipy.fftpack interface" href="scipy_fftpack.html" />
     <link rel="prev" title="pyfftw.interfaces - Drop in replacements for other FFT implementations" href="interfaces.html" /> 
@@ -44,7 +44,7 @@
         <li class="right" >
           <a href="interfaces.html" title="pyfftw.interfaces - Drop in replacements for other FFT implementations"
              accesskey="P">previous</a> |</li>
-        <li><a href="../../index.html">pyFFTW 0.10.1 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">pyFFTW 0.10.4 documentation</a> &raquo;</li>
           <li><a href="../../sphinx/api.html" >API Reference</a> &raquo;</li>
           <li><a href="interfaces.html" accesskey="U"><tt class="docutils literal"><span class="pre">pyfftw.interfaces</span></tt> - Drop in replacements for other FFT implementations</a> &raquo;</li> 
       </ul>
@@ -56,12 +56,12 @@
           <div class="body">
             
   <div class="section" id="module-pyfftw.interfaces.numpy_fft">
-<span id="numpy-fft-interface"></span><h1><a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.10)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> interface<a class="headerlink" href="#module-pyfftw.interfaces.numpy_fft" title="Permalink to this headline">¶</a></h1>
+<span id="numpy-fft-interface"></span><h1><a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.11)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> interface<a class="headerlink" href="#module-pyfftw.interfaces.numpy_fft" title="Permalink to this headline">¶</a></h1>
 <p>This module implements those functions that replace aspects of the
-<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.10)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> module. This module <em>provides</em> the entire documented namespace 
-of <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.10)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, but those functions that are not included here are imported
-directly from <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.10)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>.</p>
-<p>It is notable that unlike <tt class="xref py py-mod docutils literal"><span class="pre">numpy.fftpack</span></tt>, these functions will 
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.11)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> module. This module <em>provides</em> the entire documented namespace
+of <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.11)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, but those functions that are not included here are imported
+directly from <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.11)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>.</p>
+<p>It is notable that unlike <tt class="xref py py-mod docutils literal"><span class="pre">numpy.fftpack</span></tt>, these functions will
 generally return an output array with the same precision as the input
 array, and the transform that is chosen is chosen based on the precision
 of the input array. That is, if the input array is 32-bit floating point,
@@ -69,63 +69,63 @@ then the transform will be 32-bit floating point and so will the returned
 array. If any type conversion is required, the default will be double
 precision.</p>
 <p>One known caveat is that repeated axes are handled differently to
-<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.10)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>; axes that are repeated in the axes argument are considered
-only once, as compared to <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.10)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> in which repeated axes results in
+<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.11)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>; axes that are repeated in the axes argument are considered
+only once, as compared to <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.11)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a> in which repeated axes results in
 the DFT being taken along that axes as many times as the axis occurs.</p>
 <p>The exceptions raised by each of these functions are mostly as per their
-equivalents in <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.10)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, though there are some corner cases in
+equivalents in <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.fft.html#module-numpy.fft" title="(in NumPy v1.11)"><tt class="xref py py-mod docutils literal"><span class="pre">numpy.fft</span></tt></a>, though there are some corner cases in
 which this may not be true.</p>
 <dl class="function">
 <dt id="pyfftw.interfaces.numpy_fft.fft">
-<tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">fft</tt><big>(</big><em>a</em>, <em>n=None</em>, <em>axis=-1</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.fft" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">fft</tt><big>(</big><em>a</em>, <em>n=None</em>, <em>axis=-1</em>, <em>norm=None</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.fft" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a 1D FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fft.html#numpy.fft.fft" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fft()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first four arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fft.html#numpy.fft.fft" title="(in NumPy v1.11)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fft()</span></tt></a>;
+the rest of the arguments are documented
 in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional arguments docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.interfaces.numpy_fft.ifft">
-<tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">ifft</tt><big>(</big><em>a</em>, <em>n=None</em>, <em>axis=-1</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.ifft" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">ifft</tt><big>(</big><em>a</em>, <em>n=None</em>, <em>axis=-1</em>, <em>norm=None</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.ifft" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a 1D inverse FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.ifft.html#numpy.fft.ifft" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.ifft()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first four arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.ifft.html#numpy.fft.ifft" title="(in NumPy v1.11)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.ifft()</span></tt></a>;
+the rest of the arguments are documented
 in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional arguments docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.interfaces.numpy_fft.fft2">
-<tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">fft2</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=(-2</em>, <em>-1)</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.fft2" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">fft2</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=(-2</em>, <em>-1)</em>, <em>norm=None</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.fft2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a 2D FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fft2.html#numpy.fft.fft2" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fft2()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first four arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fft2.html#numpy.fft.fft2" title="(in NumPy v1.11)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fft2()</span></tt></a>;
+the rest of the arguments are documented
 in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional arguments docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.interfaces.numpy_fft.ifft2">
-<tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">ifft2</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=(-2</em>, <em>-1)</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.ifft2" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">ifft2</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=(-2</em>, <em>-1)</em>, <em>norm=None</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.ifft2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a 2D inverse FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.ifft2.html#numpy.fft.ifft2" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.ifft2()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first four arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.ifft2.html#numpy.fft.ifft2" title="(in NumPy v1.11)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.ifft2()</span></tt></a>;
+the rest of the arguments are documented
 in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional arguments docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.interfaces.numpy_fft.fftn">
-<tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">fftn</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=None</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.fftn" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">fftn</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=None</em>, <em>norm=None</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.fftn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform an n-D FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fftn.html#numpy.fft.fftn" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fftn()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first four arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fftn.html#numpy.fft.fftn" title="(in NumPy v1.11)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.fftn()</span></tt></a>;
+the rest of the arguments are documented
 in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional arguments docs</em></a>.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pyfftw.interfaces.numpy_fft.ifftn">
-<tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">ifftn</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=None</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.ifftn" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">ifftn</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=None</em>, <em>norm=None</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.ifftn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform an n-D inverse FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.ifftn.html#numpy.fft.ifftn" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.ifftn()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first four arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.ifftn.html#numpy.fft.ifftn" title="(in NumPy v1.11)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.ifftn()</span></tt></a>;
+the rest of the arguments are documented
 in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional arguments docs</em></a>.</p>
 </dd></dl>
 
@@ -133,8 +133,8 @@ in the <a class="reference internal" href="interfaces.html#interfaces-additional
 <dt id="pyfftw.interfaces.numpy_fft.rfft">
 <tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">rfft</tt><big>(</big><em>a</em>, <em>n=None</em>, <em>axis=-1</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.rfft" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a 1D real FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfft.html#numpy.fft.rfft" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfft()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The three four arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfft.html#numpy.fft.rfft" title="(in NumPy v1.11)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfft()</span></tt></a>;
+the rest of the arguments are documented
 in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional arguments docs</em></a>.</p>
 </dd></dl>
 
@@ -142,8 +142,8 @@ in the <a class="reference internal" href="interfaces.html#interfaces-additional
 <dt id="pyfftw.interfaces.numpy_fft.irfft">
 <tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">irfft</tt><big>(</big><em>a</em>, <em>n=None</em>, <em>axis=-1</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.irfft" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a 1D real inverse FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.irfft.html#numpy.fft.irfft" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.irfft()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.irfft.html#numpy.fft.irfft" title="(in NumPy v1.11)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.irfft()</span></tt></a>;
+the rest of the arguments are documented
 in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional arguments docs</em></a>.</p>
 </dd></dl>
 
@@ -151,8 +151,8 @@ in the <a class="reference internal" href="interfaces.html#interfaces-additional
 <dt id="pyfftw.interfaces.numpy_fft.rfft2">
 <tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">rfft2</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=(-2</em>, <em>-1)</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.rfft2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a 2D real FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfft2.html#numpy.fft.rfft2" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfft2()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfft2.html#numpy.fft.rfft2" title="(in NumPy v1.11)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfft2()</span></tt></a>;
+the rest of the arguments are documented
 in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional arguments docs</em></a>.</p>
 </dd></dl>
 
@@ -160,8 +160,8 @@ in the <a class="reference internal" href="interfaces.html#interfaces-additional
 <dt id="pyfftw.interfaces.numpy_fft.irfft2">
 <tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">irfft2</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=(-2</em>, <em>-1)</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.irfft2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a 2D real inverse FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.irfft2.html#numpy.fft.irfft2" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.irfft2()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.irfft2.html#numpy.fft.irfft2" title="(in NumPy v1.11)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.irfft2()</span></tt></a>;
+the rest of the arguments are documented
 in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional arguments docs</em></a>.</p>
 </dd></dl>
 
@@ -169,8 +169,8 @@ in the <a class="reference internal" href="interfaces.html#interfaces-additional
 <dt id="pyfftw.interfaces.numpy_fft.rfftn">
 <tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">rfftn</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=None</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.rfftn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform an n-D real FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfftn.html#numpy.fft.rfftn" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfftn()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfftn.html#numpy.fft.rfftn" title="(in NumPy v1.11)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfftn()</span></tt></a>;
+the rest of the arguments are documented
 in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional arguments docs</em></a>.</p>
 </dd></dl>
 
@@ -178,8 +178,8 @@ in the <a class="reference internal" href="interfaces.html#interfaces-additional
 <dt id="pyfftw.interfaces.numpy_fft.irfftn">
 <tt class="descclassname">pyfftw.interfaces.numpy_fft.</tt><tt class="descname">irfftn</tt><big>(</big><em>a</em>, <em>s=None</em>, <em>axes=None</em>, <em>overwrite_input=False</em>, <em>planner_effort='FFTW_MEASURE'</em>, <em>threads=1</em>, <em>auto_align_input=True</em>, <em>auto_contiguous=True</em><big>)</big><a class="headerlink" href="#pyfftw.interfaces.numpy_fft.irfftn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform an n-D real inverse FFT.</p>
-<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfftn.html#numpy.fft.rfftn" title="(in NumPy v1.10)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfftn()</span></tt></a>; 
-the rest of the arguments are documented 
+<p>The first three arguments are as per <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.rfftn.html#numpy.fft.rfftn" title="(in NumPy v1.11)"><tt class="xref py py-func docutils literal"><span class="pre">numpy.fft.rfftn()</span></tt></a>;
+the rest of the arguments are documented
 in the <a class="reference internal" href="interfaces.html#interfaces-additional-args"><em>additional arguments docs</em></a>.</p>
 </dd></dl>
 
@@ -234,7 +234,7 @@ in the <a class="reference internal" href="interfaces.html#interfaces-additional
         <li class="right" >
           <a href="interfaces.html" title="pyfftw.interfaces - Drop in replacements for other FFT implementations"
              >previous</a> |</li>
-        <li><a href="../../index.html">pyFFTW 0.10.1 documentation</a> &raquo;</li>
+        <li><a href="../../index.html">pyFFTW 0.10.4 documentation</a> &raquo;</li>
           <li><a href="../../sphinx/api.html" >API Reference</a> &raquo;</li>
           <li><a href="interfaces.html" ><tt class="docutils literal"><span class="pre">pyfftw.interfaces</span></tt> - Drop in replacements for other FFT implementations</a> &raquo;</li> 
       </ul>
