@@ -27,6 +27,7 @@ from .pyfftw import (
         empty_aligned,
         ones_aligned,
         zeros_aligned,
+        next_fast_len,
 )
 
 from . import builders
