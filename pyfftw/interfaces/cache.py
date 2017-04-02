@@ -161,7 +161,7 @@ class _Cache(object):
         self._initialised.clear() # Explicitly clear it for clarity
 
         self._thread_object = _threading.Thread(target=_Cache._run,
-                args=(weakref.proxy(self), ))
+                args=(weakref.proxy(self), ), name='PyFFTWCacheThread')
 
         self._thread_object.daemon = True
         self._thread_object.start()
