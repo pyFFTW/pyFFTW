@@ -274,14 +274,14 @@ cpdef next_fast_len(target):
     >>> b = scipy_fftpack.fft(a)
 
     Zero-padding to the next fast length reduces computation time to
-    406 us, a speedup of >500 times:
+    406 us, a speedup of ~5 times:
 
-    >>> next_fast_len_pyfftw(min_len)
+    >>> next_fast_len(min_len)
     10080
     >>> b = scipy_fftpack.fft(a, 10080)
 
     Rounding up to the next power of 2 is not optimal, taking 598 us to
-    compute, 1.5 times as long as the size selected by next_fast_len_pyfftw
+    compute, 1.5 times as long as the size selected by next_fast_len.
 
     >>> b = fftpack.fft(a, 16384)
 
