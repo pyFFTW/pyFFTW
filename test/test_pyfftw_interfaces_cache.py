@@ -1,5 +1,5 @@
 #
-# Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2017 Knowledge Economy Developments Ltd
 #
 # Henry Gomersall
 # heng@kedevelopments.co.uk
@@ -49,6 +49,20 @@ import os
 
 '''Test the caching functionality of the interfaces package.
 '''
+
+def _check_n_cache_threads_running():
+    '''Return how many threads have the name 'PyFFTWCacheThread.
+
+    Obviously, this isn't production quality, but it should suffice for
+    the tests here.
+    '''
+
+    cache_threads = 0
+    for each_thread in threading.enumerate():
+        if each_thread.name == 'PyFFTWCacheThread':
+            cache_threads += 1
+
+    return cache_threads
 
 class InterfacesNumpyFFTCacheTestFFT(InterfacesNumpyFFTTestFFT):
     test_shapes = (
@@ -170,23 +184,26 @@ class CacheTest(unittest.TestCase):
         # tests.
         time.sleep(0.1)
 
-        self.assertTrue(threading.active_count() == 1)
+        self.assertTrue(_check_n_cache_threads_running() == 0)
 
         def cache_parent_thread():
             cache = interfaces.cache._Cache()
             time.sleep(0.5)
 
-        parent_t = threading.Thread(target=cache_parent_thread)
+        # We give the parent thread the same name as a Cache thread so
+        # it is picked up by the cache_threads_running function
+        parent_t = threading.Thread(
+            target=cache_parent_thread, name='PyFFTWCacheThread')
         parent_t.start()
 
         time.sleep(0.1)
         # Check it's running
-        self.assertTrue(threading.active_count() == 3)
+        self.assertTrue(_check_n_cache_threads_running() == 2)
 
         parent_t.join()
         time.sleep(0.1)
         # Check both threads have exited properly
-        self.assertTrue(threading.active_count() == 1)
+        self.assertTrue(_check_n_cache_threads_running() == 0)
 
     def test_delete_cache_object(self):
         '''Test deleting a cache object ends cache thread.
@@ -194,15 +211,15 @@ class CacheTest(unittest.TestCase):
         # Firstly make sure we've exited any lingering threads from other
         # tests.
         time.sleep(0.2)
-        self.assertTrue(threading.active_count() == 1)
+        self.assertTrue(_check_n_cache_threads_running() == 0)
 
         _cache = interfaces.cache._Cache()
         time.sleep(0.2)
-        self.assertTrue(threading.active_count() == 2)
+        self.assertTrue(_check_n_cache_threads_running() == 1)
 
         del _cache
         time.sleep(0.2)
-        self.assertTrue(threading.active_count() == 1)
+        self.assertTrue(_check_n_cache_threads_running() == 0)
 
     def test_insert_and_lookup_item(self):
         _cache = interfaces.cache._Cache()

@@ -37,11 +37,13 @@ Quick and easy: the :mod:`pyfftw.interfaces` module
 ---------------------------------------------------
 
 The easiest way to begin using :mod:`pyfftw` is through the
-:mod:`pyfftw.interfaces` module. This module implements two APIs:
-:mod:`pyfftw.interfaces.numpy_fft` and
-:mod:`pyfftw.interfaces.scipy_fftpack` which are (apart from a small
-caveat [#caveat]_) drop in replacements for :mod:`numpy.fft` and
-:mod:`scipy.fftpack` respectively.
+:mod:`pyfftw.interfaces` module. This module implements three APIs:
+:mod:`pyfftw.interfaces.numpy_fft`,
+:mod:`pyfftw.interfaces.scipy_fftpack`, and
+:mod:`pyfftw.interfaces.dask_fft`,
+which are (apart from a small
+caveat [#caveat]_) drop in replacements for :mod:`numpy.fft`,
+:mod:`scipy.fftpack`, and :mod:`dask.fft` respectively.
 
 .. doctest::
 

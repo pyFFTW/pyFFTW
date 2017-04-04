@@ -128,6 +128,16 @@ being taken along that axes as many times as the axis occurs.
 * :func:`pyfftw.interfaces.scipy_fftpack.rfft`
 * :func:`pyfftw.interfaces.scipy_fftpack.irfft`
 
+:mod:`~pyfftw.interfaces.numpy_fft`
+"""""""""""""""""""""""""""""""""""
+
+* :func:`pyfftw.interfaces.numpy_fft.fft`
+* :func:`pyfftw.interfaces.numpy_fft.ifft`
+* :func:`pyfftw.interfaces.numpy_fft.rfft`
+* :func:`pyfftw.interfaces.numpy_fft.irfft`
+* :func:`pyfftw.interfaces.numpy_fft.hfft`
+* :func:`pyfftw.interfaces.numpy_fft.ihfft`
+
 
 .. _interfaces_additional_args:
 
@@ -224,3 +234,14 @@ except ImportError:
 else:
     del scipy
     from . import scipy_fftpack
+
+try:
+    import dask.array.fft
+    dask.array.fft.fft_wrap
+except ImportError:
+    pass
+except AttributeError:
+    del dask
+else:
+    del dask
+    from . import dask_fft
