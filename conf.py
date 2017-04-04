@@ -51,7 +51,7 @@ copyright = u'2016, Henry Gomersall'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-from setup import VERSION as pyfftw_version
+from pyfftw.version import version as pyfftw_version
 # The short X.Y version.
 version = pyfftw_version
 # The full version, including alpha/beta/rc tags.
