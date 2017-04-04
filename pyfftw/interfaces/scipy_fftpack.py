@@ -260,8 +260,8 @@ def rfft(x, n=None, axis=-1, overwrite_x=False,
 
     x = numpy.asanyarray(x)
 
-    complex_output = numpy_fft.rfft(x, n, axis, overwrite_x, planner_effort,
-            threads, auto_align_input, auto_contiguous)
+    complex_output = numpy_fft.rfft(x, n, axis, None, overwrite_x,
+            planner_effort, threads, auto_align_input, auto_contiguous)
 
     output_shape = list(x.shape)
     if n is not None:
@@ -289,5 +289,5 @@ def irfft(x, n=None, axis=-1, overwrite_x=False,
 
     complex_input = _irfft_input_to_complex(x, axis)
 
-    return numpy_fft.irfft(complex_input, n, axis, overwrite_x,
+    return numpy_fft.irfft(complex_input, n, axis, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
