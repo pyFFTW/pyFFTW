@@ -81,6 +81,18 @@ ISRELEASED = True
 
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
+
+if os.environ.get("READTHEDOCS") == "True":
+    try:
+        environ = os.environb
+    except AttributeError:
+        environ = os.environ
+
+    environ[b"CC"] = b"x86_64-linux-gnu-gcc"
+    environ[b"LD"] = b"x86_64-linux-gnu-ld"
+    environ[b"AR"] = b"x86_64-linux-gnu-ar"
+
+
 def get_package_data():
     from pkg_resources import get_build_platform
 

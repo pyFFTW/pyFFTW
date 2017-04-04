@@ -1,0 +1,4 @@
+conda:
+  file: environment_doc.yml
+python:
+  setup_py_install: true
