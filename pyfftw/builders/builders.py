@@ -105,7 +105,7 @@ The actual internal input array can always be retrieved with
     >>> fft() # returns the output
     array([ 10.+0.j,  -2.+2.j,  -2.+0.j,  -2.-2.j])
 
-More examples can be found in the :doc:`tutorial </sphinx/tutorial>`.
+More examples can be found in the :doc:`tutorial </source/tutorial>`.
 
 Supported Functions and Caveats
 """""""""""""""""""""""""""""""
