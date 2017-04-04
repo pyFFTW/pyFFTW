@@ -65,6 +65,9 @@ from scipy.fftpack import (dct, idct, diff, tilbert, itilbert,
         shift, fftshift, ifftshift, fftfreq, rfftfreq,
         convolve, _fftpack)
 
+# a next_fast_len specific to pyFFTW is used in place of the scipy.fftpack one
+from ..pyfftw import next_fast_len
+
 try:
     from scipy.fftpack import dst, idst
 except ImportError:
@@ -72,7 +75,8 @@ except ImportError:
 
 __all__ = ['fft','ifft','fftn','ifftn','rfft','irfft', 'fft2','ifft2',
         'diff', 'tilbert','itilbert','hilbert','ihilbert', 'sc_diff',
-        'cs_diff','cc_diff','ss_diff', 'shift', 'rfftfreq']
+        'cs_diff','cc_diff','ss_diff', 'shift', 'rfftfreq',
+        'next_fast_len']
 
 def fft(x, n=None, axis=-1, overwrite_x=False,
         planner_effort='FFTW_ESTIMATE', threads=1,

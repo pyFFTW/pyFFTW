@@ -39,6 +39,7 @@ import unittest
 import pyfftw
 import platform
 import os
+from numpy.testing import assert_, assert_equal
 
 def get_cpus_info():
 
@@ -88,8 +89,84 @@ class UtilsTest(unittest.TestCase):
             else:
                 self.assertTrue(pyfftw.simd_alignment == 1)
 
+
+class NextFastLenTest(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+
+        super(NextFastLenTest, self).__init__(*args, **kwargs)
+
+        if not hasattr(self, 'assertRaisesRegex'):
+            self.assertRaisesRegex = self.assertRaisesRegexp
+
+    def test_next_fast_len(self):
+
+        def nums():
+            for j in range(1, 1000):
+                yield j
+            yield 2**5 * 3**5 * 4**5 + 1
+
+        for n in nums():
+            m = pyfftw.next_fast_len(n)
+            msg = "n=%d, m=%d" % (n, m)
+
+            assert_(m >= n, msg)
+
+            # check regularity
+            k = m
+            num11 = num13 = 0
+            # These factors come from the description in the FFTW3 docs:
+            #     http://fftw.org/fftw3_doc/Complex-DFTs.html#Complex-DFTs
+            for d in [2, 3, 5, 7, 11, 13]:
+                while True:
+                    a, b = divmod(k, d)
+                    if b == 0:
+                        k = a
+                        if d in [11, 13]:
+                            # only allowed to match 11 or 13 once
+                            if num11 > 0 or num13 > 0:
+                                break
+                            if d == 11:
+                                num11 += 1
+                            else:
+                                num13 += 1
+                    else:
+                        break
+            assert_equal(k, 1, err_msg=msg)
+
+    def test_next_fast_len_strict(self):
+        strict_test_cases = {
+            1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 11: 11, 13: 13,
+            14: 14, 15: 15, 16: 16, 17: 18, 1021: 1024,
+
+            # 2 * 3 * 5 * 7 * 11
+            2310: 2310,
+            2310 - 1: 2310,
+            # 2 * 3 * 5 * 7 * 13
+            2730: 2730,
+            2730 - 1: 2730,
+            # 2**2 * 3**2 * 5**2 * 7**2 * 11
+            485100: 485100,
+            485100-1: 485100,
+            # 2**2 * 3**2 * 5**2 * 7**2 * 13
+            573300: 573300,
+            573300-1: 573300,
+
+            # more than one multiple of 11 or 13 is not accepted
+            # 2 * 3 * 5 * 7 * 11**2
+            25410: 25872,
+            # 2 * 3 * 5 * 7 * 13**2
+            35490: 35672,
+            # 2 * 3 * 5 * 7 * 11 * 13
+            30030: 30576,
+
+        }
+        for x, y in strict_test_cases.items():
+            assert_equal(pyfftw.next_fast_len(x), y)
+
 test_cases = (
-        UtilsTest,)
+        UtilsTest,
+        NextFastLenTest)
 
 test_set = None
 

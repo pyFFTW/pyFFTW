@@ -92,3 +92,5 @@ Utility Functions
 .. autofunction:: pyfftw.n_byte_align_empty
 
 .. autofunction:: pyfftw.is_n_byte_aligned
+
+.. autofunction:: pyfftw.next_fast_len
