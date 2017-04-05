@@ -40,7 +40,8 @@ from ._get_default_args import get_default_args
 import unittest
 import numpy
 import numpy as np
-from numpy import fft as np_fft
+# import the numpy fft routines having the rfft normalization bug fix
+from .test_pyfftw_numpy_interface import np_fft, _numpy_fft_has_norm_kwarg
 import copy
 import warnings
 warnings.filterwarnings('always')
@@ -91,6 +92,7 @@ class BuildersTestFFT(unittest.TestCase):
             ((128, 32), {'axis': -1}),
             ((59, 100), {}),
             ((32, 32, 4), {'axis': 1}),
+            ((32, 32, 4), {'axis': 1, 'norm': 'ortho'}),
             ((64, 128, 16), {}),
             )
 
@@ -103,6 +105,7 @@ class BuildersTestFFT(unittest.TestCase):
             ((100,), (100, -20), IndexError, ''))
 
     realinv = False
+    has_norm_kwarg = _numpy_fft_has_norm_kwarg()
 
     def __init__(self, *args, **kwargs):
 
@@ -116,6 +119,9 @@ class BuildersTestFFT(unittest.TestCase):
         for test_shape, kwargs in self.test_shapes:
             axes = self.axes_from_kwargs(kwargs)
             s = self.s_from_kwargs(test_shape, kwargs)
+
+            if not self.has_norm_kwarg and 'norm' in kwargs:
+                kwargs.pop('norm')
 
             if self.realinv:
                 test_shape = list(test_shape)
@@ -152,13 +158,15 @@ class BuildersTestFFT(unittest.TestCase):
             output_array = FFTW_object(input_array.copy())
             output_array_2 = FFTW_object(input_array.copy())
 
-
             if 'axes' in kwargs:
                 axes = {'axes': kwargs['axes']}
             elif 'axis' in kwargs:
                 axes = {'axis': kwargs['axis']}
             else:
                 axes = {}
+
+            if self.has_norm_kwarg and 'norm' in kwargs:
+                axes['norm'] = kwargs['norm']
 
             test_out_array = getattr(np_fft, self.func)(
                     np_input_array.copy(), s, **axes)
@@ -732,6 +740,7 @@ class BuildersTestFFT2(BuildersTestFFT):
             ((128, 32), {'axes': None}),
             ((128, 32, 4), {'axes': (0, 2)}),
             ((59, 100), {'axes': (-2, -1)}),
+            ((59, 100), {'axes': (-2, -1), 'norm': 'ortho'}),
             ((64, 128, 16), {'axes': (0, 2)}),
             ((4, 6, 8, 4), {'axes': (0, 3)}),
             )
@@ -761,6 +770,7 @@ class BuildersTestFFTN(BuildersTestFFT2):
             ((128, 32, 4), {'axes': None}),
             ((64, 128, 16), {'axes': (0, 1, 2)}),
             ((4, 6, 8, 4), {'axes': (0, 3, 1)}),
+            ((4, 6, 8, 4), {'axes': (0, 3, 1), 'norm': 'ortho'}),
             ((4, 6, 8, 4), {'axes': (0, 3, 1, 2)}),
             )
 
