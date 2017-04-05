@@ -815,8 +815,7 @@ cdef class FFTW:
 
     def _get_normalise_idft(self):
         '''
-        If normalise_idft, the inverse transform is scaled by 1/N.
-        N is the product of the shape along the transformed axes.
+        If ``normalise_idft=True``, the inverse transform is scaled by 1/N.
         '''
         return self._normalise_idft
 
@@ -824,7 +823,7 @@ cdef class FFTW:
 
     def _get_ortho(self):
         '''
-        If ortho both the forward and inverse transforms are scaled by
+        If ``ortho=True`` both the forward and inverse transforms are scaled by
         1/sqrt(N).
         '''
         return self._ortho

@@ -94,6 +94,13 @@ not necessarily the case that the internal array *is* the input array.
 The actual internal input array can always be retrieved with
 :attr:`pyfftw.FFTW.input_array`.
 
+The behaviour of the ``norm`` option in all builder routines matches that of
+the corresponding numpy functions.  In short, if ``norm`` is ``None``, then the
+output from the forward DFT is unscaled and the inverse DFT is scaled by 1/N,
+where N is the product of the lengths of input array on which the FFT is taken.
+If ``norm == 'ortho'``, then the output of both forward and inverse DFT
+operations are scaled by 1/sqrt(N).
+
 **Example:**
 
 .. doctest::
