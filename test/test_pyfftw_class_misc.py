@@ -342,6 +342,31 @@ class FFTWMiscTest(unittest.TestCase):
         new_fft = FFTW(self.input_array, self.output_array, axes=(0,))
         self.assertEqual(new_fft.axes, (0,))
 
+    def test_ortho_property(self):
+        '''ortho property defaults to False
+        '''
+        self.assertEqual(self.fft.ortho, False)
+
+        newfft = FFTW(self.input_array, self.output_array, ortho=True,
+                      normalise_idft=False)
+        self.assertEqual(newfft.ortho, True)
+
+    def test_normalise_idft_property(self):
+        '''normalise_idft property defaults to True
+        '''
+        self.assertEqual(self.fft.normalise_idft, True)
+
+        newfft = FFTW(self.input_array, self.output_array,
+                      normalise_idft=False)
+        self.assertEqual(newfft.normalise_idft, False)
+
+    def test_invalid_normalisation(self):
+        # both ortho and normalise_idft cannot be True
+        self.assertRaisesRegex(
+            ValueError, 'Invalid options: ortho',
+            FFTW, self.input_array, self.output_array,
+            direction='FFTW_BACKWARD', ortho=True, normalise_idft=True)
+
 test_cases = (
         FFTWMiscTest,)
 

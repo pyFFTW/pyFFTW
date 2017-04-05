@@ -848,7 +848,7 @@ cdef class FFTW:
         self._normalise_idft = normalise_idft
         self._ortho = ortho
         if self._ortho and self._normalise_idft:
-            raise ValueError('Incompatible normalization options: '
+            raise ValueError('Invalid options: '
                 'ortho and normalise_idft cannot both be True.')
 
         flags = list(flags)
