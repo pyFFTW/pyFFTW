@@ -833,7 +833,7 @@ cdef class FFTW:
     def __cinit__(self, input_array, output_array, axes=(-1,),
                   direction='FFTW_FORWARD', flags=('FFTW_MEASURE',),
                   unsigned int threads=1, planning_timelimit=None,
-                  normalise_idft=True, ortho=False,
+                  bint normalise_idft=True, bint ortho=False,
                   *args, **kwargs):
 
         # Initialise the pointers that need to be freed
