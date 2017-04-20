@@ -53,14 +53,14 @@ equivalents in :mod:`dask.fft`, though there are some corner cases in
 which this may not be true.
 '''
 
-from . import numpy_fft
+from . import numpy_fft as _numpy_fft
 from dask.array.fft import (
     fft_wrap,
 )
 
-fft = fft_wrap(numpy_fft.fft)
-ifft = fft_wrap(numpy_fft.ifft)
-rfft = fft_wrap(numpy_fft.rfft)
-irfft = fft_wrap(numpy_fft.irfft)
-hfft = fft_wrap(numpy_fft.hfft)
-ihfft = fft_wrap(numpy_fft.ihfft)
+fft = fft_wrap(_numpy_fft.fft)
+ifft = fft_wrap(_numpy_fft.ifft)
+rfft = fft_wrap(_numpy_fft.rfft)
+irfft = fft_wrap(_numpy_fft.irfft)
+hfft = fft_wrap(_numpy_fft.hfft)
+ihfft = fft_wrap(_numpy_fft.ihfft)
