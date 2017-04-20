@@ -5,7 +5,7 @@
 *.*~
 build
 dist
-docs
+docs/_build
 MANIFEST
 CHANGELOG.md
 pyFFTW.egg-info
