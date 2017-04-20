@@ -128,15 +128,15 @@ being taken along that axes as many times as the axis occurs.
 * :func:`pyfftw.interfaces.scipy_fftpack.rfft`
 * :func:`pyfftw.interfaces.scipy_fftpack.irfft`
 
-:mod:`~pyfftw.interfaces.numpy_fft`
+:mod:`~pyfftw.interfaces.dask_fft`
 """""""""""""""""""""""""""""""""""
 
-* :func:`pyfftw.interfaces.numpy_fft.fft`
-* :func:`pyfftw.interfaces.numpy_fft.ifft`
-* :func:`pyfftw.interfaces.numpy_fft.rfft`
-* :func:`pyfftw.interfaces.numpy_fft.irfft`
-* :func:`pyfftw.interfaces.numpy_fft.hfft`
-* :func:`pyfftw.interfaces.numpy_fft.ihfft`
+* :func:`pyfftw.interfaces.dask_fft.fft`
+* :func:`pyfftw.interfaces.dask_fft.ifft`
+* :func:`pyfftw.interfaces.dask_fft.rfft`
+* :func:`pyfftw.interfaces.dask_fft.irfft`
+* :func:`pyfftw.interfaces.dask_fft.hfft`
+* :func:`pyfftw.interfaces.dask_fft.ihfft`
 
 
 .. _interfaces_additional_args:
