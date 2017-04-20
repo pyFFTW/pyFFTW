@@ -58,6 +58,7 @@ which this may not be true.
 '''
 
 from ._utils import _Xfftn
+from ..builders._utils import _norm_args, _unitary
 
 # Complete the namespace (these are not actually used in this module)
 from numpy.fft import fftfreq, fftshift, ifftshift
@@ -67,22 +68,6 @@ __all__ = ['fft','ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
            'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn', 'irfftn',
            'hfft', 'ihfft', 'fftfreq', 'fftshift', 'ifftshift']
 
-def _unitary(norm):
-    """_unitary() utility copied from numpy"""
-    if norm not in (None, "ortho"):
-        raise ValueError("Invalid norm value %s, should be None or \"ortho\"."
-                         % norm)
-    return norm is not None
-
-def _norm_args(norm):
-    """ pass the proper normalization-related keyword arguments. """
-    if _unitary(norm):
-        ortho = True
-        normalise_idft = False
-    else:
-        ortho = False
-        normalise_idft = True
-    return dict(normalise_idft=normalise_idft, ortho=ortho)
 
 def fft(a, n=None, axis=-1, norm=None, overwrite_input=False,
         planner_effort='FFTW_ESTIMATE', threads=1,
@@ -95,12 +80,6 @@ def fft(a, n=None, axis=-1, norm=None, overwrite_input=False,
     '''
 
     calling_func = 'fft'
-    if _unitary(norm):
-        ortho = True
-        normalise_idft = False
-    else:
-        ortho = False
-        normalise_idft = True
 
     return _Xfftn(a, n, axis, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,

@@ -38,6 +38,10 @@ FFTW Class
 
    .. autoattribute:: pyfftw.FFTW.axes
 
+   .. autoattribute:: pyfftw.FFTW.ortho
+
+   .. autoattribute:: pyfftw.FFTW.normalise_idft
+
    .. automethod:: pyfftw.FFTW.__call__
 
    .. automethod:: pyfftw.FFTW.update_arrays

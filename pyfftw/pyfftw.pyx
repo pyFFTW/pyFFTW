@@ -665,6 +665,10 @@ cdef class FFTW:
     cdef int64_t *_not_axes
 
     cdef int64_t _N
+
+    cdef bint _normalise_idft
+    cdef bint _ortho
+
     def _get_N(self):
         '''
         The product of the lengths of the DFT over all DFT axes.
@@ -809,9 +813,27 @@ cdef class FFTW:
 
     axes = property(_get_axes)
 
+    def _get_normalise_idft(self):
+        '''
+        If ``normalise_idft=True``, the inverse transform is scaled by 1/N.
+        '''
+        return self._normalise_idft
+
+    normalise_idft = property(_get_normalise_idft)
+
+    def _get_ortho(self):
+        '''
+        If ``ortho=True`` both the forward and inverse transforms are scaled by
+        1/sqrt(N).
+        '''
+        return self._ortho
+
+    ortho = property(_get_ortho)
+
     def __cinit__(self, input_array, output_array, axes=(-1,),
                   direction='FFTW_FORWARD', flags=('FFTW_MEASURE',),
                   unsigned int threads=1, planning_timelimit=None,
+                  bint normalise_idft=True, bint ortho=False,
                   *args, **kwargs):
 
         # Initialise the pointers that need to be freed
@@ -821,6 +843,12 @@ cdef class FFTW:
 
         self._axes = NULL
         self._not_axes = NULL
+
+        self._normalise_idft = normalise_idft
+        self._ortho = ortho
+        if self._ortho and self._normalise_idft:
+            raise ValueError('Invalid options: '
+                'ortho and normalise_idft cannot both be True.')
 
         flags = list(flags)
 
@@ -1114,7 +1142,8 @@ cdef class FFTW:
 
     def __init__(self, input_array, output_array, axes=(-1,),
             direction='FFTW_FORWARD', flags=('FFTW_MEASURE',),
-            int threads=1, planning_timelimit=None):
+            int threads=1, planning_timelimit=None,
+            normalise_idft=True, ortho=False):
         '''
         **Arguments**:
 
@@ -1319,7 +1348,6 @@ cdef class FFTW:
         transform (which :class:`pyfftw.FFTW` will handle for you when
         accessed through :meth:`~pyfftw.FFTW.__call__`).
         '''
-        pass
 
     def __dealloc__(self):
 
@@ -1339,7 +1367,7 @@ cdef class FFTW:
             free(self._howmany_dims)
 
     def __call__(self, input_array=None, output_array=None,
-            normalise_idft=True, ortho=False):
+            normalise_idft=None, ortho=None):
         '''__call__(input_array=None, output_array=None, normalise_idft=True,
                     ortho=False)
 
@@ -1407,6 +1435,11 @@ cdef class FFTW:
         need the data to persist longer than a subsequent call, you should
         copy the returned array.
         '''
+
+        if ortho is None:
+            ortho = self._ortho
+        if normalise_idft is None:
+            normalise_idft = self._normalise_idft
 
         if ortho and normalise_idft:
             raise ValueError('Invalid options: ortho and normalise_idft cannot'
