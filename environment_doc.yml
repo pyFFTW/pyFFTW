@@ -1,0 +1,13 @@
+name: pyfftw_doc_env
+
+channels:
+  - conda-forge
+
+dependencies:
+  - cython
+  - fftw
+  - numpy
+  - python
+  - scipy
+  - dask
+  - sphinx
