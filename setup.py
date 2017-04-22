@@ -475,7 +475,7 @@ def setup_package():
         'description': (
             'A pythonic wrapper around FFTW, the FFT library, presenting a '
             'unified interface for all the supported transforms.'),
-        'url': 'http://pyFFTW.github.io/pyFFTW/',
+        'url': 'https://github.com/pyFFTW/pyFFTW',
         'long_description': long_description,
         'classifiers': [
             'Programming Language :: Python',
