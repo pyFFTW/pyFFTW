@@ -231,7 +231,7 @@ This should probably work for OSX, though I've not tried it.
 Numpy is a dependency for both.
 
 The documentation can be found
-`here <http://pyFFTW.github.io/pyFFTW/>`_, and the source
+`here <http://pyfftw.readthedocs.io>`_, and the source
 is on `github <https://github.com/pyFFTW/pyFFTW>`_.
 '''
 
