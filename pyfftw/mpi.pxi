@@ -383,7 +383,11 @@ def _mpi_local_input_output_shape_nD(input_shape, local_size_result, last_in, la
     if no input/output on this rank.
 
     '''
-    shapes = (np.array(input_shape), np.array(input_shape))
+    # Shapes should be integers. numpy < 1.12 created an array of ints for a
+    # tuple of ints but newer version always create an array of floats, which
+    # causes trouble when used as an index in cython.
+    dtype = 'uint64'
+    shapes = (np.array(input_shape, dtype), np.array(input_shape, dtype))
     for s, last in zip(shapes, (last_in, last_out)):
         # local portion along first dimension
         s[0] = local_size_result[1]
