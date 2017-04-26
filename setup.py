@@ -231,7 +231,7 @@ This should probably work for OSX, though I've not tried it.
 Numpy is a dependency for both.
 
 The documentation can be found
-`here <http://pyFFTW.github.io/pyFFTW/>`_, and the source
+`here <http://pyfftw.readthedocs.io>`_, and the source
 is on `github <https://github.com/pyFFTW/pyFFTW>`_.
 '''
 
@@ -475,7 +475,7 @@ def setup_package():
         'description': (
             'A pythonic wrapper around FFTW, the FFT library, presenting a '
             'unified interface for all the supported transforms.'),
-        'url': 'http://pyFFTW.github.io/pyFFTW/',
+        'url': 'https://github.com/pyFFTW/pyFFTW',
         'long_description': long_description,
         'classifiers': [
             'Programming Language :: Python',

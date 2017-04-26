@@ -1,10 +1,12 @@
-+----------+---------------+
-| CI       | Master branch |
-+==========+===============+
-| Travis   | |travis_ci|   |
-+----------+---------------+
-| Appveyor | |appveyor_ci| |
-+----------+---------------+
++---------------+-----------------+
+| Service       | Master branch   |
++===============+=================+
+| Travis        | |travis_ci|     |
++---------------+-----------------+
+| Appveyor      | |appveyor_ci|   |
++---------------+-----------------+
+| Read the Docs | |read_the_docs| |
++---------------+-----------------+
 
 .. |travis_ci| image:: https://travis-ci.org/pyFFTW/pyFFTW.svg?branch=master
    :align: middle
@@ -13,6 +15,10 @@
 .. |appveyor_ci| image:: https://ci.appveyor.com/api/projects/status/uf854abck4x1qsjj/branch/master?svg=true
    :align: middle
    :target: https://ci.appveyor.com/project/hgomersall/pyfftw
+
+.. |read_the_docs| image:: https://readthedocs.org/projects/pyfftw/badge/?version=latest
+   :align: middle
+   :target: http://pyfftw.readthedocs.io/en/latest/?badge=latest
 
 PyFFTW
 ======
@@ -36,7 +42,7 @@ A comprehensive unittest suite can be found with the source on the github
 repository or with the source distribution on PyPI.
 
 The documentation can be found on
-`github pages <http://pyfftw.github.io/pyFFTW>`_, the source is
+`Read the Docs <http://pyfftw.readthedocs.io>`_, the source is
 on `github <https://github.com/pyFFTW/pyFFTW>`_ and the python package
 index page is `here <http://pypi.python.org/pypi/pyFFTW>`_.
 
