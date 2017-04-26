@@ -21,42 +21,49 @@ environment:
 
     matrix:
 
-        - PYTHON_VERSION: "2.7" # currently 2.7.9
+        - PYTHON_HOME: "C:\\Miniconda"
           PYTHON_ARCH: "32"
+          PYTHON_VERSION: "2.7"
 
-        - PYTHON_VERSION: "2.7" # currently 2.7.9
+        - PYTHON_HOME: "C:\\Miniconda-x64"
           PYTHON_ARCH: "64"
+          PYTHON_VERSION: "2.7"
 
-        - PYTHON_VERSION: "3.3" # currently 3.3.5
+        - PYTHON_HOME: "C:\\Miniconda3"
           PYTHON_ARCH: "32"
+          PYTHON_VERSION: "3.4"
 
-        - PYTHON_VERSION: "3.3" # currently 3.3.5
+        - PYTHON_HOME: "C:\\Miniconda3-x64"
           PYTHON_ARCH: "64"
+          PYTHON_VERSION: "3.4"
 
-        - PYTHON_VERSION: "3.4" # currently 3.4.3
+        - PYTHON_HOME: "C:\\Miniconda35"
           PYTHON_ARCH: "32"
+          PYTHON_VERSION: "3.5"
 
-        - PYTHON_VERSION: "3.4" # currently 3.4.3
+        - PYTHON_HOME: "C:\\Miniconda35-x64"
           PYTHON_ARCH: "64"
+          PYTHON_VERSION: "3.5"
 
-        - PYTHON_VERSION: "3.5"
+        - PYTHON_HOME: "C:\\Miniconda36"
           PYTHON_ARCH: "32"
+          PYTHON_VERSION: "3.6"
 
-        - PYTHON_VERSION: "3.5"
+        - PYTHON_HOME: "C:\\Miniconda36-x64"
           PYTHON_ARCH: "64"
+          PYTHON_VERSION: "3.6"
+
 
 install:
     # Get and configure the FFTW libs
     - "%CMD_IN_ENV% ./appveyor/setup_fftw_dlls.cmd"
-
-    - ps: "./appveyor/install_miniconda.ps1"
 
     # Prepend newly installed Python to the PATH of this build (this cannot be
     # done from inside the powershell script as it would require to restart
     # the parent CMD process).
     - "SET PATH=%PYTHON_HOME%;%PYTHON_HOME%\\Scripts;%PATH%"
 
-    - "conda config --set always_yes yes"
+    - "conda config --set always_yes yes --set changeps1 no"
     - "conda update -q conda"
     - "conda create -q -n build_env python=%PYTHON_VERSION% numpy=1.9 scipy cython dask setuptools"
     - "activate build_env"
