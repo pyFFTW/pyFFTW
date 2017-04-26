@@ -6,6 +6,7 @@ environment:
         CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\appveyor\\run_with_env.cmd"
         # The miniconda installations are put in pyfftw_miniconda
         PYTHON_HOME: "C:\\pyfftw_miniconda"
+        NP_BUILD_DEP: "1.9"
 
     pypi_username:
         secure: qFSpEDsIOj6gzynjuHTX5A==
@@ -48,10 +49,12 @@ environment:
         - PYTHON_HOME: "C:\\Miniconda36"
           PYTHON_ARCH: "32"
           PYTHON_VERSION: "3.6"
+          NP_BUILD_DEP: "1.11"
 
         - PYTHON_HOME: "C:\\Miniconda36-x64"
           PYTHON_ARCH: "64"
           PYTHON_VERSION: "3.6"
+          NP_BUILD_DEP: "1.11"
 
 
 install:
@@ -65,7 +68,7 @@ install:
 
     - "conda config --set always_yes yes --set changeps1 no"
     - "conda update -q conda"
-    - "conda create -q -n build_env python=%PYTHON_VERSION% numpy=1.9 scipy cython dask setuptools"
+    - "conda create -q -n build_env python=%PYTHON_VERSION% numpy=%NP_BUILD_DEP% scipy cython dask setuptools"
     - "activate build_env"
     - "%CMD_IN_ENV% python setup.py bdist_wheel"
     - "%CMD_IN_ENV% python setup.py build_ext --inplace"
