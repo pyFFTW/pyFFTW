@@ -127,6 +127,7 @@ being taken along that axes as many times as the axis occurs.
 * :func:`pyfftw.interfaces.scipy_fftpack.ifftn`
 * :func:`pyfftw.interfaces.scipy_fftpack.rfft`
 * :func:`pyfftw.interfaces.scipy_fftpack.irfft`
+* :func:`pyfftw.interfaces.scipy_fftpack.next_fast_len`
 
 :mod:`~pyfftw.interfaces.dask_fft`
 """""""""""""""""""""""""""""""""""
