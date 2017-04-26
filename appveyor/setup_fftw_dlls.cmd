@@ -4,13 +4,13 @@ call "%WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd"
 
 ECHO Downloading DLL files
 IF %PYTHON_ARCH% == 64 (
-    call curl.exe -sS -o fftw-3.3.4-dll64.zip "ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4-dll64.zip"
+    call curl.exe -sS -o fftw-3.3.5-dll64.zip "ftp://ftp.fftw.org/pub/fftw/fftw-3.3.5-dll64.zip"
     SET MACHINE=X64
-    SET FFTW_DLL_FILENAME=fftw-3.3.4-dll64.zip
+    SET FFTW_DLL_FILENAME=fftw-3.3.5-dll64.zip
 ) ELSE (
-    call curl.exe -sS -o fftw-3.3.4-dll32.zip "ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4-dll32.zip"
+    call curl.exe -sS -o fftw-3.3.5-dll32.zip "ftp://ftp.fftw.org/pub/fftw/fftw-3.3.5-dll32.zip"
     SET MACHINE=X86
-    SET FFTW_DLL_FILENAME=fftw-3.3.4-dll32.zip
+    SET FFTW_DLL_FILENAME=fftw-3.3.5-dll32.zip
 )
 ECHO Extracting DLLs from %FFTW_DLL_FILENAME%
 call 7z.exe e %FFTW_DLL_FILENAME% -opyfftw *.dll
