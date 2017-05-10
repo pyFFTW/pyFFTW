@@ -11,8 +11,6 @@ library <http://www.fftw.org/>`_. However, users may find it easier to
 use the helper routines provided in :mod:`pyfftw.builders`.
 '''
 
-from .version import version as __version__
-
 from .pyfftw import (
         FFTW,
         export_wisdom,
@@ -35,3 +33,7 @@ from . import interfaces
 
 # clean up the namespace
 del builders.builders
+
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
