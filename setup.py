@@ -55,6 +55,7 @@ import os
 import sys
 import versioneer
 
+
 if os.environ.get("READTHEDOCS") == "True":
     try:
         environ = os.environb
@@ -64,6 +65,7 @@ if os.environ.get("READTHEDOCS") == "True":
     environ[b"CC"] = b"x86_64-linux-gnu-gcc"
     environ[b"LD"] = b"x86_64-linux-gnu-ld"
     environ[b"AR"] = b"x86_64-linux-gnu-ar"
+
 
 def get_include_dirs():
     import numpy
@@ -96,6 +98,7 @@ def get_package_data():
 
     return package_data
 
+
 def get_library_dirs():
     from pkg_resources import get_build_platform
 
@@ -109,6 +112,7 @@ def get_library_dirs():
         library_dirs.append('/usr/local/lib')
 
     return library_dirs
+
 
 @contextlib.contextmanager
 def stdchannel_redirected(stdchannel, dest_filename):
@@ -135,6 +139,7 @@ def stdchannel_redirected(stdchannel, dest_filename):
             os.dup2(oldstdchannel, stdchannel.fileno())
         if dest_file is not None:
             dest_file.close()
+
 
 class EnvironmentSniffer(object):
     '''Check for availability of headers and libraries of FFTW and MPI.
@@ -508,6 +513,7 @@ def get_extensions():
                              sources=[os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')])]
     return cythonize(ext_modules)
 
+
 long_description = '''
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
 speedy FFT library. The ultimate aim is to present a unified interface for all
@@ -538,6 +544,7 @@ The documentation can be found
 `here <http://pyfftw.readthedocs.io>`_, and the source
 is on `github <https://github.com/pyFFTW/pyFFTW>`_.
 '''
+
 
 class custom_build_ext(build_ext):
     def finalize_options(self):
@@ -588,6 +595,7 @@ class custom_build_ext(build_ext):
         # delegate actual work to standard implementation
         build_ext.build_extensions(self)
 
+
 class CreateChangelogCommand(Command):
     '''Depends on the ruby program github_changelog_generator. Install with
     gem install gihub_changelog_generator.
@@ -609,6 +617,7 @@ class CreateChangelogCommand(Command):
 
         subprocess.call(['github_changelog_generator', '-t', github_token])
 
+
 class TestCommand(Command):
     user_options = []
 
@@ -623,6 +632,7 @@ class TestCommand(Command):
         errno = subprocess.call([sys.executable, '-m',
                                  'unittest', 'discover'])
         raise SystemExit(errno)
+
 
 class QuickTestCommand(Command):
     '''Runs a set of test cases that covers a limited set of the
