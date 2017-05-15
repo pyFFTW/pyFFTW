@@ -78,16 +78,27 @@ Building the MPI branch
 -----------------------
 
 This has only been tested on Ubuntu 13.10. With sudo priviledges,
+
 * install the openmpi environment, you need the MPI wrapper for the GNU C compiler, ``mpicc``
 * install the FFTW library with MPI support
 
 To have working support for a data type, one needs both the MPI version and the non-MPI version of ``libfftw3*.so`` available.
 
 Then
+
 * clone the repository from github as described above,
 * switch to the mpi branch,
-* build ``CC=mpicc python setup.py build_ext --inplace``, if ``mpicc`` is the mpi wrapper for the C compiler you wish to use.
-* make sure that setup.py confirms mpi support; example output:  ``Enabling mpi support for ['DOUBLE', 'SINGLE', 'LONG']``. If not,  enter the setup.py and increase the verbosity:  ``log.set_verbosity(2)``, then run ``setup.py`` again and diagnose the  output. If only the linking fails, adjusting ``LDSHARED=mpicc`` in addition to ``CC`` might help. Other useful variables to configure the compilation/linking include ``'CC', 'CXX', 'OPT', 'CFLAGS', 'EXTRA_CFLAGS', 'BASECFLAGS', 'CCSHARED','LDSHARED', 'SO', 'AR',  'ARFLAGS', 'CONFIGURE_CPPFLAGS', 'CONFIGURE_CFLAGS',  'CONFIGURE_LDFLAGS'``.
+* build ``CC=mpicc python setup.py build_ext --inplace``, if `mpicc`
+  is the mpi wrapper for the C compiler you wish to use.
+* make sure that setup.py confirms mpi support; example output:
+  ``Enabling mpi support for ['DOUBLE', 'SINGLE', 'LONG']``. If not,
+  enter the setup.py and increase the verbosity:
+  ``log.set_verbosity(2)``, then run ``setup.py`` again and diagnose the
+  output. If only the linking fails, adjusting ``LDSHARED=mpicc`` in
+  addition to ``CC`` might help. Other useful variables to configure the
+  compilation/linking include ``CC, CXX, OPT, CFLAGS, EXTRA_CFLAGS,
+  BASECFLAGS, CCSHARED, LDSHARED, SO, AR, ARFLAGS, CONFIGURE_CPPFLAGS,
+  CONFIGURE_CFLAGS, CONFIGURE_LDFLAGS``.
 * now you have a local package in ``pyfftw/``. If you want to install
   a symbolic link to it such that you can use it from other places as
   well while also modifying the source code and rebuilding it, do
