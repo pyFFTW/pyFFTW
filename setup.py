@@ -32,16 +32,17 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
+# import only from standard library so dependencies can be installed
 from __future__ import print_function
 
 try:
     # use setuptools if we can
     from setuptools import setup, Command
-    # from setuptools.command.build_ext import build_ext
+    from setuptools.command.build_ext import build_ext
     using_setuptools = True
 except ImportError:
     from distutils.core import setup, Command
-    # from distutils.command.build_ext import build_ext
+    from distutils.command.build_ext import build_ext
     using_setuptools = False
 
 from distutils import log
@@ -57,7 +58,7 @@ import os, sys
 # avoid missing symbols at run time. But if this script is called without
 # building pyfftw, then we may hide cython dependency.
 # TODO Drop zig-zag to avoid cython dependency below
-from Cython.Distutils import build_ext
+# from Cython.Distutils import build_ext
 
 # todo infos still printed, even with error threshold
 # 0=minimal output, 2=maximum debug
@@ -683,6 +684,11 @@ def setup_package():
         import numpy
     except ImportError:
         build_requires = ['numpy>=1.6, <2.0']
+
+    try:
+        import cython
+    except ImportError:
+        build_requires.append('cython>=0.23, <1.0')
 
     install_requires = []
     install_requires.extend(build_requires)
