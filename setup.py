@@ -34,15 +34,6 @@
 
 from __future__ import print_function
 
-# TODO distutils or setuptools? see http://stackoverflow.com/questions/6344076/differences-between-distribute-distutils-setuptools-and-distutils2
-# from distutils.core import setup, Command
-# from distutils import log
-# from distutils.extension import Extension
-# from distutils.util import get_platform
-# from distutils.ccompiler import get_default_compiler, new_compiler
-# from distutils.errors import CompileError, LinkError
-# from distutils.sysconfig import customize_compiler
-
 try:
     # use setuptools if we can
     from setuptools import setup, Command
@@ -160,7 +151,7 @@ class EnvironmentSniffer:
 
         if get_platform() in ('win32', 'win-amd64'):
             # self.libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
-            for k, v in self.data.iteritems():
+            for k, v in self.data.items():
                 # fftw3 -> libfftw3-3
                 v[0] = 'lib' + v[0] + '-3'
             self.include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
@@ -175,7 +166,7 @@ class EnvironmentSniffer:
             raise CompileError("Could not find the FFTW header 'fftw3.h'")
 
         log.debug(self.data)
-        for macro, (lib, function) in self.data.iteritems():
+        for macro, (lib, function) in self.data.items():
             if exclude is not None and macro[5:] in exclude:
                 exists = False
             else:
