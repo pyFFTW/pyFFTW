@@ -559,6 +559,7 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
 class InterfacesDaskFFTTestIFFT(InterfacesDaskFFTTestFFT):
     func = 'ifft'
+    has_norm_kwarg = False
 
 class InterfacesDaskFFTTestRFFT(InterfacesDaskFFTTestFFT):
     func = 'rfft'
