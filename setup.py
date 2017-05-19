@@ -501,7 +501,7 @@ class custom_build_ext(build_ext):
         library_dirs = sniffer.library_dirs
         if self.library_dirs is not None:
             library_dirs += self.library_dirs
-        self.compiler.set_library_dirs(self.library_dirs)
+        self.compiler.set_library_dirs(library_dirs)
 
         # delegate actual work to standard implementation
         build_ext.build_extensions(self)
