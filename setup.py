@@ -283,6 +283,7 @@ if os.environ.get("READTHEDOCS") == "True":
     environ[b"LD"] = b"x86_64-linux-gnu-ld"
     environ[b"AR"] = b"x86_64-linux-gnu-ar"
 
+# TODO need to determine package data dynamically
 def get_package_data():
     from pkg_resources import get_build_platform
 
@@ -294,6 +295,7 @@ def get_package_data():
 
     return package_data
 
+# TODO integrate into sniffer
 def get_include_dirs():
     import numpy
     from pkg_resources import get_build_platform
@@ -311,6 +313,7 @@ def get_include_dirs():
 
     return include_dirs
 
+# TODO integrate into or call from sniffer
 def get_library_dirs():
     from pkg_resources import get_build_platform
 
@@ -325,6 +328,7 @@ def get_library_dirs():
 
     return library_dirs
 
+# TODO integrate or call from sniffer
 def get_libraries():
     from pkg_resources import get_build_platform
 
@@ -337,8 +341,16 @@ def get_libraries():
 
     return libraries
 
-# TODO get_extensions changes lib dependencies. Make it work with our custom_build_ext
 def get_extensions():
+    from Cython.Build import cythonize
+
+    ext_modules = [Extension('pyfftw.pyfftw',
+                             sources=[os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')],
+                             extra_compile_args=['-Wno-maybe-uninitialized'])]
+    return cythonize(ext_modules)
+
+# TODO get_extensions changes lib dependencies. Make it work with our custom_build_ext
+def get_extensions2():
     # will use static linking if STATIC_FFTW_DIR defined
     static_fftw_path = os.environ.get('STATIC_FFTW_DIR', None)
     link_static_fftw = static_fftw_path is not None
@@ -451,7 +463,6 @@ class custom_build_ext(build_ext):
 
                 if self.include_dirs is not None:
                     self.include_dirs.append(msvc_2008_path)
-
                 else:
                     self.include_dirs = [msvc_2008_path]
 
@@ -465,7 +476,6 @@ class custom_build_ext(build_ext):
 
                 if self.include_dirs is not None:
                     self.include_dirs.append(msvc_2010_path)
-
                 else:
                     self.include_dirs = [msvc_2010_path]
 
