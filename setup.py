@@ -311,9 +311,13 @@ deletes the output and hides calls to the compiler and linker.'''
                 # output file is stored relative to input file since
                 # the output has the full directory, joining with the
                 # file root gives the right directory
-                with stdchannel_redirected(sys.stdout, os.devnull), stdchannel_redirected(sys.stderr, os.devnull):
+                stdout = os.path.join(tmpdir, "compile-stdout")
+                stderr = os.path.join(tmpdir, "compile-stderr")
+                with stdchannel_redirected(sys.stdout, stdout), stdchannel_redirected(sys.stderr, stderr):
                     tmp_objects = self.compiler.compile([fname], output_dir=file_root, include_dirs=include_dirs)
             except CompileError:
+                with open(stdout, 'r') as f: log.debug(f.read())
+                with open(stderr, 'r') as f: log.debug(f.read())
                 return False
             except Exception as e:
                 log.error(e)
@@ -321,16 +325,19 @@ deletes the output and hides calls to the compiler and linker.'''
             try:
                 # additional objects should come last to resolve symbols, linker order matters
                 tmp_objects.extend(objects)
-                # TODO using link_executable, LDFLAGS that the user can modify are ignored
-                # but with link_executable, it doesn't fail if library exists but doesn't actually define the symbol we are looking for
-                with stdchannel_redirected(sys.stdout, os.devnull), stdchannel_redirected(sys.stderr, os.devnull):
-                # if True:
+                stdout = os.path.join(tmpdir, "link-stdout")
+                stderr = os.path.join(tmpdir, "link-stderr")
+                with stdchannel_redirected(sys.stdout, stdout), stdchannel_redirected(sys.stderr, stderr):
+                    # TODO using link_executable, LDFLAGS that the
+                    # user can modify are ignored
                     self.compiler.link_executable(tmp_objects, 'a.out',
                                                   output_dir=tmpdir,
                                                   libraries=libraries,
                                                   extra_preargs=linker_flags,
                                                   library_dirs=library_dirs)
             except (LinkError, TypeError):
+                with open(stdout, 'r') as f: log.debug(f.read())
+                with open(stderr, 'r') as f: log.debug(f.read())
                 return False
             except Exception as e:
                 log.error(e)
