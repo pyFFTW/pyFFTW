@@ -70,8 +70,8 @@ install:
     - "conda update -q conda"
     - "conda create -q -n build_env python=%PYTHON_VERSION% numpy=%NP_BUILD_DEP% scipy cython dask setuptools"
     - "activate build_env"
-    - "%CMD_IN_ENV% python setup.py bdist_wheel"
-    - "%CMD_IN_ENV% python setup.py build_ext --inplace"
+    - "%CMD_IN_ENV% python setup.py -v bdist_wheel"
+    - "%CMD_IN_ENV% python setup.py -v build_ext --inplace"
 
 build: false  # Not a C# project, build stuff somewhere else.
 
