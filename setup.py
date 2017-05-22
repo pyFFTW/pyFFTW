@@ -60,10 +60,10 @@ import os, sys
 # TODO Drop zig-zag to avoid cython dependency below
 # from Cython.Distutils import build_ext
 
-# todo infos still printed, even with error threshold
+# TODO log only prints info but no debug level stuff
 # 0=minimal output, 2=maximum debug
-# log.set_verbosity(0)
-log.set_threshold(log.ERROR)
+log.set_verbosity(2)
+# log.set_threshold(log.ERROR)
 
 MAJOR = 0
 MINOR = 10
@@ -101,90 +101,100 @@ def stdchannel_redirected(stdchannel, dest_filename):
         if dest_file is not None:
             dest_file.close()
 
-class EnvironmentSniffer:
+class EnvironmentSniffer(object):
     '''Check for availability of headers and libraries of FFTW and MPI.
 
     :param compiler:
 
-        Distutils.ccompiler; The compiler should preferably be the compiler
-        that is used for actual compilation to ensure that include directories etc are identical.
-
-    :param exclude:
-
-        Iterable of strings; pass packages to ignore in here. Example: exclude=('DOUBLE_MPI', 'SINGLE_MPI', 'LONG_MPI', 'QUAD_MPI')
+        Distutils.ccompiler; The compiler should be the compiler that
+        is used for actual compilation to ensure that include
+        directories, linker flags etc. are identical.
 
     '''
-    def __init__(self, compiler, exclude=None):
-        import numpy
+    def __init__(self, compiler):
+        self.compiler = compiler
 
+        import numpy
+        # members with the info for the outside world
         self.include_dirs = [os.path.join(os.getcwd(), 'include'),
                              os.path.join(os.getcwd(), 'pyfftw'),
                              numpy.get_include()]
+        self.objects = []
         self.libraries = []
         self.library_dirs = []
+        self.linker_flags = []
         self.package_data = {} # TODO why package data only updated for windows?
         self.compile_time_env = {}
 
-        self.compiler = compiler
+        # main fftw3 header is required
+        if not self.has_header(['fftw3.h'], include_dirs=self.include_dirs):
+            raise CompileError("Could not find the FFTW header 'fftw3.h'")
 
-        have_mpi_h = self.has_header(['mpi.h'], include_dirs=self.include_dirs)
-        if have_mpi_h:
+        # mpi is optional
+        support_mpi = self.has_header(['mpi.h', 'fftw3-mpi.h'])
+
+        if support_mpi:
             try:
                 import mpi4py
                 self.include_dirs.append(mpi4py.get_include())
             except ImportError:
                 print("Could not import mpi4py. Skipping support for FFTW MPI.")
-                have_mpi_h = False
+                support_mpi = False
 
-        # construct checks
-        self.data = {}
-        data_types = ['DOUBLE', 'SINGLE', 'LONG', 'QUAD']
-        data_types_short = ['', 'f', 'l', 'q']
-        lib_types = ['', '_THREADS', '_OMP']
-        functions = ['plan_dft', 'init_threads', 'init_threads']
-        if have_mpi_h:
-            lib_types.append('_MPI')
-            functions.append('mpi_init')
+        platform = get_platform()
 
-        for f, l in zip(functions, lib_types):
-            for d, s in zip(data_types, data_types_short):
-                self.data['HAVE_' + d + l] = ['fftw3' + s + l.lower(), 'fftw' + s + '_' + f]
-
-        if get_platform() in ('win32', 'win-amd64'):
-            # self.libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
-            for k, v in self.data.items():
-                # fftw3 -> libfftw3-3
-                v[0] = 'lib' + v[0] + '-3'
+        if platform in ('win32', 'win-amd64'):
             self.include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
             self.library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
             # TODO fix package data *after* we know which libraries exist
             # self.package_data['pyfftw'] = [lib + '.dll' for lib in self.libraries]
             # TODO What about thread libraries on windows?
             # TODO mpi support missing and untested on windows
+        elif platform.startswith('linux'):
+            # needed at least for linker checks to succeed
+            self.libraries.insert(0, 'm')
 
-        # first check if headers are there
-        if not self.has_header(['fftw3.h'], include_dirs=self.include_dirs):
-            raise CompileError("Could not find the FFTW header 'fftw3.h'")
+        # lib_checks = {}
+        data_types = ['DOUBLE', 'SINGLE', 'LONG', 'QUAD']
+        data_types_short = ['', 'f', 'l', 'q']
+        lib_types = ['', 'THREADS', 'OMP']
+        functions = ['plan_dft', 'init_threads', 'init_threads']
+        if support_mpi:
+            lib_types.append('_MPI')
+            functions.append('mpi_init')
 
-        log.debug(self.data)
-        for macro, (lib, function) in self.data.items():
-            if exclude is not None and macro[5:] in exclude:
-                exists = False
+        for d, s in zip(data_types, data_types_short):
+            # first check for serial library...
+            basic_lib = self.check('', 'plan_dft', d, s, True)
+            self.add_library(basic_lib)
+
+            # ...then multithreading: link check with threads requires
+            # the serial library. Both omp and posix define the same
+            # function names. Prefer openmp if it works, fall back to
+            # pthreads.
+
+            # openmp requires special linker treatment
+            self.linker_flags.append(self.openmp_linker_flag())
+            lib_omp = self.check('OMP', 'init_threads', d, s, basic_lib)
+            if lib_omp:
+                self.add_library(lib_omp)
             else:
-                exists = self.has_function(function, libraries=(lib,),
-                                           include_dirs=self.include_dirs,
-                                           library_dirs=self.library_dirs)
-            if exists:
-                self.libraries.append(lib)
-            self.compile_time_env[macro] = exists
+                self.linker_flags.pop()
+
+            self.add_library(self.check('THREADS', 'init_threads', d, s,
+                                        basic_lib and not lib_omp))
+
+            # check MPI only if headers were found
+            self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and support_mpi))
 
         # optional packages summary: True if exists for any of the data types
         for l in lib_types[1:]:
-            self.compile_time_env['HAVE' + l] = False
+            self.compile_time_env['HAVE_' + l] = False
             for d in data_types:
-                self.compile_time_env['HAVE' + l] |= self.compile_time_env['HAVE_' + d + l]
+                self.compile_time_env['HAVE_' + l] |= self.compile_time_env[self.macro(d, l)]
+
         # compile only if mpi.h *and* one of the fftw mpi libraries are found
-        if have_mpi_h and self.has_header(['fftw3-mpi.h'], include_dirs=self.include_dirs) and self.compile_time_env['HAVE_MPI']:
+        if support_mpi:
             found_mpi_types = []
             for d in data_types:
                 if self.compile_time_env['HAVE_' + d + '_MPI']:
@@ -194,6 +204,7 @@ class EnvironmentSniffer:
         else:
             self.compile_time_env['HAVE_MPI'] = False
 
+        # print(self.compile_time_env)
         # required package: FFTW itself
         have_fftw = False
         for d in data_types:
@@ -202,23 +213,62 @@ class EnvironmentSniffer:
         if not have_fftw:
             raise LinkError("Could not find any of the FFTW libraries")
 
-    def has_function(self, function, includes=None, libraries=None, include_dirs=None, library_dirs=None):
-        '''Alternative implementation of distutils.ccompiler.has_function that deletes the output and works reliably.'''
+    def check(self, lib_type, function, data_type, data_type_short, do_check):
+        m = self.macro(data_type, lib_type)
+        exists = False
+        lib = ''
+        if do_check:
+            lib = self.lib_root_name('fftw3' + data_type_short + ('_' + lib_type.lower() if lib_type else ''))
+            function = 'fftw' + data_type_short + '_' + function
+            exists =  self.has_library(lib, function)
 
+        self.compile_time_env[m] = exists
+        return lib if exists else ''
+
+    def macro(self, data_type, lib_type=''):
+        s = 'HAVE_' + data_type
+        if lib_type:
+            return s + '_' + lib_type
+        else:
+            return s
+
+    def lib_root_name(self, lib):
+        '''Build the name of the lib w/o prefix and suffix.
+
+        Example: fftw3l -> fftw3l-3 (windows)
+        '''
+        if get_platform() in ('win32', 'win-amd64'):
+            return lib + '-3'
+        else:
+            return lib
+
+    def lib_name(self, lib):
+        '''Name of the library with prefix and suffix but w/o directory component'''
+        raise NotImplementedError
+
+    def add_library(self, lib):
+        raise NotImplementedError
+
+    def has_function(self, function, includes=None, objects=None, libraries=None,
+                     include_dirs=None, library_dirs=None, linker_flags=None):
+        '''Alternative implementation of distutils.ccompiler.has_function that
+deletes the output and hides calls to the compiler and linker.'''
         if includes is None:
             includes = []
+        if objects is None:
+            objects = self.objects
         if libraries is None:
             libraries = self.libraries
         if include_dirs is None:
             include_dirs = self.include_dirs
         if library_dirs is None:
             library_dirs = self.library_dirs
+        if linker_flags is None:
+            linker_flags = self.linker_flags
 
         msg = "Checking"
         if function:
             msg += " for %s" % function
-        if libraries:
-            msg += " in " + str(libraries)
         if includes:
             msg += " with includes " + str(includes)
         msg += "..."
@@ -233,8 +283,14 @@ class EnvironmentSniffer:
                 f = open(fname, 'w')
                 for inc in includes:
                     f.write('#include <%s>\n' % inc)
+                f.write("""\
+                int main() {
+                """)
                 if function:
-                    f.write('void %s(void);\n' % function)
+                    f.write('%s();\n' % function)
+                f.write("""\
+                return 0;
+                }""")
             finally:
                 f.close()
                 # the root directory
@@ -244,20 +300,25 @@ class EnvironmentSniffer:
                 # the output has the full directory, joining with the
                 # file root gives the right directory
                 with stdchannel_redirected(sys.stdout, os.devnull), stdchannel_redirected(sys.stderr, os.devnull):
-                    objects = self.compiler.compile([fname], output_dir=file_root, include_dirs=include_dirs)
+                    tmp_objects = self.compiler.compile([fname], output_dir=file_root, include_dirs=include_dirs)
             except CompileError:
                 return False
             except Exception as e:
                 log.info(e)
                 return False
             try:
+                # additional objects should come last to resolve symbols, linker order matters
+                tmp_objects.extend(objects)
+                # TODO using link_executable, LDFLAGS that the user can modify are ignored
+                # but with link_executable, it doesn't fail if library exists but doesn't actually define the symbol we are looking for
                 with stdchannel_redirected(sys.stdout, os.devnull), stdchannel_redirected(sys.stderr, os.devnull):
-                    # using link_executable, LDFLAGS that the user can modify are ignored
-                    self.compiler.link_shared_object(objects,
-                                                     os.path.join(tmpdir, 'a.out'),
-                                                     libraries=libraries,
-                                                     library_dirs=library_dirs)
-            except LinkError:
+                # if True:
+                    self.compiler.link_executable(tmp_objects, 'a.out',
+                                                  output_dir=tmpdir,
+                                                  libraries=libraries,
+                                                  extra_preargs=linker_flags,
+                                                  library_dirs=library_dirs)
+            except (LinkError, TypeError):
                 return False
             except Exception as e:
                 print(e)
@@ -272,6 +333,261 @@ class EnvironmentSniffer:
     def has_header(self, headers, include_dirs=None):
         '''Check for existence and usability of header files by compiling a test file.'''
         return self.has_function(None, includes=headers, include_dirs=include_dirs)
+
+    def has_library(function, lib):
+        raise NotImplementedError
+
+    def openmp_linker_flag(self):
+        # gcc and newer clang support openmp
+        if self.compiler.compiler_type == 'unix':
+            return '-fopenmp'
+        # TODO support other compilers
+        else:
+            return ''
+
+class StaticSniffer(EnvironmentSniffer):
+    def __init__(self, compiler):
+        # TODO check if STATIC_FFTW_DIR exists
+        self.static_fftw_dir = os.environ.get('STATIC_FFTW_DIR', None)
+
+        # call parent init
+        super(self.__class__, self).__init__(compiler)
+
+    def has_library(self, lib, function):
+        root_name = self.lib_root_name(lib)
+        # get full name of lib
+        objects = [os.path.join(self.static_fftw_dir, self.lib_full_name(root_name))]
+        objects.extend(self.objects)
+        return self.has_function(function, objects=objects)
+
+    def lib_full_name(self, root_lib):
+        from pkg_resources import get_build_platform
+        if get_build_platform() in ('win32', 'win-amd64'):
+            lib_pre = ''
+            lib_ext = '.lib'
+        else:
+            lib_pre = 'lib'
+            lib_ext = '.a'
+        return os.path.join(self.static_fftw_dir, lib_pre + root_lib + lib_ext)
+
+    def add_library(self, lib):
+        full_name = self.lib_full_name(self.lib_root_name(lib))
+        if lib:
+            self.objects.insert(0, full_name)
+
+class DynamicSniffer(EnvironmentSniffer):
+    def __init__(self, compiler):
+        super(self.__class__, self).__init__(compiler)
+
+    def has_library(self, lib, function):
+        lib = self.lib_root_name(lib)
+        libraries = [lib]
+        libraries.extend(self.libraries)
+        return self.has_function(function, libraries=libraries)
+
+    def add_library(self, lib):
+        if lib:
+            self.libraries.insert(0, lib)
+
+def make_sniffer(compiler):
+    if os.environ.get('STATIC_FFTW_DIR', None) is None:
+        return DynamicSniffer(compiler)
+    else:
+        return StaticSniffer(compiler)
+
+# class EnvironmentSniffer:
+#     '''Check for availability of headers and libraries of FFTW and MPI.
+
+#     :param compiler:
+
+#         Distutils.ccompiler; The compiler should preferably be the compiler
+#         that is used for actual compilation to ensure that include directories etc are identical.
+
+#     :param exclude: Iterable of strings; pass packages to ignore in here. Example: exclude=("DOUBLE_MPI", "SINGLE_MPI", "LONG_MPI", "QUAD_MPI"). Default: None.
+
+#     '''
+#     def __init__(self, compiler, exclude=("SINGLE", "SINGLE_THREADS", "SINGLE_OMP", "LONG", "LONG_THREADS", "LONG_OMP", "QUAD", "QUAD_THREADS", "QUAD_OMP")):
+#         import numpy
+
+#         self.include_dirs = [os.path.join(os.getcwd(), 'include'),
+#                              os.path.join(os.getcwd(), 'pyfftw'),
+#                              numpy.get_include()]
+#         self.libraries = []
+#         self.library_dirs = []
+#         self.package_data = {} # TODO why package data only updated for windows?
+#         self.compile_time_env = {}
+
+#         self.compiler = compiler
+
+#         have_mpi_h = self.has_header(['mpi.h'], include_dirs=self.include_dirs)
+#         if have_mpi_h:
+#             try:
+#                 import mpi4py
+#                 self.include_dirs.append(mpi4py.get_include())
+#             except ImportError:
+#                 print("Could not import mpi4py. Skipping support for FFTW MPI.")
+#                 have_mpi_h = False
+
+#         # construct checks by checking linking with a specific function
+#         # self.lib_checks = {'HAVE_DOUBLE': ['fftw3', 'fftw_plan_dft'], ... 'HAVE_LONG_OMP': ['fftw3l_omp', 'fftwl_init_threads']}
+#         self.lib_checks = {}
+#         data_types = ['DOUBLE', 'SINGLE', 'LONG', 'QUAD']
+#         data_types_short = ['', 'f', 'l', 'q']
+#         lib_types = ['', '_THREADS', '_OMP']
+#         functions = ['plan_dft', 'init_threads', 'init_threads']
+#         if have_mpi_h:
+#             lib_types.append('_MPI')
+#             functions.append('mpi_init')
+
+#         # for d, s in zip(data_types, data_types_short):
+#         #     self.lib_checks['HAVE_' + d] = ['fftw3' + s, 'fftw' + s + '_plan_dft']
+
+
+#         for f, l in zip(functions, lib_types):
+#             for d, s in zip(data_types, data_types_short):
+#                 self.lib_checks['HAVE_' + d + l] = ['fftw3' + s + l.lower(), 'fftw' + s + '_' + f]
+
+#         if get_platform() in ('win32', 'win-amd64'):
+#             # self.libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
+#             for k, v in self.lib_checks.items():
+#                 # fftw3 -> libfftw3-3
+#                 v[0] = 'lib' + v[0] + '-3'
+#             self.include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
+#             self.library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
+#             # TODO fix package data *after* we know which libraries exist
+#             # self.package_data['pyfftw'] = [lib + '.dll' for lib in self.libraries]
+#             # TODO What about thread libraries on windows?
+#             # TODO mpi support missing and untested on windows
+
+#         # first check if main header is there
+#         if not self.has_header(['fftw3.h'], include_dirs=self.include_dirs):
+#             raise CompileError("Could not find the FFTW header 'fftw3.h'")
+
+#         for macro, (lib, function) in self.lib_checks.items():
+#             if exclude is not None and macro[5:] in exclude:
+#                 exists = False
+#             else:
+#                 exists = self.has_function(function, libraries=(lib,),
+#                                            include_dirs=self.include_dirs,
+#                                            library_dirs=self.library_dirs)
+#             if exists:
+#                 self.libraries.append(lib)
+#             self.compile_time_env[macro] = exists
+
+#         # optional packages summary: True if exists for any of the data types
+#         for l in lib_types[1:]:
+#             self.compile_time_env['HAVE' + l] = False
+#             for d in data_types:
+#                 self.compile_time_env['HAVE' + l] |= self.compile_time_env['HAVE_' + d + l]
+#         # compile only if mpi.h *and* one of the fftw mpi libraries are found
+#         if have_mpi_h and self.has_header(['fftw3-mpi.h'], include_dirs=self.include_dirs) and self.compile_time_env['HAVE_MPI']:
+#             found_mpi_types = []
+#             for d in data_types:
+#                 if self.compile_time_env['HAVE_' + d + '_MPI']:
+#                     found_mpi_types.append(d)
+
+#             print("Enabling mpi support for " + str(found_mpi_types))
+#         else:
+#             self.compile_time_env['HAVE_MPI'] = False
+
+#         # required package: FFTW itself
+#         have_fftw = False
+#         for d in data_types:
+#             have_fftw |= self.compile_time_env['HAVE_' + d]
+
+#         if not have_fftw:
+#             raise LinkError("Could not find any of the FFTW libraries")
+
+#     def has_function(self, function, includes=None, libraries=None, include_dirs=None, library_dirs=None):
+#         '''Alternative implementation of distutils.ccompiler.has_function that deletes the output and hides calls to the compiler and linker'''
+#         if includes is None:
+#             includes = []
+#         if libraries is None:
+#             libraries = self.libraries
+#         if include_dirs is None:
+#             include_dirs = self.include_dirs
+#         if library_dirs is None:
+#             library_dirs = self.library_dirs
+
+#         msg = "Checking"
+#         if function:
+#             msg += " for %s" % function
+#         if libraries:
+#             msg += " in " + str(libraries)
+#         if includes:
+#             msg += " with includes " + str(includes)
+#         msg += "..."
+#         status = "no"
+
+#         import tempfile, shutil
+
+#         tmpdir = tempfile.mkdtemp(prefix='pyfftw-')
+#         try:
+#             try:
+#                 fname = os.path.join(tmpdir, '%s.c' % function)
+#                 f = open(fname, 'w')
+#                 for inc in includes:
+#                     f.write('#include <%s>\n' % inc)
+#                 f.write("""\
+#                 int main() {
+#                 """)
+#                 if function:
+#                     f.write('%s();\n' % function)
+#                 f.write("""\
+#                 return 0;
+#                 }""")
+#             finally:
+#                 f.close()
+#                 # the root directory
+#                 file_root = os.path.abspath(os.sep)
+#             try:
+#                 # output file is stored relative to input file since
+#                 # the output has the full directory, joining with the
+#                 # file root gives the right directory
+#                 with stdchannel_redirected(sys.stdout, os.devnull), stdchannel_redirected(sys.stderr, os.devnull):
+#                     objects = self.compiler.compile([fname], output_dir=file_root, include_dirs=include_dirs)
+#                     print(objects)
+#             except CompileError:
+#                 return False
+#             except Exception as e:
+#                 log.info(e)
+#                 return False
+#             try:
+#                 # objects.append("/usr/lib/x86_64-linux-gnu/libfftw3f_threads.a")
+#                 # objects.append("/usr/lib/x86_64-linux-gnu/libfftw3f.a")
+#                 # if libraries:
+#                 #     print(self.compiler.find_library_file(library_dirs, libraries[0]))
+#                 # libraries= ["m"]
+
+#                 # TODO using link_executable, LDFLAGS that the user can modify are ignored
+#                 # but with link_executable, it doesn't fail if library exists but doesn't actually define the symbol we are looking for
+#                 # with stdchannel_redirected(sys.stdout, os.devnull), stdchannel_redirected(sys.stderr, os.devnull):
+#                 if True:
+#                     self.compiler.link_executable(objects,
+#                                                   os.path.join(tmpdir, 'a.out'),
+#                                                   libraries=libraries,
+#                                                   library_dirs=library_dirs)
+#                 # with stdchannel_redirected(sys.stdout, os.devnull), stdchannel_redirected(sys.stderr, os.devnull):
+#                 #     print(objects)
+#                 #     self.compiler.link_shared_object(objects,
+#                 #                                      os.path.join(tmpdir, 'a.out'),
+#                 #                                      libraries=libraries,
+#                 #                                      library_dirs=library_dirs)
+#             except (LinkError, TypeError):
+#                 return False
+#             except Exception as e:
+#                 print(e)
+#                 return False
+#             # no error, seems to work
+#             status = "ok"
+#             return True
+#         finally:
+#             # shutil.rmtree(tmpdir)
+#             log.info(msg + status)
+
+#     def has_header(self, headers, include_dirs=None):
+#         '''Check for existence and usability of header files by compiling a test file.'''
+#         return self.has_function(None, includes=headers, include_dirs=include_dirs)
 
 if os.environ.get("READTHEDOCS") == "True":
     try:
@@ -490,7 +806,7 @@ class custom_build_ext(build_ext):
         '''Check for availability of fftw libraries before building the wrapper.
 
         Do it here to make sure we use the exact same compiler for checking includes/linking as for building the libraries.'''
-        sniffer = EnvironmentSniffer(self.compiler)
+        sniffer = make_sniffer(self.compiler)
 
         # read out information and modify compiler
 
