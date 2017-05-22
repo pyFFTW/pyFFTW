@@ -1,7 +1,10 @@
-# Copyright 2015 Knowledge Economy Developments Ltd
+# Copyright 2017 Henry Gomersall and Frederik Beaujean
 #
 # Henry Gomersall
 # heng@kedevelopments.co.uk
+#
+# Frederik Beaujean
+# Frederik.Beaujean@lmu.de
 #
 # All rights reserved.
 #
@@ -52,7 +55,7 @@ from distutils.extension import Extension
 from distutils.sysconfig import customize_compiler
 from distutils.util import get_platform
 
-import os, sys
+import contextlib, os, sys
 
 # we require cython because we need to know which part of wrapper to build to
 # avoid missing symbols at run time. But if this script is called without
@@ -67,8 +70,60 @@ ISRELEASED = False
 
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
-# check what's available
-import contextlib
+if os.environ.get("READTHEDOCS") == "True":
+    try:
+        environ = os.environb
+    except AttributeError:
+        environ = os.environ
+
+    environ[b"CC"] = b"x86_64-linux-gnu-gcc"
+    environ[b"LD"] = b"x86_64-linux-gnu-ld"
+    environ[b"AR"] = b"x86_64-linux-gnu-ar"
+
+def get_include_dirs():
+    import numpy
+    from pkg_resources import get_build_platform
+
+    include_dirs = [os.path.join(os.getcwd(), 'include'),
+                    os.path.join(os.getcwd(), 'pyfftw'),
+                    numpy.get_include(),
+                    os.path.join(sys.prefix, 'include')]
+
+    if get_build_platform() in ('win32', 'win-amd64'):
+        include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
+
+    if get_build_platform().startswith('freebsd'):
+        include_dirs.append('/usr/local/include')
+
+    return include_dirs
+
+# TODO Do we need to determine package data dynamically? If so, should
+# take the output from Sniffer but it's only available when the
+# extension is build and not when setup() is called.
+def get_package_data():
+    from pkg_resources import get_build_platform
+
+    package_data = {}
+
+    if get_build_platform() in ('win32', 'win-amd64'):
+        package_data['pyfftw'] = [
+            'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
+
+    return package_data
+
+def get_library_dirs():
+    from pkg_resources import get_build_platform
+
+    library_dirs = []
+    if get_build_platform() in ('win32', 'win-amd64'):
+        library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
+        library_dirs.append(os.path.join(sys.prefix, 'bin'))
+
+    library_dirs.append(os.path.join(sys.prefix, 'lib'))
+    if get_build_platform().startswith('freebsd'):
+        library_dirs.append('/usr/local/lib')
+
+    return library_dirs
 
 @contextlib.contextmanager
 def stdchannel_redirected(stdchannel, dest_filename):
@@ -109,17 +164,19 @@ class EnvironmentSniffer(object):
     def __init__(self, compiler):
         self.compiler = compiler
 
-        import numpy
         # members with the info for the outside world
-        self.include_dirs = [os.path.join(os.getcwd(), 'include'),
-                             os.path.join(os.getcwd(), 'pyfftw'),
-                             numpy.get_include()]
+        self.include_dirs = get_include_dirs()
         self.objects = []
         self.libraries = []
-        self.library_dirs = []
+        self.library_dirs = get_library_dirs()
         self.linker_flags = []
-        self.package_data = {} # TODO why package data only updated for windows?
         self.compile_time_env = {}
+
+        # TODO What about thread libraries on windows?
+        # TODO mpi support missing and untested on windows
+        if get_platform().startswith('linux'):
+            # needed at least libm for linker checks to succeed
+            self.libraries.append('m')
 
         # main fftw3 header is required
         if not self.has_header(['fftw3.h'], include_dirs=self.include_dirs):
@@ -135,19 +192,6 @@ class EnvironmentSniffer(object):
             except ImportError:
                 print("Could not import mpi4py. Skipping support for FFTW MPI.")
                 support_mpi = False
-
-        platform = get_platform()
-
-        if platform in ('win32', 'win-amd64'):
-            self.include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
-            self.library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
-            # TODO fix package data *after* we know which libraries exist
-            # self.package_data['pyfftw'] = [lib + '.dll' for lib in self.libraries]
-            # TODO What about thread libraries on windows?
-            # TODO mpi support missing and untested on windows
-        elif platform.startswith('linux'):
-            # needed at least for linker checks to succeed
-            self.libraries.insert(0, 'm')
 
         self.search_dependencies()
 
@@ -414,74 +458,6 @@ def make_sniffer(compiler):
     else:
         return StaticSniffer(compiler)
 
-if os.environ.get("READTHEDOCS") == "True":
-    try:
-        environ = os.environb
-    except AttributeError:
-        environ = os.environ
-
-    environ[b"CC"] = b"x86_64-linux-gnu-gcc"
-    environ[b"LD"] = b"x86_64-linux-gnu-ld"
-    environ[b"AR"] = b"x86_64-linux-gnu-ar"
-
-# TODO need to determine package data dynamically
-def get_package_data():
-    from pkg_resources import get_build_platform
-
-    package_data = {}
-
-    if get_build_platform() in ('win32', 'win-amd64'):
-        package_data['pyfftw'] = [
-            'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
-
-    return package_data
-
-# TODO integrate into sniffer
-def get_include_dirs():
-    import numpy
-    from pkg_resources import get_build_platform
-
-    include_dirs = [os.path.join(os.getcwd(), 'include'),
-                    os.path.join(os.getcwd(), 'pyfftw'),
-                    numpy.get_include(),
-                    os.path.join(sys.prefix, 'include')]
-
-    if get_build_platform() in ('win32', 'win-amd64'):
-        include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
-
-    if get_build_platform().startswith('freebsd'):
-        include_dirs.append('/usr/local/include')
-
-    return include_dirs
-
-# TODO integrate into or call from sniffer
-def get_library_dirs():
-    from pkg_resources import get_build_platform
-
-    library_dirs = []
-    if get_build_platform() in ('win32', 'win-amd64'):
-        library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
-        library_dirs.append(os.path.join(sys.prefix, 'bin'))
-
-    library_dirs.append(os.path.join(sys.prefix, 'lib'))
-    if get_build_platform().startswith('freebsd'):
-        library_dirs.append('/usr/local/lib')
-
-    return library_dirs
-
-# TODO integrate or call from sniffer
-def get_libraries():
-    from pkg_resources import get_build_platform
-
-    if get_build_platform() in ('win32', 'win-amd64'):
-        libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
-
-    else:
-        libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads',
-                     'fftw3f_threads', 'fftw3l_threads']
-
-    return libraries
-
 def get_extensions():
     from Cython.Build import cythonize
 
@@ -489,64 +465,6 @@ def get_extensions():
                              sources=[os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')],
                              extra_compile_args=['-Wno-maybe-uninitialized'])]
     return cythonize(ext_modules)
-
-# TODO get_extensions changes lib dependencies. Make it work with our custom_build_ext
-def get_extensions2():
-    # will use static linking if STATIC_FFTW_DIR defined
-    static_fftw_path = os.environ.get('STATIC_FFTW_DIR', None)
-    link_static_fftw = static_fftw_path is not None
-
-    common_extension_args = {
-        'include_dirs': get_include_dirs(),
-        'library_dirs': get_library_dirs(),
-        'extra_compile_args': ['-Wno-maybe-uninitialized'],
-        }
-
-    try:
-        from Cython.Build import cythonize
-        sources = [os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')]
-        have_cython = True
-
-    except ImportError as e:
-        # no cython
-        sources = [os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.c')]
-        if not os.path.exists(sources[0]):
-            raise ImportError(
-                str(e) + '. ' +
-                'Cython is required to build the initial .c file.')
-
-        have_cython = False
-
-    libraries = get_libraries()
-    if link_static_fftw:
-        from pkg_resources import get_build_platform
-        if get_build_platform() in ('win32', 'win-amd64'):
-            lib_pre = ''
-            lib_ext = '.lib'
-        else:
-            lib_pre = 'lib'
-            lib_ext = '.a'
-        extra_link_args = []
-        for lib in libraries:
-            extra_link_args.append(
-                os.path.join(static_fftw_path, lib_pre + lib + lib_ext))
-
-        common_extension_args['extra_link_args'] = extra_link_args
-        common_extension_args['libraries'] = []
-    else:
-        # otherwise we use dynamic libraries
-        common_extension_args['extra_link_args'] = []
-        common_extension_args['libraries'] = libraries
-
-    ext_modules = [
-        Extension('pyfftw.pyfftw', sources=sources,
-                  **common_extension_args)]
-
-    if have_cython:
-        return cythonize(ext_modules)
-
-    else:
-        return ext_modules
 
 long_description = '''
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
@@ -654,6 +572,11 @@ class custom_build_ext(build_ext):
             library_dirs += self.library_dirs
         self.compiler.set_library_dirs(library_dirs)
 
+        objects = sniffer.objects
+        if self.link_objects is not None:
+            objects += self.objects
+        self.compiler.set_link_objects(objects)
+
         # delegate actual work to standard implementation
         build_ext.build_extensions(self)
 
@@ -738,7 +661,6 @@ class QuickTestCommand(Command):
         errno = subprocess.call([sys.executable, '-m',
             'unittest'] + quick_test_cases)
         raise SystemExit(errno)
-
 
 # borrowed from scipy via pyNFFT
 def git_version():
