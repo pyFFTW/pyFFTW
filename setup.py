@@ -307,15 +307,15 @@ class EnvironmentSniffer(object):
 
         Examples:
 
-        With a unix compiler, `lib` is unchanged but the interface
-        passes `-llib` to the linker.
+        With a unix compiler, `fftw3` is unchanged but the interface
+        passes `-lfftw3` to the linker.
 
         On windows, `fftw3l` -> `libfftw3l-3` and the interfaces
         passes `libfftw3l-3.libf` to the linker.
 
         '''
         if get_platform() in ('win32', 'win-amd64'):
-            return 'lib%s-3.dll' % lib
+            return 'lib%s-3' % lib
         else:
             return lib
 
@@ -346,6 +346,9 @@ deletes the output and hides calls to the compiler and linker.'''
             msg += " with includes " + str(includes)
         msg += "..."
         status = "no"
+
+        log.debug("objects: %s" % objects)
+        log.debug("libraries: %s" % libraries)
 
         import tempfile, shutil
 
@@ -429,6 +432,8 @@ class StaticSniffer(EnvironmentSniffer):
     def __init__(self, compiler):
         # TODO check if STATIC_FFTW_DIR exists
         self.static_fftw_dir = os.environ.get('STATIC_FFTW_DIR', None)
+        if not os.path.exists(self.static_fftw_dir):
+            raise LinkError('STATIC_FFTW_DIR="%s" does not exist')
 
         # call parent init
         super(self.__class__, self).__init__(compiler)
@@ -441,6 +446,7 @@ class StaticSniffer(EnvironmentSniffer):
         return self.has_function(function, objects=objects)
 
     def lib_full_name(self, root_lib):
+        # TODO use self.compiler.library_filename
         from pkg_resources import get_build_platform
         if get_build_platform() in ('win32', 'win-amd64'):
             lib_pre = ''
@@ -557,6 +563,10 @@ class custom_build_ext(build_ext):
         if self.link_objects is not None:
             objects += self.objects
         self.compiler.set_link_objects(objects)
+
+        # TODO how to set defaults? I only know how to set them when calling link() directly
+        # linker_flags = sniffer.linker_flags
+        # if self.link
 
         # delegate actual work to standard implementation
         build_ext.build_extensions(self)
