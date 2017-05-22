@@ -170,6 +170,23 @@ class EnvironmentSniffer(object):
         self.linker_flags = []
         self.compile_time_env = {}
 
+        if self.compiler == 'msvc':
+            if (sys.version_info.major, sys.version_info.minor) < (3, 3):
+                # The check above is a nasty hack. We're using the python
+                # version as a proxy for the MSVC version. 2008 doesn't
+                # have stdint.h, so is needed. 2010 does.
+                #
+                # We need to add the path to msvc includes
+                msvc_2008_path = (os.path.join(os.getcwd(), 'include', 'msvc_2008'))
+                self.include_dirs.append(msvc_2008_path)
+            elif (sys.version_info.major, sys.version_info.minor) < (3, 5):
+                # Actually, it seems that appveyor doesn't have a stdint that
+                # works, so even for 2010 we use our own (hacked) version
+                # of stdint.
+                # This should be pretty safe in whatever case.
+                msvc_2010_path = (os.path.join(os.getcwd(), 'include', 'msvc_2010'))
+                self.include_dirs.append(msvc_2010_path)
+
         # TODO What about thread libraries on windows?
         # TODO mpi support missing and untested on windows
         if get_platform().startswith('linux'):
@@ -285,18 +302,22 @@ class EnvironmentSniffer(object):
             return s
 
     def lib_root_name(self, lib):
-        '''Build the name of the lib w/o prefix and suffix.
+        '''Build the name of the lib to pass to the python compiler
+        interface.
 
-        Example: fftw3l -> fftw3l-3 (windows)
+        Examples:
+
+        With a unix compiler, `lib` is unchanged but the interface
+        passes `-llib` to the linker.
+
+        On windows, `fftw3l` -> `libfftw3l-3` and the interfaces
+        passes `libfftw3l-3.libf` to the linker.
+
         '''
         if get_platform() in ('win32', 'win-amd64'):
-            return lib + '-3'
+            return 'lib%s-3.dll' % lib
         else:
             return lib
-
-    def lib_name(self, lib):
-        '''Name of the library with prefix and suffix but w/o directory component'''
-        raise NotImplementedError
 
     def add_library(self, lib):
         raise NotImplementedError
@@ -450,8 +471,10 @@ class DynamicSniffer(EnvironmentSniffer):
 
 def make_sniffer(compiler):
     if os.environ.get('STATIC_FFTW_DIR', None) is None:
+        log.debug("Link FFTW dynamically")
         return DynamicSniffer(compiler)
     else:
+        log.debug("Link FFTW statically")
         return StaticSniffer(compiler)
 
 def get_extensions():
@@ -502,44 +525,6 @@ class custom_build_ext(build_ext):
             compiler = get_default_compiler()
         else:
             compiler = self.compiler
-
-        if compiler == 'msvc':
-            # Add msvc specific hacks
-
-            if (sys.version_info.major, sys.version_info.minor) < (3, 3):
-                # The check above is a nasty hack. We're using the python
-                # version as a proxy for the MSVC version. 2008 doesn't
-                # have stdint.h, so is needed. 2010 does.
-                #
-                # We need to add the path to msvc includes
-
-                msvc_2008_path = (
-                    os.path.join(os.getcwd(), 'include', 'msvc_2008'))
-
-                if self.include_dirs is not None:
-                    self.include_dirs.append(msvc_2008_path)
-                else:
-                    self.include_dirs = [msvc_2008_path]
-
-            elif (sys.version_info.major, sys.version_info.minor) < (3, 5):
-                # Actually, it seems that appveyor doesn't have a stdint that
-                # works, so even for 2010 we use our own (hacked) version
-                # of stdint.
-                # This should be pretty safe in whatever case.
-                msvc_2010_path = (
-                    os.path.join(os.getcwd(), 'include', 'msvc_2010'))
-
-                if self.include_dirs is not None:
-                    self.include_dirs.append(msvc_2010_path)
-                else:
-                    self.include_dirs = [msvc_2010_path]
-
-            # We need to prepend lib to all the library names
-            _libraries = []
-            for each_lib in self.libraries:
-                _libraries.append('lib' + each_lib)
-
-            self.libraries = _libraries
 
     def build_extensions(self):
         '''Check for availability of fftw libraries before building the wrapper.
