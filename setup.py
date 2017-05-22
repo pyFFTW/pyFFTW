@@ -60,11 +60,6 @@ import os, sys
 # TODO Drop zig-zag to avoid cython dependency below
 # from Cython.Distutils import build_ext
 
-# TODO log only prints info but no debug level stuff
-# 0=minimal output, 2=maximum debug
-log.set_verbosity(2)
-# log.set_threshold(log.ERROR)
-
 MAJOR = 0
 MINOR = 10
 MICRO = 5
@@ -131,9 +126,9 @@ class EnvironmentSniffer(object):
             raise CompileError("Could not find the FFTW header 'fftw3.h'")
 
         # mpi is optional
-        support_mpi = self.has_header(['mpi.h', 'fftw3-mpi.h'])
+        self.support_mpi = self.has_header(['mpi.h', 'fftw3-mpi.h'])
 
-        if support_mpi:
+        if self.support_mpi:
             try:
                 import mpi4py
                 self.include_dirs.append(mpi4py.get_include())
@@ -154,12 +149,16 @@ class EnvironmentSniffer(object):
             # needed at least for linker checks to succeed
             self.libraries.insert(0, 'm')
 
+        self.search_dependencies()
+
+    def search_dependencies(self):
+
         # lib_checks = {}
         data_types = ['DOUBLE', 'SINGLE', 'LONG', 'QUAD']
         data_types_short = ['', 'f', 'l', 'q']
         lib_types = ['', 'THREADS', 'OMP']
         functions = ['plan_dft', 'init_threads', 'init_threads']
-        if support_mpi:
+        if self.support_mpi:
             lib_types.append('_MPI')
             functions.append('mpi_init')
 
@@ -185,7 +184,7 @@ class EnvironmentSniffer(object):
                                         basic_lib and not lib_omp))
 
             # check MPI only if headers were found
-            self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and support_mpi))
+            self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and self.support_mpi))
 
         # optional packages summary: True if exists for any of the data types
         for l in lib_types[1:]:
@@ -194,7 +193,7 @@ class EnvironmentSniffer(object):
                 self.compile_time_env['HAVE_' + l] |= self.compile_time_env[self.macro(d, l)]
 
         # compile only if mpi.h *and* one of the fftw mpi libraries are found
-        if support_mpi:
+        if self.support_mpi:
             found_mpi_types = []
             for d in data_types:
                 if self.compile_time_env['HAVE_' + d + '_MPI']:
@@ -204,7 +203,7 @@ class EnvironmentSniffer(object):
         else:
             self.compile_time_env['HAVE_MPI'] = False
 
-        # print(self.compile_time_env)
+        log.debug(self.compile_time_env)
         # required package: FFTW itself
         have_fftw = False
         for d in data_types:
@@ -212,6 +211,19 @@ class EnvironmentSniffer(object):
 
         if not have_fftw:
             raise LinkError("Could not find any of the FFTW libraries")
+
+        log.info('Supporting FFTW with')
+        for d in data_types:
+            if not self.compile_time_env[self.macro(d)]:
+                continue
+            s = d.lower() + ' precision'
+            if self.compile_time_env[self.macro(d, 'OMP')]:
+                s += ' + openMP'
+            elif self.compile_time_env[self.macro(d, 'THREADS')]:
+                s += ' + pthreads'
+            if self.compile_time_env[self.macro(d, 'MPI')]:
+                s += ' + MPI'
+            log.info(s)
 
     def check(self, lib_type, function, data_type, data_type_short, do_check):
         m = self.macro(data_type, lib_type)
@@ -304,7 +316,7 @@ deletes the output and hides calls to the compiler and linker.'''
             except CompileError:
                 return False
             except Exception as e:
-                log.info(e)
+                log.error(e)
                 return False
             try:
                 # additional objects should come last to resolve symbols, linker order matters
@@ -321,14 +333,14 @@ deletes the output and hides calls to the compiler and linker.'''
             except (LinkError, TypeError):
                 return False
             except Exception as e:
-                print(e)
+                log.error(e)
                 return False
             # no error, seems to work
             status = "ok"
             return True
         finally:
             shutil.rmtree(tmpdir)
-            log.info(msg + status)
+            log.debug(msg + status)
 
     def has_header(self, headers, include_dirs=None):
         '''Check for existence and usability of header files by compiling a test file.'''
