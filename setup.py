@@ -190,7 +190,7 @@ class EnvironmentSniffer(object):
         for l in lib_types[1:]:
             self.compile_time_env['HAVE_' + l] = False
             for d in data_types:
-                self.compile_time_env['HAVE_' + l] |= self.compile_time_env[self.macro(d, l)]
+                self.compile_time_env['HAVE_' + l] |= self.compile_time_env[self.HAVE(d, l)]
 
         # compile only if mpi.h *and* one of the fftw mpi libraries are found
         if self.support_mpi:
@@ -214,19 +214,19 @@ class EnvironmentSniffer(object):
 
         log.info('Supporting FFTW with')
         for d in data_types:
-            if not self.compile_time_env[self.macro(d)]:
+            if not self.compile_time_env[self.HAVE(d)]:
                 continue
             s = d.lower() + ' precision'
-            if self.compile_time_env[self.macro(d, 'OMP')]:
+            if self.compile_time_env[self.HAVE(d, 'OMP')]:
                 s += ' + openMP'
-            elif self.compile_time_env[self.macro(d, 'THREADS')]:
+            elif self.compile_time_env[self.HAVE(d, 'THREADS')]:
                 s += ' + pthreads'
-            if self.compile_time_env[self.macro(d, 'MPI')]:
+            if self.compile_time_env[self.HAVE(d, 'MPI')]:
                 s += ' + MPI'
             log.info(s)
 
     def check(self, lib_type, function, data_type, data_type_short, do_check):
-        m = self.macro(data_type, lib_type)
+        m = self.HAVE(data_type, lib_type)
         exists = False
         lib = ''
         if do_check:
@@ -237,7 +237,7 @@ class EnvironmentSniffer(object):
         self.compile_time_env[m] = exists
         return lib if exists else ''
 
-    def macro(self, data_type, lib_type=''):
+    def HAVE(self, data_type, lib_type=''):
         s = 'HAVE_' + data_type
         if lib_type:
             return s + '_' + lib_type
