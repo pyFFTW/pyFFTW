@@ -36,8 +36,6 @@
 #
 
 # import only from standard library so dependencies can be installed
-from __future__ import print_function
-
 try:
     # use setuptools if we can
     from setuptools import setup, Command
@@ -190,7 +188,7 @@ class EnvironmentSniffer(object):
                 import mpi4py
                 self.include_dirs.append(mpi4py.get_include())
             except ImportError:
-                print("Could not import mpi4py. Skipping support for FFTW MPI.")
+                error("Could not import mpi4py. Skipping support for FFTW MPI.")
                 support_mpi = False
 
         self.search_dependencies()
@@ -242,8 +240,6 @@ class EnvironmentSniffer(object):
             for d in data_types:
                 if self.compile_time_env['HAVE_' + d + '_MPI']:
                     found_mpi_types.append(d)
-
-            print("Enabling mpi support for " + str(found_mpi_types))
         else:
             self.compile_time_env['HAVE_MPI'] = False
 
