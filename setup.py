@@ -438,8 +438,8 @@ class StaticSniffer(EnvironmentSniffer):
         # call parent init
         super(self.__class__, self).__init__(compiler)
 
-    def has_library(self, lib, function):
-        root_name = self.lib_root_name(lib)
+    def has_library(self, root_name, function):
+        '''Expect library in root form'''
         # get full name of lib
         objects = [os.path.join(self.static_fftw_dir, self.lib_full_name(root_name))]
         objects.extend(self.objects)
@@ -466,7 +466,7 @@ class DynamicSniffer(EnvironmentSniffer):
         super(self.__class__, self).__init__(compiler)
 
     def has_library(self, lib, function):
-        lib = self.lib_root_name(lib)
+        '''Expect lib in root name so it can be passed to compiler'''
         libraries = [lib]
         libraries.extend(self.libraries)
         return self.has_function(function, libraries=libraries)
