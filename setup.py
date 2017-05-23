@@ -260,7 +260,7 @@ class EnvironmentSniffer(object):
         else:
             self.compile_time_env['HAVE_MPI'] = False
 
-        log.debug(self.compile_time_env)
+        log.debug(repr(self.compile_time_env))
         # required package: FFTW itself
         have_fftw = False
         for d in data_types:
