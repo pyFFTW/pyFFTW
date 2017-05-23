@@ -488,7 +488,7 @@ def get_extensions():
 
     ext_modules = [Extension('pyfftw.pyfftw',
                              sources=[os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')])]
-                             return cythonize(ext_modules)
+    return cythonize(ext_modules)
 
 long_description = '''
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
