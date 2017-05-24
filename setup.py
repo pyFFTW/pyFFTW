@@ -195,7 +195,7 @@ class EnvironmentSniffer(object):
         if not self.has_header(['fftw3.h'], include_dirs=self.include_dirs):
             raise CompileError("Could not find the FFTW header 'fftw3.h'")
 
-        # mpi is optional. Not supported on windows
+        # mpi is optional
         self.support_mpi = self.has_header(['mpi.h', 'fftw3-mpi.h'])
 
         if self.support_mpi:
@@ -203,8 +203,8 @@ class EnvironmentSniffer(object):
                 import mpi4py
                 self.include_dirs.append(mpi4py.get_include())
             except ImportError:
-                error("Could not import mpi4py. Skipping support for FFTW MPI.")
-                support_mpi = False
+                log.error("Could not import mpi4py. Skipping support for FFTW MPI.")
+                self.support_mpi = False
 
         self.search_dependencies()
 
@@ -229,25 +229,26 @@ class EnvironmentSniffer(object):
             # function names. Prefer openmp if linking dynamically,
             # else fall back to pthreads.
 
-            # openmp requires special linker treatment
-            self.linker_flags.append(self.openmp_linker_flag())
-            lib_omp = self.check('OMP', 'init_threads', d, s,
-                                 basic_lib and not hasattr(self, 'static_fftw_dir'))
-            if lib_omp:
-                self.add_library(lib_omp)
-            else:
-                self.linker_flags.pop()
-
-            self.add_library(self.check('THREADS', 'init_threads', d, s,
-                                        basic_lib and not lib_omp))
-
             # On windows, the serial and posix threading functions are
-            # build into one library
-            if basic_lib and get_platform() in ('win32', 'win-amd64'):
-                self.compile_time_env[self.HAVE(d, 'THREADS')] = True
+            # build into one library. mpi not supported on windows.
+            if get_platform() in ('win32', 'win-amd64'):
+                if basic_lib:
+                    self.compile_time_env[self.HAVE(d, 'THREADS')] = True
+            else:
+                # openmp requires special linker treatment
+                self.linker_flags.append(self.openmp_linker_flag())
+                lib_omp = self.check('OMP', 'init_threads', d, s,
+                                     basic_lib and not hasattr(self, 'static_fftw_dir'))
+                if lib_omp:
+                    self.add_library(lib_omp)
+                else:
+                    self.linker_flags.pop()
 
-            # check MPI only if headers were found
-            self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and self.support_mpi))
+                self.add_library(self.check('THREADS', 'init_threads', d, s,
+                                            basic_lib and not lib_omp))
+
+                # check MPI only if headers were found
+                self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and self.support_mpi))
 
         # optional packages summary: True if exists for any of the data types
         for l in lib_types[1:]:
