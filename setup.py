@@ -247,7 +247,7 @@ class EnvironmentSniffer(object):
             # On windows, the serial and posix threading functions are
             # build into one library as released on fftw.org. mpi is
             # not supported in the releases
-            if get_print()latform() in ('win32', 'win-amd64'):
+            if get_platform() in ('win32', 'win-amd64'):
                 if basic_lib:
                     self.compile_time_env[self.HAVE(d, 'THREADS')] = True
 
