@@ -187,8 +187,6 @@ class EnvironmentSniffer(object):
                 msvc_2010_path = (os.path.join(os.getcwd(), 'include', 'msvc_2010'))
                 self.include_dirs.append(msvc_2010_path)
 
-        # TODO What about thread libraries on windows?
-        # TODO mpi support missing and untested on windows
         if get_platform().startswith('linux'):
             # needed at least libm for linker checks to succeed
             self.libraries.append('m')
@@ -197,7 +195,7 @@ class EnvironmentSniffer(object):
         if not self.has_header(['fftw3.h'], include_dirs=self.include_dirs):
             raise CompileError("Could not find the FFTW header 'fftw3.h'")
 
-        # mpi is optional
+        # mpi is optional. Not supported on windows
         self.support_mpi = self.has_header(['mpi.h', 'fftw3-mpi.h'])
 
         if self.support_mpi:
@@ -228,12 +226,13 @@ class EnvironmentSniffer(object):
 
             # ...then multithreading: link check with threads requires
             # the serial library. Both omp and posix define the same
-            # function names. Prefer openmp if it works, fall back to
-            # pthreads.
+            # function names. Prefer openmp if linking dynamically,
+            # else fall back to pthreads.
 
             # openmp requires special linker treatment
             self.linker_flags.append(self.openmp_linker_flag())
-            lib_omp = self.check('OMP', 'init_threads', d, s, basic_lib)
+            lib_omp = self.check('OMP', 'init_threads', d, s,
+                                 basic_lib and not hasattr(self, 'static_fftw_dir'))
             if lib_omp:
                 self.add_library(lib_omp)
             else:
@@ -241,6 +240,11 @@ class EnvironmentSniffer(object):
 
             self.add_library(self.check('THREADS', 'init_threads', d, s,
                                         basic_lib and not lib_omp))
+
+            # On windows, the serial and posix threading functions are
+            # build into one library
+            if basic_lib and get_platform() in ('win32', 'win-amd64'):
+                self.compile_time_env[self.HAVE(d, 'THREADS')] = True
 
             # check MPI only if headers were found
             self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and self.support_mpi))
@@ -430,10 +434,9 @@ deletes the output and hides calls to the compiler and linker.'''
 
 class StaticSniffer(EnvironmentSniffer):
     def __init__(self, compiler):
-        # TODO check if STATIC_FFTW_DIR exists
         self.static_fftw_dir = os.environ.get('STATIC_FFTW_DIR', None)
         if not os.path.exists(self.static_fftw_dir):
-            raise LinkError('STATIC_FFTW_DIR="%s" does not exist')
+            raise LinkError('STATIC_FFTW_DIR="%s" was specified but does not exist' % self.static_fftw_dir)
 
         # call parent init
         super(self.__class__, self).__init__(compiler)
