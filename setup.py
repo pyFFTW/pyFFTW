@@ -170,7 +170,7 @@ class EnvironmentSniffer(object):
         self.linker_flags = []
         self.compile_time_env = {}
 
-        if self.compiler == 'msvc':
+        if self.compiler.compiler_type == 'msvc':
             if (sys.version_info.major, sys.version_info.minor) < (3, 3):
                 # The check above is a nasty hack. We're using the python
                 # version as a proxy for the MSVC version. 2008 doesn't
