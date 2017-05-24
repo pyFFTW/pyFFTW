@@ -229,26 +229,27 @@ class EnvironmentSniffer(object):
             # function names. Prefer openmp if linking dynamically,
             # else fall back to pthreads.
 
+            # openmp requires special linker treatment
+            self.linker_flags.append(self.openmp_linker_flag())
+            lib_omp = self.check('OMP', 'init_threads', d, s,
+                                 basic_lib and not hasattr(self, 'static_fftw_dir'))
+            if lib_omp:
+                self.add_library(lib_omp)
+            else:
+                self.linker_flags.pop()
+
+            self.add_library(self.check('THREADS', 'init_threads', d, s,
+                                        basic_lib and not lib_omp))
+
+            # check MPI only if headers were found
+            self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and self.support_mpi))
+
             # On windows, the serial and posix threading functions are
-            # build into one library. mpi not supported on windows.
-            if get_platform() in ('win32', 'win-amd64'):
+            # build into one library as released on fftw.org. mpi is
+            # not supported in the releases
+            if get_print()latform() in ('win32', 'win-amd64'):
                 if basic_lib:
                     self.compile_time_env[self.HAVE(d, 'THREADS')] = True
-            else:
-                # openmp requires special linker treatment
-                self.linker_flags.append(self.openmp_linker_flag())
-                lib_omp = self.check('OMP', 'init_threads', d, s,
-                                     basic_lib and not hasattr(self, 'static_fftw_dir'))
-                if lib_omp:
-                    self.add_library(lib_omp)
-                else:
-                    self.linker_flags.pop()
-
-                self.add_library(self.check('THREADS', 'init_threads', d, s,
-                                            basic_lib and not lib_omp))
-
-                # check MPI only if headers were found
-                self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and self.support_mpi))
 
         # optional packages summary: True if exists for any of the data types
         for l in lib_types[1:]:
