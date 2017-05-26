@@ -69,9 +69,9 @@ IF %MAJOR_PYTHON_VERSION% == 2 (
 
 IF %PYTHON_ARCH% == 64 (
    :: https://stackoverflow.com/a/43998080/987623
-   rem where cl >nul 2>nul || "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" amd64
-    set INCLUDE="C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt"
-    set LIB="C:\Program Files (x86)\Windows Kits\10\Lib\10.0.10240.0\um\x64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.10240.0\ucrt\x64"
+   where cl >nul 2>nul || "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" amd64
+    set INCLUDE=C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt
+    set LIB=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.10240.0\um\x64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.10240.0\ucrt\x64
 
     IF %SET_SDK_64% == Y (
         ECHO Configuring Windows SDK %WINDOWS_SDK_VERSION% for Python %MAJOR_PYTHON_VERSION% on a 64 bit architecture
