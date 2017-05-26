@@ -385,6 +385,8 @@ deletes the output and hides calls to the compiler and linker.'''
                 stderr = os.path.join(tmpdir, "compile-stderr")
                 with stdchannel_redirected(sys.stdout, stdout), stdchannel_redirected(sys.stderr, stderr):
                     tmp_objects = self.compiler.compile([fname], output_dir=file_root, include_dirs=include_dirs)
+                with open(stdout, 'r') as f: log.debug(f.read())
+                with open(stderr, 'r') as f: log.debug(f.read())
             except CompileError:
                 with open(stdout, 'r') as f: log.debug(f.read())
                 with open(stderr, 'r') as f: log.debug(f.read())
@@ -405,6 +407,8 @@ deletes the output and hides calls to the compiler and linker.'''
                                                   libraries=libraries,
                                                   extra_preargs=linker_flags,
                                                   library_dirs=library_dirs)
+                with open(stdout, 'r') as f: log.debug(f.read())
+                with open(stderr, 'r') as f: log.debug(f.read())
             except (LinkError, TypeError):
                 with open(stdout, 'r') as f: log.debug(f.read())
                 with open(stderr, 'r') as f: log.debug(f.read())
