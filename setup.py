@@ -161,6 +161,8 @@ class EnvironmentSniffer(object):
     '''
     def __init__(self, compiler):
         self.compiler = compiler
+        log.debug("Compiler includ_dirs set automatically")
+        log.debug(compiler.include_dirs)
 
         # members with the info for the outside world
         self.include_dirs = get_include_dirs()
