@@ -31,18 +31,14 @@ environment:
           PYTHON_VERSION: "3.6"
           NP_BUILD_DEP: "1.11"
 
+        # - PYTHON_HOME: "C:\\Miniconda35"
+        #   PYTHON_ARCH: "32"
+        #   PYTHON_VERSION: "3.5"
+
         # - PYTHON_HOME: "C:\\Miniconda36-x64"
         #   PYTHON_ARCH: "64"
         #   PYTHON_VERSION: "3.6"
         #   NP_BUILD_DEP: "1.11"
-
-        # - PYTHON_HOME: "C:\\Miniconda35"
-        #   PYTHON_ARCH: "32"
-        #   PYTHON_VERSION: "3.5"
-        # - PYTHON_HOME: "C:\\Miniconda36-x64"
-        #   PYTHON_ARCH: "64"
-        #   PYTHON_VERSION: "3.6"
-
 
         # - PYTHON_HOME: "C:\\Miniconda"
         #   PYTHON_ARCH: "32"
@@ -52,6 +48,9 @@ environment:
         #   PYTHON_ARCH: "64"
         #   PYTHON_VERSION: "2.7"
 
+        # - PYTHON_HOME: "C:\\Miniconda3"
+        #   PYTHON_ARCH: "32"
+        #   PYTHON_VERSION: "3.4"
 
         # - PYTHON_HOME: "C:\\Miniconda3-x64"
         #   PYTHON_ARCH: "64"

@@ -161,7 +161,7 @@ class EnvironmentSniffer(object):
     '''
     def __init__(self, compiler):
         self.compiler = compiler
-        log.debug("Compiler includ_dirs set automatically: %s" % compiler.includ_dirs)
+        log.debug("Compiler includ_dirs set automatically: %s" % compiler.include_dirs)
 
         # members with the info for the outside world
         self.include_dirs = get_include_dirs()
@@ -217,7 +217,7 @@ class EnvironmentSniffer(object):
         lib_types = ['', 'THREADS', 'OMP']
         functions = ['plan_dft', 'init_threads', 'init_threads']
         if self.support_mpi:
-            lib_types.append('_MPI')
+            lib_types.append('MPI')
             functions.append('mpi_init')
 
         for d, s in zip(data_types, data_types_short):
@@ -268,6 +268,7 @@ class EnvironmentSniffer(object):
             self.compile_time_env['HAVE_MPI'] = False
 
         log.debug(repr(self.compile_time_env))
+
         # required package: FFTW itself
         have_fftw = False
         for d in data_types:
@@ -276,7 +277,7 @@ class EnvironmentSniffer(object):
         if not have_fftw:
             raise LinkError("Could not find any of the FFTW libraries")
 
-        log.info('Supporting FFTW with')
+        log.info('Discovered FFTW with')
         for d in data_types:
             if not self.compile_time_env[self.HAVE(d)]:
                 continue
