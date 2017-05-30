@@ -161,8 +161,7 @@ class EnvironmentSniffer(object):
     '''
     def __init__(self, compiler):
         self.compiler = compiler
-        log.debug("Compiler includ_dirs set automatically")
-        log.debug(compiler.include_dirs)
+        log.debug("Compiler includ_dirs set automatically: %s" % compiler.includ_dirs)
 
         # members with the info for the outside world
         self.include_dirs = get_include_dirs()
@@ -357,6 +356,7 @@ deletes the output and hides calls to the compiler and linker.'''
 
         log.debug("objects: %s" % objects)
         log.debug("libraries: %s" % libraries)
+        log.debug("include dirs: %s" % include_dirs)
 
         import tempfile, shutil
 
