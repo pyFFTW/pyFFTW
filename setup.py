@@ -160,8 +160,12 @@ class EnvironmentSniffer(object):
 
     '''
     def __init__(self, compiler):
+        log.debug("Compiler include_dirs: %s" % compiler.include_dirs)
+        if hasattr(compiler, "initialize"):
+            compiler.initialize() # to set all variables
+            log.debug("Compiler include_dirs after initialize: %s" % compiler.include_dirs)
         self.compiler = compiler
-        log.debug("Compiler include_dirs set automatically: %s" % compiler.include_dirs)
+
         log.debug(sys.version) # contains the compiler used to build this python
 
         # members with the info for the outside world
