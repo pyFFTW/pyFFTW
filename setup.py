@@ -561,30 +561,30 @@ class custom_build_ext(build_ext):
         # define macros, that is which part of wrapper is built
         self.cython_compile_time_env = sniffer.compile_time_env
 
+        # call `extend()` to keep argument set neither by sniffer nor by
+        # user. On windows there are includes set automatically, we
+        # must not lose them.
+
         # prepend automatically generated info to whatever the user specified
         include_dirs = sniffer.include_dirs or []
         if self.include_dirs is not None:
             include_dirs += self.include_dirs
-        self.compiler.set_include_dirs(include_dirs)
+        self.compiler.include_dirs.extend(include_dirs)
 
         libraries = sniffer.libraries or None
         if self.libraries is not None:
             libraries += self.libraries
-        self.compiler.set_libraries(libraries)
+        self.compiler.libraries.extend(libraries)
 
         library_dirs = sniffer.library_dirs
         if self.library_dirs is not None:
             library_dirs += self.library_dirs
-        self.compiler.set_library_dirs(library_dirs)
+        self.compiler.library_dirs.extend(library_dirs)
 
         objects = sniffer.objects
         if self.link_objects is not None:
             objects += self.objects
         self.compiler.set_link_objects(objects)
-
-        # TODO how to set defaults? I only know how to set them when calling link() directly
-        # linker_flags = sniffer.linker_flags
-        # if self.link
 
         # delegate actual work to standard implementation
         build_ext.build_extensions(self)
