@@ -193,6 +193,18 @@ class EnvironmentSniffer(object):
                 msvc_2010_path = (os.path.join(os.getcwd(), 'include', 'msvc_2010'))
                 self.include_dirs.append(msvc_2010_path)
 
+                # To avoid http://bugs.python.org/issue4431
+                #
+                # C:\Program Files\Microsoft
+                # SDKs\Windows\v7.1\Bin\x64\mt.exe -nologo -manifest
+                # C:\Users\appveyor\AppData\Local\Temp\1\pyfftw-9in6l66u\a.out.exe.manifest
+                # -outputresource:C:\Users\appveyor\AppData\Local\Temp\1\pyfftw-9in6l66u\a.out.exe;1
+                # C:\Users\appveyor\AppData\Local\Temp\1\pyfftw-9in6l66u\a.out.exe.manifest
+                # : general error c1010070: Failed to load and parse
+                # the manifest. The system cannot find the file
+                # specified.
+                self.compiler.ldflags_shared.append('/MANIFEST')
+
         if get_platform().startswith('linux'):
             # needed at least libm for linker checks to succeed
             self.libraries.append('m')
