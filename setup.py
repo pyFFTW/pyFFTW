@@ -161,7 +161,8 @@ class EnvironmentSniffer(object):
     '''
     def __init__(self, compiler):
         self.compiler = compiler
-        log.debug("Compiler includ_dirs set automatically: %s" % compiler.include_dirs)
+        log.debug("Compiler include_dirs set automatically: %s" % compiler.include_dirs)
+        log.debug(sys.version) # contains the compiler used to build this python
 
         # members with the info for the outside world
         self.include_dirs = get_include_dirs()
@@ -358,7 +359,6 @@ deletes the output and hides calls to the compiler and linker.'''
         log.debug("objects: %s" % objects)
         log.debug("libraries: %s" % libraries)
         log.debug("include dirs: %s" % include_dirs)
-        log.debug("env[include]: %s" % os.environ['include'])
 
         import tempfile, shutil
 
@@ -579,7 +579,6 @@ class custom_build_ext(build_ext):
         # TODO how to set defaults? I only know how to set them when calling link() directly
         # linker_flags = sniffer.linker_flags
         # if self.link
-        log.debug("env[include] before build_extensions(): %s" % os.environ['include'])
 
         # delegate actual work to standard implementation
         build_ext.build_extensions(self)
