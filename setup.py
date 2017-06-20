@@ -392,8 +392,6 @@ deletes the output and hides calls to the compiler and linker.'''
                 stdout = os.path.join(tmpdir, "compile-stdout")
                 stderr = os.path.join(tmpdir, "compile-stderr")
                 with stdchannel_redirected(sys.stdout, stdout), stdchannel_redirected(sys.stderr, stderr):
-                    log.debug("_setup_compile: %s" % repr(self.compiler._setup_compile(file_root, None, include_dirs, [fname], None, None)))
-
                     tmp_objects = self.compiler.compile([fname], output_dir=file_root, include_dirs=include_dirs)
                 with open(stdout, 'r') as f: log.debug(f.read())
                 with open(stderr, 'r') as f: log.debug(f.read())
