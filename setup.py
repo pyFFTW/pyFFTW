@@ -1,10 +1,7 @@
-# Copyright 2017 Henry Gomersall and Frederik Beaujean
+# Copyright 2017 Henry Gomersall and the PyFFTW contributors
 #
 # Henry Gomersall
 # heng@kedevelopments.co.uk
-#
-# Frederik Beaujean
-# Frederik.Beaujean@lmu.de
 #
 # All rights reserved.
 #
@@ -53,13 +50,9 @@ from distutils.extension import Extension
 from distutils.sysconfig import customize_compiler
 from distutils.util import get_platform
 
-import contextlib, os, sys
-
-# we require cython because we need to know which part of wrapper to build to
-# avoid missing symbols at run time. But if this script is called without
-# building pyfftw, then we may hide cython dependency.
-# TODO Drop zig-zag to avoid cython dependency below
-# from Cython.Distutils import build_ext
+import contextlib
+import os
+import sys
 
 MAJOR = 0
 MINOR = 10
@@ -214,7 +207,9 @@ class EnvironmentSniffer(object):
             raise CompileError("Could not find the FFTW header 'fftw3.h'")
 
         # mpi is optional
-        self.support_mpi = self.has_header(['mpi.h', 'fftw3-mpi.h'])
+        # self.support_mpi = self.has_header(['mpi.h', 'fftw3-mpi.h'])
+        # TODO enable check when wrappers are included in Pyfftw
+        self.support_mpi = False
 
         if self.support_mpi:
             try:
@@ -777,6 +772,10 @@ def setup_package():
     except ImportError:
         build_requires = ['numpy>=1.6, <2.0']
 
+    # we require cython because we need to know which part of the wrapper
+    # to build to avoid missing symbols at runtime. But if this script is
+    # called without building pyfftw, for example to install the
+    # dependencies, then we have to hide the cython dependency.
     try:
         import cython
     except ImportError:
