@@ -1,0 +1,126 @@
+============================
+pyFFTW v0.11.0 Release Notes
+============================
+
+We are happy to announce the release of pyFFTW v0.11.0.  This release is the
+result of approximately one year of work by 6 contributors.
+
+pyFFTW is a pythonic wrapper around FFTW 3, the speedy FFT library. The
+ultimate aim is to present a unified interface for all the possible transforms
+that FFTW can perform.
+
+Both the complex DFT and the real DFT are supported, as well as on arbitrary
+axes of abitrary shaped and strided arrays.  Operating FFTW in multithreaded
+mode is supported.
+
+pyFFTW implements the numpy and scipy fft interfaces in order for users to take
+advantage of the speed of FFTW with minimal code modifications.  A dask
+interface to 1D FFTs is also provided.
+
+
+New features
+============
+
+Dask interfaces
+---------------
+Dask interfaces to all 1D FFTs implemented in numpy have been added.
+
+Fast transform planning utility
+-------------------------------
+A routine `next_fast_len` has been added to allow the user to easily determine
+sizes for which the FFT computation is computationally efficient.
+
+Expanded support for norm keyword argument in the numpy interfaces
+------------------------------------------------------------------
+Support for the `norm` keyword argument has been expanded to all numpy
+FFT interfaces. It was previously present only for the complex-valued routines.
+
+Support for norm keyword argument in FFTW builders
+--------------------------------------------------
+A `norm` keyword argument has been added to the FFTW builders allowing the
+normalization of pre-planned FFTs to be chosen in the same manner as for the
+numpy interfaces.
+
+Dynamic library detection at build time
+---------------------------------------
+setup.py has been overhauled to dynamically detect the variants of FFTW that
+are present.  Previously single, double and long double libraries were
+all required at build time.  Now, compilation will attempt to detect which
+variants are present and compile based on that.  Building with OpenMP-based
+threading is also now supported.  If both OpenMP and posix threaded variants
+are found, the OpenMP variant will be preferred.  If the user desires to
+instead link to posix threads by default, the environment variable
+PYFFTW_USE_PTHREADS should be defined.
+
+One caveat is that this dynamic detection is not yet implemented on the Windows
+platform.
+
+Other changes
+=============
+
+float16 inputs are now transformed using single rather than double precision.
+
+The default planning for the numpy and scipy interfaces has changed from
+FFTW_MEASURE to FFTW_ESTIMATE.  This results in faster planning.  In cases
+where the same transform is to be repeated many times, it is likely
+advantageous to manually specify FFTW_MEASURE instead (or use the FFTW builders
+to pre-plan the FFT).
+
+version number handling is now automatically handled by versioneer
+
+Authors
+=======
+
+* Frederik Beaujean +
+* Henry Gomersall
+* John Kirkham +
+* Antony Lee +
+* Gregory R. Lee
+* Iblis Lin +
+
+A total of 6 people contributed to this release.
+People with a "+" by their names contributed a patch for the first time.
+This list of names is automatically generated, and may not be fully complete.
+
+Issues closed for v0.11
+------------------------
+- `#32 <https://github.com/pyFFTW/pyFFTW/issues/32>`__: Provide the sources of the documentation in the source distribution instead of a build
+- #86 <https://github.com/pyFFTW/pyFFTW/issues/86>`__: Add the source of the documentation to the release tarball
+- `#87 <https://github.com/pyFFTW/pyFFTW/issues/87>`__: Avoid overwriting the version file distributed in the source release
+- `#125 <https://github.com/pyFFTW/pyFFTW/issues/125>`__: pip install pyfftw fails on travis-ci
+- `#132 <https://github.com/pyFFTW/pyFFTW/issues/132>`__: Citation preferences?
+- `#134 <https://github.com/pyFFTW/pyFFTW/issues/134>`__: link on github broken
+- `#146 <https://github.com/pyFFTW/pyFFTW/issues/146>`__: README on pypi still points to github.com/hgomersall/pyfftw
+- `#151 <https://github.com/pyFFTW/pyFFTW/issues/151>`__: Dask wrappers/interface for pyFFTW
+- `#152 <https://github.com/pyFFTW/pyFFTW/issues/152>`__: Missing norm argument in several numpy interface fft methods
+- `#174 <https://github.com/pyFFTW/pyFFTW/issues/174>`__: Using OpenMP threads instead of POSIX threads #174
+
+Pull requests for v0.11
+------------------------
+- `#140 <https://github.com/pyFFTW/pyFFTW/pull/140>`__: ENH: process float16 inputs in single precision
+- `#148 <https://github.com/pyFFTW/pyFFTW/pull/148>`__: np/sp interfaces default to FFTW_ESTIMATE
+- `#149 <https://github.com/pyFFTW/pyFFTW/pull/149>`__: Add freebsd build support
+- `#153 <https://github.com/pyFFTW/pyFFTW/pull/153>`__: Document the NumPy interface's `hfft` and `ihfft`
+- `#154 <https://github.com/pyFFTW/pyFFTW/pull/154>`__: Provide a Dask interface to pyFFTW's 1-D FFTs
+- `#155 <https://github.com/pyFFTW/pyFFTW/pull/155>`__: Handle install requirements separately
+- `#156 <https://github.com/pyFFTW/pyFFTW/pull/156>`__: Use org URLs
+- `#157 <https://github.com/pyFFTW/pyFFTW/pull/157>`__: Rename Cache interface tests
+- `#158 <https://github.com/pyFFTW/pyFFTW/pull/158>`__: DOC: add next_fast_len to the interfaces docs too
+- `#159 <https://github.com/pyFFTW/pyFFTW/pull/159>`__: add next_fast_len as introduced in scipy 0.18
+- `#160 <https://github.com/pyFFTW/pyFFTW/pull/160>`__: ENH: add norm keyword argument to the rfft*, hfft* numpy interfaces
+- `#161 <https://github.com/pyFFTW/pyFFTW/pull/161>`__: Configure RTD
+- `#162 <https://github.com/pyFFTW/pyFFTW/pull/162>`__: Check system prefix for headers and libraries
+- `#163 <https://github.com/pyFFTW/pyFFTW/pull/163>`__: Move docs out of the source code
+- `#164 <https://github.com/pyFFTW/pyFFTW/pull/164>`__: Fix sphinx configuration
+- `#165 <https://github.com/pyFFTW/pyFFTW/pull/165>`__: Import functions directly from the NumPy FFT interface
+- `#166 <https://github.com/pyFFTW/pyFFTW/pull/166>`__: Make sure to reference Dask interface
+- `#167 <https://github.com/pyFFTW/pyFFTW/pull/167>`__: extend the norm argument as implemented in the numpy interface to the builders
+- `#169 <https://github.com/pyFFTW/pyFFTW/pull/169>`__: Documentation is on Read the Docs
+- `#171 <https://github.com/pyFFTW/pyFFTW/pull/171>`__: DOC: add next_fast_len to the interfaces docs too
+- `#172 <https://github.com/pyFFTW/pyFFTW/pull/172>`__: Attempted fix to the problem of the FFTW libs not being downloaded on appveyor
+- `#173 <https://github.com/pyFFTW/pyFFTW/pull/173>`__: BLD: no conda package for numpy1.9 on Python3.6 so bump to 1.10.4
+- `#176 <https://github.com/pyFFTW/pyFFTW/pull/176>`__: Automate version number handling via versioneer
+- `#177 <https://github.com/pyFFTW/pyFFTW/pull/177>`__: [setup] Detect available FFTW libs
+- `#178 <https://github.com/pyFFTW/pyFFTW/pull/178>`__: Disable norm as a keyword argument in Dask test
+- `#182 <https://github.com/pyFFTW/pyFFTW/pull/182>`__: include documentation in the source distribution
+- `#185 <https://github.com/pyFFTW/pyFFTW/pull/185>`__: fix build-time fftw library detection for compatibility with conda-forge
