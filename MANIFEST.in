@@ -9,6 +9,16 @@ include pyfftw/utils.pxi
 include test/*.py
 include conf.py
 include index.rst
-recursive-include pyfftw *.rst
-recursive-include sphinx *.rst
 recursive-include include *.h
+
+# All documentation
+recursive-include docs *
+
+# Exclude built docs
+prune docs/_build
+
+# exclude built libraries, swap files, etc.
+prune build
+prune */__pycache__
+global-exclude *.py[cod] *.so *.dll *.dylib
+global-exclude *~ *.bak *.swp
