@@ -17,9 +17,6 @@ recursive-include docs *
 # Exclude built docs
 prune docs/_build
 
-# exclude Cython-generated source files
-exclude pyfftw/pyfftw.c
-
 # exclude built libraries, swap files, etc.
 prune build
 prune */__pycache__
