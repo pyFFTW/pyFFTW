@@ -783,6 +783,20 @@ def validate_input_shape(input_shape):
         raise ValueError('Invalid input shape: %s' % input_shape)
     return tuple(i)
 
+
+def one_dim_slice(input_shape):
+    '''Check if `input_shape` has size 1 in all or all but one direction.'''
+    not_one = False
+    for i in input_shape:
+        if i > 1:
+            # if we found something else than a one before, we now found it a
+            # 2nd time, so it can't be a 1D slice
+            if not_one:
+                return False
+            not_one = True
+    return True
+
+
 # TODO same order of arguments as in FFTW_MPI
 # TODO Default efficiency options: inplace, transpose out
 def create_mpi_plan(input_shape, input_chunk=None, input_dtype=None,
@@ -1484,6 +1498,11 @@ cdef class FFTW_MPI:
 
         functions = mpi_scheme_functions(scheme)
 
+        # stop here to avoid a segfault from calling fftw_mpi_plan*
+        if np.prod(input_shape) <= 1:
+            raise ValueError("Invalid input shape %s: need more than one element."
+                             % str(input_shape))
+
         self._fftw_planner = mpi_planners[functions['planner']]
         self._fftw_execute = mpi_executors[functions['executor']]
         self._fftw_destroy = destroyers[functions['generic_precision']]
@@ -1684,9 +1703,19 @@ cdef class FFTW_MPI:
             self._comm, self._direction, self._flags)
 
         if self._plan is NULL:
-            raise RuntimeError('The data configuration has an uncaught error that led ' +
-                               'to FFTW returning an invalid plan in MPI rank %d.' % self._MPI_rank +
-                               'Please report this as a bug.')
+            msg = 'The data configuration has an uncaught error that led ' + \
+                  'to FFTW returning an invalid plan in MPI rank %d. ' % self._MPI_rank
+            # FFTW MPI does only supports composite transforms in 1D.
+            if (self._rank == 1 or one_dim_slice(input_shape)):
+                msg += '\nFor an (effectively) 1D transform, only composite sizes ' \
+                       'are supported by FFTW with MPI. Please change the input ' \
+                       'shape %s to multidimensional or change the size in the ' \
+                       'transformed direction to a product of small prime factors. ' \
+                       'See http://fftw.org/fftw3_doc/MPI-Plan-Creation.html#MPI-Plan-Creation for details.' % str(input_shape)
+            else:
+                msg += 'Please report this as a bug.'
+
+            raise RuntimeError(msg)
 
     def __init__(self, input_shape, input_chunk, output_chunk,
                   block0='DEFAULT_BLOCK', block1='DEFAULT_BLOCK',
