@@ -779,22 +779,9 @@ def validate_input_shape(input_shape):
         i = input_shape * np.ones(1, dtype)
     if not len(i):
         raise ValueError('Empty input shape')
-    if (i <= 0).any():
-        raise ValueError('Invalid input shape: %s' % input_shape)
+    if (i <= 1).any():
+        raise ValueError('Invalid input shape: %s. All dims > 1 required for MPI support.' % str(input_shape))
     return tuple(i)
-
-
-def one_dim_slice(input_shape):
-    '''Check if `input_shape` has size 1 in all or all but one direction.'''
-    not_one = False
-    for i in input_shape:
-        if i > 1:
-            # if we found something else than a one before, we now found it a
-            # 2nd time, so it can't be a 1D slice
-            if not_one:
-                return False
-            not_one = True
-    return True
 
 
 # TODO same order of arguments as in FFTW_MPI
@@ -1705,12 +1692,11 @@ cdef class FFTW_MPI:
         if self._plan is NULL:
             msg = 'The data configuration has an uncaught error that led ' + \
                   'to FFTW returning an invalid plan in MPI rank %d. ' % self._MPI_rank
-            # FFTW MPI does only supports composite transforms in 1D.
-            if (self._rank == 1 or one_dim_slice(input_shape)):
-                msg += '\nFor an (effectively) 1D transform, only composite sizes ' \
+            # FFTW MPI only supports composite transforms in 1D.
+            if self._rank == 1:
+                msg += '\nFor a 1D transform, only composite sizes ' \
                        'are supported by FFTW with MPI. Please change the input ' \
-                       'shape %s to multidimensional or change the size in the ' \
-                       'transformed direction to a product of small prime factors. ' \
+                       'shape %s to a product of small prime factors. ' \
                        'See http://fftw.org/fftw3_doc/MPI-Plan-Creation.html#MPI-Plan-Creation for details.' % str(input_shape)
             else:
                 msg += 'Please report this as a bug.'
