@@ -599,7 +599,10 @@ class custom_build_ext(build_ext):
 
         libraries = sniffer.libraries or None
         if self.libraries is not None:
-            libraries += self.libraries
+            if libraries is None:
+                libraries = self.libraries
+            else:
+                libraries += self.libraries
         self.compiler.libraries.extend(libraries)
 
         library_dirs = sniffer.library_dirs
