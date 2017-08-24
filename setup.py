@@ -255,8 +255,15 @@ class EnvironmentSniffer(object):
                 lib_omp = False
                 self.compile_time_env[self.HAVE(d, 'OMP')] = False
 
-            self.add_library(self.check('THREADS', 'init_threads', d, s,
-                                        basic_lib and not lib_omp))
+            if not lib_omp:
+                # -pthread added for gcc/clang when checking for threads
+                self.linker_flags.append(self.pthread_linker_flag())
+                lib_pthread = self.check('THREADS', 'init_threads', d, s,
+                                         basic_lib)
+                if lib_pthread:
+                    self.add_library(lib_pthread)
+                else:
+                    self.linker_flags.pop()
 
             # check MPI only if headers were found
             self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and self.support_mpi))
@@ -311,9 +318,11 @@ class EnvironmentSniffer(object):
         exists = False
         lib = ''
         if do_check:
-            lib = self.lib_root_name('fftw3' + data_type_short + ('_' + lib_type.lower() if lib_type else ''))
+            lib = self.lib_root_name(
+                'fftw3' + data_type_short +
+                ('_' + lib_type.lower() if lib_type else ''))
             function = 'fftw' + data_type_short + '_' + function
-            exists =  self.has_library(lib, function)
+            exists = self.has_library(lib, function)
 
         self.compile_time_env[m] = exists
         return lib if exists else ''
@@ -455,6 +464,14 @@ deletes the output and hides calls to the compiler and linker.'''
             return '-fopenmp'
         # TODO support other compilers
         else:
+            return ''
+
+    def pthread_linker_flag(self):
+        # gcc and clang
+        if self.compiler.compiler_type == 'unix':
+            return '-pthread'
+        else:
+            # TODO support other compilers
             return ''
 
 class StaticSniffer(EnvironmentSniffer):
