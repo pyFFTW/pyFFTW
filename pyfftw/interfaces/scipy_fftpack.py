@@ -75,6 +75,12 @@ __all__ = ['fft', 'ifft', 'fftn', 'ifftn', 'rfft', 'irfft', 'fft2', 'ifft2',
            'shift', 'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve',
            'next_fast_len', ]
 
+try:
+    from scipy.fftpack import dctn, idctn, dstn, idstn
+    __all__ += ['dctn', 'idctn', 'dstn', 'idstn']
+except ImportError:
+    pass
+
 
 def fft(x, n=None, axis=-1, overwrite_x=False,
         planner_effort='FFTW_ESTIMATE', threads=1,
