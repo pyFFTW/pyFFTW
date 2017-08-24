@@ -22,3 +22,6 @@ prune build
 prune */__pycache__
 global-exclude *.py[cod] *.so *.dll *.dylib
 global-exclude *~ *.bak *.swp
+
+include versioneer.py
+include pyfftw/_version.py

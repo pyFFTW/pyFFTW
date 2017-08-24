@@ -53,13 +53,8 @@ from distutils.util import get_platform
 import contextlib
 import os
 import sys
+import versioneer
 
-MAJOR = 0
-MINOR = 10
-MICRO = 5
-ISRELEASED = False
-
-VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 if os.environ.get("READTHEDOCS") == "True":
     try:
@@ -70,6 +65,7 @@ if os.environ.get("READTHEDOCS") == "True":
     environ[b"CC"] = b"x86_64-linux-gnu-gcc"
     environ[b"LD"] = b"x86_64-linux-gnu-ld"
     environ[b"AR"] = b"x86_64-linux-gnu-ar"
+
 
 def get_include_dirs():
     import numpy
@@ -102,6 +98,7 @@ def get_package_data():
 
     return package_data
 
+
 def get_library_dirs():
     from pkg_resources import get_build_platform
 
@@ -115,6 +112,7 @@ def get_library_dirs():
         library_dirs.append('/usr/local/lib')
 
     return library_dirs
+
 
 @contextlib.contextmanager
 def stdchannel_redirected(stdchannel, dest_filename):
@@ -141,6 +139,7 @@ def stdchannel_redirected(stdchannel, dest_filename):
             os.dup2(oldstdchannel, stdchannel.fileno())
         if dest_file is not None:
             dest_file.close()
+
 
 class EnvironmentSniffer(object):
     '''Check for availability of headers and libraries of FFTW and MPI.
@@ -514,6 +513,7 @@ def get_extensions():
                              sources=[os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')])]
     return cythonize(ext_modules)
 
+
 long_description = '''
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
 speedy FFT library. The ultimate aim is to present a unified interface for all
@@ -544,6 +544,7 @@ The documentation can be found
 `here <http://pyfftw.readthedocs.io>`_, and the source
 is on `github <https://github.com/pyFFTW/pyFFTW>`_.
 '''
+
 
 class custom_build_ext(build_ext):
     def finalize_options(self):
@@ -594,6 +595,7 @@ class custom_build_ext(build_ext):
         # delegate actual work to standard implementation
         build_ext.build_extensions(self)
 
+
 class CreateChangelogCommand(Command):
     '''Depends on the ruby program github_changelog_generator. Install with
     gem install gihub_changelog_generator.
@@ -615,6 +617,7 @@ class CreateChangelogCommand(Command):
 
         subprocess.call(['github_changelog_generator', '-t', github_token])
 
+
 class TestCommand(Command):
     user_options = []
 
@@ -627,8 +630,9 @@ class TestCommand(Command):
     def run(self):
         import subprocess
         errno = subprocess.call([sys.executable, '-m',
-            'unittest', 'discover'])
+                                 'unittest', 'discover'])
         raise SystemExit(errno)
+
 
 class QuickTestCommand(Command):
     '''Runs a set of test cases that covers a limited set of the
@@ -673,97 +677,18 @@ class QuickTestCommand(Command):
 
         import subprocess
         errno = subprocess.call([sys.executable, '-m',
-            'unittest'] + quick_test_cases)
+                                 'unittest'] + quick_test_cases)
         raise SystemExit(errno)
 
-# borrowed from scipy via pyNFFT
-def git_version():
 
-    import subprocess
+cmdclass = {'test': TestCommand,
+            'quick_test': QuickTestCommand,
+            'build_ext': custom_build_ext,
+            'create_changelog': CreateChangelogCommand}
+cmdclass.update(versioneer.get_cmdclass())
 
-    def _minimal_ext_cmd(cmd):
-        # construct minimal environment
-        env = {}
-        for k in ['SYSTEMROOT', 'PATH']:
-            v = os.environ.get(k)
-            if v is not None:
-                env[k] = v
-        # LANGUAGE is used on win32
-        env['LANGUAGE'] = 'C'
-        env['LANG'] = 'C'
-        env['LC_ALL'] = 'C'
-        out = subprocess.Popen(cmd, stdout = subprocess.PIPE, env=env).communicate()[0]
-        return out
-
-    try:
-        out = _minimal_ext_cmd(['git', 'rev-parse', 'HEAD'])
-        GIT_REVISION = out.strip().decode('ascii')
-    except OSError:
-        GIT_REVISION = "Unknown"
-
-    return GIT_REVISION
-
-# borrowed from scipy via pyNFFT
-def get_version_info():
-    FULLVERSION = VERSION
-    if os.path.exists('.git'):
-        GIT_REVISION = git_version()
-    elif os.path.exists(os.path.join('pyfftw', 'version.py')):
-        # must be a source distribution, use existing version file
-        # load it as a separate module in order not to load __init__.py
-        import imp
-        version = imp.load_source(
-            'pyfftw.version', os.path.join('pyfftw', 'version.py'))
-        GIT_REVISION = version.git_revision
-    else:
-        GIT_REVISION = "Unknown"
-
-    if not ISRELEASED:
-        FULLVERSION += '.dev0+' + GIT_REVISION[:7]
-
-    return FULLVERSION, GIT_REVISION
-
-# borrowed from scipy via pyNFFT
-def write_version_py(filename=None):
-
-    if filename is None:
-        filename = os.path.join('pyfftw', 'version.py')
-
-    cnt = """
-# THIS FILE IS GENERATED FROM SETUP.PY
-short_version = '%(version)s'
-version = '%(version)s'
-full_version = '%(full_version)s'
-git_revision = '%(git_revision)s'
-release = %(isrelease)s
-if not release:
-    version = full_version
-
-if __name__ == "__main__":
-    print(short_version)
-    print(version)
-"""
-    FULLVERSION, GIT_REVISION = get_version_info()
-
-    f = open(filename, 'w')
-    try:
-        f.write(cnt % {'version': VERSION,
-                       'full_version' : FULLVERSION,
-                       'git_revision' : GIT_REVISION,
-                       'isrelease': str(ISRELEASED)})
-    finally:
-        f.close()
 
 def setup_package():
-
-    # Get current version
-    FULLVERSION, GIT_REVISION = get_version_info()
-
-    # Refresh version file if we're not a source release
-    if ISRELEASED and os.path.exists(os.path.join('pyfftw', 'version.py')):
-        pass
-    else:
-        write_version_py()
 
     # Figure out whether to add ``*_requires = ['numpy']``.
     build_requires = []
@@ -786,7 +711,7 @@ def setup_package():
 
     setup_args = {
         'name': 'pyFFTW',
-        'version': FULLVERSION,
+        'version': versioneer.get_version(),
         'author': 'Henry Gomersall',
         'author_email': 'heng@kedevelopments.co.uk',
         'description': (
@@ -805,10 +730,7 @@ def setup_package():
             'Topic :: Scientific/Engineering',
             'Topic :: Scientific/Engineering :: Mathematics',
             'Topic :: Multimedia :: Sound/Audio :: Analysis'],
-        'cmdclass': {'test': TestCommand,
-                     'quick_test': QuickTestCommand,
-                     'build_ext': custom_build_ext,
-                     'create_changelog': CreateChangelogCommand}
+        'cmdclass': cmdclass
     }
 
     if using_setuptools:
