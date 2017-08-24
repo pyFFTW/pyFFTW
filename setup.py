@@ -1,4 +1,4 @@
-# Copyright 2015 Knowledge Economy Developments Ltd
+# Copyright 2017 Henry Gomersall and the PyFFTW contributors
 #
 # Henry Gomersall
 # heng@kedevelopments.co.uk
@@ -32,55 +32,34 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
+# import only from standard library so dependencies can be installed
 try:
     # use setuptools if we can
-    from setuptools import setup, Command, Extension
+    from setuptools import setup, Command
     from setuptools.command.build_ext import build_ext
     using_setuptools = True
 except ImportError:
-    from distutils.core import setup, Command, Extension
+    from distutils.core import setup, Command
     from distutils.command.build_ext import build_ext
     using_setuptools = False
 
-from distutils.ccompiler import get_default_compiler
+from distutils import log
+from distutils.ccompiler import get_default_compiler, new_compiler
+from distutils.errors import CompileError, LinkError
+from distutils.extension import Extension
+from distutils.sysconfig import customize_compiler
+from distutils.util import get_platform
 
+import contextlib
 import os
 import sys
-
-#if os.environ.get('TRAVIS_TAG') != '':
-#    git_tag = os.environ.get('TRAVIS_TAG')
-#elif os.environ.get('APPVEYOR_REPO_TAG_NAME') is not None:
-#    git_tag = os.environ.get('APPVEYOR_REPO_TAG_NAME')
-#else:
-#    git_tag = None
 
 MAJOR = 0
 MINOR = 10
 MICRO = 5
 ISRELEASED = False
 
-#if git_tag is not None:
-#    # Check the tag is properly formed and in agreement with the
-#    # expected versio number before declaring a release.
-#    import re
-#    version_re = re.compile(r'v[0-9]+\.[0-9]+\.[0-9]+')
-#    if version_re.match(git_tag) is not None:
-#        tag_major, tag_minor, tag_micro = [
-#            int(each) for each in git_tag[1:].split('.')]
-#        
-#        assert tag_major == MAJOR
-#        assert tag_minor == MINOR
-#        assert tag_micro == MICRO
-#        
-#        ISRELEASED = True
-#    else:
-#        raise ValueError("Malformed version tag for release")
-#
-#else:
-#    ISRELEASED = False
-
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
-
 
 if os.environ.get("READTHEDOCS") == "True":
     try:
@@ -91,18 +70,6 @@ if os.environ.get("READTHEDOCS") == "True":
     environ[b"CC"] = b"x86_64-linux-gnu-gcc"
     environ[b"LD"] = b"x86_64-linux-gnu-ld"
     environ[b"AR"] = b"x86_64-linux-gnu-ar"
-
-
-def get_package_data():
-    from pkg_resources import get_build_platform
-
-    package_data = {}
-
-    if get_build_platform() in ('win32', 'win-amd64'):
-        package_data['pyfftw'] = [
-            'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
-
-    return package_data
 
 def get_include_dirs():
     import numpy
@@ -121,6 +88,20 @@ def get_include_dirs():
 
     return include_dirs
 
+# TODO Do we need to determine package data dynamically? If so, should
+# take the output from Sniffer but it's only available when the
+# extension is build and not when setup() is called.
+def get_package_data():
+    from pkg_resources import get_build_platform
+
+    package_data = {}
+
+    if get_build_platform() in ('win32', 'win-amd64'):
+        package_data['pyfftw'] = [
+            'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
+
+    return package_data
+
 def get_library_dirs():
     from pkg_resources import get_build_platform
 
@@ -135,46 +116,361 @@ def get_library_dirs():
 
     return library_dirs
 
-def get_libraries():
-    from pkg_resources import get_build_platform
+@contextlib.contextmanager
+def stdchannel_redirected(stdchannel, dest_filename):
+    """
+    A context manager to temporarily redirect stdout and stderr to a file.
 
-    if get_build_platform() in ('win32', 'win-amd64'):
-        libraries = ['libfftw3-3', 'libfftw3f-3', 'libfftw3l-3']
+    e.g.:
 
-    else:
-        libraries = ['fftw3', 'fftw3f', 'fftw3l', 'fftw3_threads',
-                     'fftw3f_threads', 'fftw3l_threads']
+    with stdchannel_redirected(sys.stderr, os.devnull):
+        if compiler.has_function('clock_gettime', libraries=['rt']):
+            libraries.append('rt')
 
-    return libraries
-
-def get_extensions():
-    from distutils.extension import Extension
-
-    # will use static linking if STATIC_FFTW_DIR defined
-    static_fftw_path = os.environ.get('STATIC_FFTW_DIR', None)
-    link_static_fftw = static_fftw_path is not None
-
-    common_extension_args = {
-        'include_dirs': get_include_dirs(),
-        'library_dirs': get_library_dirs()}
-
+    Taken from http://stackoverflow.com/a/17752729/987623
+    """
+    dest_file = None
     try:
-        from Cython.Build import cythonize
-        sources = [os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')]
-        have_cython = True
+        oldstdchannel = os.dup(stdchannel.fileno())
+        dest_file = open(dest_filename, 'w')
+        os.dup2(dest_file.fileno(), stdchannel.fileno())
 
-    except ImportError as e:
-        # no cython
-        sources = [os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.c')]
-        if not os.path.exists(sources[0]):
-            raise ImportError(
-                str(e) + '. ' +
-                'Cython is required to build the initial .c file.')
+        yield
+    finally:
+        if oldstdchannel is not None:
+            os.dup2(oldstdchannel, stdchannel.fileno())
+        if dest_file is not None:
+            dest_file.close()
 
-        have_cython = False
+class EnvironmentSniffer(object):
+    '''Check for availability of headers and libraries of FFTW and MPI.
 
-    libraries = get_libraries()
-    if link_static_fftw:
+    :param compiler:
+
+        Distutils.ccompiler; The compiler should be the compiler that
+        is used for actual compilation to ensure that include
+        directories, linker flags etc. are identical.
+
+    '''
+    def __init__(self, compiler):
+        log.debug("Compiler include_dirs: %s" % compiler.include_dirs)
+        if hasattr(compiler, "initialize"):
+            compiler.initialize() # to set all variables
+            log.debug("Compiler include_dirs after initialize: %s" % compiler.include_dirs)
+        self.compiler = compiler
+
+        log.debug(sys.version) # contains the compiler used to build this python
+
+        # members with the info for the outside world
+        self.include_dirs = get_include_dirs()
+        self.objects = []
+        self.libraries = []
+        self.library_dirs = get_library_dirs()
+        self.linker_flags = []
+        self.compile_time_env = {}
+
+        if self.compiler.compiler_type == 'msvc':
+            if (sys.version_info.major, sys.version_info.minor) < (3, 3):
+                # The check above is a nasty hack. We're using the python
+                # version as a proxy for the MSVC version. 2008 doesn't
+                # have stdint.h, so is needed. 2010 does.
+                #
+                # We need to add the path to msvc includes
+                msvc_2008_path = (os.path.join(os.getcwd(), 'include', 'msvc_2008'))
+                self.include_dirs.append(msvc_2008_path)
+            elif (sys.version_info.major, sys.version_info.minor) < (3, 5):
+                # Actually, it seems that appveyor doesn't have a stdint that
+                # works, so even for 2010 we use our own (hacked) version
+                # of stdint.
+                # This should be pretty safe in whatever case.
+                msvc_2010_path = (os.path.join(os.getcwd(), 'include', 'msvc_2010'))
+                self.include_dirs.append(msvc_2010_path)
+
+                # To avoid http://bugs.python.org/issue4431
+                #
+                # C:\Program Files\Microsoft
+                # SDKs\Windows\v7.1\Bin\x64\mt.exe -nologo -manifest
+                # C:\Users\appveyor\AppData\Local\Temp\1\pyfftw-9in6l66u\a.out.exe.manifest
+                # -outputresource:C:\Users\appveyor\AppData\Local\Temp\1\pyfftw-9in6l66u\a.out.exe;1
+                # C:\Users\appveyor\AppData\Local\Temp\1\pyfftw-9in6l66u\a.out.exe.manifest
+                # : general error c1010070: Failed to load and parse
+                # the manifest. The system cannot find the file
+                # specified.
+                self.compiler.ldflags_shared.append('/MANIFEST')
+
+        if get_platform().startswith('linux'):
+            # needed at least libm for linker checks to succeed
+            self.libraries.append('m')
+
+        # main fftw3 header is required
+        if not self.has_header(['fftw3.h'], include_dirs=self.include_dirs):
+            raise CompileError("Could not find the FFTW header 'fftw3.h'")
+
+        # mpi is optional
+        # self.support_mpi = self.has_header(['mpi.h', 'fftw3-mpi.h'])
+        # TODO enable check when wrappers are included in Pyfftw
+        self.support_mpi = False
+
+        if self.support_mpi:
+            try:
+                import mpi4py
+                self.include_dirs.append(mpi4py.get_include())
+            except ImportError:
+                log.error("Could not import mpi4py. Skipping support for FFTW MPI.")
+                self.support_mpi = False
+
+        self.search_dependencies()
+
+    def search_dependencies(self):
+
+        # lib_checks = {}
+        data_types = ['DOUBLE', 'SINGLE', 'LONG', 'QUAD']
+        data_types_short = ['', 'f', 'l', 'q']
+        lib_types = ['', 'THREADS', 'OMP']
+        functions = ['plan_dft', 'init_threads', 'init_threads']
+        if self.support_mpi:
+            lib_types.append('MPI')
+            functions.append('mpi_init')
+
+        for d, s in zip(data_types, data_types_short):
+            # first check for serial library...
+            basic_lib = self.check('', 'plan_dft', d, s, True)
+            self.add_library(basic_lib)
+
+            # ...then multithreading: link check with threads requires
+            # the serial library. Both omp and posix define the same
+            # function names. Prefer openmp if linking dynamically,
+            # else fall back to pthreads.
+
+            # openmp requires special linker treatment
+            self.linker_flags.append(self.openmp_linker_flag())
+            lib_omp = self.check('OMP', 'init_threads', d, s,
+                                 basic_lib and not hasattr(self, 'static_fftw_dir'))
+            if lib_omp:
+                self.add_library(lib_omp)
+            else:
+                self.linker_flags.pop()
+
+            self.add_library(self.check('THREADS', 'init_threads', d, s,
+                                        basic_lib and not lib_omp))
+
+            # check MPI only if headers were found
+            self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and self.support_mpi))
+
+            # On windows, the serial and posix threading functions are
+            # build into one library as released on fftw.org. mpi is
+            # not supported in the releases
+            if get_platform() in ('win32', 'win-amd64'):
+                if basic_lib:
+                    self.compile_time_env[self.HAVE(d, 'THREADS')] = True
+
+        # optional packages summary: True if exists for any of the data types
+        for l in lib_types[1:]:
+            self.compile_time_env['HAVE_' + l] = False
+            for d in data_types:
+                self.compile_time_env['HAVE_' + l] |= self.compile_time_env[self.HAVE(d, l)]
+
+        # compile only if mpi.h *and* one of the fftw mpi libraries are found
+        if self.support_mpi:
+            found_mpi_types = []
+            for d in data_types:
+                if self.compile_time_env['HAVE_' + d + '_MPI']:
+                    found_mpi_types.append(d)
+        else:
+            self.compile_time_env['HAVE_MPI'] = False
+
+        log.debug(repr(self.compile_time_env))
+
+        # required package: FFTW itself
+        have_fftw = False
+        for d in data_types:
+            have_fftw |= self.compile_time_env['HAVE_' + d]
+
+        if not have_fftw:
+            raise LinkError("Could not find any of the FFTW libraries")
+
+        log.info('Discovered FFTW with')
+        for d in data_types:
+            if not self.compile_time_env[self.HAVE(d)]:
+                continue
+            s = d.lower() + ' precision'
+            if self.compile_time_env[self.HAVE(d, 'OMP')]:
+                s += ' + openMP'
+            elif self.compile_time_env[self.HAVE(d, 'THREADS')]:
+                s += ' + pthreads'
+            if self.compile_time_env[self.HAVE(d, 'MPI')]:
+                s += ' + MPI'
+            log.info(s)
+
+    def check(self, lib_type, function, data_type, data_type_short, do_check):
+        m = self.HAVE(data_type, lib_type)
+        exists = False
+        lib = ''
+        if do_check:
+            lib = self.lib_root_name('fftw3' + data_type_short + ('_' + lib_type.lower() if lib_type else ''))
+            function = 'fftw' + data_type_short + '_' + function
+            exists =  self.has_library(lib, function)
+
+        self.compile_time_env[m] = exists
+        return lib if exists else ''
+
+    def HAVE(self, data_type, lib_type=''):
+        s = 'HAVE_' + data_type
+        if lib_type:
+            return s + '_' + lib_type
+        else:
+            return s
+
+    def lib_root_name(self, lib):
+        '''Build the name of the lib to pass to the python compiler
+        interface.
+
+        Examples:
+
+        With a unix compiler, `fftw3` is unchanged but the interface
+        passes `-lfftw3` to the linker.
+
+        On windows, `fftw3l` -> `libfftw3l-3` and the interfaces
+        passes `libfftw3l-3.libf` to the linker.
+
+        '''
+        if get_platform() in ('win32', 'win-amd64'):
+            return 'lib%s-3' % lib
+        else:
+            return lib
+
+    def add_library(self, lib):
+        raise NotImplementedError
+
+    def has_function(self, function, includes=None, objects=None, libraries=None,
+                     include_dirs=None, library_dirs=None, linker_flags=None):
+        '''Alternative implementation of distutils.ccompiler.has_function that
+deletes the output and hides calls to the compiler and linker.'''
+        if includes is None:
+            includes = []
+        if objects is None:
+            objects = self.objects
+        if libraries is None:
+            libraries = self.libraries
+        if include_dirs is None:
+            include_dirs = self.include_dirs
+        if library_dirs is None:
+            library_dirs = self.library_dirs
+        if linker_flags is None:
+            linker_flags = self.linker_flags
+
+        msg = "Checking"
+        if function:
+            msg += " for %s" % function
+        if includes:
+            msg += " with includes " + str(includes)
+        msg += "..."
+        status = "no"
+
+        log.debug("objects: %s" % objects)
+        log.debug("libraries: %s" % libraries)
+        log.debug("include dirs: %s" % include_dirs)
+
+        import tempfile, shutil
+
+        tmpdir = tempfile.mkdtemp(prefix='pyfftw-')
+        try:
+            try:
+                fname = os.path.join(tmpdir, '%s.c' % function)
+                f = open(fname, 'w')
+                for inc in includes:
+                    f.write('#include <%s>\n' % inc)
+                f.write("""\
+                int main() {
+                """)
+                if function:
+                    f.write('%s();\n' % function)
+                f.write("""\
+                return 0;
+                }""")
+            finally:
+                f.close()
+                # the root directory
+                file_root = os.path.abspath(os.sep)
+            try:
+                # output file is stored relative to input file since
+                # the output has the full directory, joining with the
+                # file root gives the right directory
+                stdout = os.path.join(tmpdir, "compile-stdout")
+                stderr = os.path.join(tmpdir, "compile-stderr")
+                with stdchannel_redirected(sys.stdout, stdout), stdchannel_redirected(sys.stderr, stderr):
+                    tmp_objects = self.compiler.compile([fname], output_dir=file_root, include_dirs=include_dirs)
+                with open(stdout, 'r') as f: log.debug(f.read())
+                with open(stderr, 'r') as f: log.debug(f.read())
+            except CompileError:
+                with open(stdout, 'r') as f: log.debug(f.read())
+                with open(stderr, 'r') as f: log.debug(f.read())
+                return False
+            except Exception as e:
+                log.error(e)
+                return False
+            try:
+                # additional objects should come last to resolve symbols, linker order matters
+                tmp_objects.extend(objects)
+                stdout = os.path.join(tmpdir, "link-stdout")
+                stderr = os.path.join(tmpdir, "link-stderr")
+                with stdchannel_redirected(sys.stdout, stdout), stdchannel_redirected(sys.stderr, stderr):
+                    # TODO using link_executable, LDFLAGS that the
+                    # user can modify are ignored
+                    self.compiler.link_executable(tmp_objects, 'a.out',
+                                                  output_dir=tmpdir,
+                                                  libraries=libraries,
+                                                  extra_preargs=linker_flags,
+                                                  library_dirs=library_dirs)
+                with open(stdout, 'r') as f: log.debug(f.read())
+                with open(stderr, 'r') as f: log.debug(f.read())
+            except (LinkError, TypeError):
+                with open(stdout, 'r') as f: log.debug(f.read())
+                with open(stderr, 'r') as f: log.debug(f.read())
+                return False
+            except Exception as e:
+                log.error(e)
+                return False
+            # no error, seems to work
+            status = "ok"
+            return True
+        finally:
+            shutil.rmtree(tmpdir)
+            log.debug(msg + status)
+
+    def has_header(self, headers, include_dirs=None):
+        '''Check for existence and usability of header files by compiling a test file.'''
+        return self.has_function(None, includes=headers, include_dirs=include_dirs)
+
+    def has_library(function, lib):
+        raise NotImplementedError
+
+    def openmp_linker_flag(self):
+        # gcc and newer clang support openmp
+        if self.compiler.compiler_type == 'unix':
+            return '-fopenmp'
+        # TODO support other compilers
+        else:
+            return ''
+
+class StaticSniffer(EnvironmentSniffer):
+    def __init__(self, compiler):
+        self.static_fftw_dir = os.environ.get('STATIC_FFTW_DIR', None)
+        if not os.path.exists(self.static_fftw_dir):
+            raise LinkError('STATIC_FFTW_DIR="%s" was specified but does not exist' % self.static_fftw_dir)
+
+        # call parent init
+        super(self.__class__, self).__init__(compiler)
+
+    def has_library(self, root_name, function):
+        '''Expect library in root form'''
+        # get full name of lib
+        objects = [os.path.join(self.static_fftw_dir, self.lib_full_name(root_name))]
+        objects.extend(self.objects)
+        return self.has_function(function, objects=objects)
+
+    def lib_full_name(self, root_lib):
+        # TODO use self.compiler.library_filename
         from pkg_resources import get_build_platform
         if get_build_platform() in ('win32', 'win-amd64'):
             lib_pre = ''
@@ -182,27 +478,41 @@ def get_extensions():
         else:
             lib_pre = 'lib'
             lib_ext = '.a'
-        extra_link_args = []
-        for lib in libraries:
-            extra_link_args.append(
-                os.path.join(static_fftw_path, lib_pre + lib + lib_ext))
+        return os.path.join(self.static_fftw_dir, lib_pre + root_lib + lib_ext)
 
-        common_extension_args['extra_link_args'] = extra_link_args
-        common_extension_args['libraries'] = []
+    def add_library(self, lib):
+        full_name = self.lib_full_name(self.lib_root_name(lib))
+        if lib:
+            self.objects.insert(0, full_name)
+
+class DynamicSniffer(EnvironmentSniffer):
+    def __init__(self, compiler):
+        super(self.__class__, self).__init__(compiler)
+
+    def has_library(self, lib, function):
+        '''Expect lib in root name so it can be passed to compiler'''
+        libraries = [lib]
+        libraries.extend(self.libraries)
+        return self.has_function(function, libraries=libraries)
+
+    def add_library(self, lib):
+        if lib:
+            self.libraries.insert(0, lib)
+
+def make_sniffer(compiler):
+    if os.environ.get('STATIC_FFTW_DIR', None) is None:
+        log.debug("Link FFTW dynamically")
+        return DynamicSniffer(compiler)
     else:
-        # otherwise we use dynamic libraries
-        common_extension_args['extra_link_args'] = []
-        common_extension_args['libraries'] = libraries
+        log.debug("Link FFTW statically")
+        return StaticSniffer(compiler)
 
-    ext_modules = [
-        Extension('pyfftw.pyfftw', sources=sources,
-                  **common_extension_args)]
+def get_extensions():
+    from Cython.Build import cythonize
 
-    if have_cython:
-        return cythonize(ext_modules)
-
-    else:
-        return ext_modules
+    ext_modules = [Extension('pyfftw.pyfftw',
+                             sources=[os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')])]
+    return cythonize(ext_modules)
 
 long_description = '''
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
@@ -245,45 +555,44 @@ class custom_build_ext(build_ext):
         else:
             compiler = self.compiler
 
-        if compiler == 'msvc':
-            # Add msvc specific hacks
+    def build_extensions(self):
+        '''Check for availability of fftw libraries before building the wrapper.
 
-            if (sys.version_info.major, sys.version_info.minor) < (3, 3):
-                # The check above is a nasty hack. We're using the python
-                # version as a proxy for the MSVC version. 2008 doesn't
-                # have stdint.h, so is needed. 2010 does.
-                #
-                # We need to add the path to msvc includes
+        Do it here to make sure we use the exact same compiler for checking includes/linking as for building the libraries.'''
+        sniffer = make_sniffer(self.compiler)
 
-                msvc_2008_path = (
-                    os.path.join(os.getcwd(), 'include', 'msvc_2008'))
+        # read out information and modify compiler
 
-                if self.include_dirs is not None:
-                    self.include_dirs.append(msvc_2008_path)
+        # define macros, that is which part of wrapper is built
+        self.cython_compile_time_env = sniffer.compile_time_env
 
-                else:
-                    self.include_dirs = [msvc_2008_path]
+        # call `extend()` to keep argument set neither by sniffer nor by
+        # user. On windows there are includes set automatically, we
+        # must not lose them.
 
-            elif (sys.version_info.major, sys.version_info.minor) < (3, 5):
-                # Actually, it seems that appveyor doesn't have a stdint that
-                # works, so even for 2010 we use our own (hacked) version
-                # of stdint.
-                # This should be pretty safe in whatever case.
-                msvc_2010_path = (
-                    os.path.join(os.getcwd(), 'include', 'msvc_2010'))
+        # prepend automatically generated info to whatever the user specified
+        include_dirs = sniffer.include_dirs or []
+        if self.include_dirs is not None:
+            include_dirs += self.include_dirs
+        self.compiler.include_dirs.extend(include_dirs)
 
-                if self.include_dirs is not None:
-                    self.include_dirs.append(msvc_2010_path)
+        libraries = sniffer.libraries or None
+        if self.libraries is not None:
+            libraries += self.libraries
+        self.compiler.libraries.extend(libraries)
 
-                else:
-                    self.include_dirs = [msvc_2010_path]
+        library_dirs = sniffer.library_dirs
+        if self.library_dirs is not None:
+            library_dirs += self.library_dirs
+        self.compiler.library_dirs.extend(library_dirs)
 
-            # We need to prepend lib to all the library names
-            _libraries = []
-            for each_lib in self.libraries:
-                _libraries.append('lib' + each_lib)
+        objects = sniffer.objects
+        if self.link_objects is not None:
+            objects += self.objects
+        self.compiler.set_link_objects(objects)
 
-            self.libraries = _libraries
+        # delegate actual work to standard implementation
+        build_ext.build_extensions(self)
 
 class CreateChangelogCommand(Command):
     '''Depends on the ruby program github_changelog_generator. Install with
@@ -366,7 +675,6 @@ class QuickTestCommand(Command):
         errno = subprocess.call([sys.executable, '-m',
             'unittest'] + quick_test_cases)
         raise SystemExit(errno)
-
 
 # borrowed from scipy via pyNFFT
 def git_version():
@@ -463,6 +771,15 @@ def setup_package():
         import numpy
     except ImportError:
         build_requires = ['numpy>=1.6, <2.0']
+
+    # we require cython because we need to know which part of the wrapper
+    # to build to avoid missing symbols at runtime. But if this script is
+    # called without building pyfftw, for example to install the
+    # dependencies, then we have to hide the cython dependency.
+    try:
+        import cython
+    except ImportError:
+        build_requires.append('cython>=0.23, <1.0')
 
     install_requires = []
     install_requires.extend(build_requires)

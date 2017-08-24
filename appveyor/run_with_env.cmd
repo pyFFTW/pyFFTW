@@ -68,6 +68,7 @@ IF %MAJOR_PYTHON_VERSION% == 2 (
 )
 
 IF %PYTHON_ARCH% == 64 (
+
     IF %SET_SDK_64% == Y (
         ECHO Configuring Windows SDK %WINDOWS_SDK_VERSION% for Python %MAJOR_PYTHON_VERSION% on a 64 bit architecture
         SET DISTUTILS_USE_SDK=1
