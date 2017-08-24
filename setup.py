@@ -240,16 +240,20 @@ class EnvironmentSniffer(object):
             # ...then multithreading: link check with threads requires
             # the serial library. Both omp and posix define the same
             # function names. Prefer openmp if linking dynamically,
-            # else fall back to pthreads.
-
-            # openmp requires special linker treatment
-            self.linker_flags.append(self.openmp_linker_flag())
-            lib_omp = self.check('OMP', 'init_threads', d, s,
-                                 basic_lib and not hasattr(self, 'static_fftw_dir'))
-            if lib_omp:
-                self.add_library(lib_omp)
+            # else fall back to pthreads.  pthreads can be prioritized over
+            # openmp by defining the environment variable PYFFTW_USE_PTHREADS
+            if 'PYFFTW_USE_PTHREADS' not in os.environ:
+                # openmp requires special linker treatment
+                self.linker_flags.append(self.openmp_linker_flag())
+                lib_omp = self.check('OMP', 'init_threads', d, s,
+                                     basic_lib and not hasattr(self, 'static_fftw_dir'))
+                if lib_omp:
+                    self.add_library(lib_omp)
+                else:
+                    self.linker_flags.pop()
             else:
-                self.linker_flags.pop()
+                lib_omp = False
+                self.compile_time_env[self.HAVE(d, 'OMP')] = False
 
             self.add_library(self.check('THREADS', 'init_threads', d, s,
                                         basic_lib and not lib_omp))
