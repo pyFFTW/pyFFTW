@@ -80,6 +80,9 @@ def get_include_dirs():
                     numpy.get_include(),
                     os.path.join(sys.prefix, 'include')]
 
+    if 'PYFFTW_INCLUDE' in os.environ:
+        include_dirs.append(os.environ['PYFFTW_INCLUDE'])
+
     if get_build_platform() in ('win32', 'win-amd64'):
         include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
 
