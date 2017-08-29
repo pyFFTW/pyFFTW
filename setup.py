@@ -76,6 +76,9 @@ def get_include_dirs():
                     numpy.get_include(),
                     os.path.join(sys.prefix, 'include')]
 
+    if 'PYFFTW_INCLUDE' in os.environ:
+        include_dirs.append(os.environ['PYFFTW_INCLUDE'])
+
     if get_build_platform() in ('win32', 'win-amd64'):
         include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
 
@@ -239,19 +242,30 @@ class EnvironmentSniffer(object):
             # ...then multithreading: link check with threads requires
             # the serial library. Both omp and posix define the same
             # function names. Prefer openmp if linking dynamically,
-            # else fall back to pthreads.
-
-            # openmp requires special linker treatment
-            self.linker_flags.append(self.openmp_linker_flag())
-            lib_omp = self.check('OMP', 'init_threads', d, s,
-                                 basic_lib and not hasattr(self, 'static_fftw_dir'))
-            if lib_omp:
-                self.add_library(lib_omp)
+            # else fall back to pthreads.  pthreads can be prioritized over
+            # openmp by defining the environment variable PYFFTW_USE_PTHREADS
+            if 'PYFFTW_USE_PTHREADS' not in os.environ:
+                # openmp requires special linker treatment
+                self.linker_flags.append(self.openmp_linker_flag())
+                lib_omp = self.check('OMP', 'init_threads', d, s,
+                                     basic_lib and not hasattr(self, 'static_fftw_dir'))
+                if lib_omp:
+                    self.add_library(lib_omp)
+                else:
+                    self.linker_flags.pop()
             else:
-                self.linker_flags.pop()
+                lib_omp = False
+                self.compile_time_env[self.HAVE(d, 'OMP')] = False
 
-            self.add_library(self.check('THREADS', 'init_threads', d, s,
-                                        basic_lib and not lib_omp))
+            if not lib_omp:
+                # -pthread added for gcc/clang when checking for threads
+                self.linker_flags.append(self.pthread_linker_flag())
+                lib_pthread = self.check('THREADS', 'init_threads', d, s,
+                                         basic_lib)
+                if lib_pthread:
+                    self.add_library(lib_pthread)
+                else:
+                    self.linker_flags.pop()
 
             # check MPI only if headers were found
             self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and self.support_mpi))
@@ -306,9 +320,11 @@ class EnvironmentSniffer(object):
         exists = False
         lib = ''
         if do_check:
-            lib = self.lib_root_name('fftw3' + data_type_short + ('_' + lib_type.lower() if lib_type else ''))
+            lib = self.lib_root_name(
+                'fftw3' + data_type_short +
+                ('_' + lib_type.lower() if lib_type else ''))
             function = 'fftw' + data_type_short + '_' + function
-            exists =  self.has_library(lib, function)
+            exists = self.has_library(lib, function)
 
         self.compile_time_env[m] = exists
         return lib if exists else ''
@@ -452,6 +468,14 @@ deletes the output and hides calls to the compiler and linker.'''
         else:
             return ''
 
+    def pthread_linker_flag(self):
+        # gcc and clang
+        if self.compiler.compiler_type == 'unix':
+            return '-pthread'
+        else:
+            # TODO support other compilers
+            return ''
+
 class StaticSniffer(EnvironmentSniffer):
     def __init__(self, compiler):
         self.static_fftw_dir = os.environ.get('STATIC_FFTW_DIR', None)
@@ -579,7 +603,10 @@ class custom_build_ext(build_ext):
 
         libraries = sniffer.libraries or None
         if self.libraries is not None:
-            libraries += self.libraries
+            if libraries is None:
+                libraries = self.libraries
+            else:
+                libraries += self.libraries
         self.compiler.libraries.extend(libraries)
 
         library_dirs = sniffer.library_dirs
