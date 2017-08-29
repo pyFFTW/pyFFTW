@@ -941,10 +941,10 @@ def local_size(input_shape, ptrdiff_t howmany=1,
 
     :param howmany:
 
-        To perform multiple transform of the same dimensions at once, interleave
+        To perform multiple transforms of the same dimensions at once, interleave
         the elements one after another and pass ``how_many`` to indicate the
         stride. Example: Transform ``x`` and ``y``, then store ``x[0], y[0],
-        x[1], y[1]`` contiguosly in memory and pass ``how_many=2``.
+        x[1], y[1]`` contiguously in memory and pass ``how_many=2``.
 
     :param block0:
 
