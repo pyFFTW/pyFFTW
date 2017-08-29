@@ -228,7 +228,7 @@ class EnvironmentSniffer(object):
         # lib_checks = {}
         data_types = ['DOUBLE', 'SINGLE', 'LONG', 'QUAD']
         data_types_short = ['', 'f', 'l', 'q']
-        lib_types = ['', 'THREADS', 'OMP']
+        lib_types = ['', 'PTHREADS', 'OMP']
         functions = ['plan_dft', 'init_threads', 'init_threads']
         if self.support_mpi:
             lib_types.append('MPI')
@@ -251,6 +251,8 @@ class EnvironmentSniffer(object):
                                      basic_lib and not hasattr(self, 'static_fftw_dir'))
                 if lib_omp:
                     self.add_library(lib_omp)
+                    # manually set flag because it won't be checked below
+                    self.compile_time_env[self.HAVE(d, 'PTHREADS')] = False
                 else:
                     self.linker_flags.pop()
             else:
@@ -263,28 +265,25 @@ class EnvironmentSniffer(object):
             if not lib_omp:
                 # -pthread added for gcc/clang when checking for threads
                 self.linker_flags.append(self.pthread_linker_flag())
-                lib_pthread = self.check('THREADS', 'init_threads', d, s,
+                lib_pthread = self.check('PTHREADS', 'init_threads', d, s,
                                          basic_lib)
                 if lib_pthread:
                     self.add_library(lib_pthread)
                 else:
                     self.linker_flags.pop()
 
-            # check MPI only if headers were found
-            self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and self.support_mpi))
-
             # On windows, the serial and posix threading functions are
-            # build into one library as released on fftw.org. mpi is
-            # not supported in the releases
+            # build into one library as released on fftw.org. openMP
+            # and MPI are not supported in the releases
             if get_platform() in ('win32', 'win-amd64'):
                 if basic_lib:
-                    self.compile_time_env[self.HAVE(d, 'THREADS')] = True
+                    self.compile_time_env[self.HAVE(d, 'PTHREADS')] = True
 
-        # optional packages summary: True if exists for any of the data types
-        for l in lib_types[1:]:
-            self.compile_time_env['HAVE_' + l] = False
-            for d in data_types:
-                self.compile_time_env['HAVE_' + l] |= self.compile_time_env[self.HAVE(d, l)]
+            # check whatever multithreading is available
+            self.compile_time_env[self.HAVE(d, 'THREADS')] = self.compile_time_env[self.HAVE(d, 'OMP')] or self.compile_time_env[self.HAVE(d, 'PTHREADS')]
+
+            # check MPI only if headers were found
+            self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and self.support_mpi))
 
         # compile only if mpi.h *and* one of the fftw mpi libraries are found
         if self.support_mpi:
@@ -312,7 +311,7 @@ class EnvironmentSniffer(object):
             s = d.lower() + ' precision'
             if self.compile_time_env[self.HAVE(d, 'OMP')]:
                 s += ' + openMP'
-            elif self.compile_time_env[self.HAVE(d, 'THREADS')]:
+            elif self.compile_time_env[self.HAVE(d, 'PTHREADS')]:
                 s += ' + pthreads'
             if self.compile_time_env[self.HAVE(d, 'MPI')]:
                 s += ' + MPI'
@@ -534,11 +533,9 @@ def make_sniffer(compiler):
         return StaticSniffer(compiler)
 
 def get_extensions():
-    from Cython.Build import cythonize
-
     ext_modules = [Extension('pyfftw.pyfftw',
                              sources=[os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')])]
-    return cythonize(ext_modules)
+    return ext_modules
 
 
 long_description = '''
@@ -547,7 +544,7 @@ speedy FFT library. The ultimate aim is to present a unified interface for all
 the possible transforms that FFTW can perform.
 
 Both the complex DFT and the real DFT are supported, as well as arbitrary
-axes of abitrary shaped and strided arrays, which makes it almost
+axes of arbitrary shaped and strided arrays, which makes it almost
 feature equivalent to standard and real FFT functions of ``numpy.fft``
 (indeed, it supports the ``clongdouble`` dtype which ``numpy.fft`` does not).
 

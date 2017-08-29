@@ -46,6 +46,19 @@ include 'utils.pxi'
 cdef extern from *:
     int Py_AtExit(void (*callback)())
 
+# the total number of supported types pyfftw is build for
+cdef int _n_types = 3
+cdef object _all_types = ['32', '64', 'ld']
+
+# the types supported in this build
+cdef object supported_types = []
+IF HAVE_DOUBLE:
+    supported_types.append('64')
+IF HAVE_SINGLE:
+    supported_types.append('32')
+IF HAVE_LONG:
+    supported_types.append('ld')
+
 cdef object directions
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
         'FFTW_BACKWARD': FFTW_BACKWARD}
@@ -82,254 +95,287 @@ cdef object plan_lock = threading.Lock()
 #     ========
 #
 # Complex double precision
-cdef void* _fftw_plan_guru_dft(
-            int rank, fftw_iodim *dims,
-            int howmany_rank, fftw_iodim *howmany_dims,
-            void *_in, void *_out,
-            int sign, unsigned flags) nogil:
+IF HAVE_DOUBLE:
+    cdef void* _fftw_plan_guru_dft(
+                int rank, fftw_iodim *dims,
+                int howmany_rank, fftw_iodim *howmany_dims,
+                void *_in, void *_out,
+                int sign, unsigned flags) nogil:
 
-    return <void *>fftw_plan_guru_dft(rank, dims,
-            howmany_rank, howmany_dims,
-            <cdouble *>_in, <cdouble *>_out,
-            sign, flags)
+        return <void *>fftw_plan_guru_dft(rank, dims,
+                howmany_rank, howmany_dims,
+                <cdouble *>_in, <cdouble *>_out,
+                sign, flags)
 
-# Complex single precision
-cdef void* _fftwf_plan_guru_dft(
-            int rank, fftw_iodim *dims,
-            int howmany_rank, fftw_iodim *howmany_dims,
-            void *_in, void *_out,
-            int sign, unsigned flags) nogil:
+    # real to complex double precision
+    cdef void* _fftw_plan_guru_dft_r2c(
+                int rank, fftw_iodim *dims,
+                int howmany_rank, fftw_iodim *howmany_dims,
+                void *_in, void *_out,
+                int sign, unsigned flags) nogil:
 
-    return <void *>fftwf_plan_guru_dft(rank, dims,
-            howmany_rank, howmany_dims,
-            <cfloat *>_in, <cfloat *>_out,
-            sign, flags)
+        return <void *>fftw_plan_guru_dft_r2c(rank, dims,
+                howmany_rank, howmany_dims,
+                <double *>_in, <cdouble *>_out,
+                flags)
 
-# Complex long double precision
-cdef void* _fftwl_plan_guru_dft(
-            int rank, fftw_iodim *dims,
-            int howmany_rank, fftw_iodim *howmany_dims,
-            void *_in, void *_out,
-            int sign, unsigned flags) nogil:
+    # complex to real double precision
+    cdef void* _fftw_plan_guru_dft_c2r(
+                int rank, fftw_iodim *dims,
+                int howmany_rank, fftw_iodim *howmany_dims,
+                void *_in, void *_out,
+                int sign, unsigned flags) nogil:
 
-    return <void *>fftwl_plan_guru_dft(rank, dims,
-            howmany_rank, howmany_dims,
-            <clongdouble *>_in, <clongdouble *>_out,
-            sign, flags)
+        return <void *>fftw_plan_guru_dft_c2r(rank, dims,
+                howmany_rank, howmany_dims,
+                <cdouble *>_in, <double *>_out,
+                flags)
 
-# real to complex double precision
-cdef void* _fftw_plan_guru_dft_r2c(
-            int rank, fftw_iodim *dims,
-            int howmany_rank, fftw_iodim *howmany_dims,
-            void *_in, void *_out,
-            int sign, unsigned flags) nogil:
+IF HAVE_SINGLE:
+    # Complex single precision
+    cdef void* _fftwf_plan_guru_dft(
+                int rank, fftw_iodim *dims,
+                int howmany_rank, fftw_iodim *howmany_dims,
+                void *_in, void *_out,
+                int sign, unsigned flags) nogil:
 
-    return <void *>fftw_plan_guru_dft_r2c(rank, dims,
-            howmany_rank, howmany_dims,
-            <double *>_in, <cdouble *>_out,
-            flags)
+        return <void *>fftwf_plan_guru_dft(rank, dims,
+                howmany_rank, howmany_dims,
+                <cfloat *>_in, <cfloat *>_out,
+                sign, flags)
 
-# real to complex single precision
-cdef void* _fftwf_plan_guru_dft_r2c(
-            int rank, fftw_iodim *dims,
-            int howmany_rank, fftw_iodim *howmany_dims,
-            void *_in, void *_out,
-            int sign, unsigned flags) nogil:
+    # real to complex single precision
+    cdef void* _fftwf_plan_guru_dft_r2c(
+                int rank, fftw_iodim *dims,
+                int howmany_rank, fftw_iodim *howmany_dims,
+                void *_in, void *_out,
+                int sign, unsigned flags) nogil:
 
-    return <void *>fftwf_plan_guru_dft_r2c(rank, dims,
-            howmany_rank, howmany_dims,
-            <float *>_in, <cfloat *>_out,
-            flags)
+        return <void *>fftwf_plan_guru_dft_r2c(rank, dims,
+                howmany_rank, howmany_dims,
+                <float *>_in, <cfloat *>_out,
+                flags)
 
-# real to complex long double precision
-cdef void* _fftwl_plan_guru_dft_r2c(
-            int rank, fftw_iodim *dims,
-            int howmany_rank, fftw_iodim *howmany_dims,
-            void *_in, void *_out,
-            int sign, unsigned flags) nogil:
+    # complex to real single precision
+    cdef void* _fftwf_plan_guru_dft_c2r(
+                int rank, fftw_iodim *dims,
+                int howmany_rank, fftw_iodim *howmany_dims,
+                void *_in, void *_out,
+                int sign, unsigned flags) nogil:
 
-    return <void *>fftwl_plan_guru_dft_r2c(rank, dims,
-            howmany_rank, howmany_dims,
-            <long double *>_in, <clongdouble *>_out,
-            flags)
+        return <void *>fftwf_plan_guru_dft_c2r(rank, dims,
+                howmany_rank, howmany_dims,
+                <cfloat *>_in, <float *>_out,
+                flags)
 
-# complex to real double precision
-cdef void* _fftw_plan_guru_dft_c2r(
-            int rank, fftw_iodim *dims,
-            int howmany_rank, fftw_iodim *howmany_dims,
-            void *_in, void *_out,
-            int sign, unsigned flags) nogil:
+IF HAVE_LONG:
+    # Complex long double precision
+    cdef void* _fftwl_plan_guru_dft(
+                int rank, fftw_iodim *dims,
+                int howmany_rank, fftw_iodim *howmany_dims,
+                void *_in, void *_out,
+                int sign, unsigned flags) nogil:
 
-    return <void *>fftw_plan_guru_dft_c2r(rank, dims,
-            howmany_rank, howmany_dims,
-            <cdouble *>_in, <double *>_out,
-            flags)
+        return <void *>fftwl_plan_guru_dft(rank, dims,
+                howmany_rank, howmany_dims,
+                <clongdouble *>_in, <clongdouble *>_out,
+                sign, flags)
 
-# complex to real single precision
-cdef void* _fftwf_plan_guru_dft_c2r(
-            int rank, fftw_iodim *dims,
-            int howmany_rank, fftw_iodim *howmany_dims,
-            void *_in, void *_out,
-            int sign, unsigned flags) nogil:
+    # real to complex long double precision
+    cdef void* _fftwl_plan_guru_dft_r2c(
+                int rank, fftw_iodim *dims,
+                int howmany_rank, fftw_iodim *howmany_dims,
+                void *_in, void *_out,
+                int sign, unsigned flags) nogil:
 
-    return <void *>fftwf_plan_guru_dft_c2r(rank, dims,
-            howmany_rank, howmany_dims,
-            <cfloat *>_in, <float *>_out,
-            flags)
+        return <void *>fftwl_plan_guru_dft_r2c(rank, dims,
+                howmany_rank, howmany_dims,
+                <long double *>_in, <clongdouble *>_out,
+                flags)
 
-# complex to real long double precision
-cdef void* _fftwl_plan_guru_dft_c2r(
-            int rank, fftw_iodim *dims,
-            int howmany_rank, fftw_iodim *howmany_dims,
-            void *_in, void *_out,
-            int sign, unsigned flags) nogil:
+    # complex to real long double precision
+    cdef void* _fftwl_plan_guru_dft_c2r(
+                int rank, fftw_iodim *dims,
+                int howmany_rank, fftw_iodim *howmany_dims,
+                void *_in, void *_out,
+                int sign, unsigned flags) nogil:
 
-    return <void *>fftwl_plan_guru_dft_c2r(rank, dims,
-            howmany_rank, howmany_dims,
-            <clongdouble *>_in, <long double *>_out,
-            flags)
+        return <void *>fftwl_plan_guru_dft_c2r(rank, dims,
+                howmany_rank, howmany_dims,
+                <clongdouble *>_in, <long double *>_out,
+                flags)
 
 #    Executors
 #    =========
 #
-# Complex double precision
-cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out) nogil:
+IF HAVE_DOUBLE:
+    # Complex double precision
+    cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out) nogil:
 
-    fftw_execute_dft(<fftw_plan>_plan,
-            <cdouble *>_in, <cdouble *>_out)
+        fftw_execute_dft(<fftw_plan>_plan,
+                <cdouble *>_in, <cdouble *>_out)
 
-# Complex single precision
-cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out) nogil:
+    # real to complex double precision
+    cdef void _fftw_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
 
-    fftwf_execute_dft(<fftwf_plan>_plan,
-            <cfloat *>_in, <cfloat *>_out)
+        fftw_execute_dft_r2c(<fftw_plan>_plan,
+                <double *>_in, <cdouble *>_out)
 
-# Complex long double precision
-cdef void _fftwl_execute_dft(void *_plan, void *_in, void *_out) nogil:
+    # complex to real double precision
+    cdef void _fftw_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
 
-    fftwl_execute_dft(<fftwl_plan>_plan,
-            <clongdouble *>_in, <clongdouble *>_out)
+        fftw_execute_dft_c2r(<fftw_plan>_plan,
+                <cdouble *>_in, <double *>_out)
 
-# real to complex double precision
-cdef void _fftw_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
+IF HAVE_SINGLE:
+    # Complex single precision
+    cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out) nogil:
 
-    fftw_execute_dft_r2c(<fftw_plan>_plan,
-            <double *>_in, <cdouble *>_out)
+        fftwf_execute_dft(<fftwf_plan>_plan,
+                <cfloat *>_in, <cfloat *>_out)
 
-# real to complex single precision
-cdef void _fftwf_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
+    # real to complex single precision
+    cdef void _fftwf_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
 
-    fftwf_execute_dft_r2c(<fftwf_plan>_plan,
-            <float *>_in, <cfloat *>_out)
+        fftwf_execute_dft_r2c(<fftwf_plan>_plan,
+                <float *>_in, <cfloat *>_out)
 
-# real to complex long double precision
-cdef void _fftwl_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
+    # complex to real single precision
+    cdef void _fftwf_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
 
-    fftwl_execute_dft_r2c(<fftwl_plan>_plan,
-            <long double *>_in, <clongdouble *>_out)
+        fftwf_execute_dft_c2r(<fftwf_plan>_plan,
+                <cfloat *>_in, <float *>_out)
 
-# complex to real double precision
-cdef void _fftw_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
+IF HAVE_LONG:
+    # Complex long double precision
+    cdef void _fftwl_execute_dft(void *_plan, void *_in, void *_out) nogil:
 
-    fftw_execute_dft_c2r(<fftw_plan>_plan,
-            <cdouble *>_in, <double *>_out)
+        fftwl_execute_dft(<fftwl_plan>_plan,
+                <clongdouble *>_in, <clongdouble *>_out)
 
-# complex to real single precision
-cdef void _fftwf_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
+    # real to complex long double precision
+    cdef void _fftwl_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
 
-    fftwf_execute_dft_c2r(<fftwf_plan>_plan,
-            <cfloat *>_in, <float *>_out)
+        fftwl_execute_dft_r2c(<fftwl_plan>_plan,
+                <long double *>_in, <clongdouble *>_out)
 
-# complex to real long double precision
-cdef void _fftwl_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
+    # complex to real long double precision
+    cdef void _fftwl_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
 
-    fftwl_execute_dft_c2r(<fftwl_plan>_plan,
-            <clongdouble *>_in, <long double *>_out)
+        fftwl_execute_dft_c2r(<fftwl_plan>_plan,
+                <clongdouble *>_in, <long double *>_out)
 
 #    Destroyers
 #    ==========
 #
-# Double precision
-cdef void _fftw_destroy_plan(void *_plan):
+IF HAVE_DOUBLE:
+    # Double precision
+    cdef void _fftw_destroy_plan(void *_plan):
 
-    fftw_destroy_plan(<fftw_plan>_plan)
+        fftw_destroy_plan(<fftw_plan>_plan)
 
-# Single precision
-cdef void _fftwf_destroy_plan(void *_plan):
+IF HAVE_SINGLE:
+    # Single precision
+    cdef void _fftwf_destroy_plan(void *_plan):
 
-    fftwf_destroy_plan(<fftwf_plan>_plan)
+        fftwf_destroy_plan(<fftwf_plan>_plan)
 
-# Long double precision
-cdef void _fftwl_destroy_plan(void *_plan):
+IF HAVE_LONG:
+    # Long double precision
+    cdef void _fftwl_destroy_plan(void *_plan):
 
-    fftwl_destroy_plan(<fftwl_plan>_plan)
-
+        fftwl_destroy_plan(<fftwl_plan>_plan)
 
 # Function lookup tables
 # ======================
 
-# Planner table (of side the number of planners).
+# Planner table (of size the number of planners).
 cdef fftw_generic_plan_guru planners[9]
 
 cdef fftw_generic_plan_guru * _build_planner_list():
+    for i in range(9):
+        planners[i] = NULL
 
-    planners[0] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft
-    planners[1] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft
-    planners[2] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft
-    planners[3] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft_r2c
-    planners[4] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft_r2c
-    planners[5] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft_r2c
-    planners[6] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft_c2r
-    planners[7] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft_c2r
-    planners[8] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft_c2r
+    IF HAVE_DOUBLE:
+        planners[0] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft
+        planners[3] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft_r2c
+        planners[6] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft_c2r
+    IF HAVE_SINGLE:
+        planners[1] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft
+        planners[4] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft_r2c
+        planners[7] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft_c2r
+    IF HAVE_LONG:
+        planners[2] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft
+        planners[5] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft_r2c
+        planners[8] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft_c2r
 
 # Executor table (of size the number of executors)
 cdef fftw_generic_execute executors[9]
 
 cdef fftw_generic_execute * _build_executor_list():
+    for i in range(9):
+        executors[i] = NULL
 
-    executors[0] = <fftw_generic_execute>&_fftw_execute_dft
-    executors[1] = <fftw_generic_execute>&_fftwf_execute_dft
-    executors[2] = <fftw_generic_execute>&_fftwl_execute_dft
-    executors[3] = <fftw_generic_execute>&_fftw_execute_dft_r2c
-    executors[4] = <fftw_generic_execute>&_fftwf_execute_dft_r2c
-    executors[5] = <fftw_generic_execute>&_fftwl_execute_dft_r2c
-    executors[6] = <fftw_generic_execute>&_fftw_execute_dft_c2r
-    executors[7] = <fftw_generic_execute>&_fftwf_execute_dft_c2r
-    executors[8] = <fftw_generic_execute>&_fftwl_execute_dft_c2r
+    IF HAVE_DOUBLE:
+        executors[0] = <fftw_generic_execute>&_fftw_execute_dft
+        executors[3] = <fftw_generic_execute>&_fftw_execute_dft_r2c
+        executors[6] = <fftw_generic_execute>&_fftw_execute_dft_c2r
+    IF HAVE_SINGLE:
+        executors[1] = <fftw_generic_execute>&_fftwf_execute_dft
+        executors[4] = <fftw_generic_execute>&_fftwf_execute_dft_r2c
+        executors[7] = <fftw_generic_execute>&_fftwf_execute_dft_c2r
+    IF HAVE_LONG:
+        executors[2] = <fftw_generic_execute>&_fftwl_execute_dft
+        executors[5] = <fftw_generic_execute>&_fftwl_execute_dft_r2c
+        executors[8] = <fftw_generic_execute>&_fftwl_execute_dft_c2r
 
 # Destroyer table (of size the number of destroyers)
 cdef fftw_generic_destroy_plan destroyers[3]
 
 cdef fftw_generic_destroy_plan * _build_destroyer_list():
+    for i in range(3):
+        destroyers[i] = NULL
 
-    destroyers[0] = <fftw_generic_destroy_plan>&_fftw_destroy_plan
-    destroyers[1] = <fftw_generic_destroy_plan>&_fftwf_destroy_plan
-    destroyers[2] = <fftw_generic_destroy_plan>&_fftwl_destroy_plan
-
+    IF HAVE_DOUBLE:
+        destroyers[0] = <fftw_generic_destroy_plan>&_fftw_destroy_plan
+    IF HAVE_SINGLE:
+        destroyers[1] = <fftw_generic_destroy_plan>&_fftwf_destroy_plan
+    IF HAVE_LONG:
+        destroyers[2] = <fftw_generic_destroy_plan>&_fftwl_destroy_plan
 
 # nthreads plan setters table
 cdef fftw_generic_plan_with_nthreads nthreads_plan_setters[3]
 
 cdef fftw_generic_plan_with_nthreads * _build_nthreads_plan_setters_list():
-    nthreads_plan_setters[0] = (
+    for i in range(3):
+        nthreads_plan_setters[i] = NULL
+
+    IF HAVE_DOUBLE:
+        nthreads_plan_setters[0] = (
             <fftw_generic_plan_with_nthreads>&fftw_plan_with_nthreads)
-    nthreads_plan_setters[1] = (
+    IF HAVE_SINGLE:
+        nthreads_plan_setters[1] = (
             <fftw_generic_plan_with_nthreads>&fftwf_plan_with_nthreads)
-    nthreads_plan_setters[2] = (
+    IF HAVE_LONG:
+        nthreads_plan_setters[2] = (
             <fftw_generic_plan_with_nthreads>&fftwl_plan_with_nthreads)
 
 # Set planner timelimits
 cdef fftw_generic_set_timelimit set_timelimit_funcs[3]
 
 cdef fftw_generic_set_timelimit * _build_set_timelimit_funcs_list():
-    set_timelimit_funcs[0] = (
-            <fftw_generic_set_timelimit>&fftw_set_timelimit)
-    set_timelimit_funcs[1] = (
-            <fftw_generic_set_timelimit>&fftwf_set_timelimit)
-    set_timelimit_funcs[2] = (
-            <fftw_generic_set_timelimit>&fftwl_set_timelimit)
+    for i in range(3):
+        set_timelimit_funcs[i] = NULL
 
+    IF HAVE_DOUBLE:
+        set_timelimit_funcs[0] = (
+            <fftw_generic_set_timelimit>&fftw_set_timelimit)
+    IF HAVE_SINGLE:
+        set_timelimit_funcs[1] = (
+            <fftw_generic_set_timelimit>&fftwf_set_timelimit)
+    IF HAVE_LONG:
+        set_timelimit_funcs[2] = (
+            <fftw_generic_set_timelimit>&fftwl_set_timelimit)
 
 # Data validators table
 cdef validator validators[2]
@@ -450,12 +496,22 @@ fftw_schemes = {
         (np.dtype('complex128'), np.dtype('float64')): ('c2r', '64'),
         (np.dtype('complex64'), np.dtype('float32')): ('c2r', '32')}
 
+cdef object fftw_default_output
+fftw_default_output = {
+    np.dtype('float32'): np.dtype('complex64'),
+    np.dtype('float64'): np.dtype('complex128'),
+    np.dtype('complex64'): np.dtype('complex64'),
+    np.dtype('complex128'): np.dtype('complex128')}
+
 if np.dtype('longdouble') != np.dtype('float64'):
     fftw_schemes.update({
         (np.dtype('clongdouble'), np.dtype('clongdouble')): ('c2c', 'ld'),
         (np.dtype('longdouble'), np.dtype('clongdouble')): ('r2c', 'ld'),
         (np.dtype('clongdouble'), np.dtype('longdouble')): ('c2r', 'ld')})
 
+    fftw_default_output.update({
+        np.dtype('longdouble'): np.dtype('clongdouble'),
+        np.dtype('clongdouble'): np.dtype('clongdouble')})
 
 cdef object scheme_directions
 scheme_directions = {
@@ -473,32 +529,71 @@ scheme_directions = {
 # reported on some systems when this is set to None. It seems
 # sufficiently trivial to use -1 in place of None, especially given
 # that scheme_functions is an internal cdef object.
-cdef object scheme_functions
-scheme_functions = {
+cdef object _scheme_functions = {}
+IF HAVE_DOUBLE:
+    _scheme_functions.update({
     ('c2c', '64'): {'planner': 0, 'executor':0, 'generic_precision':0,
-        'validator': -1, 'fft_shape_lookup': -1},
-    ('c2c', '32'): {'planner':1, 'executor':1, 'generic_precision':1,
-        'validator': -1, 'fft_shape_lookup': -1},
-    ('c2c', 'ld'): {'planner':2, 'executor':2, 'generic_precision':2,
         'validator': -1, 'fft_shape_lookup': -1},
     ('r2c', '64'): {'planner':3, 'executor':3, 'generic_precision':0,
         'validator': 0,
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
+    ('c2r', '64'): {'planner':6, 'executor':6, 'generic_precision':0,
+        'validator': 1,
+        'fft_shape_lookup': _lookup_shape_c2r_arrays}})
+IF HAVE_SINGLE:
+    _scheme_functions.update({
+    ('c2c', '32'): {'planner':1, 'executor':1, 'generic_precision':1,
+        'validator': -1, 'fft_shape_lookup': -1},
     ('r2c', '32'): {'planner':4, 'executor':4, 'generic_precision':1,
         'validator': 0,
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
+    ('c2r', '32'): {'planner':7, 'executor':7, 'generic_precision':1,
+        'validator': 1,
+        'fft_shape_lookup': _lookup_shape_c2r_arrays}})
+IF HAVE_LONG:
+    _scheme_functions.update({
+    ('c2c', 'ld'): {'planner':2, 'executor':2, 'generic_precision':2,
+        'validator': -1, 'fft_shape_lookup': -1},
     ('r2c', 'ld'): {'planner':5, 'executor':5, 'generic_precision':2,
         'validator': 0,
         'fft_shape_lookup': _lookup_shape_r2c_arrays},
-    ('c2r', '64'): {'planner':6, 'executor':6, 'generic_precision':0,
-        'validator': 1,
-        'fft_shape_lookup': _lookup_shape_c2r_arrays},
-    ('c2r', '32'): {'planner':7, 'executor':7, 'generic_precision':1,
-        'validator': 1,
-        'fft_shape_lookup': _lookup_shape_c2r_arrays},
     ('c2r', 'ld'): {'planner':8, 'executor':8, 'generic_precision':2,
         'validator': 1,
-        'fft_shape_lookup': _lookup_shape_c2r_arrays}}
+        'fft_shape_lookup': _lookup_shape_c2r_arrays}})
+
+def scheme_functions(scheme):
+    try:
+        return _scheme_functions[scheme]
+    except KeyError:
+        msg = "The scheme '%s' is not supported." % str(scheme)
+        if scheme[1] in _all_types:
+            msg += "\nRebuild pyfftw with support for the data type '%s'!" % scheme[1]
+        raise NotImplementedError(msg)
+
+# Set the cleanup routine
+cdef void _cleanup():
+    # TODO tight coupling with non-MPI code
+    # TODO mpi_cleanup() includes serial clean up
+    IF HAVE_MPI:
+        IF HAVE_DOUBLE_MPI:
+            fftw_mpi_cleanup()
+        IF HAVE_SINGLE_MPI:
+            fftwf_mpi_cleanup()
+        IF HAVE_LONG_MPI:
+            fftwl_mpi_cleanup()
+
+    IF HAVE_DOUBLE:
+        fftw_cleanup()
+    IF HAVE_SINGLE:
+        fftwf_cleanup()
+    IF HAVE_LONG:
+        fftwl_cleanup()
+    IF HAVE_DOUBLE_THREADS:
+        fftw_cleanup_threads()
+    IF HAVE_SINGLE_THREADS:
+        fftwf_cleanup_threads()
+    IF HAVE_LONG_THREADS:
+        fftwl_cleanup_threads()
 
 # Initialize the module
 
@@ -510,18 +605,12 @@ _build_nthreads_plan_setters_list()
 _build_validators_list()
 _build_set_timelimit_funcs_list()
 
-fftw_init_threads()
-fftwf_init_threads()
-fftwl_init_threads()
-
-# Set the cleanup routine
-cdef void _cleanup():
-    fftw_cleanup()
-    fftwf_cleanup()
-    fftwl_cleanup()
-    fftw_cleanup_threads()
-    fftwf_cleanup_threads()
-    fftwl_cleanup_threads()
+IF HAVE_DOUBLE_THREADS:
+    fftw_init_threads()
+IF HAVE_SINGLE_THREADS:
+    fftwf_init_threads()
+IF HAVE_LONG_THREADS:
+    fftwl_init_threads()
 
 Py_AtExit(_cleanup)
 
@@ -642,6 +731,7 @@ cdef class FFTW:
     cdef bint _simd_allowed
     cdef int _input_array_alignment
     cdef int _output_array_alignment
+    cdef bint _use_threads
 
     cdef object _input_item_strides
     cdef object _input_strides
@@ -884,7 +974,7 @@ cdef class FFTW:
         self._input_dtype = input_dtype
         self._output_dtype = output_dtype
 
-        functions = scheme_functions[scheme]
+        functions = scheme_functions(scheme)
 
         self._fftw_planner = planners[functions['planner']]
         self._fftw_execute = executors[functions['executor']]
@@ -1105,6 +1195,9 @@ cdef class FFTW:
             self._howmany_dims[i]._is = input_strides_array[self._not_axes[i]]
             self._howmany_dims[i]._os = output_strides_array[self._not_axes[i]]
 
+        # parallel execution
+        self._use_threads = (threads > 1)
+
         ## Point at which FFTW calls are made
         ## (and none should be made before this)
         self._nthreads_plan_setter(threads)
@@ -1202,7 +1295,7 @@ cdef class FFTW:
           * ``'FFTW_WISDOM_ONLY'`` is supported.
             This tells FFTW to raise an error if no plan for this transform
             and data type is already in the wisdom. It thus provides a method
-            to determine whether planning would require additional effor or the
+            to determine whether planning would require additional effort or the
             cached wisdom can be used. This flag should be combined with the
             various planning-effort flags (``'FFTW_ESTIMATE'``,
             ``'FFTW_MEASURE'``, etc.); if so, then an error will be raised if
@@ -1223,7 +1316,9 @@ cdef class FFTW:
           Note that only the flags documented here are supported.
 
         * ``threads`` tells the wrapper how many threads to use
-          when invoking FFTW, with a default of 1.
+          when invoking FFTW, with a default of 1. If the number
+          of threads is greater than 1, then the GIL is released
+          by necessity.
 
         * ``planning_timelimit`` is a floating point number that
           indicates to the underlying FFTW planner the maximum number of
@@ -1678,48 +1773,60 @@ def export_wisdom():
     argument to :func:`~pyfftw.import_wisdom`.
     '''
 
-    cdef bytes py_wisdom
-    cdef bytes py_wisdomf
-    cdef bytes py_wisdoml
+    cdef:
+        # can't directly initialize `bytes` with ''
+        const char* empty = ''
+        bytes py_wisdom  = empty
+        bytes py_wisdomf = empty
+        bytes py_wisdoml = empty
 
-    cdef int counter = 0
-    cdef int counterf = 0
-    cdef int counterl = 0
+        # default init to zero
+        cdef int counter  = 0
+        cdef int counterf = 0
+        cdef int counterl = 0
 
-    fftw_export_wisdom(&count_char, <void *>&counter)
-    fftwf_export_wisdom(&count_char, <void *>&counterf)
-    fftwl_export_wisdom(&count_char, <void *>&counterl)
+        char* c_wisdom  = NULL
+        char* c_wisdomf = NULL
+        char* c_wisdoml = NULL
 
-    cdef char* c_wisdom = <char *>malloc(sizeof(char)*(counter + 1))
-    cdef char* c_wisdomf = <char *>malloc(sizeof(char)*(counterf + 1))
-    cdef char* c_wisdoml = <char *>malloc(sizeof(char)*(counterl + 1))
-
-    if c_wisdom == NULL or c_wisdomf == NULL or c_wisdoml == NULL:
-        raise MemoryError
-
-    # Set the pointers to the string pointers
-    cdef intptr_t c_wisdom_ptr = <intptr_t>c_wisdom
-    cdef intptr_t c_wisdomf_ptr = <intptr_t>c_wisdomf
-    cdef intptr_t c_wisdoml_ptr = <intptr_t>c_wisdoml
-
-    fftw_export_wisdom(&write_char_to_string, <void *>&c_wisdom_ptr)
-    fftwf_export_wisdom(&write_char_to_string, <void *>&c_wisdomf_ptr)
-    fftwl_export_wisdom(&write_char_to_string, <void *>&c_wisdoml_ptr)
-
-    # Write the last byte as the null byte
-    c_wisdom[counter] = 0
-    c_wisdomf[counterf] = 0
-    c_wisdoml[counterl] = 0
-
-    try:
-        py_wisdom = c_wisdom
-        py_wisdomf = c_wisdomf
-        py_wisdoml = c_wisdoml
-
-    finally:
-        free(c_wisdom)
-        free(c_wisdomf)
-        free(c_wisdoml)
+    IF HAVE_DOUBLE:
+        fftw_export_wisdom(&count_char, <void *>&counter)
+        c_wisdom = <char *>malloc(sizeof(char)*(counter + 1))
+        if c_wisdom == NULL:
+            raise MemoryError
+        # Set the pointers to the string pointers
+        cdef intptr_t c_wisdom_ptr = <intptr_t>c_wisdom
+        fftw_export_wisdom(&write_char_to_string, <void *>&c_wisdom_ptr)
+        # Write the last byte as the null byte
+        c_wisdom[counter] = 0
+        try:
+            py_wisdom = c_wisdom
+        finally:
+            free(c_wisdom)
+    IF HAVE_SINGLE:
+        fftwf_export_wisdom(&count_char, <void *>&counterf)
+        c_wisdomf = <char *>malloc(sizeof(char)*(counterf + 1))
+        if c_wisdomf == NULL:
+            raise MemoryError
+        cdef intptr_t c_wisdomf_ptr = <intptr_t>c_wisdomf
+        fftwf_export_wisdom(&write_char_to_string, <void *>&c_wisdomf_ptr)
+        c_wisdomf[counterf] = 0
+        try:
+            py_wisdomf = c_wisdomf
+        finally:
+            free(c_wisdomf)
+    IF HAVE_LONG:
+        fftwl_export_wisdom(&count_char, <void *>&counterl)
+        c_wisdoml = <char *>malloc(sizeof(char)*(counterl + 1))
+        if c_wisdoml == NULL:
+            raise MemoryError
+        cdef intptr_t c_wisdoml_ptr = <intptr_t>c_wisdoml
+        fftwl_export_wisdom(&write_char_to_string, <void *>&c_wisdoml_ptr)
+        c_wisdoml[counterl] = 0
+        try:
+            py_wisdoml = c_wisdoml
+        finally:
+            free(c_wisdoml)
 
     return (py_wisdom, py_wisdomf, py_wisdoml)
 
@@ -1742,14 +1849,21 @@ def import_wisdom(wisdom):
     and long double, in that order).
     '''
 
-    cdef char* c_wisdom = wisdom[0]
-    cdef char* c_wisdomf = wisdom[1]
-    cdef char* c_wisdoml = wisdom[2]
+    cdef:
+        char* c_wisdom = wisdom[0]
+        char* c_wisdomf = wisdom[1]
+        char* c_wisdoml = wisdom[2]
 
-    cdef bint success = fftw_import_wisdom_from_string(c_wisdom)
-    cdef bint successf = fftwf_import_wisdom_from_string(c_wisdomf)
-    cdef bint successl = fftwl_import_wisdom_from_string(c_wisdoml)
+        bint success  = False
+        bint successf = False
+        bint successl = False
 
+    IF HAVE_DOUBLE:
+        success = fftw_import_wisdom_from_string(c_wisdom)
+    IF HAVE_SINGLE:
+        successf = fftwf_import_wisdom_from_string(c_wisdomf)
+    IF HAVE_LONG:
+        successl = fftwl_import_wisdom_from_string(c_wisdoml)
     return (success, successf, successl)
 
 #def export_wisdom_to_files(
@@ -1844,6 +1958,9 @@ def forget_wisdom():
 
     Forget all the accumulated wisdom.
     '''
-    fftw_forget_wisdom()
-    fftwf_forget_wisdom()
-    fftwl_forget_wisdom()
+    IF HAVE_DOUBLE:
+        fftw_forget_wisdom()
+    IF HAVE_SINGLE:
+        fftwf_forget_wisdom()
+    IF HAVE_LONG:
+        fftwl_forget_wisdom()
