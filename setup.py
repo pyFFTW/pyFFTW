@@ -96,8 +96,14 @@ def get_package_data():
     package_data = {}
 
     if get_build_platform() in ('win32', 'win-amd64'):
-        package_data['pyfftw'] = [
-            'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
+        if 'PYFFTW_WIN_CONDAFORGE' in os.environ:
+            # fftw3.dll, fftw3f.dll will already be on the path (via the
+            # conda environment's \bin subfolder)
+            pass
+        else:
+            # as download from http://www.fftw.org/install/windows.html
+            package_data['pyfftw'] = [
+                'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
 
     return package_data
 
@@ -353,7 +359,12 @@ class EnvironmentSniffer(object):
 
         '''
         if get_platform() in ('win32', 'win-amd64'):
-            return 'lib%s-3' % lib
+            if 'PYFFTW_WIN_CONDAFORGE' in os.environ:
+                return '%s' % lib
+            else:
+                # for download from http://www.fftw.org/install/windows.html
+                return 'lib%s-3' % lib
+
         else:
             return lib
 
