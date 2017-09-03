@@ -110,6 +110,9 @@ def get_library_dirs():
         library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
         library_dirs.append(os.path.join(sys.prefix, 'bin'))
 
+    if 'PYFFTW_LIB_DIR' in os.environ:
+        library_dirs.append(os.environ['PYFFTW_LIB_DIR'])
+
     library_dirs.append(os.path.join(sys.prefix, 'lib'))
     if get_build_platform().startswith('freebsd'):
         library_dirs.append('/usr/local/lib')
