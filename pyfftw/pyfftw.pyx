@@ -51,13 +51,20 @@ cdef int _n_types = 3
 cdef object _all_types = ['32', '64', 'ld']
 
 # the types supported in this build
-cdef object supported_types = []
+supported_types = []
 IF HAVE_DOUBLE:
     supported_types.append('64')
 IF HAVE_SINGLE:
     supported_types.append('32')
 IF HAVE_LONG:
     supported_types.append('ld')
+
+cdef object _all_types_human_readable
+_all_types_human_readable = {
+    '32': 'single',
+    '64': 'double',
+    'ld': 'long double',
+}
 
 cdef object directions
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
@@ -346,17 +353,20 @@ cdef fftw_generic_destroy_plan * _build_destroyer_list():
 # nthreads plan setters table
 cdef fftw_generic_plan_with_nthreads nthreads_plan_setters[3]
 
+cdef void _fftw_plan_with_nthreads_dummy(int n): pass
+
 cdef fftw_generic_plan_with_nthreads * _build_nthreads_plan_setters_list():
     for i in range(3):
-        nthreads_plan_setters[i] = NULL
+        nthreads_plan_setters[i] = (
+            <fftw_generic_plan_with_nthreads>&_fftw_plan_with_nthreads_dummy)
 
-    IF HAVE_DOUBLE:
+    IF HAVE_DOUBLE_MULTITHREADING:
         nthreads_plan_setters[0] = (
             <fftw_generic_plan_with_nthreads>&fftw_plan_with_nthreads)
-    IF HAVE_SINGLE:
+    IF HAVE_SINGLE_MULTITHREADING:
         nthreads_plan_setters[1] = (
             <fftw_generic_plan_with_nthreads>&fftwf_plan_with_nthreads)
-    IF HAVE_LONG:
+    IF HAVE_LONG_MULTITHREADING:
         nthreads_plan_setters[2] = (
             <fftw_generic_plan_with_nthreads>&fftwl_plan_with_nthreads)
 
@@ -567,7 +577,8 @@ def scheme_functions(scheme):
     except KeyError:
         msg = "The scheme '%s' is not supported." % str(scheme)
         if scheme[1] in _all_types:
-            msg += "\nRebuild pyfftw with support for the data type '%s'!" % scheme[1]
+            msg += "\nRebuild pyfftw with support for %s precision!" % \
+                   _all_types_human_readable[scheme[1]]
         raise NotImplementedError(msg)
 
 # Set the cleanup routine
@@ -588,11 +599,11 @@ cdef void _cleanup():
         fftwf_cleanup()
     IF HAVE_LONG:
         fftwl_cleanup()
-    IF HAVE_DOUBLE_THREADS:
+    IF HAVE_DOUBLE_MULTITHREADING:
         fftw_cleanup_threads()
-    IF HAVE_SINGLE_THREADS:
+    IF HAVE_SINGLE_MULTITHREADING:
         fftwf_cleanup_threads()
-    IF HAVE_LONG_THREADS:
+    IF HAVE_LONG_MULTITHREADING:
         fftwl_cleanup_threads()
 
 # Initialize the module
@@ -605,11 +616,11 @@ _build_nthreads_plan_setters_list()
 _build_validators_list()
 _build_set_timelimit_funcs_list()
 
-IF HAVE_DOUBLE_THREADS:
+IF HAVE_DOUBLE_MULTITHREADING:
     fftw_init_threads()
-IF HAVE_SINGLE_THREADS:
+IF HAVE_SINGLE_MULTITHREADING:
     fftwf_init_threads()
-IF HAVE_LONG_THREADS:
+IF HAVE_LONG_MULTITHREADING:
     fftwl_init_threads()
 
 Py_AtExit(_cleanup)
@@ -1200,6 +1211,8 @@ cdef class FFTW:
 
         ## Point at which FFTW calls are made
         ## (and none should be made before this)
+
+        # noop if threads library not available
         self._nthreads_plan_setter(threads)
 
         # Set the timelimit

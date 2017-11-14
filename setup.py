@@ -226,9 +226,9 @@ class EnvironmentSniffer(object):
     def search_dependencies(self):
 
         # lib_checks = {}
-        data_types = ['DOUBLE', 'SINGLE', 'LONG', 'QUAD']
+        data_types = ['DOUBLE', 'SINGLE', 'LONG']
         data_types_short = ['', 'f', 'l', 'q']
-        lib_types = ['', 'PTHREADS', 'OMP']
+        lib_types = ['', 'THREADS', 'OMP']
         functions = ['plan_dft', 'init_threads', 'init_threads']
         if self.support_mpi:
             lib_types.append('MPI')
@@ -252,7 +252,7 @@ class EnvironmentSniffer(object):
                 if lib_omp:
                     self.add_library(lib_omp)
                     # manually set flag because it won't be checked below
-                    self.compile_time_env[self.HAVE(d, 'PTHREADS')] = False
+                    self.compile_time_env[self.HAVE(d, 'THREADS')] = False
                 else:
                     self.linker_flags.pop()
             else:
@@ -265,7 +265,7 @@ class EnvironmentSniffer(object):
             if not lib_omp:
                 # -pthread added for gcc/clang when checking for threads
                 self.linker_flags.append(self.pthread_linker_flag())
-                lib_pthread = self.check('PTHREADS', 'init_threads', d, s,
+                lib_pthread = self.check('THREADS', 'init_threads', d, s,
                                          basic_lib)
                 if lib_pthread:
                     self.add_library(lib_pthread)
@@ -277,10 +277,10 @@ class EnvironmentSniffer(object):
             # and MPI are not supported in the releases
             if get_platform() in ('win32', 'win-amd64'):
                 if basic_lib:
-                    self.compile_time_env[self.HAVE(d, 'PTHREADS')] = True
+                    self.compile_time_env[self.HAVE(d, 'THREADS')] = True
 
             # check whatever multithreading is available
-            self.compile_time_env[self.HAVE(d, 'THREADS')] = self.compile_time_env[self.HAVE(d, 'OMP')] or self.compile_time_env[self.HAVE(d, 'PTHREADS')]
+            self.compile_time_env[self.HAVE(d, 'MULTITHREADING')] = self.compile_time_env[self.HAVE(d, 'OMP')] or self.compile_time_env[self.HAVE(d, 'THREADS')]
 
             # check MPI only if headers were found
             self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and self.support_mpi))
@@ -311,7 +311,7 @@ class EnvironmentSniffer(object):
             s = d.lower() + ' precision'
             if self.compile_time_env[self.HAVE(d, 'OMP')]:
                 s += ' + openMP'
-            elif self.compile_time_env[self.HAVE(d, 'PTHREADS')]:
+            elif self.compile_time_env[self.HAVE(d, 'THREADS')]:
                 s += ' + pthreads'
             if self.compile_time_env[self.HAVE(d, 'MPI')]:
                 s += ' + MPI'
@@ -703,9 +703,8 @@ class QuickTestCommand(Command):
         ]
 
         import subprocess
-        errno = subprocess.call([sys.executable, '-m',
+        subprocess.check_call([sys.executable, '-m',
                                  'unittest'] + quick_test_cases)
-        raise SystemExit(errno)
 
 
 cmdclass = {'test': TestCommand,
