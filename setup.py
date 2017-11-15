@@ -227,7 +227,7 @@ class EnvironmentSniffer(object):
 
         # lib_checks = {}
         data_types = ['DOUBLE', 'SINGLE', 'LONG']
-        data_types_short = ['', 'f', 'l', 'q']
+        data_types_short = ['', 'f', 'l']
         lib_types = ['', 'THREADS', 'OMP']
         functions = ['plan_dft', 'init_threads', 'init_threads']
         if self.support_mpi:
@@ -293,6 +293,16 @@ class EnvironmentSniffer(object):
                     found_mpi_types.append(d)
         else:
             self.compile_time_env['HAVE_MPI'] = False
+
+        # Pretend FFTW precision not available, regardless if it was found or
+        # not. Useful for testing that pyfftw still works without requiring all
+        # precisions
+        if 'PYFFTW_IGNORE_SINGLE' in os.environ:
+            self.compile_time_env['HAVE_SINGLE'] = False
+        if 'PYFFTW_IGNORE_DOUBLE' in os.environ:
+            self.compile_time_env['HAVE_DOUBLE'] = False
+        if 'PYFFTW_IGNORE_LONG' in os.environ:
+            self.compile_time_env['HAVE_LONG'] = False
 
         log.debug(repr(self.compile_time_env))
 
