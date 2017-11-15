@@ -62,9 +62,6 @@ if 'ld' in _supported_types:
     complex_dtypes.append(numpy.clongdouble)
     real_dtypes.append(numpy.longdouble)
 
-# complex_dtypes = (numpy.complex64, numpy.complex64, numpy.complex128, numpy.clongdouble)
-# real_dtypes = (numpy.float16, numpy.float32, numpy.float64, numpy.longdouble)
-
 def make_complex_data(shape, dtype):
     ar, ai = dtype(numpy.random.randn(2, *shape))
     return ar + 1j*ai

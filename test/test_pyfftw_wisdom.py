@@ -63,7 +63,7 @@ class FFTWWisdomTest(unittest.TestCase):
 
         after_wisdom = export_wisdom()
 
-        for n in range(0,2):
+        for n, _ in enumerate(_supported_nptypes_complex):
             self.assertNotEqual(before_wisdom[n], after_wisdom[n])
 
     def test_import(self):
@@ -79,7 +79,7 @@ class FFTWWisdomTest(unittest.TestCase):
 
         success = import_wisdom(after_wisdom)
 
-        for n in range(0,2):
+        for n, _ in enumerate(_supported_nptypes_complex):
             self.assertNotEqual(before_wisdom[n], after_wisdom[n])
 
         self.assertEqual(success, (True, True, True))

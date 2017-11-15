@@ -48,6 +48,11 @@ def miss(*xs):
     skip = not all(x in _supported_types for x in xs)
     return (skip, msg)
 
+def require(self, *xs):
+    skip, msg = miss(*xs)
+    if skip:
+        self.skipTest(msg)
+
 class FFTWBaseTest(unittest.TestCase):
 
     def reference_fftn(self, a, axes):
@@ -63,9 +68,7 @@ class FFTWBaseTest(unittest.TestCase):
 
     def setUp(self):
 
-        skip, msg = miss('32')
-        if skip:
-            self.skipTest(msg)
+        require(self, '32')
 
         self.input_dtype = numpy.complex64
         self.output_dtype = numpy.complex64

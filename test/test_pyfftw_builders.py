@@ -33,6 +33,7 @@
 #
 
 from pyfftw import builders, empty_aligned, byte_align, FFTW
+from pyfftw import _supported_nptypes_complex, _supported_nptypes_real
 from pyfftw.builders import _utils as utils
 from .test_pyfftw_base import run_test_suites
 from ._get_default_args import get_default_args
@@ -46,8 +47,8 @@ import copy
 import warnings
 warnings.filterwarnings('always')
 
-complex_dtypes = (numpy.complex64, numpy.complex128, numpy.clongdouble)
-real_dtypes = (numpy.float32, numpy.float64, numpy.longdouble)
+complex_dtypes = _supported_nptypes_complex
+real_dtypes = _supported_nptypes_real
 
 def make_complex_data(shape, dtype):
     ar, ai = numpy.random.randn(2, *shape).astype(dtype)
