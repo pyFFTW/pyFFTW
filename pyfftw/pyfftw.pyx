@@ -572,9 +572,9 @@ IF HAVE_LONG:
         'fft_shape_lookup': _lookup_shape_c2r_arrays}})
 
 def scheme_functions(scheme):
-    try:
+    if scheme in _scheme_functions:
         return _scheme_functions[scheme]
-    except KeyError:
+    else:
         msg = "The scheme '%s' is not supported." % str(scheme)
         if scheme[1] in _all_types:
             msg += "\nRebuild pyfftw with support for %s precision!" % \
