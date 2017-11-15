@@ -41,7 +41,7 @@ import time
 
 import unittest
 
-from .test_pyfftw_base import FFTWBaseTest, run_test_suites
+from .test_pyfftw_base import FFTWBaseTest, run_test_suites, miss
 
 # We make this 1D case not inherit from FFTWBaseTest.
 # It needs to be combined with FFTWBaseTest to work.
@@ -666,7 +666,6 @@ class Complex64FFTW1DTest(object):
         with self.assertRaisesRegex(IndexError, 'Invalid axes'):
                 FFTW(a, b, axes, direction=self.direction)
 
-
 class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
 
     def test_2d(self):
@@ -736,11 +735,10 @@ class Complex64FFTWTest(Complex64FFTW1DTest, FFTWBaseTest):
 
         self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
-
+@unittest.skipIf(*miss('64'))
 class Complex128FFTWTest(Complex64FFTWTest):
 
     def setUp(self):
-
         self.input_dtype = numpy.complex128
         self.output_dtype = numpy.complex128
         self.np_fft_comparison = numpy.fft.fft
@@ -748,6 +746,7 @@ class Complex128FFTWTest(Complex64FFTWTest):
         self.direction = 'FFTW_FORWARD'
         return
 
+@unittest.skipIf(*miss('ld'))
 class ComplexLongDoubleFFTWTest(Complex64FFTWTest):
 
     def setUp(self):

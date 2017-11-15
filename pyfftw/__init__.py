@@ -26,7 +26,10 @@ from .pyfftw import (
         ones_aligned,
         zeros_aligned,
         next_fast_len,
-        supported_types,
+        _supported_types,
+        _supported_nptypes_complex,
+        _supported_nptypes_real,
+        _all_types_human_readable,
 )
 
 from . import builders

@@ -32,12 +32,21 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-from pyfftw import FFTW
+from pyfftw import FFTW, _supported_types, _all_types_human_readable
 import numpy
 import struct
 from timeit import Timer
 
 import unittest
+
+def miss(*xs):
+    '''Skip test if the precisions in the iterable `xs` are not available.'''
+    msg = 'Requires %s' % _all_types_human_readable[xs[0]]
+    for x in xs[1:]:
+        msg += ' and %s' % _all_types_human_readable[x]
+    msg += ' precision.'
+    skip = not all(x in _supported_types for x in xs)
+    return (skip, msg)
 
 class FFTWBaseTest(unittest.TestCase):
 
@@ -53,6 +62,10 @@ class FFTWBaseTest(unittest.TestCase):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
     def setUp(self):
+
+        skip, msg = miss('32')
+        if skip:
+            self.skipTest(msg)
 
         self.input_dtype = numpy.complex64
         self.output_dtype = numpy.complex64

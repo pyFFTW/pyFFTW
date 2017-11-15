@@ -32,7 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-from pyfftw import interfaces
+from pyfftw import interfaces, _supported_types
 
 from .test_pyfftw_base import run_test_suites
 from ._get_default_args import get_default_args
@@ -50,8 +50,20 @@ if LooseVersion(numpy.version.version) <= LooseVersion('1.6.2'):
     from ._cook_nd_args import _cook_nd_args
     numpy.fft.fftpack._cook_nd_args = _cook_nd_args
 
-complex_dtypes = (numpy.complex64, numpy.complex64, numpy.complex128, numpy.clongdouble)
-real_dtypes = (numpy.float16, numpy.float32, numpy.float64, numpy.longdouble)
+complex_dtypes = []
+real_dtypes = []
+if '32' in _supported_types:
+    complex_dtypes.extend([numpy.complex64]*2)
+    real_dtypes.extend([numpy.float16, numpy.float32])
+if '64' in _supported_types:
+    complex_dtypes.append(numpy.complex128)
+    real_dtypes.append(numpy.float64)
+if 'ld' in _supported_types:
+    complex_dtypes.append(numpy.clongdouble)
+    real_dtypes.append(numpy.longdouble)
+
+# complex_dtypes = (numpy.complex64, numpy.complex64, numpy.complex128, numpy.clongdouble)
+# real_dtypes = (numpy.float16, numpy.float32, numpy.float64, numpy.longdouble)
 
 def make_complex_data(shape, dtype):
     ar, ai = dtype(numpy.random.randn(2, *shape))

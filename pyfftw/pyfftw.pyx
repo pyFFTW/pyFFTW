@@ -46,25 +46,32 @@ include 'utils.pxi'
 cdef extern from *:
     int Py_AtExit(void (*callback)())
 
-# the total number of supported types pyfftw is build for
+# the total number of types pyfftw can support
 cdef int _n_types = 3
 cdef object _all_types = ['32', '64', 'ld']
-
-# the types supported in this build
-supported_types = []
-IF HAVE_DOUBLE:
-    supported_types.append('64')
-IF HAVE_SINGLE:
-    supported_types.append('32')
-IF HAVE_LONG:
-    supported_types.append('ld')
-
-cdef object _all_types_human_readable
 _all_types_human_readable = {
     '32': 'single',
     '64': 'double',
     'ld': 'long double',
 }
+
+# the types supported in this build
+_supported_types = []
+_supported_nptypes_complex = []
+_supported_nptypes_real = []
+
+IF HAVE_SINGLE:
+    _supported_types.append('32')
+    _supported_nptypes_complex.append(np.complex64)
+    _supported_nptypes_real.append(np.float32)
+IF HAVE_DOUBLE:
+    _supported_types.append('64')
+    _supported_nptypes_complex.append(np.complex128)
+    _supported_nptypes_real.append(np.float64)
+IF HAVE_LONG:
+    _supported_types.append('ld')
+    _supported_nptypes_complex.append(np.clongdouble)
+    _supported_nptypes_real.append(np.longdouble)
 
 cdef object directions
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
