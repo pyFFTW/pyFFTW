@@ -79,8 +79,8 @@ make_complex_data = test_pyfftw_numpy_interface.make_complex_data
 if scipy.__version__ < '0.19':
     # Older scipy will raise an error for inputs of type float16, so we
     # cannot validate transforms with float16 input vs. scipy.fftpack
-    complex_dtypes = _supported_nptypes_complex
-    real_dtypes = _supported_nptypes_real
+    complex_dtypes = pyfftw._supported_nptypes_complex
+    real_dtypes = pyfftw._supported_nptypes_real
 else:
     # reuse all dtypes from numpy tests (including float16)
     complex_dtypes = test_pyfftw_numpy_interface.complex_dtypes
