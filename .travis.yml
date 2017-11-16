@@ -37,7 +37,9 @@ install:
   - source activate test-environment
   - python setup.py -v build_ext --inplace
 
-script: python setup.py test
+script:
+  - python setup.py test
+  - travis/partial.sh
 
 before_deploy:
   - rvm default
