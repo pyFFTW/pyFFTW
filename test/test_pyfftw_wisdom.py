@@ -34,7 +34,8 @@
 
 from pyfftw import (
         FFTW, empty_aligned,
-        export_wisdom, import_wisdom, forget_wisdom, _supported_nptypes_complex)
+        export_wisdom, import_wisdom, forget_wisdom,
+        _supported_types, _supported_nptypes_complex)
 
 from .test_pyfftw_base import run_test_suites
 
@@ -53,6 +54,21 @@ class FFTWWisdomTest(unittest.TestCase):
             fft = FFTW(a,b)
 
 
+    def compare_single(self, supported, before, after):
+        # skip over unsupported data types where wisdom is the empty string
+        if supported:
+            self.assertNotEqual(before, after)
+        else:
+            self.assertEqual(before, b'')
+            self.assertEqual(before, after)
+
+
+    def compare(self, before, after):
+        self.compare_single('64' in _supported_types, before[0], after[0])
+        self.compare_single('32' in _supported_types, before[1], after[1])
+        self.compare_single('ld' in _supported_types, before[2], after[2])
+
+
     def test_export(self):
 
         forget_wisdom()
@@ -63,8 +79,7 @@ class FFTWWisdomTest(unittest.TestCase):
 
         after_wisdom = export_wisdom()
 
-        for n, _ in enumerate(_supported_nptypes_complex):
-            self.assertNotEqual(before_wisdom[n], after_wisdom[n])
+        self.compare(before_wisdom, after_wisdom)
 
     def test_import(self):
 
@@ -79,8 +94,7 @@ class FFTWWisdomTest(unittest.TestCase):
 
         success = import_wisdom(after_wisdom)
 
-        for n, _ in enumerate(_supported_nptypes_complex):
-            self.assertNotEqual(before_wisdom[n], after_wisdom[n])
+        self.compare(before_wisdom, after_wisdom)
 
         self.assertEqual(success, (True, True, True))
 
