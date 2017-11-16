@@ -584,22 +584,12 @@ def scheme_functions(scheme):
     else:
         msg = "The scheme '%s' is not supported." % str(scheme)
         if scheme[1] in _all_types:
-            msg += "\nRebuild pyfftw with support for %s precision!" % \
+            msg += "\nRebuild pyFFTW with support for %s precision!" % \
                    _all_types_human_readable[scheme[1]]
         raise NotImplementedError(msg)
 
 # Set the cleanup routine
 cdef void _cleanup():
-    # TODO tight coupling with non-MPI code
-    # TODO mpi_cleanup() includes serial clean up
-    IF HAVE_MPI:
-        IF HAVE_DOUBLE_MPI:
-            fftw_mpi_cleanup()
-        IF HAVE_SINGLE_MPI:
-            fftwf_mpi_cleanup()
-        IF HAVE_LONG_MPI:
-            fftwl_mpi_cleanup()
-
     IF HAVE_DOUBLE:
         fftw_cleanup()
     IF HAVE_SINGLE:
