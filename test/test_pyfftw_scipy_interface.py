@@ -48,7 +48,7 @@ else:
     scipy_missing = False
 
 import unittest
-from .test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites, miss
 from . import test_pyfftw_numpy_interface
 
 '''pyfftw.interfaces.scipy_fftpack just wraps pyfftw.interfaces.numpy_fft.
@@ -103,6 +103,7 @@ class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
     ''' A really simple test suite to check simple implementation.
     '''
 
+    @unittest.skipIf(*miss('64'))
     def test_scipy_overwrite(self):
 
         new_style_scipy_fftn = False
