@@ -270,9 +270,16 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                         msg='Interface exception raised. ' +
                         'Testing for: ' + repr(e))
                 return
-
-            output_array = getattr(self.test_interface, self.func)(
-                    copy_func(input_array), s, **kwargs)
+            try:
+                output_array = getattr(self.test_interface, self.func)(
+                                    copy_func(input_array), s, **kwargs)
+            except NotImplementedError as e:
+                # check if exception due to missing precision
+                msg = repr(e)
+                if 'Rebuild pyfftw with support for' in msg:
+                    self.skipTest(msg)
+                else:
+                    raise
 
             if (functions[self.func] == 'r2c'):
                 if numpy.iscomplexobj(input_array):

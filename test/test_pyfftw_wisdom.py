@@ -64,9 +64,8 @@ class FFTWWisdomTest(unittest.TestCase):
 
 
     def compare(self, before, after):
-        self.compare_single('64' in _supported_types, before[0], after[0])
-        self.compare_single('32' in _supported_types, before[1], after[1])
-        self.compare_single('ld' in _supported_types, before[2], after[2])
+        for prec, ind in zip(['64', '32', 'ld'], [0,1,2]):
+            self.compare_single(prec in _supported_types, before[ind], after[ind])
 
 
     def test_export(self):
@@ -96,7 +95,7 @@ class FFTWWisdomTest(unittest.TestCase):
 
         self.compare(before_wisdom, after_wisdom)
 
-        self.assertEqual(success, (True, True, True))
+        self.assertEqual(success, tuple([x in _supported_types for x in ['64', '32', 'ld']]))
 
 
 test_cases = (

@@ -39,7 +39,7 @@ from pyfftw import interfaces, builders
 import numpy
 
 import unittest
-from .test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites, miss
 from .test_pyfftw_numpy_interface import InterfacesNumpyFFTTestFFT
 
 import threading
@@ -64,6 +64,7 @@ def _check_n_cache_threads_running():
 
     return cache_threads
 
+@unittest.skipIf(*miss('64'))
 class InterfacesNumpyFFTCacheTestFFT(InterfacesNumpyFFTTestFFT):
     test_shapes = (
             ((100,), {}),
@@ -87,6 +88,7 @@ class InterfacesNumpyFFTCacheTestFFT(InterfacesNumpyFFTTestFFT):
         # Turn it off to finish
         interfaces.cache.disable()
 
+@unittest.skipIf(*miss('64'))
 class CacheSpecificInterfacesUtils(unittest.TestCase):
 
     def test_slow_lookup_no_race_condition(self):
@@ -221,6 +223,7 @@ class CacheTest(unittest.TestCase):
         time.sleep(0.2)
         self.assertTrue(_check_n_cache_threads_running() == 0)
 
+    @unittest.skipIf(*miss('64'))
     def test_insert_and_lookup_item(self):
         _cache = interfaces.cache._Cache()
 
@@ -232,6 +235,7 @@ class CacheTest(unittest.TestCase):
 
         self.assertIs(_cache.lookup(key), obj)
 
+    @unittest.skipIf(*miss('64'))
     def test_invalid_lookup(self):
         _cache = interfaces.cache._Cache()
 
@@ -264,6 +268,7 @@ class CacheTest(unittest.TestCase):
         with self.assertRaises(TypeError):
             _cache.set_keepalive_time([])
 
+    @unittest.skipIf(*miss('64'))
     def test_contains(self):
         _cache = interfaces.cache._Cache()
 
@@ -276,6 +281,7 @@ class CacheTest(unittest.TestCase):
         self.assertTrue(key in _cache)
         self.assertFalse('Not a key' in _cache)
 
+    @unittest.skipIf(*miss('64'))
     def test_objects_removed_after_keepalive(self):
         _cache = interfaces.cache._Cache()
 

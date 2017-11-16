@@ -36,10 +36,11 @@
 from pyfftw import (
         FFTW, empty_aligned, byte_align)
 
-from .test_pyfftw_base import run_test_suites, miss
+from .test_pyfftw_base import run_test_suites, miss, require
 import numpy
 import unittest
 
+@unittest.skipIf(*miss('64'))
 class FFTWCallTest(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):

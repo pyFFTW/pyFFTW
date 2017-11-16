@@ -35,7 +35,7 @@
 from pyfftw import builders, empty_aligned, byte_align, FFTW
 from pyfftw import _supported_nptypes_complex, _supported_nptypes_real
 from pyfftw.builders import _utils as utils
-from .test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites, require
 from ._get_default_args import get_default_args
 
 import unittest
@@ -799,6 +799,8 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
     def setUp(self):
+
+        require(self, '64')
 
         self.input_array_slicer = [slice(None), slice(256)]
         self.FFTW_array_slicer = [slice(128), slice(None)]
