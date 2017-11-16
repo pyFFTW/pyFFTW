@@ -314,7 +314,7 @@ class EnvironmentSniffer(object):
         if not have_fftw:
             raise LinkError("Could not find any of the FFTW libraries")
 
-        log.info('Discovered FFTW with')
+        log.info('Build pyFFTW with support for FFTW with')
         for d in data_types:
             if not self.compile_time_env[self.HAVE(d)]:
                 continue
