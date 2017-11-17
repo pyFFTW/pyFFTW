@@ -50,7 +50,9 @@ Requirements (i.e. what it was designed for)
 --------------------------------------------
 - Python 2.7 or greater (Python 3 is supported)
 - Numpy 1.6
-- FFTW 3.3 or higher (lower versions *may* work)
+- FFTW 3.3 or higher (lower versions *may* work) libraries for single, double,
+  and long double precision in serial and multithreading (pthreads or openMP)
+  versions
 - Cython 0.15 or higher (though the source release on PyPI loses this
   dependency)
 
@@ -99,6 +101,16 @@ After you've run ``setup.py`` with cython available, you then have a
 normal C extension in the ``pyfftw`` directory.
 Further building does not depend on cython (as long as the .c file remains).
 
+During configuration the available FFTW libraries are detected, so pay attention
+to the output when running ``setup.py``. On certain platforms, for example the
+long double precision is not available. pyFFTW still builds fine but will fail
+at runtime if asked to perform a transform involving long double precision.
+
+Regarding multithreading, if both posix and openMP FFTW libs are available, the
+openMP libs are preferred. This preference can be reversed by defining the
+environment variable ``PYFFTW_USE_PTHREADS`` prior to building. If neither
+option is available, pyFFTW works in serial mode only.
+
 For more ways of building and installing, see the
 `distutils documentation <http://docs.python.org/distutils/builtdist.html>`_
 and `setuptools documentation <https://pythonhosted.org/setuptools/>`_.
@@ -109,23 +121,23 @@ Platform specific build info
 Windows
 ~~~~~~~
 
-To build for windows from source, download the fftw dlls for your system
-and the header file from `here <http://www.fftw.org/install/windows.html>`_
-(they're in a zip file) and place them in the pyfftw
-directory. The files are ``libfftw3-3.dll``, ``libfftw3l-3.dll``,
-``libfftw3f-3.dll``. If you're using a version of FFTW other than 3.3, it may
-be necessary to copy ``fftw3.h`` into ``include\win``.
+To build for windows from source, download the fftw dlls for your system and the
+header file from `here <http://www.fftw.org/install/windows.html>`_ (they're in
+a zip file) and place them in the pyfftw directory. The files are
+``libfftw3-3.dll``, ``libfftw3l-3.dll``, ``libfftw3f-3.dll``. These libs use
+pthreads for multithreading. If you're using a version of FFTW other than 3.3,
+it may be necessary to copy ``fftw3.h`` into ``include\win``.
 
 The builds on PyPI use mingw for the 32-bit release and the Windows SDK
 C++ compiler for the 64-bit release. The scripts should handle this
 automatically. If you want to compile for 64-bit Windows, you have to use
 the MS Visual C++ compiler. Set up your environment as described
 `here <https://github.com/cython/cython/wiki/CythonExtensionsOnWindows>`_ and then
-run `setup.py` with the version of python you wish to target and a suitable
+run ``setup.py`` with the version of python you wish to target and a suitable
 build command.
 
 For using the MS Visual C++ compiler, you'll need to create a set of
-suitable `.lib` files as described on the
+suitable ``.lib`` files as described on the
 `FFTW page <http://www.fftw.org/install/windows.html>`_.
 
 Mac OSX
@@ -144,8 +156,9 @@ Now install pyfftw from pip::
 
   pip install pyfftw
 
-Notes: `pkgin <http://saveosx.org>`_ fftw package does not contain the long
-or float implementations of fftw and so installation will fail.
+Notes: `pkgin <http://saveosx.org>`_ fftw package does not contain the long or
+float implementations of fftw and so pyFFTW can only perform double-precision
+transforms.
 
 It has been suggested that `macports <http://www.macports.org/>`_ might also
 work fine. You should then replace the LD environmental variables above with the
@@ -163,7 +176,7 @@ Install FFTW from ports tree or ``pkg``:
     - math/fftw3-float
     - math/fftw3-long
 
-Please install all of them.
+Please install all of them, if possible.
 
 Contributions
 -------------
