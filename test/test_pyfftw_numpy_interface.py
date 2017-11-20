@@ -276,7 +276,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             except NotImplementedError as e:
                 # check if exception due to missing precision
                 msg = repr(e)
-                if 'Rebuild pyfftw with support for' in msg:
+                if 'Rebuild pyFFTW with support for' in msg:
                     self.skipTest(msg)
                 else:
                     raise

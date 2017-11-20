@@ -41,6 +41,13 @@ import unittest
 
 class FFTWPartialTest(unittest.TestCase):
 
+    def __init__(self, *args, **kwargs):
+
+        super(FFTWPartialTest, self).__init__(*args, **kwargs)
+
+        if not hasattr(self, 'assertRaisesRegex'):
+            self.assertRaisesRegex = self.assertRaisesRegexp
+
     def test_failure(self):
         for dtype, npdtype in zip(['32', '64', 'ld'], [np.complex64, np.complex128, np.clongdouble]):
             if dtype not in _supported_types:
