@@ -30,6 +30,7 @@ from .pyfftw import (
         _supported_nptypes_complex,
         _supported_nptypes_real,
         _all_types_human_readable,
+        _all_types_np
 )
 
 from . import builders

@@ -55,6 +55,12 @@ _all_types_human_readable = {
     'ld': 'long double',
 }
 
+_all_types_np = {
+    np.dtype(np.float32): '32',
+    np.dtype(np.float64): '64',
+    np.dtype(np.longdouble): 'ld'
+}
+
 # the types supported in this build
 _supported_types = []
 _supported_nptypes_complex = []
