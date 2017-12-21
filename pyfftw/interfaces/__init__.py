@@ -239,10 +239,12 @@ else:
 try:
     import dask.array.fft
     dask.array.fft.fft_wrap
-except ImportError:
+except (ImportError, AttributeError):
     pass
-except AttributeError:
-    del dask
 else:
-    del dask
     from . import dask_fft
+
+try:
+    del dask
+except NameError:
+    pass
