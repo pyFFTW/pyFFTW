@@ -97,8 +97,10 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         a[...] = a_original
 
     if cache.is_enabled():
+        alignment = a.ctypes.data % pyfftw.simd_alignment
+
         key = (calling_func, a.shape, a.strides, a.dtype, s.__hash__(),
-               axes.__hash__(), args)
+               axes.__hash__(), alignment, args)
 
         try:
             if key in cache._fftw_cache:

@@ -36,7 +36,9 @@
 import copy
 
 from pyfftw import interfaces, builders
+import pyfftw
 import numpy
+import numpy as np
 
 import unittest
 from .test_pyfftw_base import run_test_suites
@@ -46,6 +48,7 @@ import threading
 import time
 
 import os
+import hashlib
 
 '''Test the caching functionality of the interfaces package.
 '''
@@ -317,6 +320,40 @@ class CacheTest(unittest.TestCase):
             time.sleep(old_keepalive_time * 8)
 
         self.assertRaises(KeyError, _cache.lookup, key)
+
+    def test_misaligned_data_doesnt_clobber_cache(self):
+        '''A bug was highlighted in #197 in which misaligned data causes
+        an overwrite of an FFTW internal array which is also the same as
+        an output array. The correct behaviour is for the cache to have
+        alignment as a key to stop this happening.
+        '''
+        interfaces.cache.enable()
+
+        N = 64
+        pyfftw.interfaces.cache.enable()
+        np.random.seed(12345)
+
+        Um = pyfftw.empty_aligned((N, N+1), dtype=np.float32, order='C')
+        Vm = pyfftw.empty_aligned((N, N+1), dtype=np.float32, order='C')
+        U = np.ndarray((N, N), dtype=Um.dtype, buffer=Um.data, offset=0)
+        V = np.ndarray(
+            (N, N), dtype=Vm.dtype, buffer=Vm.data, offset=Vm.itemsize)
+
+        U[:] = np.random.randn(N, N).astype(np.float32)
+        V[:] = np.random.randn(N, N).astype(np.float32)
+
+        uh = hashlib.md5(U).hexdigest()
+        vh = hashlib.md5(V).hexdigest()
+        x = interfaces.numpy_fft.rfftn(
+            U, None, axes=(0, 1), overwrite_input=False)
+        y = interfaces.numpy_fft.rfftn(
+            V, None, axes=(0, 1), overwrite_input=False)
+
+        self.assertTrue(uh == hashlib.md5(U).hexdigest())
+        self.assertTrue(vh == hashlib.md5(V).hexdigest())
+
+        interfaces.cache.disable()
+
 
 class InterfacesNumpyFFTCacheTestIFFT(InterfacesNumpyFFTCacheTestFFT):
     func = 'ifft'
