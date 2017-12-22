@@ -257,6 +257,9 @@ class EnvironmentSniffer(object):
                 lib_omp = False
                 self.compile_time_env[self.HAVE(d, 'OMP')] = False
 
+            if lib_omp:
+                self.compile_time_env[self.HAVE(d, 'THREADS')] = False
+
             if not lib_omp:
                 # -pthread added for gcc/clang when checking for threads
                 self.linker_flags.append(self.pthread_linker_flag())
