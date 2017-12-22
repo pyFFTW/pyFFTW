@@ -182,6 +182,8 @@ cpdef empty_aligned(shape, dtype='float64', order='C', n=None):
     determine alignment. The rest of the arguments are as per
     :func:`numpy.empty`.
     '''
+    cdef long long array_length
+
     if n is None:
         n = _simd_alignment
 
