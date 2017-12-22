@@ -2,6 +2,8 @@
 #
 # Henry Gomersall
 # heng@kedevelopments.co.uk
+# Frederik Beaujean
+# Frederik.Beaujean@lmu.de
 #
 # All rights reserved.
 #
@@ -53,8 +55,12 @@ class FFTWPartialTest(unittest.TestCase):
             if dtype not in _supported_types:
                 a = empty_aligned((1,1024), npdtype, n=16)
                 b = empty_aligned(a.shape, dtype=a.dtype, n=16)
-                with self.assertRaisesRegex(NotImplementedError, "Rebuild pyFFTW with support for %s precision!" % _all_types_human_readable[dtype]):
+                msg = "Rebuild pyFFTW with support for %s precision!" % _all_types_human_readable[dtype]
+                with self.assertRaisesRegex(NotImplementedError, msg):
                     FFTW(a,b)
+
+    def test_conversion(self):
+        # If double precision not supported, the builder should convert to single precision
 
 test_cases = (
         FFTWPartialTest,)
