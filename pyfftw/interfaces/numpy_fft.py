@@ -39,13 +39,15 @@ of :mod:`numpy.fft`, but those functions that are not included here are imported
 directly from :mod:`numpy.fft`.
 
 
-It is notable that unlike :mod:`numpy.fftpack`, these functions will
-generally return an output array with the same precision as the input
-array, and the transform that is chosen is chosen based on the precision
-of the input array. That is, if the input array is 32-bit floating point,
-then the transform will be 32-bit floating point and so will the returned
-array. Half precision input will be converted to single precision.  Otherwise,
-if any type conversion is required, the default will be double precision.
+It is notable that unlike :mod:`numpy.fftpack`, these functions will generally
+return an output array with the same precision as the input array, and the
+transform that is chosen is chosen based on the precision of the input array.
+That is, if the input array is 32-bit floating point, then the transform will
+be 32-bit floating point and so will the returned array. Half precision input
+will be converted to single precision. Otherwise, if any type conversion is
+required, the default will be double precision. If pyFFTW was not built with
+support for double precision, the default is long double precision. If that is not
+available, it defaults to single precision.
 
 One known caveat is that repeated axes are handled differently to
 :mod:`numpy.fft`; axes that are repeated in the axes argument are considered
