@@ -35,6 +35,7 @@
 from pyfftw import (
         FFTW, empty_aligned, is_byte_aligned, simd_alignment)
 import pyfftw
+from pyfftw.pyfftw import _valid_simd_alignments
 
 from .test_pyfftw_base import run_test_suites
 
@@ -68,8 +69,9 @@ class FFTWMiscTest(unittest.TestCase):
     def test_aligned_flag(self):
         '''Test to see if the aligned flag is correct
         '''
-        fft = FFTW(self.input_array, self.output_array)
-        self.assertTrue(fft.simd_aligned)
+        if len(_valid_simd_alignments) > 0:
+            fft = FFTW(self.input_array, self.output_array)
+            self.assertTrue(fft.simd_aligned)
 
         fft = FFTW(self.input_array, self.output_array,
                 flags=('FFTW_UNALIGNED',))
@@ -79,11 +81,16 @@ class FFTWMiscTest(unittest.TestCase):
     def test_flags(self):
         '''Test to see if the flags are correct
         '''
-        fft = FFTW(self.input_array, self.output_array)
-        self.assertEqual(fft.flags, ('FFTW_MEASURE',))
+        if len(_valid_simd_alignments) > 0:
+            fft = FFTW(self.input_array, self.output_array)
+            self.assertEqual(fft.flags, ('FFTW_MEASURE',))
+        else:
+            # FFTW_UNALIGNED is automatically appended when SIMD isn't detected
+            fft = FFTW(self.input_array, self.output_array)
+            self.assertEqual(fft.flags, ('FFTW_MEASURE', 'FFTW_UNALIGNED'))
 
         fft = FFTW(self.input_array, self.output_array,
-                flags=('FFTW_DESTROY_INPUT', 'FFTW_UNALIGNED'))
+                   flags=('FFTW_DESTROY_INPUT', 'FFTW_UNALIGNED'))
         self.assertEqual(fft.flags, ('FFTW_DESTROY_INPUT', 'FFTW_UNALIGNED'))
 
         # Test an implicit flag

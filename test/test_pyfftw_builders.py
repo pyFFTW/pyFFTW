@@ -36,6 +36,7 @@ from pyfftw import builders, empty_aligned, byte_align, FFTW
 from pyfftw.builders import _utils as utils
 from .test_pyfftw_base import run_test_suites
 from ._get_default_args import get_default_args
+from pyfftw.pyfftw import _valid_simd_alignments
 
 import unittest
 import numpy
@@ -442,22 +443,23 @@ class BuildersTestFFT(unittest.TestCase):
 
                 # Now for the contiguous case (for both
                 # FFTW and _FFTWWrapper)
-                _kwargs['auto_contiguous'] = True
-                FFTW_object = getattr(builders, self.func)(
+                if len(_valid_simd_alignments) > 0:
+                    _kwargs['auto_contiguous'] = True
+                    FFTW_object = getattr(builders, self.func)(
                         input_array, s1, **_kwargs)
 
-                internal_input_array = FFTW_object.input_array
-                flags = internal_input_array.flags
-                self.assertTrue(flags['C_CONTIGUOUS'] or
-                    flags['F_CONTIGUOUS'])
+                    internal_input_array = FFTW_object.input_array
+                    flags = internal_input_array.flags
+                    self.assertTrue(flags['C_CONTIGUOUS'] or
+                                    flags['F_CONTIGUOUS'])
 
-                FFTW_object = getattr(builders, self.func)(
+                    FFTW_object = getattr(builders, self.func)(
                         input_array, s2, **_kwargs)
 
-                internal_input_array = FFTW_object.input_array
-                flags = internal_input_array.flags
-                # as above
-                self.assertTrue(flags['C_CONTIGUOUS'])
+                    internal_input_array = FFTW_object.input_array
+                    flags = internal_input_array.flags
+                    # as above
+                    self.assertTrue(flags['C_CONTIGUOUS'])
 
 
     def test_auto_align_input(self):
