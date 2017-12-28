@@ -76,18 +76,19 @@ class UtilsTest(unittest.TestCase):
 
         return
 
-    @unittest.skipIf('Linux' not in platform.system(),
-            'Skipping as we only have it set up for Linux at present.')
+    @unittest.skipIf(
+        'Linux' not in platform.system(),
+        'Skipping as we only have it set up for Linux at present.')
     def test_get_alignment(self):
         cpus_info = get_cpus_info()
-
         for each_cpu in cpus_info:
-            if 'avx' in each_cpu['flags']:
+            flags = each_cpu.get('flags', [])
+            if 'avx' in flags:
                 self.assertTrue(pyfftw.simd_alignment == 32)
-            elif 'sse' in each_cpu['flags']:
+            elif 'sse' in flags:
                 self.assertTrue(pyfftw.simd_alignment == 16)
             else:
-                self.assertTrue(pyfftw.simd_alignment == 1)
+                self.assertTrue(pyfftw.simd_alignment == 4)
 
 
 class NextFastLenTest(unittest.TestCase):
