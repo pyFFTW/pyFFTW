@@ -36,11 +36,15 @@
 
 from pyfftw import (
     FFTW, empty_aligned,
-    _all_types_human_readable, _supported_types
+    interfaces,
+    _all_types_np, _all_types_human_readable, _supported_types
     )
+from pyfftw.builders._utils import _rc_dtype_pairs
 import numpy as np
 import unittest
+import warnings
 
+@unittest.skipIf(len(_all_types_human_readable) == len(_supported_types), "All data types available")
 class FFTWPartialTest(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
@@ -59,8 +63,44 @@ class FFTWPartialTest(unittest.TestCase):
                 with self.assertRaisesRegex(NotImplementedError, msg):
                     FFTW(a,b)
 
+
+    def conversion(self, missing, alt1, alt2):
+        '''If the ``missing`` precision is not available, the builder should convert to
+           ``alt1`` precision. If that isn't available either, it should fall back to
+           ``alt2``. If input precision is lost, a warning should be emitted.
+
+        '''
+
+        missing, alt1, alt2 = [np.dtype(x) for x in (missing, alt1, alt2)]
+        if _all_types_np[missing]  in _supported_types:
+            return
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+
+            itemsize = alt1.itemsize
+            a = empty_aligned((1, 512), dtype=missing)
+            b = interfaces.numpy_fft.fft(a)
+            res = _rc_dtype_pairs.get(alt1.char, None)
+            if res is not None:
+                self.assertEqual(b.dtype, res)
+            else:
+                itemsize = alt2.itemsize
+                self.assertEqual(b.dtype, _rc_dtype_pairs[alt2.char])
+
+            if itemsize < missing.itemsize:
+                print(itemsize, missing.itemsize)
+                assert len(w) == 1
+                assert "Narrowing conversion" in str(w[-1].message)
+                print("Found narrowing conversion from %d to %d bytes" % (missing.itemsize, itemsize))
+            else:
+                assert len(w) == 0
+
+
     def test_conversion(self):
-        # If double precision not supported, the builder should convert to single precision
+        self.conversion('float32', 'float64', 'longdouble')
+        self.conversion('float64', 'longdouble', 'single')
+        self.conversion('longdouble', 'float64', 'float32')
 
 test_cases = (
         FFTWPartialTest,)

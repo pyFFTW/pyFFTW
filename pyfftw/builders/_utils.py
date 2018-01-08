@@ -52,6 +52,7 @@ and may change in future versions.
 
 import pyfftw
 import numpy
+import warnings
 
 __all__ = ['_FFTWWrapper', '_rc_dtype_pairs', '_default_dtype', '_Xfftn',
         '_setup_input_slicers', '_compute_array_shapes', '_precook_1d_args',
@@ -67,7 +68,7 @@ _valid_efforts = ('FFTW_ESTIMATE', 'FFTW_MEASURE',
 _rc_dtype_pairs = {}
 _default_dtype = None
 
-# Double precision is the default. Prefer casting to higher precision if
+# Double precision is the default default precision. Prefer casting to higher precision if
 # possible. If missing, long double is mapped to double and so we lose less
 # precision than by converting to single.
 if '64' in pyfftw._supported_types:
@@ -134,18 +135,23 @@ def _Xfftn(a, s, axes, overwrite_input,
 
     a_is_complex = numpy.iscomplexobj(a)
 
-    # Make the input dtype correct
+    # Make the input dtype correct by transforming to an available type
     if a.dtype.char not in _rc_dtype_pairs:
-        dtype_char = _default_dtype.char
+        dtype = _default_dtype
         if a.dtype == numpy.dtype('float16') and '32' in pyfftw._supported_types:
             # convert half-precision to single precision, if available
-            dtype_char = numpy.dtype('float32').char
+            dtype = numpy.dtype('float32')
+
+        # warn when losing precision but not when using a higher precision
+        if dtype.itemsize < a.dtype.itemsize:
+            warnings.warn("Narrowing conversion from %s to %s precision" % (a.dtype, dtype))
+
         if not real or inverse:
             # It's going to be complex
-            dtype_char = _rc_dtype_pairs[dtype_char].char
+            dtype = numpy.dtype(_rc_dtype_pairs[dtype.char])
 
-        # convert the input array
-        a = numpy.asarray(a, dtype=dtype_char)
+        # finally convert the input array
+        a = numpy.asarray(a, dtype=dtype)
     elif not (real and not inverse) and not a_is_complex:
         # We need to make it a complex dtype
         a = numpy.asarray(a, dtype=_rc_dtype_pairs[a.dtype.char])

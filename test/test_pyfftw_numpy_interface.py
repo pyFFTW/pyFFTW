@@ -229,14 +229,6 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
 
         np_input_array = numpy.asarray(input_array)
 
-        # TODO why are long double inputs copied to double precision?
-        # if np_input_array.dtype == 'clongdouble':
-        #     np_input_array = numpy.complex128(input_array)
-
-        # elif np_input_array.dtype == 'longdouble':
-        #     np_input_array = numpy.float64(input_array)
-
-
         with warnings.catch_warnings(record=True) as w:
             # We catch the warnings so as to pick up on when
             # a complex array is turned into a real array
