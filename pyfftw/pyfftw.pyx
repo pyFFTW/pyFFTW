@@ -1780,13 +1780,14 @@ def export_wisdom():
 
     Return the FFTW wisdom as a tuple of strings.
 
-    The first string in the tuple is the string for the double
-    precision wisdom. The second string in the tuple is the string
-    for the single precision wisdom. The third string in the tuple
-    is the string for the long double precision wisdom.
+    The first string in the tuple is the string for the double precision
+    wisdom, the second is for single precision, and the third for long double
+    precision. If any of the precisions is not supported in the build, the
+    string is empty.
 
-    The tuple that is returned from this function can be used as the
-    argument to :func:`~pyfftw.import_wisdom`.
+    The tuple that is returned from this function can be used as the argument
+    to :func:`~pyfftw.import_wisdom`.
+
     '''
 
     cdef:
@@ -1805,6 +1806,9 @@ def export_wisdom():
         char* c_wisdomf = NULL
         char* c_wisdoml = NULL
 
+    # count the length of the string and extract it manually rather than using
+    # `fftw_export_wisdom_to_string` to avoid calling `free` on the string
+    # potentially allocated by a different C library; see #3
     IF HAVE_DOUBLE:
         fftw_export_wisdom(&count_char, <void *>&counter)
         c_wisdom = <char *>malloc(sizeof(char)*(counter + 1))
