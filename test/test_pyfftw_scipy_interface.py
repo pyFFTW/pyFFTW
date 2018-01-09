@@ -86,6 +86,10 @@ else:
     complex_dtypes = test_pyfftw_numpy_interface.complex_dtypes
     real_dtypes = test_pyfftw_numpy_interface.real_dtypes
 
+# Remove long double because scipy explicitly doesn't support it
+complex_dtypes = [x for x in complex_dtypes if x != numpy.clongdouble]
+real_dtypes = [x for x in real_dtypes if x != numpy.longdouble]
+
 def numpy_fft_replacement(a, s, axes, overwrite_input, planner_effort,
         threads, auto_align_input, auto_contiguous):
 
