@@ -54,9 +54,10 @@ class FFTWWisdomTest(unittest.TestCase):
             fft = FFTW(a,b)
 
 
-    def compare_single(self, supported, before, after):
+    def compare_single(self, prec, before, after):
         # skip over unsupported data types where wisdom is the empty string
-        if supported:
+        if  prec in _supported_types:
+            print(prec, ": before", before, "after", after)
             self.assertNotEqual(before, after)
         else:
             self.assertEqual(before, b'')
@@ -65,7 +66,7 @@ class FFTWWisdomTest(unittest.TestCase):
 
     def compare(self, before, after):
         for prec, ind in zip(['64', '32', 'ld'], [0,1,2]):
-            self.compare_single(prec in _supported_types, before[ind], after[ind])
+            self.compare_single(prec, before[ind], after[ind])
 
 
     def test_export(self):
