@@ -67,6 +67,7 @@ from scipy.fftpack import (dct, idct, dst, idst, diff, tilbert, itilbert,
 
 # a next_fast_len specific to pyFFTW is used in place of the scipy.fftpack one
 from ..pyfftw import next_fast_len
+from .. import default_num_threads
 
 
 __all__ = ['fft', 'ifft', 'fftn', 'ifftn', 'rfft', 'irfft', 'fft2', 'ifft2',
@@ -83,7 +84,7 @@ except ImportError:
 
 
 def fft(x, n=None, axis=-1, overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort='FFTW_ESTIMATE', threads=default_num_threads,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D FFT.
 
@@ -95,7 +96,7 @@ def fft(x, n=None, axis=-1, overwrite_x=False,
             threads, auto_align_input, auto_contiguous)
 
 def ifft(x, n=None, axis=-1, overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort='FFTW_ESTIMATE', threads=default_num_threads,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D inverse FFT.
 
@@ -109,7 +110,7 @@ def ifft(x, n=None, axis=-1, overwrite_x=False,
 
 
 def fft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort='FFTW_ESTIMATE', threads=default_num_threads,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D FFT.
 
@@ -123,7 +124,7 @@ def fft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
 
 
 def ifft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort='FFTW_ESTIMATE', threads=default_num_threads,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D inverse FFT.
 
@@ -137,7 +138,7 @@ def ifft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
 
 
 def fftn(x, shape=None, axes=None, overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort='FFTW_ESTIMATE', threads=default_num_threads,
         auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D FFT.
 
@@ -161,7 +162,7 @@ def fftn(x, shape=None, axes=None, overwrite_x=False,
 
 
 def ifftn(x, shape=None, axes=None, overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort='FFTW_ESTIMATE', threads=default_num_threads,
         auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D inverse FFT.
 
@@ -254,7 +255,7 @@ def _irfft_input_to_complex(irfft_input, axis):
 
 
 def rfft(x, n=None, axis=-1, overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort='FFTW_ESTIMATE', threads=default_num_threads,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D real FFT.
 
@@ -278,7 +279,7 @@ def rfft(x, n=None, axis=-1, overwrite_x=False,
     return _complex_to_rfft_output(complex_output, output_shape, axis)
 
 def irfft(x, n=None, axis=-1, overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort='FFTW_ESTIMATE', threads=default_num_threads,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D real inverse FFT.
 
