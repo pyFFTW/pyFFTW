@@ -53,6 +53,8 @@ and may change in future versions.
 import pyfftw
 import numpy
 import warnings
+from .. import _threading_type
+from .. import config
 
 __all__ = ['_FFTWWrapper', '_rc_dtype_pairs', '_default_dtype', '_Xfftn',
         '_setup_input_slicers', '_compute_array_shapes', '_precook_1d_args',
@@ -90,6 +92,22 @@ if '32' in pyfftw._supported_types:
         numpy.dtype('complex64').char: numpy.dtype('float32')})
 if _default_dtype is None:
     raise NotImplementedError("No default precision available")
+
+
+def _default_effort(effort):
+    if effort is None:
+        return config.PLANNER_EFFORT
+    else:
+        return effort
+
+def _default_threads(threads):
+    if threads is None:
+        return config.NUM_THREADS
+    else:
+        if threads > 1 and _threading_type is None:
+            raise ValueError("threads > 1 requested, but pyFFTW was not built "
+                             "with multithreaded FFTW.")
+        return threads
 
 
 def _unitary(norm):

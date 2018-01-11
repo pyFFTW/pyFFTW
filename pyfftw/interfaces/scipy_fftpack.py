@@ -57,6 +57,8 @@ a 2D `shape` argument will return without exception whereas
 '''
 
 from . import numpy_fft
+
+from ..builders._utils import _default_effort, _default_threads
 import numpy
 
 # Complete the namespace (these are not actually used in this module)
@@ -83,7 +85,7 @@ except ImportError:
 
 
 def fft(x, n=None, axis=-1, overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D FFT.
 
@@ -91,11 +93,13 @@ def fft(x, n=None, axis=-1, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
     return numpy_fft.fft(x, n, axis, None, overwrite_x, planner_effort,
             threads, auto_align_input, auto_contiguous)
 
 def ifft(x, n=None, axis=-1, overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D inverse FFT.
 
@@ -103,13 +107,14 @@ def ifft(x, n=None, axis=-1, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
     return numpy_fft.ifft(x, n, axis, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
 def fft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D FFT.
 
@@ -117,13 +122,14 @@ def fft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
     return numpy_fft.fft2(x, shape, axes, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
 def ifft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D inverse FFT.
 
@@ -131,13 +137,14 @@ def ifft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
     the rest of the arguments are documented in the
     :ref:`additional argument docs <interfaces_additional_args>`.
     '''
-
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
     return numpy_fft.ifft2(x, shape, axes, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
 def fftn(x, shape=None, axes=None, overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D FFT.
 
@@ -155,13 +162,14 @@ def fftn(x, shape=None, axes=None, overwrite_x=False,
                     'not the same as x.ndim if axes is None or the length '
                     'of axes if it is not. If this is problematic, consider '
                     'using the numpy interface.')
-
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
     return numpy_fft.fftn(x, shape, axes, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
 def ifftn(x, shape=None, axes=None, overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D inverse FFT.
 
@@ -169,7 +177,8 @@ def ifftn(x, shape=None, axes=None, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
     if shape is not None:
         if ((axes is not None and len(shape) != len(axes)) or
                 (axes is None and len(shape) != x.ndim)):
@@ -254,7 +263,7 @@ def _irfft_input_to_complex(irfft_input, axis):
 
 
 def rfft(x, n=None, axis=-1, overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D real FFT.
 
@@ -267,6 +276,8 @@ def rfft(x, n=None, axis=-1, overwrite_x=False,
                 'compatibility with scipy.fftpack.rfft.')
 
     x = numpy.asanyarray(x)
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
 
     complex_output = numpy_fft.rfft(x, n, axis, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
@@ -278,7 +289,7 @@ def rfft(x, n=None, axis=-1, overwrite_x=False,
     return _complex_to_rfft_output(complex_output, output_shape, axis)
 
 def irfft(x, n=None, axis=-1, overwrite_x=False,
-        planner_effort='FFTW_ESTIMATE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D real inverse FFT.
 
@@ -291,6 +302,8 @@ def irfft(x, n=None, axis=-1, overwrite_x=False,
                 'compatibility with scipy.fftpack.irfft.')
 
     x = numpy.asanyarray(x)
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
 
     if n is None:
         n = x.shape[axis]
