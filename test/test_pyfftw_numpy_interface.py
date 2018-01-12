@@ -229,6 +229,16 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
 
         np_input_array = numpy.asarray(input_array)
 
+        # Why are long double inputs copied to double precision? It's what
+        # numpy silently does anyways as of v1.10 but helps with backward
+        # compatibility and scipy.
+        # https://github.com/pyFFTW/pyFFTW/pull/189#issuecomment-356449731
+        if np_input_array.dtype == 'clongdouble':
+            np_input_array = numpy.complex128(input_array)
+
+        elif np_input_array.dtype == 'longdouble':
+            np_input_array = numpy.float64(input_array)
+
         with warnings.catch_warnings(record=True) as w:
             # We catch the warnings so as to pick up on when
             # a complex array is turned into a real array
@@ -265,7 +275,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 return
             try:
                 output_array = getattr(self.test_interface, self.func)(
-                                    copy_func(input_array), s, **kwargs)
+                                    copy_func(np_input_array), s, **kwargs)
             except NotImplementedError as e:
                 # check if exception due to missing precision
                 msg = repr(e)
@@ -285,23 +295,10 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 numpy.allclose(output_array, test_out_array,
                     rtol=1e-2, atol=1e-4))
 
-        # print(numpy.asanyarray(input_array).real.dtype, "")
-        # print(_all_types_np)
-        if _all_types_np.get(numpy.asanyarray(input_array).real.dtype, "") in _supported_types:
+        if _all_types_np.get(np_input_array.real.dtype, "") in _supported_types:
             # supported precisions should not be converted
             self.assertEqual(np_input_array.real.dtype,
                              output_array.real.dtype)
-        # else:
-        #     # a warning will be issued
-        #     with warnings.catch_warnings(record=True) as w:
-        #         # Cause all warnings to always be triggered.
-        #         warnings.simplefilter("always")
-        #         print(np_input_array.real.dtype)
-        #         input_precision_dtype = numpy.asanyarray(input_array).real.dtype
-        #         self.assertEqual(len(w), 1)
-        #         self.assertTrue(issubclass(w[0].category, UserWarning))
-        #         self.assertTrue("Converting input" in str(w[0].message))
-
 
         if (not self.overwrite_input_flag in kwargs or
                 not kwargs[self.overwrite_input_flag]):
