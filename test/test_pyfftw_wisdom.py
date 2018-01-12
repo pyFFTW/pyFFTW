@@ -48,9 +48,9 @@ class FFTWWisdomTest(unittest.TestCase):
 
     def generate_wisdom(self):
         for each_dtype in _supported_nptypes_complex:
-
-            a = empty_aligned((1,1024), each_dtype, n=16)
-            b = empty_aligned(a.shape, dtype=a.dtype, n=16)
+            n = 16
+            a = empty_aligned((1,1024), each_dtype, n=n)
+            b = empty_aligned(a.shape, dtype=a.dtype, n=n)
             fft = FFTW(a,b)
 
 
