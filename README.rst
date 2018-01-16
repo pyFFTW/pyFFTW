@@ -48,13 +48,12 @@ index page is `here <http://pypi.python.org/pypi/pyFFTW>`_.
 
 Requirements (i.e. what it was designed for)
 --------------------------------------------
-- Python 2.7 or greater (Python 3 is supported)
-- Numpy 1.6
+- Python 2.7 or 3.4+
+- Numpy 1.10
 - FFTW 3.3 or higher (lower versions *may* work) libraries for single, double,
   and long double precision in serial and multithreading (pthreads or openMP)
-  versions
-- Cython 0.15 or higher (though the source release on PyPI loses this
-  dependency)
+  versions.
+- Cython 0.23 or higher
 
 (install these as much as possible with your preferred package manager).
 
