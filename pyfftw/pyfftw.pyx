@@ -114,6 +114,14 @@ cdef object plan_lock = threading.Lock()
 #     Planners
 #     ========
 #
+cdef void* _fftw_plan_null(
+            int rank, fftw_iodim *dims,
+            int howmany_rank, fftw_iodim *howmany_dims,
+            void *_in, void *_out,
+            int sign, unsigned flags):
+
+    raise RuntimeError("Undefined planner. This is a bug")
+
 # Complex double precision
 IF HAVE_DOUBLE:
     cdef void* _fftw_plan_guru_dft(
@@ -228,6 +236,11 @@ IF HAVE_LONG:
 #    Executors
 #    =========
 #
+
+cdef void _fftw_execute_null(void *_plan, void *_in, void *_out):
+
+    raise RuntimeError("Undefined executor. This is a bug")
+
 IF HAVE_DOUBLE:
     # Complex double precision
     cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out) nogil:
@@ -288,6 +301,10 @@ IF HAVE_LONG:
 #    Destroyers
 #    ==========
 #
+cdef void _fftw_destroy_null(void *plan):
+
+    raise RuntimeError("Undefined destroy. This is a bug")
+
 IF HAVE_DOUBLE:
     # Double precision
     cdef void _fftw_destroy_plan(void *_plan):
@@ -314,7 +331,7 @@ cdef fftw_generic_plan_guru planners[9]
 
 cdef fftw_generic_plan_guru * _build_planner_list():
     for i in range(9):
-        planners[i] = NULL
+        planners[i] = <fftw_generic_plan_guru>&_fftw_plan_null
 
     IF HAVE_DOUBLE:
         planners[0] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft
@@ -334,7 +351,7 @@ cdef fftw_generic_execute executors[9]
 
 cdef fftw_generic_execute * _build_executor_list():
     for i in range(9):
-        executors[i] = NULL
+        executors[i] = <fftw_generic_execute>&_fftw_execute_null
 
     IF HAVE_DOUBLE:
         executors[0] = <fftw_generic_execute>&_fftw_execute_dft
@@ -354,7 +371,7 @@ cdef fftw_generic_destroy_plan destroyers[3]
 
 cdef fftw_generic_destroy_plan * _build_destroyer_list():
     for i in range(3):
-        destroyers[i] = NULL
+        destroyers[i] = <fftw_generic_destroy_plan>&_fftw_destroy_null
 
     IF HAVE_DOUBLE:
         destroyers[0] = <fftw_generic_destroy_plan>&_fftw_destroy_plan
@@ -366,13 +383,14 @@ cdef fftw_generic_destroy_plan * _build_destroyer_list():
 # nthreads plan setters table
 cdef fftw_generic_plan_with_nthreads nthreads_plan_setters[3]
 
-cdef void _fftw_plan_with_nthreads_dummy(int n): pass
+cdef void _fftw_plan_with_nthreads_null(int n):
+
+    raise RuntimeError("Undefined plan with nthreads. This is a bug")
 
 cdef fftw_generic_plan_with_nthreads * _build_nthreads_plan_setters_list():
     for i in range(3):
         nthreads_plan_setters[i] = (
-            <fftw_generic_plan_with_nthreads>&_fftw_plan_with_nthreads_dummy)
-
+            <fftw_generic_plan_with_nthreads>&_fftw_plan_with_nthreads_null)
     IF HAVE_DOUBLE_MULTITHREADING:
         nthreads_plan_setters[0] = (
             <fftw_generic_plan_with_nthreads>&fftw_plan_with_nthreads)
@@ -386,9 +404,14 @@ cdef fftw_generic_plan_with_nthreads * _build_nthreads_plan_setters_list():
 # Set planner timelimits
 cdef fftw_generic_set_timelimit set_timelimit_funcs[3]
 
+cdef void _fftw_generic_set_timelimit_null(void *plan):
+
+    raise RuntimeError("Undefined set timelimit. This is a bug")
+
 cdef fftw_generic_set_timelimit * _build_set_timelimit_funcs_list():
     for i in range(3):
-        set_timelimit_funcs[i] = NULL
+        set_timelimit_funcs[i] = (
+            <fftw_generic_set_timelimit>&_fftw_generic_set_timelimit_null)
 
     IF HAVE_DOUBLE:
         set_timelimit_funcs[0] = (
