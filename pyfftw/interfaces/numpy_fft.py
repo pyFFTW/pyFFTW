@@ -62,11 +62,19 @@ from ..builders._utils import _norm_args, _unitary
 
 # Complete the namespace (these are not actually used in this module)
 from numpy.fft import fftfreq, fftshift, ifftshift
+
 import numpy
 
-__all__ = ['fft','ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
+__all__ = ['fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
            'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn', 'irfftn',
            'hfft', 'ihfft', 'fftfreq', 'fftshift', 'ifftshift']
+
+try:
+    # rfftfreq was added to the namespace in numpy 1.8
+    from numpy.fft import rfftfreq
+    __all__ += ['rfftfreq', ]
+except ImportError:
+    pass
 
 
 def fft(a, n=None, axis=-1, norm=None, overwrite_input=False,
