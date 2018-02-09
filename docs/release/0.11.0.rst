@@ -41,19 +41,47 @@ A `norm` keyword argument has been added to the FFTW builders allowing the
 normalization of pre-planned FFTs to be chosen in the same manner as for the
 numpy interfaces.
 
-Dynamic library detection at build time
----------------------------------------
+Dynamic library detection at build and run time
+-----------------------------------------------
 setup.py has been overhauled to dynamically detect the variants of FFTW that
 are present.  Previously single, double and long double libraries were
 all required at build time.  Now, compilation will attempt to detect which
-variants are present and compile based on that.  Building with OpenMP-based
-threading is also now supported.  If both OpenMP and posix threaded variants
-are found, the OpenMP variant will be preferred.  If the user desires to
-instead link to posix threads by default, the environment variable
-PYFFTW_USE_PTHREADS should be defined.
+variants are present and compile based on that.
 
-One caveat is that this dynamic detection is not yet implemented on the Windows
-platform.
+It also now possible to specify an additional search path for the fftw
+libraries by setting the environment variable PYFFTW_LIB_DIR.
+
+One caveat is that dynamic library detection is not used by default on the
+Windows platform, as the default assumption is that on Windows, a full set of
+precompiled libraries have been downloaded from fftw.org. Alternatively, if the
+environment variable PYFFTW_WIN_CONDAFORGE is defined, dynamic detection of
+libraries named fftw3.dll, fftw3f.dll and fftw3l.dll is attempted.  This is for
+compatibility with the CMake-based FFTW build used by conda-forge.
+
+The builders and interfaces all detect at runtime which variants are available
+and select the most suitable precision for the input's dtype. For example, if
+single-precsion FFTW libraries are not available, double-precision FFTs will be
+used to transform single-precision inputs. The PyFFTW test suite also detects
+at runtime which variants have been compiled and only runs tests against the
+available precisions.
+
+OpenMP threading support
+------------------------
+Building with OpenMP-based threading is also now supported.  If both OpenMP
+and posix threaded libraries are found, the OpenMP variant will be preferred.
+If the user desires to instead link to posix threads by default, the
+environment variable PYFFTW_USE_PTHREADS should be defined.
+
+Bugs Fixed
+==========
+
+A platform-dependent bug that results in potentially overwriting a previously
+computed output upon repeated calls to the numpy interfaces was fixed (#199).
+
+Fix to potential platform-dependent integer overflow in empty_aligned (#192).
+
+rfftfreq is now present in the numpy fft interfaces for numpy >= 1.8 (#207)
+
 
 Other changes
 =============
@@ -68,6 +96,9 @@ to pre-plan the FFT).
 
 version number handling is now automatically handled by versioneer
 
+All documentation is now built and hosted at Read the Docs (
+http://pyfftw.readthedocs.io).
+
 Authors
 =======
 
@@ -77,8 +108,9 @@ Authors
 * Antony Lee +
 * Gregory R. Lee
 * Iblis Lin +
+* Hsiou-Yuan (Herbert) Liu +
 
-A total of 6 people contributed to this release.
+A total of 7 people contributed to this release.
 People with a "+" by their names contributed a patch for the first time.
 This list of names is automatically generated, and may not be fully complete.
 
@@ -94,6 +126,9 @@ Issues closed for v0.11
 - `#151 <https://github.com/pyFFTW/pyFFTW/issues/151>`__: Dask wrappers/interface for pyFFTW
 - `#152 <https://github.com/pyFFTW/pyFFTW/issues/152>`__: Missing norm argument in several numpy interface fft methods
 - `#174 <https://github.com/pyFFTW/pyFFTW/issues/174>`__: Using OpenMP threads instead of POSIX threads #174
+- `#196 <https://github.com/pyFFTW/pyFFTW/issues/196>`__: Change URL in github description
+- `#197 <https://github.com/pyFFTW/pyFFTW/issues/197>`__: Numpy interface corrupts array argument
+- `#206 <https://github.com/pyFFTW/pyFFTW/issues/206>`__: numpy_fft should re-export rfftfreq
 
 Pull requests for v0.11
 ------------------------
@@ -116,6 +151,7 @@ Pull requests for v0.11
 - `#166 <https://github.com/pyFFTW/pyFFTW/pull/166>`__: Make sure to reference Dask interface
 - `#167 <https://github.com/pyFFTW/pyFFTW/pull/167>`__: extend the norm argument as implemented in the numpy interface to the builders
 - `#169 <https://github.com/pyFFTW/pyFFTW/pull/169>`__: Documentation is on Read the Docs
+- `#170 <https://github.com/pyFFTW/pyFFTW/pull/170>`__: Redirect to Read the Docs
 - `#171 <https://github.com/pyFFTW/pyFFTW/pull/171>`__: DOC: add next_fast_len to the interfaces docs too
 - `#172 <https://github.com/pyFFTW/pyFFTW/pull/172>`__: Attempted fix to the problem of the FFTW libs not being downloaded on appveyor
 - `#173 <https://github.com/pyFFTW/pyFFTW/pull/173>`__: BLD: no conda package for numpy1.9 on Python3.6 so bump to 1.10.4
@@ -124,3 +160,11 @@ Pull requests for v0.11
 - `#178 <https://github.com/pyFFTW/pyFFTW/pull/178>`__: Disable norm as a keyword argument in Dask test
 - `#182 <https://github.com/pyFFTW/pyFFTW/pull/182>`__: include documentation in the source distribution
 - `#185 <https://github.com/pyFFTW/pyFFTW/pull/185>`__: fix build-time fftw library detection for compatibility with conda-forge
+- `#186 <https://github.com/pyFFTW/pyFFTW/pull/186>`__: update interfaces.scipy_fftpack namespace
+- `#189 <https://github.com/pyFFTW/pyFFTW/pull/189>`__: [setup, pyx] Build only the parts for which FFTW libraries were found
+- `#190 <https://github.com/pyFFTW/pyFFTW/pull/190>`__: WIP: support building from conda-forge FFTW packages on Windows
+- `#192 <https://github.com/pyFFTW/pyFFTW/pull/192>`__: simple fix to overflow in empty_aligned() (on Windows machine)
+- `#198 <https://github.com/pyFFTW/pyFFTW/pull/198>`__: Fix broken build with OpenMP
+- `#199 <https://github.com/pyFFTW/pyFFTW/pull/199>`__: Fix to #197 in which misaligned arrays in the cache caused overwrites…
+- `#200 <https://github.com/pyFFTW/pyFFTW/pull/200>`__: update version import syntax in doc/conf.py for compatibility with versioneer
+- `#207 <https://github.com/pyFFTW/pyFFTW/pull/207>`__: add rfftfreq to the numpy interfaces
