@@ -132,6 +132,10 @@ functions = {
 
 acquired_names = ('fftfreq', 'fftshift', 'ifftshift')
 
+if LooseVersion(numpy.version.version) >= LooseVersion('1.8'):
+    acquired_names += ('rfftfreq', )
+
+
 class InterfacesNumpyFFTTestModule(unittest.TestCase):
     ''' A really simple test suite to check the module works as expected.
     '''
