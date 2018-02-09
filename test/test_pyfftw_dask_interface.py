@@ -35,6 +35,7 @@
 from pyfftw import interfaces
 
 from .test_pyfftw_base import run_test_suites
+from .test_pyfftw_numpy_interface import complex_dtypes, real_dtypes
 from ._get_default_args import get_default_args
 
 from distutils.version import LooseVersion
@@ -52,9 +53,6 @@ except (ImportError, AttributeError):
 import warnings
 import copy
 warnings.filterwarnings('always')
-
-complex_dtypes = (numpy.complex64, numpy.complex64, numpy.complex128, numpy.clongdouble)
-real_dtypes = (numpy.float16, numpy.float32, numpy.float64, numpy.longdouble)
 
 def make_complex_data(shape, dtype):
     ar, ai = dtype(numpy.random.randn(2, *shape))

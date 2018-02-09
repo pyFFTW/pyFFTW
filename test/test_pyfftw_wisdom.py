@@ -34,24 +34,44 @@
 
 from pyfftw import (
         FFTW, empty_aligned,
-        export_wisdom, import_wisdom, forget_wisdom)
+        export_wisdom, import_wisdom, forget_wisdom,
+        _supported_types, _supported_nptypes_complex)
 
 from .test_pyfftw_base import run_test_suites
 
 import numpy
 import pickle
+import sys
 
 import unittest
 
 class FFTWWisdomTest(unittest.TestCase):
 
     def generate_wisdom(self):
-        for each_dtype in (numpy.complex128, numpy.complex64,
-                numpy.clongdouble):
-
-            a = empty_aligned((1,1024), each_dtype, n=16)
-            b = empty_aligned(a.shape, dtype=a.dtype, n=16)
+        for each_dtype in _supported_nptypes_complex:
+            n = 16
+            a = empty_aligned((1,1024), each_dtype, n=n)
+            b = empty_aligned(a.shape, dtype=a.dtype, n=n)
             fft = FFTW(a,b)
+
+
+    def compare_single(self, prec, before, after):
+        # skip over unsupported data types where wisdom is the empty string
+        if  prec in _supported_types:
+            # wisdom not updated for ld, at least on appveyor; e.g.
+            # https://ci.appveyor.com/project/hgomersall/pyfftw/build/job/vweyed25jx8oxxcb
+            if prec == 'ld' and sys.platform.startswith("win"):
+                pass
+            else:
+                self.assertNotEqual(before, after)
+        else:
+            self.assertEqual(before, b'')
+            self.assertEqual(before, after)
+
+
+    def compare(self, before, after):
+        for prec, ind in zip(['64', '32', 'ld'], [0,1,2]):
+            self.compare_single(prec, before[ind], after[ind])
 
 
     def test_export(self):
@@ -64,8 +84,7 @@ class FFTWWisdomTest(unittest.TestCase):
 
         after_wisdom = export_wisdom()
 
-        for n in range(0,2):
-            self.assertNotEqual(before_wisdom[n], after_wisdom[n])
+        self.compare(before_wisdom, after_wisdom)
 
     def test_import(self):
 
@@ -80,10 +99,9 @@ class FFTWWisdomTest(unittest.TestCase):
 
         success = import_wisdom(after_wisdom)
 
-        for n in range(0,2):
-            self.assertNotEqual(before_wisdom[n], after_wisdom[n])
+        self.compare(before_wisdom, after_wisdom)
 
-        self.assertEqual(success, (True, True, True))
+        self.assertEqual(success, tuple([x in _supported_types for x in ['64', '32', 'ld']]))
 
 
 test_cases = (

@@ -32,7 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-from pyfftw import interfaces
+from pyfftw import interfaces, _supported_types, _all_types_np
 
 from .test_pyfftw_base import run_test_suites
 from ._get_default_args import get_default_args
@@ -50,8 +50,17 @@ if LooseVersion(numpy.version.version) <= LooseVersion('1.6.2'):
     from ._cook_nd_args import _cook_nd_args
     numpy.fft.fftpack._cook_nd_args = _cook_nd_args
 
-complex_dtypes = (numpy.complex64, numpy.complex64, numpy.complex128, numpy.clongdouble)
-real_dtypes = (numpy.float16, numpy.float32, numpy.float64, numpy.longdouble)
+complex_dtypes = []
+real_dtypes = []
+if '32' in _supported_types:
+    complex_dtypes.extend([numpy.complex64]*2)
+    real_dtypes.extend([numpy.float16, numpy.float32])
+if '64' in _supported_types:
+    complex_dtypes.append(numpy.complex128)
+    real_dtypes.append(numpy.float64)
+if 'ld' in _supported_types:
+    complex_dtypes.append(numpy.clongdouble)
+    real_dtypes.append(numpy.longdouble)
 
 def make_complex_data(shape, dtype):
     ar, ai = dtype(numpy.random.randn(2, *shape))
@@ -220,12 +229,15 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
 
         np_input_array = numpy.asarray(input_array)
 
+        # Why are long double inputs copied to double precision? It's what
+        # numpy silently does anyways as of v1.10 but helps with backward
+        # compatibility and scipy.
+        # https://github.com/pyFFTW/pyFFTW/pull/189#issuecomment-356449731
         if np_input_array.dtype == 'clongdouble':
             np_input_array = numpy.complex128(input_array)
 
         elif np_input_array.dtype == 'longdouble':
             np_input_array = numpy.float64(input_array)
-
 
         with warnings.catch_warnings(record=True) as w:
             # We catch the warnings so as to pick up on when
@@ -261,9 +273,16 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                         msg='Interface exception raised. ' +
                         'Testing for: ' + repr(e))
                 return
-
-            output_array = getattr(self.test_interface, self.func)(
-                    copy_func(input_array), s, **kwargs)
+            try:
+                output_array = getattr(self.test_interface, self.func)(
+                                    copy_func(np_input_array), s, **kwargs)
+            except NotImplementedError as e:
+                # check if exception due to missing precision
+                msg = repr(e)
+                if 'Rebuild pyFFTW with support for' in msg:
+                    self.skipTest(msg)
+                else:
+                    raise
 
             if (functions[self.func] == 'r2c'):
                 if numpy.iscomplexobj(input_array):
@@ -276,15 +295,10 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 numpy.allclose(output_array, test_out_array,
                     rtol=1e-2, atol=1e-4))
 
-        if numpy.asanyarray(input_array).real.dtype == numpy.float16:
-            # FFTW output will never be single precision for half precision
-            # inputs as there is no half-precision FFTW routine
-            input_precision_dtype = numpy.float32
-        else:
-            input_precision_dtype = numpy.asanyarray(input_array).real.dtype
-
-        self.assertEqual(input_precision_dtype,
-                output_array.real.dtype)
+        if _all_types_np.get(np_input_array.real.dtype, "") in _supported_types:
+            # supported precisions should not be converted
+            self.assertEqual(np_input_array.real.dtype,
+                             output_array.real.dtype)
 
         if (not self.overwrite_input_flag in kwargs or
                 not kwargs[self.overwrite_input_flag]):

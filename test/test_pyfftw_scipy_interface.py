@@ -48,7 +48,7 @@ else:
     scipy_missing = False
 
 import unittest
-from .test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites, miss
 from . import test_pyfftw_numpy_interface
 
 '''pyfftw.interfaces.scipy_fftpack just wraps pyfftw.interfaces.numpy_fft.
@@ -79,12 +79,16 @@ make_complex_data = test_pyfftw_numpy_interface.make_complex_data
 if scipy.__version__ < '0.19':
     # Older scipy will raise an error for inputs of type float16, so we
     # cannot validate transforms with float16 input vs. scipy.fftpack
-    complex_dtypes = (numpy.complex64, numpy.complex128, numpy.clongdouble)
-    real_dtypes = (numpy.float32, numpy.float64, numpy.longdouble)
+    complex_dtypes = pyfftw._supported_nptypes_complex
+    real_dtypes = pyfftw._supported_nptypes_real
 else:
     # reuse all dtypes from numpy tests (including float16)
     complex_dtypes = test_pyfftw_numpy_interface.complex_dtypes
     real_dtypes = test_pyfftw_numpy_interface.real_dtypes
+
+# Remove long double because scipy explicitly doesn't support it
+complex_dtypes = [x for x in complex_dtypes if x != numpy.clongdouble]
+real_dtypes = [x for x in real_dtypes if x != numpy.longdouble]
 
 def numpy_fft_replacement(a, s, axes, overwrite_input, planner_effort,
         threads, auto_align_input, auto_contiguous):
@@ -103,6 +107,7 @@ class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
     ''' A really simple test suite to check simple implementation.
     '''
 
+    @unittest.skipIf(*miss('64'))
     def test_scipy_overwrite(self):
 
         new_style_scipy_fftn = False

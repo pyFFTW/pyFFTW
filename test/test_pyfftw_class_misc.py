@@ -36,7 +36,7 @@ from pyfftw import (
         FFTW, empty_aligned, is_byte_aligned, simd_alignment)
 import pyfftw
 
-from .test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites, miss, require
 
 import unittest
 import numpy
@@ -56,6 +56,7 @@ class FFTWMiscTest(unittest.TestCase):
 
 
     def setUp(self):
+        require(self, '64')
 
         self.input_array = empty_aligned((256, 512), dtype='complex128', n=16)
         self.output_array = empty_aligned((256, 512), dtype='complex128', n=16)
@@ -76,6 +77,7 @@ class FFTWMiscTest(unittest.TestCase):
 
         self.assertFalse(fft.simd_aligned)
 
+    @unittest.skipIf(*miss('32'))
     def test_flags(self):
         '''Test to see if the flags are correct
         '''
@@ -105,6 +107,7 @@ class FFTWMiscTest(unittest.TestCase):
         fft = FFTW(u_input_array, u_output_array)
         self.assertEqual(fft.flags, ('FFTW_MEASURE', 'FFTW_UNALIGNED'))
 
+    @unittest.skipIf(*miss('32'))
     def test_differing_aligned_arrays_update(self):
         '''Test to see if the alignment code is working as expected
         '''
@@ -288,6 +291,7 @@ class FFTWMiscTest(unittest.TestCase):
 
         self.assertEqual(new_fft.output_shape, new_output_array.shape)
 
+    @unittest.skipIf(*miss('32'))
     def test_input_dtype(self):
         '''Test to see if the input_dtype property returns the correct thing
         '''
@@ -300,6 +304,7 @@ class FFTWMiscTest(unittest.TestCase):
 
         self.assertEqual(new_fft.input_dtype, new_input_array.dtype)
 
+    @unittest.skipIf(*miss('32'))
     def test_output_dtype(self):
         '''Test to see if the output_dtype property returns the correct thing
         '''

@@ -46,12 +46,13 @@ the scenes.
 Certainly, users may encounter instances of
 :class:`~pyfftw.builders._utils._FFTWWrapper`.
 
-These everything documented in this module is *not* part of the public API
+Everything documented in this module is *not* part of the public API
 and may change in future versions.
 '''
 
 import pyfftw
 import numpy
+import warnings
 
 __all__ = ['_FFTWWrapper', '_rc_dtype_pairs', '_default_dtype', '_Xfftn',
         '_setup_input_slicers', '_compute_array_shapes', '_precook_1d_args',
@@ -60,18 +61,35 @@ __all__ = ['_FFTWWrapper', '_rc_dtype_pairs', '_default_dtype', '_Xfftn',
 _valid_efforts = ('FFTW_ESTIMATE', 'FFTW_MEASURE',
         'FFTW_PATIENT', 'FFTW_EXHAUSTIVE')
 
-# Looking up a dtype in here returns the complex complement of the same
-# precision.
+# Looking up a real dtype in here returns the complex complement of the same
+# precision, and vice versa.
 # It is necessary to use .char as the keys due to MSVC mapping long
 # double to double and the way that numpy handles this.
-_rc_dtype_pairs = {numpy.dtype('float32').char: numpy.dtype('complex64'),
-        numpy.dtype('float64').char: numpy.dtype('complex128'),
-        numpy.dtype('longdouble').char: numpy.dtype('clongdouble'),
-        numpy.dtype('complex64').char: numpy.dtype('float32'),
-        numpy.dtype('complex128').char: numpy.dtype('float64'),
-        numpy.dtype('clongdouble').char: numpy.dtype('longdouble')}
+_rc_dtype_pairs = {}
+_default_dtype = None
 
-_default_dtype = numpy.dtype('float64')
+# Double precision is the default default precision. Prefer casting to higher precision if
+# possible. If missing, long double is mapped to double and so we lose less
+# precision than by converting to single.
+if '64' in pyfftw._supported_types:
+    _default_dtype = numpy.dtype('float64')
+    _rc_dtype_pairs.update({
+        numpy.dtype('float64').char: numpy.dtype('complex128'),
+        numpy.dtype('complex128').char: numpy.dtype('float64')})
+if 'ld' in pyfftw._supported_types:
+    if _default_dtype is None:
+        _default_dtype = numpy.dtype('longdouble')
+    _rc_dtype_pairs.update({
+         numpy.dtype('longdouble').char: numpy.dtype('clongdouble'),
+         numpy.dtype('clongdouble').char: numpy.dtype('longdouble')})
+if '32' in pyfftw._supported_types:
+    if _default_dtype is None:
+        _default_dtype = numpy.dtype('float32')
+    _rc_dtype_pairs.update({
+        numpy.dtype('float32').char: numpy.dtype('complex64'),
+        numpy.dtype('complex64').char: numpy.dtype('float32')})
+if _default_dtype is None:
+    raise NotImplementedError("No default precision available")
 
 
 def _unitary(norm):
@@ -117,24 +135,23 @@ def _Xfftn(a, s, axes, overwrite_input,
 
     a_is_complex = numpy.iscomplexobj(a)
 
-    # Make the input dtype correct
+    # Make the input dtype correct by transforming to an available type
     if a.dtype.char not in _rc_dtype_pairs:
-        if a.dtype == numpy.dtype('float16'):
-            # convert half-precision to single precision rather than double
-            if not real or inverse:
-                a = numpy.asarray(
-                    a, dtype=_rc_dtype_pairs[numpy.dtype('float32').char])
-            else:
-                a = numpy.asarray(a, dtype=numpy.dtype('float32').char)
-        else:
-            # We make it the default dtype
-            if not real or inverse:
-                # It's going to be complex
-                a = numpy.asarray(
-                    a, dtype=_rc_dtype_pairs[_default_dtype.char])
-            else:
-                a = numpy.asarray(a, dtype=_default_dtype)
+        dtype = _default_dtype
+        if a.dtype == numpy.dtype('float16') and '32' in pyfftw._supported_types:
+            # convert half-precision to single precision, if available
+            dtype = numpy.dtype('float32')
 
+        # warn when losing precision but not when using a higher precision
+        if dtype.itemsize < a.dtype.itemsize:
+            warnings.warn("Narrowing conversion from %s to %s precision" % (a.dtype, dtype))
+
+        if not real or inverse:
+            # It's going to be complex
+            dtype = numpy.dtype(_rc_dtype_pairs[dtype.char])
+
+        # finally convert the input array
+        a = numpy.asarray(a, dtype=dtype)
     elif not (real and not inverse) and not a_is_complex:
         # We need to make it a complex dtype
         a = numpy.asarray(a, dtype=_rc_dtype_pairs[a.dtype.char])

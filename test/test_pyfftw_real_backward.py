@@ -38,7 +38,7 @@ import numpy
 from timeit import Timer
 import time
 
-from .test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites, miss, require
 
 import unittest
 
@@ -47,6 +47,7 @@ from .test_pyfftw_complex import Complex64FFTWTest
 class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
     def setUp(self):
+        require(self, '64')
 
         self.input_dtype = numpy.complex128
         self.output_dtype = numpy.float64
@@ -306,6 +307,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         super(RealBackwardDoubleFFTWTest,
                 self).test_non_monotonic_increasing_axes()
 
+@unittest.skipIf(*miss('32'))
 class RealBackwardSingleFFTWTest(RealBackwardDoubleFFTWTest):
 
     def setUp(self):
@@ -316,6 +318,7 @@ class RealBackwardSingleFFTWTest(RealBackwardDoubleFFTWTest):
 
         self.direction = 'FFTW_BACKWARD'
 
+@unittest.skipIf(*miss('ld'))
 class RealBackwardLongDoubleFFTWTest(RealBackwardDoubleFFTWTest):
 
     def setUp(self):

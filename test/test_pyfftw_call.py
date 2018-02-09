@@ -36,10 +36,11 @@
 from pyfftw import (
         FFTW, empty_aligned, byte_align)
 
-from .test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites, miss, require
 import numpy
 import unittest
 
+@unittest.skipIf(*miss('64'))
 class FFTWCallTest(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
@@ -205,6 +206,8 @@ class FFTWCallTest(unittest.TestCase):
                 *(),
                 **{'input_array':invalid_array})
 
+
+    @unittest.skipIf(*miss('32'))
     def test_call_with_auto_input_alignment(self):
         '''Test the class call with a keyword input update.
         '''
@@ -389,6 +392,7 @@ class FFTWCallTest(unittest.TestCase):
         # Scaling is performed by default
         self.assertTrue(numpy.allclose(self.input_array, _input_array))
 
+    @unittest.skipIf(*miss('32', '64'))
     def test_call_with_normalisation_precision(self):
         '''The normalisation should use a double precision scaling.
         '''
