@@ -58,8 +58,9 @@ _all_types_human_readable = {
 _all_types_np = {
     np.dtype(np.float32): '32',
     np.dtype(np.float64): '64',
-    np.dtype(np.longdouble): 'ld'
 }
+if np.dtype(np.longdouble) != np.dtype(np.float64):
+    _all_types_np[np.dtype(np.longdouble)] = 'ld'
 
 # the types supported in this build
 _supported_types = []
