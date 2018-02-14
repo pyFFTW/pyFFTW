@@ -56,6 +56,9 @@ class FFTWPartialTest(unittest.TestCase):
 
     def test_failure(self):
         for dtype, npdtype in zip(['32', '64', 'ld'], [np.complex64, np.complex128, np.clongdouble]):
+            if dtype == 'ld' and np.dtype(np.clongdouble) == np.dtype(np.complex128):
+                # skip this test on systems where clongdouble is complex128
+                continue
             if dtype not in _supported_types:
                 a = empty_aligned((1,1024), npdtype, n=16)
                 b = empty_aligned(a.shape, dtype=a.dtype, n=16)
