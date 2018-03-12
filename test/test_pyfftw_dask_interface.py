@@ -126,14 +126,6 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
             ((64, 128, 16), {}),
             )
 
-    # invalid_s_shapes is:
-    # (size, invalid_args, error_type, error_string)
-    invalid_args = (
-            ((100,), ((100, 200),), TypeError, ''),
-            ((100, 200), ((100, 200),), TypeError, ''),
-            ((100,), (100, (-2, -1)), TypeError, ''),
-            ((100,), (100, -20), IndexError, ''))
-
     realinv = False
     has_norm_kwarg = _dask_array_fft_has_norm_kwarg()
 
@@ -337,23 +329,6 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
                 self.validate(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
-
-
-    def test_fail_on_invalid_s_or_axes_or_norm(self):
-        dtype_tuple = self.io_dtypes[functions[self.func]]
-
-        for dtype in dtype_tuple[0]:
-
-            for test_shape, args, exception, e_str in self.invalid_args:
-                input_array = dtype_tuple[1](test_shape, dtype)
-
-                if len(args) > 2 and not self.has_norm_kwarg:
-                    # skip tests invovling norm argument if it isn't available
-                    continue
-
-                self.assertRaisesRegex(exception, e_str,
-                        getattr(self.test_interface, self.func),
-                        *((input_array,) + args))
 
 
     def test_same_sized_s(self):
