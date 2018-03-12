@@ -438,21 +438,6 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
             self.validate(array_type, test_shape, dtype, s, _kwargs)
 
-    def test_auto_align_input(self):
-        dtype_tuple = self.io_dtypes[functions[self.func]]
-
-        for dtype in dtype_tuple[0]:
-            for test_shape, s, kwargs in self.test_data:
-                self.check_arg('auto_align_input', (True, False),
-                        dtype_tuple[1], test_shape, dtype, s, kwargs)
-
-    def test_auto_contiguous_input(self):
-        dtype_tuple = self.io_dtypes[functions[self.func]]
-
-        for dtype in dtype_tuple[0]:
-            for test_shape, s, kwargs in self.test_data:
-                self.check_arg('auto_contiguous', (True, False),
-                        dtype_tuple[1], test_shape, dtype, s, kwargs)
 
     def test_bigger_and_smaller_s(self):
         dtype_tuple = self.io_dtypes[functions[self.func]]
@@ -485,57 +470,6 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
                 self.validate(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
-
-
-    def test_planner_effort(self):
-        '''Test the planner effort arg
-        '''
-        dtype_tuple = self.io_dtypes[functions[self.func]]
-        test_shape = (16,)
-
-        for dtype in dtype_tuple[0]:
-            s = None
-            if self.axes_kw == 'axis':
-                kwargs = {'axis': -1}
-            else:
-                kwargs = {'axes': (-1,)}
-
-            for each_effort in ('FFTW_ESTIMATE', 'FFTW_MEASURE',
-                    'FFTW_PATIENT', 'FFTW_EXHAUSTIVE'):
-
-                kwargs['planner_effort'] = each_effort
-
-                self.validate(
-                        dtype_tuple[1], test_shape, dtype, s, kwargs)
-
-            kwargs['planner_effort'] = 'garbage'
-
-            self.assertRaisesRegex(ValueError, 'Invalid planner effort',
-                    self.validate,
-                    *(dtype_tuple[1], test_shape, dtype, s, kwargs))
-
-    def test_threads_arg(self):
-        '''Test the threads argument
-        '''
-        dtype_tuple = self.io_dtypes[functions[self.func]]
-        test_shape = (16,)
-
-        for dtype in dtype_tuple[0]:
-            s = None
-            if self.axes_kw == 'axis':
-                kwargs = {'axis': -1}
-            else:
-                kwargs = {'axes': (-1,)}
-
-            self.check_arg('threads', (1, 2, 5, 10),
-                        dtype_tuple[1], test_shape, dtype, s, kwargs)
-
-            kwargs['threads'] = 'bleh'
-
-            # Should not work
-            self.assertRaises(TypeError,
-                    self.validate,
-                    *(dtype_tuple[1], test_shape, dtype, s, kwargs))
 
 
     def test_input_maintained(self):
