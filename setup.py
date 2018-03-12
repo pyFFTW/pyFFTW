@@ -742,10 +742,11 @@ def setup_package():
 
     # Figure out whether to add ``*_requires = ['numpy']``.
     build_requires = []
+    numpy_requirement = 'numpy>=1.6, <2.0'
     try:
         import numpy
     except ImportError:
-        build_requires = ['numpy>=1.6, <2.0']
+        build_requires = [numpy_requirement]
 
     # we require cython because we need to know which part of the wrapper
     # to build to avoid missing symbols at runtime. But if this script is
@@ -756,8 +757,7 @@ def setup_package():
     except ImportError:
         build_requires.append('cython>=0.23, <1.0')
 
-    install_requires = []
-    install_requires.extend(build_requires)
+    install_requires = [numpy_requirement]
 
     setup_args = {
         'name': 'pyFFTW',
