@@ -82,7 +82,8 @@ functions = {
 acquired_names = ('fft_wrap',)
 
 @unittest.skipIf(
-    da_fft is None, "dask is not installed, so this feature is unavailable."
+    not hasattr(interfaces, "dask_fft"),
+    "dask interface is not available, so skipping tests."
 )
 class InterfacesDaskFFTTestModule(unittest.TestCase):
     ''' A really simple test suite to check the module works as expected.
@@ -98,7 +99,8 @@ class InterfacesDaskFFTTestModule(unittest.TestCase):
 
 
 @unittest.skipIf(
-    da_fft is None, "dask is not installed, so this feature is unavailable."
+    not hasattr(interfaces, "dask_fft"),
+    "dask interface is not available, so skipping tests."
 )
 class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
