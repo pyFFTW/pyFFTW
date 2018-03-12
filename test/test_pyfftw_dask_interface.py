@@ -34,6 +34,11 @@
 
 from pyfftw import interfaces
 
+try:
+    interfaces.dask_fft
+except AttributeError:
+    interfaces.dask_fft = None
+
 from .test_pyfftw_base import run_test_suites
 from .test_pyfftw_numpy_interface import complex_dtypes, real_dtypes
 from ._get_default_args import get_default_args
@@ -82,7 +87,7 @@ functions = {
 acquired_names = ('fft_wrap',)
 
 @unittest.skipIf(
-    not hasattr(interfaces, "dask_fft"),
+    not interfaces.dask_fft,
     "dask interface is not available, so skipping tests."
 )
 class InterfacesDaskFFTTestModule(unittest.TestCase):
@@ -99,7 +104,7 @@ class InterfacesDaskFFTTestModule(unittest.TestCase):
 
 
 @unittest.skipIf(
-    not hasattr(interfaces, "dask_fft"),
+    not interfaces.dask_fft,
     "dask interface is not available, so skipping tests."
 )
 class InterfacesDaskFFTTestFFT(unittest.TestCase):
