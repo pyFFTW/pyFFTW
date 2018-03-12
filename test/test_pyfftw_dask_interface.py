@@ -108,7 +108,8 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
             'c2r': (complex_dtypes, make_complex_data)}
 
     validator_module = da_fft
-    test_interface = interfaces.numpy_fft
+    test_wrapped_interface = interfaces.numpy_fft
+    test_interface = interfaces.dask_fft
     func = 'fft'
     axes_kw = 'axis'
     default_s_from_shape_slicer = slice(-1, None)
@@ -258,7 +259,7 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
     def axes_from_kwargs(self, kwargs):
         default_args = get_default_args(
-            getattr(self.test_interface, self.func))
+            getattr(self.test_wrapped_interface, self.func))
 
         if 'axis' in kwargs:
             axes = (kwargs['axis'],)
@@ -286,7 +287,7 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
         whether axis or axes is specified
         '''
         default_args = get_default_args(
-            getattr(self.test_interface, self.func))
+            getattr(self.test_wrapped_interface, self.func))
 
         if 'axis' in kwargs:
             s = test_shape[kwargs['axis']]
