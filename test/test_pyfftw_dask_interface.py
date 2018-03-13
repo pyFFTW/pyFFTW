@@ -51,7 +51,7 @@ try:
     import dask.array as da
     from dask.array import fft as da_fft
     from dask.array.fft import fft_wrap
-except ImportError:
+except Exception:
     da = None
     da_fft = None
 

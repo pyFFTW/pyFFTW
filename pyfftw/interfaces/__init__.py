@@ -238,7 +238,7 @@ else:
 
 try:
     from dask.array.fft import fft_wrap
-except ImportError:
+except Exception:
     pass
 else:
     del fft_wrap
