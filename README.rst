@@ -23,8 +23,9 @@
 PyFFTW
 ======
 
-pyFFTW is a pythonic wrapper around `FFTW 3 <http://www.fftw.org/>`_, the
-speedy FFT library.  The ultimate aim is to present a unified interface for all the possible transforms that FFTW can perform.
+pyFFTW is a pythonic wrapper around FFTW_ 3, the speedy FFT library.  The
+ultimate aim is to present a unified interface for all the possible transforms
+that FFTW can perform.
 
 Both the complex DFT and the real DFT are supported, as well as on arbitrary
 axes of abitrary shaped and strided arrays, which makes it almost
@@ -38,24 +39,33 @@ Operating FFTW in multithreaded mode is supported.
 pyFFTW implements the numpy and scipy fft interfaces in order for users to
 take advantage of the speed of FFTW with minimal code modifications.
 
-A comprehensive unittest suite can be found with the source on the github
-repository or with the source distribution on PyPI.
+A comprehensive unittest suite can be found with the source on the GitHub_
+repository or with the source distribution on PyPI_.
 
-The documentation can be found on
-`Read the Docs <http://pyfftw.readthedocs.io>`_, the source is
-on `github <https://github.com/pyFFTW/pyFFTW>`_ and the python package
-index page is `here <http://pypi.python.org/pypi/pyFFTW>`_.
+The documentation can be found on `Read the Docs`_, the source is on GitHub_
+and the python package index page (PyPI_).  Issues and questions can be
+raised at the `GitHub Issues`_ page.
 
 Requirements (i.e. what it was designed for)
 --------------------------------------------
-- Python 2.7 or 3.4+
-- Numpy 1.10
-- FFTW 3.3 or higher (lower versions *may* work) libraries for single, double,
+- Python_ 2.7 or >= 3.4
+- Numpy_ >= 1.10.4  (lower versions *may* work)
+- FFTW_ >= 3.3 (lower versions *may* work) libraries for single, double,
   and long double precision in serial and multithreading (pthreads or openMP)
   versions.
-- Cython 0.23 or higher
+- Cython_ >= 0.23 (lower versions *may* work)
 
 (install these as much as possible with your preferred package manager).
+
+In practice, pyFFTW *may* work with older versions of these dependencies, but
+it is not tested against them.
+
+Optional Dependencies
+---------------------
+- Scipy_ >= 0.16
+- Dask_ >= 0.14.2
+
+Scipy and Dask are only required in order to use their respective interfaces.
 
 Installation
 ------------
@@ -69,15 +79,14 @@ or::
 
   easy_install pyfftw
 
-Installers are on the PyPI page for both 32- and 64-bit Windows, which include
+Installers are on the PyPI_ page for both 32- and 64-bit Windows, which include
 all the necessary DLLs.
 
 With FFTW installed, the PyPI release should install fine on Linux and Mac OSX. It doesn't mean it won't work anywhere else, just we don't have any information on it.
 
-Windows development builds are also automatically uploaded to
-`bintray <https://bintray.com/hgomersall/generic/PyFFTW-development-builds/view>`_
-as wheels (which are built against numpy 1.9), from where they can be
-downloaded and installed with something like::
+Windows development builds are also automatically uploaded to bintray_ as
+wheels (which are built against numpy 1.9), from where they can be downloaded
+and installed with something like::
 
   pip install pyFFTW-0.10.0.dev0+79ec589-cp35-none-win_amd64.whl
 
@@ -112,7 +121,7 @@ option is available, pyFFTW works in serial mode only.
 
 For more ways of building and installing, see the
 `distutils documentation <http://docs.python.org/distutils/builtdist.html>`_
-and `setuptools documentation <https://pythonhosted.org/setuptools/>`_.
+and `setuptools documentation <https://setuptools.readthedocs.io>`_.
 
 Platform specific build info
 ----------------------------
@@ -155,13 +164,8 @@ Now install pyfftw from pip::
 
   pip install pyfftw
 
-Notes: `pkgin <http://saveosx.org>`_ fftw package does not contain the long or
-float implementations of fftw and so pyFFTW can only perform double-precision
-transforms.
-
-It has been suggested that `macports <http://www.macports.org/>`_ might also
-work fine. You should then replace the LD environmental variables above with the
-right ones.
+It has been suggested that macports_ might also work fine. You should then
+replace the LD environmental variables above with the right ones.
 
 - DYLD - path for libfftw3.dylib etc - ``find /usr -name libfftw3.dylib``
 - LDFLAGS - path for fftw3.h - ``find /usr -name fftw3.h``
@@ -191,7 +195,7 @@ See some of my philosophy on testing in development `here
 If you want to argue with the philosophy, there is probably a good place to
 do it.
 
-New contributions should adhere to pep-8, but this is only weakly enforced
+New contributions should adhere to `PEP 8`_, but this is only weakly enforced
 (there is loads of legacy stuff that breaks it, and things like a single
 trailing whitespace is not a big deal).
 
@@ -202,3 +206,17 @@ where I can with any conceptual issues.
 
 I suggest reading the issues already open in order that you know where things
 might be heading, or what others are working on.
+
+.. _Python: https://python.org
+.. _FFTW: https://www.fftw.org
+.. _NumPy: https://www.numpy.org
+.. _Cython: https://cython.org
+.. _SciPy: https://www.scipy.org
+.. _Dask: https://dask.pydata.org
+.. _GitHub: https://github.com/PyFFTW/PyFFTW
+.. _GitHub Issues: https://github.com/PyFFTW/PyFFTW/issues
+.. _PyPI: https://pypi.python.org
+.. _Read the Docs: https://pyfftw.readthedocs.io
+.. _bintray: https://bintray.com/hgomersall/generic/PyFFTW-development-builds/view
+.. _PEP 8: https://www.python.org/dev/peps/pep-0008
+.. _macports:  https://www.macports.org
