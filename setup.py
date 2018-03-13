@@ -759,6 +759,10 @@ def setup_package():
 
     install_requires = [numpy_requirement]
 
+    opt_requires = {
+        'dask': ['numpy>=1.10, <2.0', 'dask[array]>=0.15.0']
+    }
+
     setup_args = {
         'name': 'pyFFTW',
         'version': versioneer.get_version(),
@@ -786,6 +790,7 @@ def setup_package():
     if using_setuptools:
         setup_args['setup_requires'] = build_requires
         setup_args['install_requires'] = install_requires
+        setup_args['extras_require'] = opt_requires
 
     if len(sys.argv) >= 2 and (
         '--help' in sys.argv[1:] or
