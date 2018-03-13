@@ -1,6 +1,6 @@
 
 function deploy_to_bintray() {
-    $version_string = (iex "python -m pyfftw.version") | Out-String
+    $version_string = (iex "python -c `"import pyfftw; print(pyfftw.__version__)`"") | Out-String
     $version_list = $version_string.Split("`r`n")
     $short_version = [string]$version_list[0]
     $version = [string]$version_list[2]
