@@ -49,12 +49,12 @@ environment:
         - PYTHON_HOME: "C:\\Miniconda36"
           PYTHON_ARCH: "32"
           PYTHON_VERSION: "3.6"
-          NP_BUILD_DEP: "1.11"
+          NUMPY_VERSION: "1.11"
 
         - PYTHON_HOME: "C:\\Miniconda36-x64"
           PYTHON_ARCH: "64"
           PYTHON_VERSION: "3.6"
-          NP_BUILD_DEP: "1.11"
+          NUMPY_VERSION: "1.11"
 
 install:
     # Get and configure the FFTW libs
@@ -65,9 +65,12 @@ install:
     # the parent CMD process).
     - "SET PATH=%PYTHON_HOME%;%PYTHON_HOME%\\Scripts;%PATH%"
 
+    # Specify NumPy version or not
+    - if "%NUMPY_VERSION%" == "" ( "SET NP_BUILD_DEP=numpy" ) else ( "SET NP_BUILD_DEP=numpy=%NUMPY_VERSION%" )
+
     - "conda config --set always_yes yes --set changeps1 no"
     - "conda update -q conda"
-    - "conda create -q -n build_env python=%PYTHON_VERSION% numpy=%NP_BUILD_DEP% scipy cython dask setuptools"
+    - "conda create -q -n build_env python=%PYTHON_VERSION% %NP_BUILD_DEP% scipy cython dask setuptools"
     - "activate build_env"
     - "%CMD_IN_ENV% python setup.py -v bdist_wheel"
     - "%CMD_IN_ENV% python setup.py -v build_ext --inplace"
