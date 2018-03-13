@@ -56,6 +56,10 @@ which this may not be true.
 from . import numpy_fft as _numpy_fft
 from dask.array.fft import (
     fft_wrap,
+    fftfreq,
+    rfftfreq,
+    fftshift,
+    ifftshift,
 )
 
 fft = fft_wrap(_numpy_fft.fft)

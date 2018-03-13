@@ -33,7 +33,7 @@ before_install:
 
 install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION nomkl numpy scipy cython setuptools
-  - conda install -q -n test-environment dask=0.14.2 || true
+  - conda install -q -n test-environment dask=0.15.0 || true
   - source activate test-environment
   - python setup.py -v build_ext --inplace
 

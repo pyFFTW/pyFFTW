@@ -92,7 +92,7 @@ functions = {
         'hfft': 'c2r',
         'ihfft': 'r2c'}
 
-acquired_names = ('fft_wrap',)
+acquired_names = ('fft_wrap', 'fftfreq', 'rfftfreq', 'fftshift', 'ifftshift')
 
 @unittest.skipIf(
     not interfaces.dask_fft,
