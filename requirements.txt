@@ -1,4 +1,4 @@
 cython
 numpy>=1.6
 scipy>=0.12.0
-dask>=0.14.2
+dask>=0.15.0
