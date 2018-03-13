@@ -34,6 +34,11 @@
 
 from pyfftw import interfaces
 
+try:
+    interfaces.dask_fft
+except AttributeError:
+    interfaces.dask_fft = None
+
 from .test_pyfftw_base import run_test_suites
 from .test_pyfftw_numpy_interface import complex_dtypes, real_dtypes
 from ._get_default_args import get_default_args
@@ -46,7 +51,7 @@ try:
     import dask.array as da
     from dask.array import fft as da_fft
     from dask.array.fft import fft_wrap
-except (ImportError, AttributeError):
+except ImportError:
     da = None
     da_fft = None
 
@@ -82,7 +87,8 @@ functions = {
 acquired_names = ('fft_wrap',)
 
 @unittest.skipIf(
-    da_fft is None, "dask is not installed, so this feature is unavailable."
+    not interfaces.dask_fft,
+    "dask interface is not available, so skipping tests."
 )
 class InterfacesDaskFFTTestModule(unittest.TestCase):
     ''' A really simple test suite to check the module works as expected.
@@ -98,7 +104,8 @@ class InterfacesDaskFFTTestModule(unittest.TestCase):
 
 
 @unittest.skipIf(
-    da_fft is None, "dask is not installed, so this feature is unavailable."
+    not interfaces.dask_fft,
+    "dask interface is not available, so skipping tests."
 )
 class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
@@ -108,7 +115,8 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
             'c2r': (complex_dtypes, make_complex_data)}
 
     validator_module = da_fft
-    test_interface = interfaces.numpy_fft
+    test_wrapped_interface = interfaces.numpy_fft
+    test_interface = interfaces.dask_fft
     func = 'fft'
     axes_kw = 'axis'
     default_s_from_shape_slicer = slice(-1, None)
@@ -124,14 +132,6 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
             ((32, 32, 2), {'axis': 1, 'norm': 'ortho'}),
             ((64, 128, 16), {}),
             )
-
-    # invalid_s_shapes is:
-    # (size, invalid_args, error_type, error_string)
-    invalid_args = (
-            ((100,), ((100, 200),), TypeError, ''),
-            ((100, 200), ((100, 200),), TypeError, ''),
-            ((100,), (100, (-2, -1)), TypeError, ''),
-            ((100,), (100, -20), IndexError, ''))
 
     realinv = False
     has_norm_kwarg = _dask_array_fft_has_norm_kwarg()
@@ -258,7 +258,7 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
     def axes_from_kwargs(self, kwargs):
         default_args = get_default_args(
-            getattr(self.test_interface, self.func))
+            getattr(self.test_wrapped_interface, self.func))
 
         if 'axis' in kwargs:
             axes = (kwargs['axis'],)
@@ -286,7 +286,7 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
         whether axis or axes is specified
         '''
         default_args = get_default_args(
-            getattr(self.test_interface, self.func))
+            getattr(self.test_wrapped_interface, self.func))
 
         if 'axis' in kwargs:
             s = test_shape[kwargs['axis']]
@@ -336,23 +336,6 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
                 self.validate(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
-
-
-    def test_fail_on_invalid_s_or_axes_or_norm(self):
-        dtype_tuple = self.io_dtypes[functions[self.func]]
-
-        for dtype in dtype_tuple[0]:
-
-            for test_shape, args, exception, e_str in self.invalid_args:
-                input_array = dtype_tuple[1](test_shape, dtype)
-
-                if len(args) > 2 and not self.has_norm_kwarg:
-                    # skip tests invovling norm argument if it isn't available
-                    continue
-
-                self.assertRaisesRegex(exception, e_str,
-                        getattr(self.test_interface, self.func),
-                        *((input_array,) + args))
 
 
     def test_same_sized_s(self):
@@ -437,21 +420,6 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
             self.validate(array_type, test_shape, dtype, s, _kwargs)
 
-    def test_auto_align_input(self):
-        dtype_tuple = self.io_dtypes[functions[self.func]]
-
-        for dtype in dtype_tuple[0]:
-            for test_shape, s, kwargs in self.test_data:
-                self.check_arg('auto_align_input', (True, False),
-                        dtype_tuple[1], test_shape, dtype, s, kwargs)
-
-    def test_auto_contiguous_input(self):
-        dtype_tuple = self.io_dtypes[functions[self.func]]
-
-        for dtype in dtype_tuple[0]:
-            for test_shape, s, kwargs in self.test_data:
-                self.check_arg('auto_contiguous', (True, False),
-                        dtype_tuple[1], test_shape, dtype, s, kwargs)
 
     def test_bigger_and_smaller_s(self):
         dtype_tuple = self.io_dtypes[functions[self.func]]
@@ -484,57 +452,6 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
                 self.validate(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
-
-
-    def test_planner_effort(self):
-        '''Test the planner effort arg
-        '''
-        dtype_tuple = self.io_dtypes[functions[self.func]]
-        test_shape = (16,)
-
-        for dtype in dtype_tuple[0]:
-            s = None
-            if self.axes_kw == 'axis':
-                kwargs = {'axis': -1}
-            else:
-                kwargs = {'axes': (-1,)}
-
-            for each_effort in ('FFTW_ESTIMATE', 'FFTW_MEASURE',
-                    'FFTW_PATIENT', 'FFTW_EXHAUSTIVE'):
-
-                kwargs['planner_effort'] = each_effort
-
-                self.validate(
-                        dtype_tuple[1], test_shape, dtype, s, kwargs)
-
-            kwargs['planner_effort'] = 'garbage'
-
-            self.assertRaisesRegex(ValueError, 'Invalid planner effort',
-                    self.validate,
-                    *(dtype_tuple[1], test_shape, dtype, s, kwargs))
-
-    def test_threads_arg(self):
-        '''Test the threads argument
-        '''
-        dtype_tuple = self.io_dtypes[functions[self.func]]
-        test_shape = (16,)
-
-        for dtype in dtype_tuple[0]:
-            s = None
-            if self.axes_kw == 'axis':
-                kwargs = {'axis': -1}
-            else:
-                kwargs = {'axes': (-1,)}
-
-            self.check_arg('threads', (1, 2, 5, 10),
-                        dtype_tuple[1], test_shape, dtype, s, kwargs)
-
-            kwargs['threads'] = 'bleh'
-
-            # Should not work
-            self.assertRaises(TypeError,
-                    self.validate,
-                    *(dtype_tuple[1], test_shape, dtype, s, kwargs))
 
 
     def test_input_maintained(self):

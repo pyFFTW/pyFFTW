@@ -237,14 +237,9 @@ else:
     from . import scipy_fftpack
 
 try:
-    import dask.array.fft
-    dask.array.fft.fft_wrap
-except (ImportError, AttributeError):
+    from dask.array.fft import fft_wrap
+except ImportError:
     pass
 else:
+    del fft_wrap
     from . import dask_fft
-
-try:
-    del dask
-except NameError:
-    pass
