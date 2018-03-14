@@ -47,13 +47,14 @@ from distutils.version import LooseVersion
 import unittest
 import numpy
 
-try:
+if interfaces.dask_fft:
     import dask.array as da
     from dask.array import fft as da_fft
     from dask.array.fft import fft_wrap
-except ImportError:
+else:
     da = None
     da_fft = None
+    fft_wrap = None
 
 import warnings
 import copy
