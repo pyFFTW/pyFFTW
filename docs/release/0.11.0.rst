@@ -136,6 +136,7 @@ Issues closed for v0.11
 - `#196 <https://github.com/pyFFTW/pyFFTW/issues/196>`__: Change URL in github description
 - `#197 <https://github.com/pyFFTW/pyFFTW/issues/197>`__: Numpy interface corrupts array argument
 - `#206 <https://github.com/pyFFTW/pyFFTW/issues/206>`__: numpy_fft should re-export rfftfreq
+- `#215 <https://github.com/pyFFTW/pyFFTW/issues/215>`__: AppVeyor status in PRs
 
 Pull requests for v0.11
 ------------------------
@@ -180,4 +181,5 @@ Pull requests for v0.11
 - `#211 <https://github.com/pyFFTW/pyFFTW/pull/211>`__: Fix Dask test interface
 - `#212 <https://github.com/pyFFTW/pyFFTW/pull/212>`__: Include Dask 2-D/N-D wrappers for pyFFTW
 - `#213 <https://github.com/pyFFTW/pyFFTW/pull/213>`__: Dask Interface Extras
+- `#216 <https://github.com/pyFFTW/pyFFTW/pull/216>`__: Tweaked the appeveyor bintray build stuff to properly look up the ver...
 - `#218 <https://github.com/pyFFTW/pyFFTW/pull/218>`__: Explicitly add Dask Array as an extra requirement
