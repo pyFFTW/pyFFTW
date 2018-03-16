@@ -14,16 +14,19 @@ axes of abitrary shaped and strided arrays.  Operating FFTW in multithreaded
 mode is supported.
 
 pyFFTW implements the numpy and scipy fft interfaces in order for users to take
-advantage of the speed of FFTW with minimal code modifications.  A dask
-interface to 1D FFTs is also provided.
+advantage of the speed of FFTW with minimal code modifications.  A dask fft
+interface is provided as a drop-in replacement for the equivalent module in
+dask.
 
 
 New features
 ============
 
-Dask interfaces
----------------
-Dask interfaces to all 1D FFTs implemented in numpy have been added.
+Dask interface
+--------------
+A complete drop-in replacement of Dask Array's FFT module is provided.
+It includes all numpy-like FFT functions, which use FFTW under the hood.
+Other functions from Dask Array's FFT module are imported as a convenience.
 
 Fast transform planning utility
 -------------------------------
@@ -116,8 +119,11 @@ This list of names is automatically generated, and may not be fully complete.
 
 Issues closed for v0.11
 ------------------------
+- `#27 <https://github.com/pyFFTW/pyFFTW/issues/27>`__: missing float and long-double libraries
 - `#32 <https://github.com/pyFFTW/pyFFTW/issues/32>`__: Provide the sources of the documentation in the source distribution instead of a build
-- #86 <https://github.com/pyFFTW/pyFFTW/issues/86>`__: Add the source of the documentation to the release tarball
+- `#64 <https://github.com/pyFFTW/pyFFTW/issues/64>`__: Clean install from requirements.txt file - ImportError: No module named 'numpy'
+- `#70 <https://github.com/pyFFTW/pyFFTW/issues/70>`__: Support not having all varieties of FFTW installed
+- `#86 <https://github.com/pyFFTW/pyFFTW/issues/86>`__: Add the source of the documentation to the release tarball
 - `#87 <https://github.com/pyFFTW/pyFFTW/issues/87>`__: Avoid overwriting the version file distributed in the source release
 - `#125 <https://github.com/pyFFTW/pyFFTW/issues/125>`__: pip install pyfftw fails on travis-ci
 - `#132 <https://github.com/pyFFTW/pyFFTW/issues/132>`__: Citation preferences?
@@ -126,9 +132,11 @@ Issues closed for v0.11
 - `#151 <https://github.com/pyFFTW/pyFFTW/issues/151>`__: Dask wrappers/interface for pyFFTW
 - `#152 <https://github.com/pyFFTW/pyFFTW/issues/152>`__: Missing norm argument in several numpy interface fft methods
 - `#174 <https://github.com/pyFFTW/pyFFTW/issues/174>`__: Using OpenMP threads instead of POSIX threads #174
+- `#175 <https://github.com/pyFFTW/pyFFTW/issues/175>`__: Dask 2-D/N-D wrappers for pyFFTW
 - `#196 <https://github.com/pyFFTW/pyFFTW/issues/196>`__: Change URL in github description
 - `#197 <https://github.com/pyFFTW/pyFFTW/issues/197>`__: Numpy interface corrupts array argument
 - `#206 <https://github.com/pyFFTW/pyFFTW/issues/206>`__: numpy_fft should re-export rfftfreq
+- `#215 <https://github.com/pyFFTW/pyFFTW/issues/215>`__: AppVeyor status in PRs
 
 Pull requests for v0.11
 ------------------------
@@ -168,3 +176,10 @@ Pull requests for v0.11
 - `#199 <https://github.com/pyFFTW/pyFFTW/pull/199>`__: Fix to #197 in which misaligned arrays in the cache caused overwrites…
 - `#200 <https://github.com/pyFFTW/pyFFTW/pull/200>`__: update version import syntax in doc/conf.py for compatibility with versioneer
 - `#207 <https://github.com/pyFFTW/pyFFTW/pull/207>`__: add rfftfreq to the numpy interfaces
+- `#209 <https://github.com/pyFFTW/pyFFTW/pull/209>`__: Fix dtype bug on systems where longdouble is equivalent to double
+- `#210 <https://github.com/pyFFTW/pyFFTW/pull/210>`__: setup.py: make sure install_requires contains numpy
+- `#211 <https://github.com/pyFFTW/pyFFTW/pull/211>`__: Fix Dask test interface
+- `#212 <https://github.com/pyFFTW/pyFFTW/pull/212>`__: Include Dask 2-D/N-D wrappers for pyFFTW
+- `#213 <https://github.com/pyFFTW/pyFFTW/pull/213>`__: Dask Interface Extras
+- `#216 <https://github.com/pyFFTW/pyFFTW/pull/216>`__: Tweaked the appeveyor bintray build stuff to properly look up the ver...
+- `#218 <https://github.com/pyFFTW/pyFFTW/pull/218>`__: Explicitly add Dask Array as an extra requirement
