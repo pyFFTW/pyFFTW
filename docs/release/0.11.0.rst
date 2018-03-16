@@ -132,6 +132,7 @@ Issues closed for v0.11
 - `#151 <https://github.com/pyFFTW/pyFFTW/issues/151>`__: Dask wrappers/interface for pyFFTW
 - `#152 <https://github.com/pyFFTW/pyFFTW/issues/152>`__: Missing norm argument in several numpy interface fft methods
 - `#174 <https://github.com/pyFFTW/pyFFTW/issues/174>`__: Using OpenMP threads instead of POSIX threads #174
+- `#175 <https://github.com/pyFFTW/pyFFTW/issues/175>`__: Dask 2-D/N-D wrappers for pyFFTW
 - `#196 <https://github.com/pyFFTW/pyFFTW/issues/196>`__: Change URL in github description
 - `#197 <https://github.com/pyFFTW/pyFFTW/issues/197>`__: Numpy interface corrupts array argument
 - `#206 <https://github.com/pyFFTW/pyFFTW/issues/206>`__: numpy_fft should re-export rfftfreq
@@ -176,3 +177,7 @@ Pull requests for v0.11
 - `#207 <https://github.com/pyFFTW/pyFFTW/pull/207>`__: add rfftfreq to the numpy interfaces
 - `#209 <https://github.com/pyFFTW/pyFFTW/pull/209>`__: Fix dtype bug on systems where longdouble is equivalent to double
 - `#210 <https://github.com/pyFFTW/pyFFTW/pull/210>`__: setup.py: make sure install_requires contains numpy
+- `#211 <https://github.com/pyFFTW/pyFFTW/pull/211>`__: Fix Dask test interface
+- `#212 <https://github.com/pyFFTW/pyFFTW/pull/212>`__: Include Dask 2-D/N-D wrappers for pyFFTW
+- `#213 <https://github.com/pyFFTW/pyFFTW/pull/213>`__: Dask Interface Extras
+- `#218 <https://github.com/pyFFTW/pyFFTW/pull/218>`__: Explicitly add Dask Array as an extra requirement
