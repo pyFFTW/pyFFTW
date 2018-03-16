@@ -120,7 +120,7 @@ This list of names is automatically generated, and may not be fully complete.
 Issues closed for v0.11
 ------------------------
 - `#32 <https://github.com/pyFFTW/pyFFTW/issues/32>`__: Provide the sources of the documentation in the source distribution instead of a build
-- #86 <https://github.com/pyFFTW/pyFFTW/issues/86>`__: Add the source of the documentation to the release tarball
+- `#86 <https://github.com/pyFFTW/pyFFTW/issues/86>`__: Add the source of the documentation to the release tarball
 - `#87 <https://github.com/pyFFTW/pyFFTW/issues/87>`__: Avoid overwriting the version file distributed in the source release
 - `#125 <https://github.com/pyFFTW/pyFFTW/issues/125>`__: pip install pyfftw fails on travis-ci
 - `#132 <https://github.com/pyFFTW/pyFFTW/issues/132>`__: Citation preferences?
