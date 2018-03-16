@@ -22,9 +22,11 @@ dask.
 New features
 ============
 
-Dask interfaces
----------------
-Dask interfaces to all 1D FFTs implemented in numpy have been added.
+Dask interface
+--------------
+A complete drop-in replacement of Dask Array's FFT module is provided.
+It includes all numpy-like FFT functions, which use FFTW under the hood.
+Other functions from Dask Array's FFT module are imported as a convenience.
 
 Fast transform planning utility
 -------------------------------
