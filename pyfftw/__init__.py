@@ -11,6 +11,15 @@ library <http://www.fftw.org/>`_. However, users may find it easier to
 use the helper routines provided in :mod:`pyfftw.builders`.
 '''
 
+import os
+
+# All planners and interfaces default to single threaded unless otherwise
+# specified via PYFFTW_NUM_THREADS.
+_default_num_threads = int(os.environ.get('PYFFTW_NUM_THREADS', 1))
+if _default_num_threads <= 0:
+    import multiprocessing
+    _default_num_threads = multiprocessing.cpu_count()
+
 from .pyfftw import (
         FFTW,
         export_wisdom,

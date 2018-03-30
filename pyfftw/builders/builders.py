@@ -264,7 +264,7 @@ equivalents in :mod:`numpy.fft`, or as documented above.
 '''
 
 from ._utils import _precook_1d_args, _Xfftn, _norm_args
-
+from .. import _default_num_threads
 
 __all__ = ['fft','ifft', 'fft2', 'ifft2', 'fftn',
            'ifftn', 'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn',
@@ -272,7 +272,7 @@ __all__ = ['fft','ifft', 'fft2', 'ifft2', 'fftn',
 
 
 def fft(a, n=None, axis=-1, overwrite_input=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort='FFTW_MEASURE', threads=_default_num_threads,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, norm=None):
     '''Return a :class:`pyfftw.FFTW` object representing a 1D FFT.
@@ -291,7 +291,7 @@ def fft(a, n=None, axis=-1, overwrite_input=False,
             avoid_copy, inverse, real, **_norm_args(norm))
 
 def ifft(a, n=None, axis=-1, overwrite_input=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort='FFTW_MEASURE', threads=_default_num_threads,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, norm=None):
     '''Return a :class:`pyfftw.FFTW` object representing a 1D
@@ -313,7 +313,7 @@ def ifft(a, n=None, axis=-1, overwrite_input=False,
 
 
 def fft2(a, s=None, axes=(-2,-1), overwrite_input=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort='FFTW_MEASURE', threads=_default_num_threads,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, norm=None):
     '''Return a :class:`pyfftw.FFTW` object representing a 2D FFT.
@@ -332,7 +332,7 @@ def fft2(a, s=None, axes=(-2,-1), overwrite_input=False,
             avoid_copy, inverse, real, **_norm_args(norm))
 
 def ifft2(a, s=None, axes=(-2,-1), overwrite_input=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort='FFTW_MEASURE', threads=_default_num_threads,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, norm=None):
     '''Return a :class:`pyfftw.FFTW` object representing a
@@ -353,7 +353,7 @@ def ifft2(a, s=None, axes=(-2,-1), overwrite_input=False,
 
 
 def fftn(a, s=None, axes=None, overwrite_input=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort='FFTW_MEASURE', threads=_default_num_threads,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, norm=None):
     '''Return a :class:`pyfftw.FFTW` object representing a n-D FFT.
@@ -372,7 +372,7 @@ def fftn(a, s=None, axes=None, overwrite_input=False,
             avoid_copy, inverse, real, **_norm_args(norm))
 
 def ifftn(a, s=None, axes=None, overwrite_input=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort='FFTW_MEASURE', threads=_default_num_threads,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, norm=None):
     '''Return a :class:`pyfftw.FFTW` object representing an n-D
@@ -392,7 +392,7 @@ def ifftn(a, s=None, axes=None, overwrite_input=False,
             avoid_copy, inverse, real, **_norm_args(norm))
 
 def rfft(a, n=None, axis=-1, overwrite_input=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort='FFTW_MEASURE', threads=_default_num_threads,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, norm=None):
     '''Return a :class:`pyfftw.FFTW` object representing a 1D
@@ -414,7 +414,7 @@ def rfft(a, n=None, axis=-1, overwrite_input=False,
             avoid_copy, inverse, real, **_norm_args(norm))
 
 def irfft(a, n=None, axis=-1, overwrite_input=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort='FFTW_MEASURE', threads=_default_num_threads,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, norm=None):
     '''Return a :class:`pyfftw.FFTW` object representing a 1D
@@ -436,7 +436,7 @@ def irfft(a, n=None, axis=-1, overwrite_input=False,
             avoid_copy, inverse, real, **_norm_args(norm))
 
 def rfft2(a, s=None, axes=(-2,-1), overwrite_input=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort='FFTW_MEASURE', threads=_default_num_threads,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, norm=None):
     '''Return a :class:`pyfftw.FFTW` object representing a 2D
@@ -455,7 +455,7 @@ def rfft2(a, s=None, axes=(-2,-1), overwrite_input=False,
             avoid_copy, inverse, real, **_norm_args(norm))
 
 def irfft2(a, s=None, axes=(-2,-1),
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort='FFTW_MEASURE', threads=_default_num_threads,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, norm=None):
     '''Return a :class:`pyfftw.FFTW` object representing a 2D
@@ -478,7 +478,7 @@ def irfft2(a, s=None, axes=(-2,-1),
 
 
 def rfftn(a, s=None, axes=None, overwrite_input=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort='FFTW_MEASURE', threads=_default_num_threads,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, norm=None):
     '''Return a :class:`pyfftw.FFTW` object representing an n-D
@@ -499,7 +499,7 @@ def rfftn(a, s=None, axes=None, overwrite_input=False,
 
 
 def irfftn(a, s=None, axes=None,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort='FFTW_MEASURE', threads=_default_num_threads,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, norm=None):
     '''Return a :class:`pyfftw.FFTW` object representing an n-D
