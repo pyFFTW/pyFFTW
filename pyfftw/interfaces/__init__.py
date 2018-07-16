@@ -236,7 +236,12 @@ else:
     del scipy
     from . import scipy_fftpack
 
-from numpy.lib import NumpyVersion
+try:
+    # NumpyVersion was introduced in NumPy 1.9
+    from numpy.lib import NumpyVersion
+except ImportError:
+    from distutils.version import LooseVersion as NumpyVersion
+
 import numpy
 
 fft_wrap = None
