@@ -236,16 +236,21 @@ else:
     del scipy
     from . import scipy_fftpack
 
-from distutils.version import StrictVersion
+try:
+    # NumpyVersion was introduced in NumPy 1.9
+    from numpy.lib import NumpyVersion
+except ImportError:
+    from distutils.version import LooseVersion as NumpyVersion
+
 import numpy
 
 fft_wrap = None
-if StrictVersion(numpy.__version__) >= StrictVersion("1.10.0"):
+if NumpyVersion(numpy.__version__) >= NumpyVersion("1.10.0"):
     try:
         from dask.array.fft import fft_wrap
     except ImportError:
         pass
-del StrictVersion
+del NumpyVersion
 del numpy
 
 if fft_wrap:
