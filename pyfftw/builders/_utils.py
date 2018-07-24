@@ -362,7 +362,7 @@ def _setup_input_slicers(a_shape, input_shape):
             update_input_array_slicer[axis] = (
                     slice(0, a_shape[axis]))
 
-    return update_input_array_slicer, FFTW_array_slicer
+    return tuple(update_input_array_slicer), tuple(FFTW_array_slicer)
 
 def _compute_array_shapes(a, s, axes, inverse, real):
     '''Given a passed in array ``a``, and the rest of the arguments
