@@ -1105,9 +1105,9 @@ class BuildersTestUtilities(unittest.TestCase):
                 )
 
         outputs = (
-                ([slice(0, 4), slice(0, 5)], [slice(None), slice(None)]),
-                ([slice(0, 3), slice(0, 4)], [slice(None), slice(0, 4)]),
-                ([slice(0, 3), slice(0, 5)], [slice(None), slice(None)]),
+                ((slice(0, 4), slice(0, 5)), (slice(None), slice(None))),
+                ((slice(0, 3), slice(0, 4)), (slice(None), slice(0, 4))),
+                ((slice(0, 3), slice(0, 5)), (slice(None), slice(None))),
                 )
 
         for _input, _output in zip(inputs, outputs):
