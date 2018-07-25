@@ -1,12 +1,17 @@
-IMPORTANT: While all the code in pyfftw (except for fftw3.h) is released
-under the 3-clause BSD license (set out below), pyfftw requires FFTW3
-to function. FFTW3 is available under two licenses, the free GPL and
-a non-free license that allows it to be used in proprietary programs.
+License
+=======
 
-If you intend to use the GPLed FFTW3 library, your code must also be
-GPL licensed. If you do not wish to comply with the terms of the GPL,
-you have to buy a FFTW3 license from the copyright holder MIT, see
-http://www.fftw.org/doc/License-and-Copyright.html for more information.
+.. note::
+
+    While all the code in pyfftw (except for fftw3.h) is released
+    under the 3-clause BSD license (set out below), pyfftw requires FFTW3
+    to function. FFTW3 is available under two licenses, the free GPL and
+    a non-free license that allows it to be used in proprietary programs.
+
+    **If you intend to use the GPLed FFTW3 library, your code must also be
+    GPL licensed.** If you do not wish to comply with the terms of the GPL,
+    you have to buy a FFTW3 license from the copyright holder MIT, `see here
+    for more information <http://www.fftw.org/doc/License-and-Copyright.html>`_.
 
 fftw3.h is released under the 2-clause BSD license.
 
@@ -16,15 +21,15 @@ Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
 * Redistributions of source code must retain the above copyright notice, this
-list of conditions and the following disclaimer.
+  list of conditions and the following disclaimer.
 
 * Redistributions in binary form must reproduce the above copyright notice,
-this list of conditions and the following disclaimer in the documentation
-and/or other materials provided with the distribution.
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
 
 * Neither the name of the copyright holder nor the names of its contributors
-may be used to endorse or promote products derived from this software without
-specific prior written permission.
+  may be used to endorse or promote products derived from this software without
+  specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE

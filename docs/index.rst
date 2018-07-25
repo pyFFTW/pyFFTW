@@ -46,6 +46,7 @@ Contents
    :maxdepth: 2
 
    /source/tutorial
+   /source/license
    /source/api
 
 Indices and tables
