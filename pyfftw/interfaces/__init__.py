@@ -236,17 +236,12 @@ else:
     del scipy
     from . import scipy_fftpack
 
-from distutils.version import StrictVersion
-import numpy
 
 fft_wrap = None
-if StrictVersion(numpy.__version__) >= StrictVersion("1.10.0"):
-    try:
-        from dask.array.fft import fft_wrap
-    except ImportError:
-        pass
-del StrictVersion
-del numpy
+try:
+    from dask.array.fft import fft_wrap
+except ImportError:
+    pass
 
 if fft_wrap:
     from . import dask_fft
