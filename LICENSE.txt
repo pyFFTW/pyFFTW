@@ -3,9 +3,11 @@ under the 3-clause BSD license (set out below), pyfftw requires FFTW3
 to function. FFTW3 is available under two licenses, the free GPL and
 a non-free license that allows it to be used in proprietary programs.
 
-If you intend to use the GPLed FFTW3 library, your code must also be
-GPL licensed. If you do not wish to comply with the terms of the GPL,
-you have to buy a FFTW3 license from the copyright holder MIT, see
+If you intend to distribute code that makes use of the GPLed FFTW3 library,
+your code must be released under a GPL-compatible license (see, e.g.,
+https://www.gnu.org/licenses/gpl-faq.en.html#WhatDoesCompatMean).
+If your license is not GPL-compatible you have to buy a FFTW3 license from the
+copyright holder MIT, see
 http://www.fftw.org/doc/License-and-Copyright.html for more information.
 
 fftw3.h is released under the 2-clause BSD license.
