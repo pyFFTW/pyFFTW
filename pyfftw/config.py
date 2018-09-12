@@ -27,7 +27,7 @@ class _EnvReloader(object):
         for name, value in os.environ.items():
             if name.startswith('PYFFTW_') or name == 'OMP_NUM_THREADS':
                 new_environ[name] = value
-        # We update the config variables if at least one NUMBA environment
+        # We update the config variables if at least one PYFFTW environment
         # variable was modified.  This lets the user modify values
         # directly in the config module without having them when
         # reload_config() is called by the compiler.
