@@ -409,6 +409,7 @@ class BuildersTestFFT(unittest.TestCase):
                 for each_dim in test_shape:
                     _test_shape.append(each_dim*2)
                     slices.append(slice(None, None, 2))
+                slices = tuple(slices)
 
                 input_array = dtype_tuple[1](_test_shape, dtype)[slices]
                 # check the input is non contiguous
@@ -543,7 +544,7 @@ class BuildersTestFFT(unittest.TestCase):
                 except TypeError:
                     s += n_add
                     padding_slicer[axes[0]] = slice(s, None)
-
+                padding_slicer = tuple(padding_slicer)
                 # Get a valid object
                 FFTW_object = self.validate_pyfftw_object(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
@@ -688,7 +689,7 @@ class BuildersTestFFT(unittest.TestCase):
 
                 non_contiguous_shape = [
                         each_dim * 2 for each_dim in test_shape]
-                non_contiguous_slices = (
+                non_contiguous_slices = tuple(
                         [slice(None, None, 2)] * len(test_shape))
 
                 misaligned_input_array = dtype_tuple[1](
@@ -802,8 +803,8 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
 
         require(self, '64')
 
-        self.input_array_slicer = [slice(None), slice(256)]
-        self.FFTW_array_slicer = [slice(128), slice(None)]
+        self.input_array_slicer = tuple([slice(None), slice(256)])
+        self.FFTW_array_slicer = tuple([slice(128), slice(None)])
 
         self.input_array = empty_aligned((128, 512), dtype='complex128')
         self.output_array = empty_aligned((256, 256), dtype='complex128')
