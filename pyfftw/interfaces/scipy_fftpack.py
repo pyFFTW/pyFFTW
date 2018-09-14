@@ -195,12 +195,12 @@ def _complex_to_rfft_output(complex_output, output_shape, axis):
     # First element
     source_slicer[axis] = slice(0, 1)
     target_slicer[axis] = slice(0, 1)
-    rfft_output[target_slicer] = complex_output[source_slicer].real
+    rfft_output[tuple(target_slicer)] = complex_output[tuple(source_slicer)].real
 
     # Real part
     source_slicer[axis] = slice(1, None)
     target_slicer[axis] = slice(1, None, 2)
-    rfft_output[target_slicer] = complex_output[source_slicer].real
+    rfft_output[tuple(target_slicer)] = complex_output[tuple(source_slicer)].real
 
     # Imaginary part
     if output_shape[axis] % 2 == 0:
@@ -210,7 +210,7 @@ def _complex_to_rfft_output(complex_output, output_shape, axis):
 
     source_slicer[axis] = slice(1, end_val, None)
     target_slicer[axis] = slice(2, None, 2)
-    rfft_output[target_slicer] = complex_output[source_slicer].imag
+    rfft_output[tuple(target_slicer)] = complex_output[tuple(source_slicer)].imag
 
     return rfft_output
 
@@ -231,24 +231,24 @@ def _irfft_input_to_complex(irfft_input, axis):
     # First element
     source_slicer[axis] = slice(0, 1)
     target_slicer[axis] = slice(0, 1)
-    complex_input[target_slicer] = irfft_input[source_slicer]
+    complex_input[tuple(target_slicer)] = irfft_input[tuple(source_slicer)]
 
     # Real part
     source_slicer[axis] = slice(1, None, 2)
     target_slicer[axis] = slice(1, None)
-    complex_input[target_slicer].real = irfft_input[source_slicer]
+    complex_input[tuple(target_slicer)].real = irfft_input[tuple(source_slicer)]
 
     # Imaginary part
     if irfft_input.shape[axis] % 2 == 0:
         end_val = -1
         target_slicer[axis] = slice(-1, None)
-        complex_input[target_slicer].imag = 0.0
+        complex_input[tuple(target_slicer)].imag = 0.0
     else:
         end_val = None
 
     source_slicer[axis] = slice(2, None, 2)
     target_slicer[axis] = slice(1, end_val)
-    complex_input[target_slicer].imag = irfft_input[source_slicer]
+    complex_input[tuple(target_slicer)].imag = irfft_input[tuple(source_slicer)]
 
     return complex_input
 
