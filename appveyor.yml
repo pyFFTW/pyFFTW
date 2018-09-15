@@ -56,7 +56,7 @@ environment:
           NP_BUILD_DEP: "1.14"
           SP_BUILD_DEP: "1.1"
           CYTHON_BUILD_DEP: "0.28"
-          EXTRA_CONDA_ARGS: "-c conda-forge blas=*=openblas"  # needed for non-MKL numpy/scipy
+          # EXTRA_CONDA_ARGS: "-c conda-forge blas=*=openblas"  # needed for non-MKL numpy/scipy
 
 install:
     # Get and configure the FFTW libs
