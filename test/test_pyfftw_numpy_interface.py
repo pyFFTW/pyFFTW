@@ -40,7 +40,12 @@ from ._get_default_args import get_default_args
 from distutils.version import LooseVersion
 import unittest
 import numpy
-from numpy import fft as np_fft
+try:
+    import mkl_fft
+    # mkl_fft monkeypatches numpy.fft so explicitly import from fftpack instead
+    from numpy.fft import fftpack as np_fft
+except ImportError:
+    from numpy import fft as np_fft
 import warnings
 import copy
 warnings.filterwarnings('always')
