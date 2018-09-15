@@ -36,7 +36,7 @@ from pyfftw import FFTW
 import numpy
 from timeit import Timer
 
-from .test_pyfftw_base import run_test_suites, miss
+from .test_pyfftw_base import run_test_suites, miss, np_fft
 
 import unittest
 
@@ -79,7 +79,7 @@ class Complex128MultiThreadedTest(Complex64MultiThreadedTest):
 
         self.input_dtype = numpy.complex128
         self.output_dtype = numpy.complex128
-        self.np_fft_comparison = numpy.fft.fft
+        self.np_fft_comparison = np_fft.fft
         return
 
 @unittest.skipIf(*miss('ld'))
@@ -97,7 +97,7 @@ class ComplexLongDoubleMultiThreadedTest(Complex64MultiThreadedTest):
         # numpy.fft.fftn doesn't support complex256 type,
         # so we need to compare to a lower precision type.
         a = numpy.complex128(a)
-        return numpy.fft.fftn(a, axes=axes)
+        return np_fft.fftn(a, axes=axes)
 
 test_cases = (
         Complex64MultiThreadedTest,

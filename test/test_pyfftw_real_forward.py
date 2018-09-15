@@ -36,7 +36,7 @@ from pyfftw import FFTW
 import numpy
 from timeit import Timer
 
-from .test_pyfftw_base import run_test_suites, miss, require
+from .test_pyfftw_base import run_test_suites, miss, require, np_fft
 
 import unittest
 
@@ -49,7 +49,7 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
 
         self.input_dtype = numpy.float64
         self.output_dtype = numpy.complex128
-        self.np_fft_comparison = numpy.fft.rfft
+        self.np_fft_comparison = np_fft.rfft
 
         self.direction = 'FFTW_FORWARD'
 
@@ -76,7 +76,7 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
 
     def reference_fftn(self, a, axes):
 
-        return numpy.fft.rfftn(a, axes=axes)
+        return np_fft.rfftn(a, axes=axes)
 
     def test_wrong_direction_fail(self):
         in_shape = self.input_shapes['2d']
@@ -122,7 +122,7 @@ class RealForwardSingleFFTWTest(RealForwardDoubleFFTWTest):
 
         self.input_dtype = numpy.float32
         self.output_dtype = numpy.complex64
-        self.np_fft_comparison = numpy.fft.rfft
+        self.np_fft_comparison = np_fft.rfft
 
         self.direction = 'FFTW_FORWARD'
 
@@ -133,7 +133,7 @@ class RealForwardLongDoubleFFTWTest(RealForwardDoubleFFTWTest):
 
         self.input_dtype = numpy.longdouble
         self.output_dtype = numpy.clongdouble
-        self.np_fft_comparison = numpy.fft.rfft
+        self.np_fft_comparison = np_fft.rfft
 
         self.direction = 'FFTW_FORWARD'
 
@@ -148,7 +148,7 @@ class RealForwardLongDoubleFFTWTest(RealForwardDoubleFFTWTest):
     def reference_fftn(self, a, axes):
 
         a = numpy.float64(a)
-        return numpy.fft.rfftn(a, axes=axes)
+        return np_fft.rfftn(a, axes=axes)
 
 test_cases = (
         RealForwardDoubleFFTWTest,
