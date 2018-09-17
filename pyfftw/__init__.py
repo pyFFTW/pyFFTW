@@ -8,7 +8,9 @@ arrays.
 
 This module represents the full interface to the underlying `FFTW
 library <http://www.fftw.org/>`_. However, users may find it easier to
-use the helper routines provided in :mod:`pyfftw.builders`.
+use the helper routines provided in :mod:`pyfftw.builders`. Default values
+used by the helper routines can be controlled as via
+:ref:`configuration variables <configuration_variables>`.
 '''
 
 import os

@@ -50,6 +50,7 @@ Everything documented in this module is *not* part of the public API
 and may change in future versions.
 '''
 
+import multiprocessing
 import pyfftw
 import numpy
 import warnings
@@ -100,13 +101,18 @@ def _default_effort(effort):
     else:
         return effort
 
+
 def _default_threads(threads):
     if threads is None:
+        if config.NUM_THREADS <= 0:
+            return multiprocessing.cpu_count()
         return config.NUM_THREADS
     else:
         if threads > 1 and _threading_type is None:
             raise ValueError("threads > 1 requested, but pyFFTW was not built "
                              "with multithreaded FFTW.")
+        elif threads <= 0:
+            return multiprocessing.cpu_count()
         return threads
 
 
