@@ -39,6 +39,13 @@ try:
 except AttributeError:
     interfaces.dask_fft = None
 
+try:
+    # Kludge to skip dask tests when mkl_fft is present
+    import mkl_fft
+    interfaces.dask_fft = None
+except ImportError:
+    pass
+
 from .test_pyfftw_base import run_test_suites
 from .test_pyfftw_numpy_interface import complex_dtypes, real_dtypes
 from ._get_default_args import get_default_args

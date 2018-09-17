@@ -34,13 +34,12 @@
 
 from pyfftw import interfaces, _supported_types, _all_types_np
 
-from .test_pyfftw_base import run_test_suites
+from .test_pyfftw_base import run_test_suites, np_fft
 from ._get_default_args import get_default_args
 
 from distutils.version import LooseVersion
 import unittest
 import numpy
-from numpy import fft as np_fft
 import warnings
 import copy
 warnings.filterwarnings('always')
