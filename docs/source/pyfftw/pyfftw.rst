@@ -107,7 +107,7 @@ FFTW Configuration
 .. data:: pyfftw.config.NUM_THREADS
 
    This variable controls the default number of threads used by the functions
-   in :mod:`pywt.builders` and :mod:`pywt.interfaces`.
+   in :mod:`pyfftw.builders` and :mod:`pyfftw.interfaces`.
 
    The default value is read from the environment variable
    ``PYFFTW_NUM_THREADS``. If this variable is undefined and the user's
@@ -123,7 +123,7 @@ FFTW Configuration
 .. data:: pyfftw.config.PLANNER_EFFORT
 
    This variable controls the default planning effort used by the functions
-   in :mod:`pywt.builders` and :mod:`pywt.interfaces`.
+   in :mod:`pyfftw.builders` and :mod:`pyfftw.interfaces`.
 
    The default value of is determined by reading from the environment variable
    ``PYFFTW_PLANNER_EFFORT``. If this environment variable is undefined, it

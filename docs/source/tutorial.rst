@@ -102,7 +102,7 @@ Monkey patching 3rd party libraries
 Since :mod:`pyfftw.interfaces.numpy_fft` and
 :mod:`pyfftw.interfaces.scipy_fftpack` are drop-in replacements for their
 :mod:`numpy.fft` and :mod:`scipy.fftpack` libraries respectively, it is
-possible use them as replacements at run-time through monkey patching. Note
+possible to use them as replacements at run-time through monkey patching. Note
 that the interfaces (and builders) all currently default to a single thread.
 The number of threads to use can be configured by assigning a positive integer
 to `pyfftw.config.NUM_THREADS` (see more details under
@@ -476,7 +476,7 @@ for more information.
 
 Configuring FFTW planning effort and number of threads
 ------------------------------------------------------
-The user my set the default number of threads used by the interfaces and
+The user may set the default number of threads used by the interfaces and
 builders at run time by assigning to ``pyfftw.config.NUM_THREADS``. Similarly
 the default
 `planning effort <http://www.fftw.org/fftw3_doc/Planner-Flags.html>`_
