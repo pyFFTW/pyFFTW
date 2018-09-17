@@ -80,6 +80,13 @@ IF HAVE_LONG:
     _supported_nptypes_complex.append(np.clongdouble)
     _supported_nptypes_real.append(np.longdouble)
 
+IF (HAVE_SINGLE_OMP or HAVE_DOUBLE_OMP or HAVE_LONG_OMP):
+    _threading_type = 'OMP'
+ELIF (HAVE_SINGLE_THREADS or HAVE_DOUBLE_THREADS or HAVE_LONG_THREADS):
+    _threading_type = 'PTHREADS'
+ELSE:
+    _threading_type = None
+
 cdef object directions
 directions = {'FFTW_FORWARD': FFTW_FORWARD,
         'FFTW_BACKWARD': FFTW_BACKWARD}

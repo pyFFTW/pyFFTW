@@ -8,8 +8,12 @@ arrays.
 
 This module represents the full interface to the underlying `FFTW
 library <http://www.fftw.org/>`_. However, users may find it easier to
-use the helper routines provided in :mod:`pyfftw.builders`.
+use the helper routines provided in :mod:`pyfftw.builders`. Default values
+used by the helper routines can be controlled as via
+:ref:`configuration variables <configuration_variables>`.
 '''
+
+import os
 
 from .pyfftw import (
         FFTW,
@@ -30,11 +34,14 @@ from .pyfftw import (
         _supported_nptypes_complex,
         _supported_nptypes_real,
         _all_types_human_readable,
-        _all_types_np
+        _all_types_np,
+        _threading_type
 )
 
+from . import config
 from . import builders
 from . import interfaces
+
 
 # clean up the namespace
 del builders.builders

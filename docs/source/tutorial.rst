@@ -102,7 +102,11 @@ Monkey patching 3rd party libraries
 Since :mod:`pyfftw.interfaces.numpy_fft` and
 :mod:`pyfftw.interfaces.scipy_fftpack` are drop-in replacements for their
 :mod:`numpy.fft` and :mod:`scipy.fftpack` libraries respectively, it is
-possible use them as replacements at run-time through monkey patching.
+possible to use them as replacements at run-time through monkey patching. Note
+that the interfaces (and builders) all currently default to a single thread.
+The number of threads to use can be configured by assigning a positive integer
+to `pyfftw.config.NUM_THREADS` (see more details under
+:ref:configuration <interfaces_tutorial>).
 
 The following code demonstrates :func:`scipy.signal.fftconvolve` being monkey
 patched in order to speed it up.
@@ -110,6 +114,7 @@ patched in order to speed it up.
 .. testcode::
 
    import pyfftw
+   import multiprocessing
    import scipy.signal
    import numpy
    from timeit import Timer
@@ -123,7 +128,10 @@ patched in order to speed it up.
    t = Timer(lambda: scipy.signal.fftconvolve(a, b))
 
    print('Time with scipy.fftpack: %1.3f seconds' % t.timeit(number=100))
-   
+
+   # Configure PyFFTW to use all cores (the default is single-threaded)
+   pyfftw.config.NUM_THREADS = multiprocessing.cpu_count()
+
    # Monkey patch fftpack with pyfftw.interfaces.scipy_fftpack
    scipy.fftpack = pyfftw.interfaces.scipy_fftpack
    scipy.signal.fftconvolve(a, b) # We cheat a bit by doing the planning first
@@ -463,6 +471,35 @@ This way, shapes are made consistent for copying.
 Understanding :mod:`numpy.fft`, these functions are largely
 self-explanatory. We point the reader to the :mod:`API docs <pyfftw.builders>`
 for more information.
+
+.. _configuration:
+
+Configuring FFTW planning effort and number of threads
+------------------------------------------------------
+The user may set the default number of threads used by the interfaces and
+builders at run time by assigning to ``pyfftw.config.NUM_THREADS``. Similarly
+the default
+`planning effort <http://www.fftw.org/fftw3_doc/Planner-Flags.html>`_
+may be set by assigning a string such as ``'FFTW_ESTIMATE'`` or
+``'FFTW_MEASURE'`` to ``pyfftw.config.PLANNER_EFFORT``.
+
+For example, to change the effort to ``'FFTW_MEASURE'`` and specify 4 threads:
+
+.. testcode::
+
+   import pyfftw
+
+   pyfftw.config.NUM_THREADS = 4
+
+   pyfftw.config.PLANNER_EFFORT = 'FFTW_MEASURE'
+
+All functions in :mod:`pyfftw.interfaces` and :mod:`pyfftw.builders` use the
+values from :mod:`pyfftw.config` when determining the default number of threads
+and planning effort.
+
+The initial values in pyfftw.config at import time can be controlled via the
+environment variables as detailed in the
+:ref:`configuration <_configuration_variables>` documentation.
 
 .. rubric:: Footnotes
 
