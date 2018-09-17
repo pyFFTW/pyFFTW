@@ -75,7 +75,7 @@ class _EnvReloader(object):
 _env_reloader = _EnvReloader()
 
 
-def reload_config():
+def _reload_config():
     """
     Reload the configuration from environment variables, if necessary.
     """

@@ -37,7 +37,7 @@ class ConfigTest(unittest.TestCase):
         os.environ.pop('OMP_NUM_THREADS', None)
         os.environ.pop('PYFFTW_PLANNER_EFFORT', None)
         # defaults to single-threaded and FFTW_ESTIMATE
-        config.reload_config()
+        config._reload_config()
         assert_equal(config.NUM_THREADS, 1)
         assert_equal(config.PLANNER_EFFORT, 'FFTW_ESTIMATE')
 
@@ -48,17 +48,17 @@ class ConfigTest(unittest.TestCase):
         os.environ.pop('OMP_NUM_THREADS', None)
 
         # defaults to single-threaded if neither variable is defined
-        config.reload_config()
+        config._reload_config()
         assert_equal(config.NUM_THREADS, 1)
 
         # load default from OMP_NUM_THREADS environment variable
         os.environ['OMP_NUM_THREADS'] = '2'
-        config.reload_config()
+        config._reload_config()
         assert_equal(config.NUM_THREADS, 2)
 
         # PYFFTW_NUM_THREADS overrides OMP_NUM_THREADS when both are defined
         os.environ['PYFFTW_NUM_THREADS'] = '4'
-        config.reload_config()
+        config._reload_config()
         assert_equal(config.NUM_THREADS, 4)
 
     def test_non_default_config(self):
@@ -69,7 +69,7 @@ class ConfigTest(unittest.TestCase):
             os.environ['PYFFTW_NUM_THREADS'] = '4'
         os.environ['PYFFTW_PLANNER_EFFORT'] = 'FFTW_MEASURE'
 
-        config.reload_config()
+        config._reload_config()
         assert_equal(config.NUM_THREADS, 4)
         assert_equal(config.PLANNER_EFFORT, 'FFTW_MEASURE')
 
@@ -77,8 +77,8 @@ class ConfigTest(unittest.TestCase):
         config.NUM_THREADS = 6
         config.PLANNER_EFFORT = 'FFTW_ESTIMATE'
 
-        # reload_config should preserve the user-defined values
-        config.reload_config()
+        # _reload_config preserves the user-defined values
+        config._reload_config()
         assert_equal(config.NUM_THREADS, 6)
         assert_equal(config.PLANNER_EFFORT, 'FFTW_ESTIMATE')
 
