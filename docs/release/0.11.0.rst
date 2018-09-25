@@ -2,19 +2,19 @@
 pyFFTW v0.11.0 Release Notes
 ============================
 
-We are happy to announce the release of pyFFTW v0.11.0.  This release is the
-result of approximately one year of work by 6 contributors.
+We are happy to announce the release of pyFFTW v0.11.0. This release is the
+result of more than two years of work by 9 contributors.
 
 pyFFTW is a pythonic wrapper around FFTW 3, the speedy FFT library. The
 ultimate aim is to present a unified interface for all the possible transforms
 that FFTW can perform.
 
 Both the complex DFT and the real DFT are supported, as well as on arbitrary
-axes of abitrary shaped and strided arrays.  Operating FFTW in multithreaded
+axes of abitrary shaped and strided arrays. Operating FFTW in multithreaded
 mode is supported.
 
 pyFFTW implements the numpy and scipy fft interfaces in order for users to take
-advantage of the speed of FFTW with minimal code modifications.  A dask fft
+advantage of the speed of FFTW with minimal code modifications. A dask fft
 interface is provided as a drop-in replacement for the equivalent module in
 dask.
 
@@ -30,35 +30,35 @@ Other functions from Dask Array's FFT module are imported as a convenience.
 
 Fast transform planning utility
 -------------------------------
-A routine `next_fast_len` has been added to allow the user to easily determine
-sizes for which the FFT computation is computationally efficient.
+A routine ``next_fast_len`` has been added to allow the user to easily
+determine sizes for which the FFT computation is computationally efficient.
 
 Expanded support for norm keyword argument in the numpy interfaces
 ------------------------------------------------------------------
-Support for the `norm` keyword argument has been expanded to all numpy
+Support for the ``norm`` keyword argument has been expanded to all numpy
 FFT interfaces. It was previously present only for the complex-valued routines.
 
 Support for norm keyword argument in FFTW builders
 --------------------------------------------------
-A `norm` keyword argument has been added to the FFTW builders allowing the
+A ``norm`` keyword argument has been added to the FFTW builders allowing the
 normalization of pre-planned FFTs to be chosen in the same manner as for the
 numpy interfaces.
 
 Dynamic library detection at build and run time
 -----------------------------------------------
 setup.py has been overhauled to dynamically detect the variants of FFTW that
-are present.  Previously single, double and long double libraries were
-all required at build time.  Now, compilation will attempt to detect which
+are present. Previously single, double and long double libraries were
+all required at build time. Now, compilation will attempt to detect which
 variants are present and compile based on that.
 
 It also now possible to specify an additional search path for the fftw
-libraries by setting the environment variable PYFFTW_LIB_DIR.
+libraries by setting the environment variable ``PYFFTW_LIB_DIR``.
 
 One caveat is that dynamic library detection is not used by default on the
 Windows platform, as the default assumption is that on Windows, a full set of
 precompiled libraries have been downloaded from fftw.org. Alternatively, if the
-environment variable PYFFTW_WIN_CONDAFORGE is defined, dynamic detection of
-libraries named fftw3.dll, fftw3f.dll and fftw3l.dll is attempted.  This is for
+environment variable ``PYFFTW_WIN_CONDAFORGE`` is defined, dynamic detection of
+libraries named fftw3.dll, fftw3f.dll and fftw3l.dll is attempted. This is for
 compatibility with the CMake-based FFTW build used by conda-forge.
 
 The builders and interfaces all detect at runtime which variants are available
@@ -70,10 +70,19 @@ available precisions.
 
 OpenMP threading support
 ------------------------
-Building with OpenMP-based threading is also now supported.  If both OpenMP
+Building with OpenMP-based threading is also now supported. If both OpenMP
 and posix threaded libraries are found, the OpenMP variant will be preferred.
 If the user desires to instead link to posix threads by default, the
-environment variable PYFFTW_USE_PTHREADS should be defined.
+environment variable ``PYFFTW_USE_PTHREADS`` should be defined.
+
+Custom Configuration of Planners and Interfaces
+-----------------------------------------------
+The new module pyfftw.config can be used to assign values for the default
+number of threads (via ``pyfftw.config.NUM_THREADS``) and default FFTW planner
+effort (via ``pyfftw.config.PLANNER_EFFORT``). It is also now possible to
+define the environment variables ``PYFFTW_NUM_THREADS`` and
+``PYFFTW_PLANNER_EFFORT`` to determine the default values at import time.
+
 
 Bugs Fixed
 ==========
@@ -97,23 +106,29 @@ where the same transform is to be repeated many times, it is likely
 advantageous to manually specify FFTW_MEASURE instead (or use the FFTW builders
 to pre-plan the FFT).
 
+FutureWarnings related to NumPy multiindexing in NumPy 1.15 are avoided by
+using more modern indexing conventions.
+
 version number handling is now automatically handled by versioneer
 
 All documentation is now built and hosted at Read the Docs (
 http://pyfftw.readthedocs.io).
 
+
 Authors
 =======
 
 * Frederik Beaujean +
+* Dennis Brakhane +
 * Henry Gomersall
 * John Kirkham +
 * Antony Lee +
 * Gregory R. Lee
 * Iblis Lin +
+* Matthew D. Scholefield +
 * Hsiou-Yuan (Herbert) Liu +
 
-A total of 7 people contributed to this release.
+A total of 9 people contributed to this release.
 People with a "+" by their names contributed a patch for the first time.
 This list of names is automatically generated, and may not be fully complete.
 
@@ -183,3 +198,10 @@ Pull requests for v0.11
 - `#213 <https://github.com/pyFFTW/pyFFTW/pull/213>`__: Dask Interface Extras
 - `#216 <https://github.com/pyFFTW/pyFFTW/pull/216>`__: Tweaked the appeveyor bintray build stuff to properly look up the ver...
 - `#218 <https://github.com/pyFFTW/pyFFTW/pull/218>`__: Explicitly add Dask Array as an extra requirement
+- `#219 <https://github.com/pyFFTW/pyFFTW/pull/219>`__: Add optional SciPy requirement
+- `#221 <https://github.com/pyFFTW/pyFFTW/pull/221>`__: Optionally use Dask if Numpy is 1.10
+- `#230 <https://github.com/pyFFTW/pyFFTW/pull/230>`__: Add clarification to license and add license to docs.
+- `#233 <https://github.com/pyFFTW/pyFFTW/pull/233>`__: Fix using non-tuple multidimensional indices
+- `#240 <https://github.com/pyFFTW/pyFFTW/pull/240>`__: avoid multi-indexing warnings with numpy >= 1.15
+- `#241 <https://github.com/pyFFTW/pyFFTW/pull/241>`__: Allow run-time choice of the default number of threads and planning effort
+- `#242 <https://github.com/pyFFTW/pyFFTW/pull/242>`__: update test suite avoid mkl_fft when it is present
