@@ -558,7 +558,7 @@ def make_sniffer(compiler):
 
 def get_extensions():
     ext_modules = [Extension('pyfftw.pyfftw',
-                             sources=[os.path.join(os.getcwd(), 'pyfftw', 'pyfftw.pyx')])]
+                             sources=[os.path.join('pyfftw', 'pyfftw.pyx')])]
     return ext_modules
 
 
