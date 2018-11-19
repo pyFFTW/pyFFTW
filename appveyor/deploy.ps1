@@ -20,16 +20,7 @@ function deploy_to_bintray() {
     iex "curl.exe -s -T $filepath -u$username_password -H `"X-Bintray-Package:PyFFTW-development-builds`" -H `"X-Bintray-Version:$short_version`" -H `"X-Bintray-Publish: 1`" -H `"X-Bintray-Override: 1`" https://api.bintray.com/content/hgomersall/generic/$filename"
 }
 
-function deploy_to_pypi () {
-    Write-Host "Uploading to PyPI..."
-    iex "python setup.py bdist_wheel upload"
-}
-
 function main () {
-    if($env:appveyor_repo_tag -eq 'True') {
-        deploy_to_pypi
-    }
-
     deploy_to_bintray
 }
 
