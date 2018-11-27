@@ -134,8 +134,16 @@ being taken along that axes as many times as the axis occurs.
 
 * :func:`pyfftw.interfaces.dask_fft.fft`
 * :func:`pyfftw.interfaces.dask_fft.ifft`
+* :func:`pyfftw.interfaces.dask_fft.fft2`
+* :func:`pyfftw.interfaces.dask_fft.ifft2`
+* :func:`pyfftw.interfaces.dask_fft.fftn`
+* :func:`pyfftw.interfaces.dask_fft.ifftn`
 * :func:`pyfftw.interfaces.dask_fft.rfft`
 * :func:`pyfftw.interfaces.dask_fft.irfft`
+* :func:`pyfftw.interfaces.dask_fft.rfft2`
+* :func:`pyfftw.interfaces.dask_fft.irfft2`
+* :func:`pyfftw.interfaces.dask_fft.rfftn`
+* :func:`pyfftw.interfaces.dask_fft.irfftn`
 * :func:`pyfftw.interfaces.dask_fft.hfft`
 * :func:`pyfftw.interfaces.dask_fft.ihfft`
 
