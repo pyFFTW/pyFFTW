@@ -65,6 +65,9 @@ _valid_efforts = ('FFTW_ESTIMATE', 'FFTW_MEASURE',
 _real_to_real_dtypes = [numpy.dtype('float32'), numpy.dtype('float64'),
                         numpy.dtype('longdouble')]
 
+# Looking up a real dtype in here returns the complex complement of the same
+# precision, and vice versa.
+
 # It is necessary to use .char as the keys due to MSVC mapping long
 # double to double and the way that numpy handles this.
 _rc_dtype_pairs = {}
@@ -172,8 +175,9 @@ def _Xfftn(a, s, axes, overwrite_input,
     a_is_complex = numpy.iscomplexobj(a)
 
     # Make the input dtype correct by transforming to an available type
-    if a.dtype not in _real_to_real_dtypes:
-        a = numpy.asarray(a, dtype=_default_dtype)
+    if real_to_real:
+        if a.dtype not in _real_to_real_dtypes:
+            a = numpy.asarray(a, dtype=_default_dtype)
     else:
         if a.dtype.char not in _rc_dtype_pairs:
             dtype = _default_dtype
