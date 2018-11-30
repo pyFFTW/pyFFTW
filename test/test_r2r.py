@@ -225,7 +225,7 @@ class TestRealTransform(object):
             else:
                 sp[axis] = zero_indicies
                 mask = numpy.ones(data.shape)
-                mask[sp] = 0.0
+                mask[tuple(sp)] = 0.0
                 exact_coefficients *= mask
 
         # create the 'known' array of interpolation coefficients.
@@ -234,7 +234,7 @@ class TestRealTransform(object):
             for factor, wavenumber in zip(factors[index], wavenumbers[index]):
                 sp = list(it.repeat(slice(None), len(data.shape)))
                 sp[axis] = wavenumber
-                exact_coefficients[sp] *= factor
+                exact_coefficients[tuple(sp)] *= factor
 
         error = numpy.mean(numpy.abs(self._output_array/normalisation
                               - exact_coefficients))
@@ -283,7 +283,7 @@ def empty_noncontiguous(shape):
         else:
             child_slice.append(slice(left_offset, -1*right_offset, stride))
 
-    child = numpy.empty(parent_shape)[child_slice]
+    child = numpy.empty(parent_shape)[tuple(child_slice)]
     if list(child.shape) != list(shape):
         raise ValueError("The shape of the noncontiguous array is incorrect."
                          " This is a bug.")

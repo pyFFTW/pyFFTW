@@ -335,9 +335,9 @@ def dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
         x = numpy.copy(x)
         sp = list(it.repeat(slice(None), len(x.shape)))
         sp[axis] = 0
-        x[sp] /= numpy.sqrt(x.shape[axis])
+        x[tuple(sp)] /= numpy.sqrt(x.shape[axis])
         sp[axis] = slice(1, None, None)
-        x[sp] /= numpy.sqrt(2*x.shape[axis])
+        x[tuple(sp)] /= numpy.sqrt(2*x.shape[axis])
 
     type_flag_lookup = {
         1: 'FFTW_REDFT00',
@@ -366,9 +366,9 @@ def dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
         if type == 2:
             sp = list(it.repeat(slice(None), len(x.shape)))
             sp[axis] = 0
-            result_unnormalized[sp] /= numpy.sqrt(4*x.shape[axis])
+            result_unnormalized[tuple(sp)] /= numpy.sqrt(4*x.shape[axis])
             sp[axis] = slice(1, None, None)
-            result_unnormalized[sp] /= numpy.sqrt(2*x.shape[axis])
+            result_unnormalized[tuple(sp)] /= numpy.sqrt(2*x.shape[axis])
             result = result_unnormalized
         elif type == 3:
             # normalization implemented as data preprocessing
@@ -426,9 +426,9 @@ def dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
         x = numpy.copy(x)
         sp = list(it.repeat(Ellipsis, len(x.shape)))
         sp[axis] = 0
-        x[sp] /= numpy.sqrt(x.shape[axis])
+        x[tuple(sp)] /= numpy.sqrt(x.shape[axis])
         sp[axis] = slice(1, None, None)
-        x[sp] /= numpy.sqrt(2*x.shape[axis])
+        x[tuple(sp)] /= numpy.sqrt(2*x.shape[axis])
 
     type_flag_lookup = {
         1: 'FFTW_RODFT00',
@@ -457,10 +457,10 @@ def dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
         elif type == 2:
             sp = list(it.repeat(Ellipsis, len(x.shape)))
             sp[axis] = 0
-            result_unnormalized[sp] *= 1.0/(2*numpy.sqrt(x.shape[axis]))
+            result_unnormalized[tuple(sp)] *= 1.0/(2*numpy.sqrt(x.shape[axis]))
             sp = list(it.repeat(Ellipsis, len(x.shape)))
             sp[axis] = slice(1, None, None)
-            result_unnormalized[sp] *= 1.0/numpy.sqrt(2*x.shape[axis])
+            result_unnormalized[tuple(sp)] *= 1.0/numpy.sqrt(2*x.shape[axis])
             result = result_unnormalized
         elif type == 3:
             result = result_unnormalized
