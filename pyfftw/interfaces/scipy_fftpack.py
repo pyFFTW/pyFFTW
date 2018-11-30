@@ -309,7 +309,7 @@ def irfft(x, n=None, axis=-1, overwrite_x=False,
     return numpy_fft.irfft(complex_input, n, axis, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
-def dct(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
+def dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D discrete cosine transform.
@@ -378,7 +378,7 @@ def dct(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
             result = result_unnormalized
         return result
 
-def idct(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
+def idct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
          planner_effort=None, threads=None,
          auto_align_input=True, auto_contiguous=True):
     '''Perform an inverse 1D discrete cosine transform.
@@ -400,7 +400,7 @@ def idct(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
                threads=threads, auto_align_input=auto_align_input,
                auto_contiguous=auto_contiguous)
 
-def dst(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
+def dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D discrete sine transform.
@@ -469,7 +469,7 @@ def dst(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
             result = result_unnormalized
         return result
 
-def idst(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
+def idst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
          planner_effort=None, threads=None,
          auto_align_input=True, auto_contiguous=True):
     '''Perform an inverse 1D discrete sine transform.
