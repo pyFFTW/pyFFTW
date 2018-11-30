@@ -310,7 +310,7 @@ def irfft(x, n=None, axis=-1, overwrite_x=False,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 def dct(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D discrete cosine transform.
 
@@ -351,6 +351,8 @@ def dct(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
         raise ValueError("Type %d not understood" % type)
 
     calling_func = 'dct'
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
 
     result_unnormalized = _Xfftn(x, n, axis, overwrite_x, planner_effort,
                                  threads, auto_align_input, auto_contiguous,
@@ -377,8 +379,8 @@ def dct(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
         return result
 
 def idct(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
-        planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=True, auto_contiguous=True):
+         planner_effort=None, threads=None,
+         auto_align_input=True, auto_contiguous=True):
     '''Perform an inverse 1D discrete cosine transform.
 
     The first three arguments are as per :func:`scipy.fftpack.idct`;
@@ -390,13 +392,16 @@ def idct(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
     except KeyError:
         raise ValueError("Type %d not understood" % type)
 
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
+
     return dct(x, n=n, axis=axis, norm=norm, overwrite_x=overwrite_x,
                type=inverse_type, planner_effort=planner_effort,
                threads=threads, auto_align_input=auto_align_input,
                auto_contiguous=auto_contiguous)
 
 def dst(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D discrete sine transform.
 
@@ -437,6 +442,8 @@ def dst(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
         raise ValueError("Type %d not understood" % type)
 
     calling_func = 'dst'
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
 
     result_unnormalized = _Xfftn(x, n, axis, overwrite_x, planner_effort,
                                  threads, auto_align_input, auto_contiguous,
@@ -463,8 +470,8 @@ def dst(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
         return result
 
 def idst(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
-        planner_effort='FFTW_MEASURE', threads=1,
-        auto_align_input=True, auto_contiguous=True):
+         planner_effort=None, threads=None,
+         auto_align_input=True, auto_contiguous=True):
     '''Perform an inverse 1D discrete sine transform.
 
     The first three arguments are as per :func:`scipy.fftpack.idst`;
@@ -475,6 +482,9 @@ def idst(x, n=None, axis=-1, norm=None, overwrite_x=False, type=2,
         inverse_type = {1: 1, 2: 3, 3:2}[type]
     except KeyError:
         raise ValueError("Type %d not understood" % type)
+
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
 
     return dst(x, n=n, axis=axis, norm=norm, overwrite_x=overwrite_x,
                type=inverse_type, planner_effort=planner_effort,

@@ -549,7 +549,7 @@ def irfftn(a, s=None, axes=None,
 
 
 def dct(a, n=None, axis=-1, overwrite_input=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, type=2):
     '''Return a :class:`pyfftw.FFTW` object representing a 1D DCT.
@@ -575,13 +575,16 @@ def dct(a, n=None, axis=-1, overwrite_input=False,
     inverse = False
     real = False
 
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
+
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
+                  threads, auto_align_input, auto_contiguous,
                   avoid_copy, inverse, real, real_direction_flag=direction)
 
 
 def dst(a, n=None, axis=-1, overwrite_input=False,
-        planner_effort='FFTW_MEASURE', threads=1,
+        planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, type=2):
     '''Return a :class:`pyfftw.FFTW` object representing a 1D DST.
@@ -607,6 +610,9 @@ def dst(a, n=None, axis=-1, overwrite_input=False,
     inverse = False
     real = False
 
+    planner_effort = _default_effort(planner_effort)
+    threads = _default_threads(threads)
+
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
+                  threads, auto_align_input, auto_contiguous,
                   avoid_copy, inverse, real, real_direction_flag=direction)
