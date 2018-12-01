@@ -70,7 +70,7 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
     if calling_func in ('dct', 'dst'):
         # real-to-real transforms require passing an additional flag argument
         avoid_copy = False
-        args = (a, s, axes, overwrite_input, planner_effort, threads,
+        args = (overwrite_input, planner_effort, threads,
                 auto_align_input, auto_contiguous, avoid_copy,
                 real_direction_flag)
     elif calling_func in ('irfft2', 'irfftn'):
