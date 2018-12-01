@@ -54,7 +54,7 @@ a 2D `shape` argument will return without exception whereas
 import itertools as it
 from . import numpy_fft
 
-from ..builders._utils import _default_effort, _default_threads
+from ..builders._utils import _default_effort, _default_threads, _cook_nd_args
 from ._utils import _Xfftn
 import numpy
 
@@ -67,18 +67,21 @@ from scipy.fftpack import (diff, tilbert, itilbert,
 # a next_fast_len specific to pyFFTW is used in place of the scipy.fftpack one
 from ..pyfftw import next_fast_len
 
+try:
+    # scipy 1.2.0 introduced helpers for validating shape and axes
+    from scipy.fftpack.helper import (
+        _init_nd_shape_and_axes_sorted, _init_nd_shape_and_axes_sorted)
+except ImportError:
+    _init_nd_shape_and_axes_sorted = None
+    _init_nd_shape_and_axes = None
+
 
 __all__ = ['fft', 'ifft', 'fftn', 'ifftn', 'rfft', 'irfft', 'fft2', 'ifft2',
            'dct', 'idct', 'dst', 'idst', 'diff', 'tilbert', 'itilbert',
            'hilbert', 'ihilbert', 'cs_diff', 'sc_diff', 'ss_diff', 'cc_diff',
            'shift', 'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve',
-           'next_fast_len', ]
+           'next_fast_len', 'dctn', 'idctn', 'dstn', 'idstn']
 
-try:
-    from scipy.fftpack import dctn, idctn, dstn, idstn
-    __all__ += ['dctn', 'idctn', 'dstn', 'idstn']
-except ImportError:
-    pass
 
 def fft(x, n=None, axis=-1, overwrite_x=False,
         planner_effort=None, threads=None,
@@ -149,15 +152,19 @@ def fftn(x, shape=None, axes=None, overwrite_x=False,
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
 
-    if shape is not None:
-        if ((axes is not None and len(shape) != len(axes)) or
-                (axes is None and len(shape) != x.ndim)):
-            raise ValueError('Shape error: In order to maintain better '
+    if _init_nd_shape_and_axes_sorted is not None:
+        shape, axes = _init_nd_shape_and_axes_sorted(x, shape, axes)
+    else:
+        if shape is not None:
+            if ((axes is not None and len(shape) != len(axes)) or
+                    (axes is None and len(shape) != x.ndim)):
+                raise ValueError(
+                    'Shape error: In order to maintain better '
                     'compatibility with scipy.fftpack.fftn, a ValueError '
                     'is raised when the length of the shape argument is '
                     'not the same as x.ndim if axes is None or the length '
-                    'of axes if it is not. If this is problematic, consider '
-                    'using the numpy interface.')
+                    'of axes if it is not. If this is problematic, '
+                    'consider using the numpy interface.')
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
     return numpy_fft.fftn(x, shape, axes, None, overwrite_x,
@@ -175,15 +182,19 @@ def ifftn(x, shape=None, axes=None, overwrite_x=False,
     '''
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
-    if shape is not None:
-        if ((axes is not None and len(shape) != len(axes)) or
-                (axes is None and len(shape) != x.ndim)):
-            raise ValueError('Shape error: In order to maintain better '
+    if _init_nd_shape_and_axes_sorted is not None:
+        shape, axes = _init_nd_shape_and_axes_sorted(x, shape, axes)
+    else:
+        if shape is not None:
+            if ((axes is not None and len(shape) != len(axes)) or
+                    (axes is None and len(shape) != x.ndim)):
+                raise ValueError(
+                    'Shape error: In order to maintain better '
                     'compatibility with scipy.fftpack.ifftn, a ValueError '
                     'is raised when the length of the shape argument is '
                     'not the same as x.ndim if axes is None or the length '
-                    'of axes if it is not. If this is problematic, consider '
-                    'using the numpy interface.')
+                    'of axes if it is not. If this is problematic, '
+                    'consider using the numpy interface.')
 
     return numpy_fft.ifftn(x, shape, axes, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
@@ -324,7 +335,7 @@ def dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     x = numpy.asanyarray(x)
     if n is None:
         n = x.shape[axis]
-    else:
+    elif n != x.shape[axis]:
         raise NotImplementedError("Padding/truncating not yet implemented")
 
     if norm is not None:
@@ -415,7 +426,7 @@ def dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     x = numpy.asanyarray(x)
     if n is None:
         n = x.shape[axis]
-    else:
+    elif n != x.shape[axis]:
         raise NotImplementedError("Padding/truncating not yet implemented")
 
     if norm is not None:
@@ -490,3 +501,143 @@ def idst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
                type=inverse_type, planner_effort=planner_effort,
                threads=threads, auto_align_input=auto_align_input,
                auto_contiguous=auto_contiguous)
+
+def dctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
+         planner_effort=None, threads=None,
+         auto_align_input=True, auto_contiguous=True):
+    """Performan a multidimensional Discrete Cosine Transform.
+
+    The first six arguments are as per :func:`scipy.fftpack.dctn`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    """
+    x = numpy.asanyarray(x)
+    if _init_nd_shape_and_axes is not None:
+        shape, axes = _init_nd_shape_and_axes(x, shape, axes)
+    else:
+        if shape is not None:
+            if ((axes is not None and len(shape) != len(axes)) or
+                    (axes is None and len(shape) != x.ndim)):
+                raise ValueError(
+                    'Shape error: In order to maintain better '
+                    'compatibility with scipy.fftpack.ifftn, a ValueError '
+                    'is raised when the length of the shape argument is '
+                    'not the same as x.ndim if axes is None or the length '
+                    'of axes if it is not. If this is problematic, '
+                    'consider using the numpy interface.')
+        if numpy.isscalar(shape):
+            shape = (shape, )
+        if numpy.isscalar(axes):
+            axes = (axes, )
+        shape, axes = _cook_nd_args(x, s=shape, axes=axes, invreal=False)
+    for n, ax in zip(shape, axes):
+        x = dct(x, type=type, n=n, axis=ax, norm=norm,
+                overwrite_x=overwrite_x, planner_effort=planner_effort,
+                threads=threads, auto_align_input=auto_align_input,
+                auto_contiguous=auto_contiguous)
+    return x
+
+def idctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
+          planner_effort=None, threads=None,
+          auto_align_input=True, auto_contiguous=True):
+    """Performan a multidimensional inverse Discrete Cosine Transform.
+
+    The first six arguments are as per :func:`scipy.fftpack.idctn`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    """
+    x = numpy.asanyarray(x)
+    if _init_nd_shape_and_axes is not None:
+        shape, axes = _init_nd_shape_and_axes(x, shape, axes)
+    else:
+        if shape is not None:
+            if ((axes is not None and len(shape) != len(axes)) or
+                    (axes is None and len(shape) != x.ndim)):
+                raise ValueError(
+                    'Shape error: In order to maintain better '
+                    'compatibility with scipy.fftpack.ifftn, a ValueError '
+                    'is raised when the length of the shape argument is '
+                    'not the same as x.ndim if axes is None or the length '
+                    'of axes if it is not. If this is problematic, '
+                    'consider using the numpy interface.')
+        if numpy.isscalar(shape):
+            shape = (shape, )
+        if numpy.isscalar(axes):
+            axes = (axes, )
+        shape, axes = _cook_nd_args(x, s=shape, axes=axes, invreal=False)
+    for n, ax in zip(shape, axes):
+        x = idct(x, type=type, n=n, axis=ax, norm=norm,
+                 overwrite_x=overwrite_x, planner_effort=planner_effort,
+                 threads=threads, auto_align_input=auto_align_input,
+                 auto_contiguous=auto_contiguous)
+    return x
+
+def dstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
+         planner_effort=None, threads=None,
+         auto_align_input=True, auto_contiguous=True):
+    """Performan a multidimensional Discrete Sine Transform.
+
+    The first six arguments are as per :func:`scipy.fftpack.dstn`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    """
+    x = numpy.asanyarray(x)
+    if _init_nd_shape_and_axes is not None:
+        shape, axes = _init_nd_shape_and_axes(x, shape, axes)
+    else:
+        if shape is not None:
+            if ((axes is not None and len(shape) != len(axes)) or
+                    (axes is None and len(shape) != x.ndim)):
+                raise ValueError(
+                    'Shape error: In order to maintain better '
+                    'compatibility with scipy.fftpack.ifftn, a ValueError '
+                    'is raised when the length of the shape argument is '
+                    'not the same as x.ndim if axes is None or the length '
+                    'of axes if it is not. If this is problematic, '
+                    'consider using the numpy interface.')
+        if numpy.isscalar(shape):
+            shape = (shape, )
+        if numpy.isscalar(axes):
+            axes = (axes, )
+        shape, axes = _cook_nd_args(x, s=shape, axes=axes, invreal=False)
+    for n, ax in zip(shape, axes):
+        x = dst(x, type=type, n=n, axis=ax, norm=norm,
+                overwrite_x=overwrite_x, planner_effort=planner_effort,
+                threads=threads, auto_align_input=auto_align_input,
+                auto_contiguous=auto_contiguous)
+    return x
+
+def idstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
+          planner_effort=None, threads=None,
+          auto_align_input=True, auto_contiguous=True):
+    """Performan a multidimensional inverse Discrete Sine Transform.
+
+    The first six arguments are as per :func:`scipy.fftpack.idstn`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    """
+    x = numpy.asanyarray(x)
+    if _init_nd_shape_and_axes is not None:
+        shape, axes = _init_nd_shape_and_axes(x, shape, axes)
+    else:
+        if shape is not None:
+            if ((axes is not None and len(shape) != len(axes)) or
+                    (axes is None and len(shape) != x.ndim)):
+                raise ValueError(
+                    'Shape error: In order to maintain better '
+                    'compatibility with scipy.fftpack.ifftn, a ValueError '
+                    'is raised when the length of the shape argument is '
+                    'not the same as x.ndim if axes is None or the length '
+                    'of axes if it is not. If this is problematic, '
+                    'consider using the numpy interface.')
+        if numpy.isscalar(shape):
+            shape = (shape, )
+        if numpy.isscalar(axes):
+            axes = (axes, )
+        shape, axes = _cook_nd_args(x, s=shape, axes=axes, invreal=False)
+    for n, ax in zip(shape, axes):
+        x = idst(x, type=type, n=n, axis=ax, norm=norm,
+                 overwrite_x=overwrite_x, planner_effort=planner_effort,
+                 threads=threads, auto_align_input=auto_align_input,
+                 auto_contiguous=auto_contiguous)
+    return x

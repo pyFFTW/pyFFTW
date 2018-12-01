@@ -127,7 +127,7 @@ class TestRealTransform(object):
     takes multiple arguments as input which set up the size and
     directions of the transform.
     '''
-    def __init__(self, directions, dims, axes=None, noncontiguous=True):
+    def __init__(self, directions=['FFTW_REDFT00'], dims=(16, ), axes=None, noncontiguous=True):
         """
         Arguments:
 
