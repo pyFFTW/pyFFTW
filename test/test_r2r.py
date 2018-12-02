@@ -42,6 +42,7 @@ import unittest
 import numpy
 
 import pyfftw
+from pyfftw import _supported_types
 from .test_pyfftw_base import run_test_suites
 
 discrete_sine_directions = ['FFTW_RODFT00', 'FFTW_RODFT01', 'FFTW_RODFT10',
@@ -98,6 +99,7 @@ nodes_lookup = {
     'FFTW_REDFT11': lambda n: (numpy.arange(n) + 0.5)/n,
 }
 
+@unittest.skipIf('64' not in _supported_types, 'double precision unavailable')
 class TestRealToRealLookups(unittest.TestCase):
     '''Test that the lookup tables correctly pair node choices and
     function choices for using the DCT/DST as interpolators.
@@ -127,7 +129,8 @@ class TestRealTransform(object):
     takes multiple arguments as input which set up the size and
     directions of the transform.
     '''
-    def __init__(self, directions=['FFTW_REDFT00'], dims=(16, ), axes=None, noncontiguous=True):
+    def __init__(self, directions=['FFTW_REDFT00'], dims=(16, ), axes=None,
+                 noncontiguous=True, dtype=None):
         """
         Arguments:
 
@@ -172,11 +175,23 @@ class TestRealTransform(object):
         self.inverse_plan = pyfftw.FFTW(self._input_array, self._output_array,
             axes=self.axes, direction=self.inverse_directions)
 
+        self.tol = 1e-10
+        if dtype is None:
+            if '64' in _supported_types:
+                dtype = numpy.float64
+            elif '32' in _supported_types:
+                dtype = numpy.float32
+                self.tol = 1e-5
+            elif 'ld' in _supported_types:
+                dtype = numpy.longdouble
+                self.tol = 1e-14
+        self.dtype = dtype
+
     def test_normalisation(self):
         return self._normalisation_factor == float(self.plan._get_N())
 
     def test_against_random_data(self):
-        data = numpy.random.rand(*self.dims)
+        data = numpy.random.rand(*self.dims).astype(self.dtype, copy=False)
         self._input_array[:] = data
         self.plan.execute()
         self._input_array[:] = self._output_array[:]
@@ -184,11 +199,11 @@ class TestRealTransform(object):
 
         data *= self._normalisation_factor
         err = numpy.mean(numpy.abs(data - self._output_array))/self._normalisation_factor
-        return err < 10e-8
+        return err < self.tol
 
     def test_against_exact_data(self):
         points = grid(self.dims, self.axes, self.directions)
-        data   = numpy.ones_like(points[0])
+        data = numpy.ones_like(points[0], dtype=self.dtype)
         wavenumbers = list()
         factors = list()
 
@@ -201,7 +216,7 @@ class TestRealTransform(object):
                 wavenumber_min = 0
                 wavenumber_max = self.dims[axis] - 2
             _wavenumbers = sorted({rand.randint(wavenumber_min, wavenumber_max)
-                                 for _ in range(self.dims[axis])})
+                                  for _ in range(self.dims[axis])})
             _factors = [rand.randint(1, 8) for _ in _wavenumbers]
             interpolated_function = interpolated_function_lookup[
                 self.directions[index]]
@@ -218,8 +233,8 @@ class TestRealTransform(object):
         for index, axis in enumerate(self.axes):
             dim = self.dims[axis]
             sp = list(it.repeat(slice(None), len(data.shape)))
-            zero_indicies = (numpy.array(list(set(numpy.arange(0, dim))
-                                      - set(wavenumbers[index]))))
+            zero_indicies = (numpy.array(list(set(numpy.arange(0, dim)) -
+                             set(wavenumbers[index]))))
             if len(zero_indicies) == 0:
                 pass
             else:
@@ -236,9 +251,9 @@ class TestRealTransform(object):
                 sp[axis] = wavenumber
                 exact_coefficients[tuple(sp)] *= factor
 
-        error = numpy.mean(numpy.abs(self._output_array/normalisation
-                              - exact_coefficients))
-        return error < 1e-8
+        error = numpy.mean(numpy.abs(self._output_array/normalisation -
+                           exact_coefficients))
+        return error < self.tol
 
 
 def meshgrid(*x):
@@ -313,18 +328,21 @@ def random_testcase():
         return TestRealTransform(directions, dims, axes=axes)
 
 
+@unittest.skipIf('64' not in _supported_types, 'double precision unavailable')
 class RealToRealNormalisation(unittest.TestCase):
     def test_normalisation(self):
         for _ in range(50):
             testcase = random_testcase()
             self.assertTrue(testcase.test_normalisation())
 
+@unittest.skipIf('64' not in _supported_types, 'double precision unavailable')
 class RealToRealExactData(unittest.TestCase):
     def test_exact_data(self):
         for _ in range(50):
             testcase = random_testcase()
             self.assertTrue(testcase.test_against_exact_data())
 
+@unittest.skipIf('64' not in _supported_types, 'double precision unavailable')
 class RealToRealRandomData(unittest.TestCase):
     def test_random_data(self):
         for _ in range(50):
