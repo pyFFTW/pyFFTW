@@ -4,12 +4,12 @@
 | --- | --- | --- |
 | [![travis_ci](https://travis-ci.org/pyFFTW/pyFFTW.svg?branch=master)](https://travis-ci.org/pyFFTW/pyFFTW) | [![appveyor_ci](https://ci.appveyor.com/api/projects/status/uf854abck4x1qsjj/branch/master?svg=true)](https://ci.appveyor.com/project/hgomersall/pyfftw) | [![read_the_docs](https://readthedocs.org/projects/pyfftw/badge/?version=latest)](http://pyfftw.readthedocs.io/en/latest/?badge=latest) |
 
-### Conda-forge status
+### Conda-forge Status
 
 [![Linux](https://img.shields.io/circleci/project/github/conda-forge/pyfftw-feedstock/master.svg?label=Linux)](https://circleci.com/gh/conda-forge/pyfftw-feedstock) [![OSX](https://img.shields.io/travis/conda-forge/pyfftw-feedstock/master.svg?label=macOS)](https://travis-ci.org/conda-forge/pyfftw-feedstock) [![Windows](https://img.shields.io/appveyor/ci/conda-forge/pyfftw-feedstock/master.svg?label=Windows)](https://ci.appveyor.com/project/conda-forge/pyfftw-feedstock/branch/master)
 
 
-### Conda-forge info
+### Conda-forge Info
 
 | Name | Downloads | Version | Platforms |
 | --- | --- | --- | --- |
