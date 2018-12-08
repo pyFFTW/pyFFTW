@@ -1,3 +1,5 @@
+**Current Build Status**
+
 +---------------+-----------------+
 | Service       | Master branch   |
 +===============+=================+
@@ -19,6 +21,33 @@
 .. |read_the_docs| image:: https://readthedocs.org/projects/pyfftw/badge/?version=latest
    :align: middle
    :target: http://pyfftw.readthedocs.io/en/latest/?badge=latest
+
+
+**Conda-forge status**
+
+.. image:: https://img.shields.io/circleci/project/github/conda-forge/pyfftw-feedstock/master.svg?label=Linux
+   :target: https://circleci.com/gh/conda-forge/pyfftw-feedstock
+
+.. image:: https://img.shields.io/travis/conda-forge/pyfftw-feedstock/master.svg?label=macOS
+   :target: https://travis-ci.org/conda-forge/pyfftw-feedstock
+
+.. image:: https://img.shields.io/appveyor/ci/conda-forge/pyfftw-feedstock/master.svg?label=Windows
+   :target: https://ci.appveyor.com/project/conda-forge/pyfftw-feedstock/branch/master
+
+
+**Conda-forge info**
+
+.. image:: https://img.shields.io/badge/recipe-pyfftw-green.svg
+   :target: https://anaconda.org/conda-forge/pyfftw
+
+.. image:: https://img.shields.io/conda/dn/conda-forge/pyfftw.svg
+   :target: https://anaconda.org/conda-forge/pyfftw
+
+.. image:: https://img.shields.io/conda/vn/conda-forge/pyfftw.svg
+   :target: https://anaconda.org/conda-forge/pyfftw
+
+.. image:: https://img.shields.io/conda/pn/conda-forge/pyfftw.svg
+   :target: https://anaconda.org/conda-forge/pyfftw
 
 PyFFTW
 ======
