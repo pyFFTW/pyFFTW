@@ -70,25 +70,27 @@ Scipy and Dask are only required in order to use their respective interfaces.
 Installation
 ------------
 
-We recommend *not* building from github, but using the release on
-the python package index with tools such as easy_install or pip::
+We recommend *not* building from github, but using the release on the python
+package index with tools such as pip::
 
   pip install pyfftw
 
-or::
+Pre-built binary wheels for 64-bit Linux, Mac OS X and Windows are available on
+the PyPI_ page for all supported Python versions.
 
-  easy_install pyfftw
+Installation from PyPI may also work on other systems when the FFTW libraries
+are available, but other platforms have not been tested.
 
-Installers are on the PyPI_ page for both 32- and 64-bit Windows, which include
-all the necessary DLLs.
+Alternatively, users of the `conda`_ package manager can install from the
+`conda-forge`_ channel via::
 
-With FFTW installed, the PyPI release should install fine on Linux and Mac OSX. It doesn't mean it won't work anywhere else, just we don't have any information on it.
+  conda install -c conda-forge pyfftw
 
 Windows development builds are also automatically uploaded to bintray_ as
-wheels (which are built against numpy 1.9), from where they can be downloaded
+wheels (which are built against numpy 1.10), from where they can be downloaded
 and installed with something like::
 
-  pip install pyFFTW-0.10.0.dev0+79ec589-cp35-none-win_amd64.whl
+  pip install pyFFTW-0.11.1+3.g898bce5-cp36-cp36m-win_amd64.whl
 
 where the version and the revision hash are set accordingly.
 
@@ -101,7 +103,11 @@ To build in place::
 
   python setup.py build_ext --inplace
 
-That cythons the python extension and builds it into a shared library
+or::
+
+  pip install -r requirements.txt -e . -v
+
+That cythonizes the python extension and builds it into a shared library
 which is placed in ``pyfftw/``. The directory can then be treated as a python
 package.
 
@@ -220,3 +226,5 @@ might be heading, or what others are working on.
 .. _bintray: https://bintray.com/hgomersall/generic/PyFFTW-development-builds/view
 .. _PEP 8: https://www.python.org/dev/peps/pep-0008
 .. _macports:  https://www.macports.org
+.. _conda: https://conda.io/docs/
+.. _conda-forge: https://conda-forge.org/
