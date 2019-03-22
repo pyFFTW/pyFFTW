@@ -799,7 +799,7 @@ cdef class FFTW:
     cdef int64_t *_axes
     cdef int64_t *_not_axes
 
-    cdef int64_t _N
+    cdef int64_t _total_size
 
     cdef bint _normalise_idft
     cdef bint _ortho
@@ -810,7 +810,7 @@ cdef class FFTW:
         1/N is the normalisation constant. For any input array A,
         and for any set of axes, 1/N * ifft(fft(A)) = A
         '''
-        return self._N
+        return self._total_size
 
     N = property(_get_N)
 
@@ -1139,7 +1139,7 @@ cdef class FFTW:
             else:
                 total_N *= self._output_shape[self._axes[n]]
 
-        self._N = total_N
+        self._total_size = total_N
         self._normalisation_scaling = 1/float(self.N)
         self._sqrt_normalisation_scaling = np.sqrt(self._normalisation_scaling)
 
