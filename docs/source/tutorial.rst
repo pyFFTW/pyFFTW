@@ -472,6 +472,12 @@ Understanding :mod:`numpy.fft`, these functions are largely
 self-explanatory. We point the reader to the :mod:`API docs <pyfftw.builders>`
 for more information.
 
+If you like the :mod:`pyfftw.builders` functions, but do not need or wish to
+interact with :class:`pyfftw.FFTW`-instances directly, the third party 
+:mod:`planfftw` package provides helper functions that return planned functions
+similar to those in :mod:`numpy.fft`, as well as FFTW-powered versions of some
+functions from :mod:`scipy.signal`.
+
 .. _configuration:
 
 Configuring FFTW planning effort and number of threads
