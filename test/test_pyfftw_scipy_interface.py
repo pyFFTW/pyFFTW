@@ -61,8 +61,7 @@ funcs = ('fft','ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
 
 acquired_names = ('dct', 'idct', 'diff', 'tilbert', 'itilbert', 'hilbert',
         'ihilbert', 'cs_diff', 'sc_diff', 'ss_diff', 'cc_diff', 'shift',
-        'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve',
-        '_fftpack')
+        'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve')
 
 def make_complex_data(shape, dtype):
     ar, ai = dtype(numpy.random.randn(2, *shape))
