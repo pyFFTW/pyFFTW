@@ -5,6 +5,7 @@
    :hidden:
 
    numpy_fft
+   scipy_fft
    scipy_fftpack
    dask_fft
 
