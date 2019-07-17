@@ -96,26 +96,23 @@ which can be set with :func:`pyfftw.interfaces.cache.set_keepalive_time`,
 then they are removed from the cache (liberating any associated memory).
 The default keepalive time is 0.1 seconds.
 
-Monkey patching 3rd party libraries
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Integration with 3rd party libraries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Since :mod:`pyfftw.interfaces.numpy_fft` and
-:mod:`pyfftw.interfaces.scipy_fftpack` are drop-in replacements for their
-:mod:`numpy.fft` and :mod:`scipy.fftpack` libraries respectively, it is
-possible to use them as replacements at run-time through monkey patching. Note
-that the interfaces (and builders) all currently default to a single thread.
-The number of threads to use can be configured by assigning a positive integer
-to `pyfftw.config.NUM_THREADS` (see more details under
-:ref:configuration <interfaces_tutorial>).
+SciPy versions 1.4 and above have support for installing different FFT
+backends. :mod:`pyfftw.interfaces.scipy_fft` support the use as a backend. Note
+that the interfaces (and builders) all currently default to a single thread. The
+number of threads to use can be configured by assigning a positive integer to
+`pyfftw.config.NUM_THREADS` (see more details under :ref:configuration
+<interfaces_tutorial>). The following code demonstrates using the :mod:`pyfftw`
+backend to speed up :func:`scipy.signal.fftconvolve`.
 
-The following code demonstrates :func:`scipy.signal.fftconvolve` being monkey
-patched in order to speed it up.
-
-.. testcode::
+.. codeblock:: python
 
    import pyfftw
    import multiprocessing
    import scipy.signal
+   import scipy.fft
    import numpy
    from timeit import Timer
 
@@ -127,35 +124,41 @@ patched in order to speed it up.
 
    t = Timer(lambda: scipy.signal.fftconvolve(a, b))
 
-   print('Time with scipy.fftpack: %1.3f seconds' % t.timeit(number=100))
+   print('Time with scipy.fft: %1.3f seconds' % t.timeit(number=100))
 
    # Configure PyFFTW to use all cores (the default is single-threaded)
    pyfftw.config.NUM_THREADS = multiprocessing.cpu_count()
 
-   # Monkey patch fftpack with pyfftw.interfaces.scipy_fftpack
-   scipy.fftpack = pyfftw.interfaces.scipy_fftpack
-   scipy.signal.fftconvolve(a, b) # We cheat a bit by doing the planning first
+   # Use the backend pyfftw.interfaces.scipy_fft
+   with scipy.fft.set_backend(pyfftw.interfaces.scipy_fft):
+        scipy.signal.fftconvolve(a, b) # We cheat a bit by doing the planning first
 
-   # Turn on the cache for optimum performance
-   pyfftw.interfaces.cache.enable()
+        # Turn on the cache for optimum performance
+        pyfftw.interfaces.cache.enable()
 
-   print('Time with monkey patched scipy_fftpack: %1.3f seconds' %
-          t.timeit(number=100))
-
-.. testoutput::
-   :hide:
-
-   ...
-   ...
+        print('Time with monkey patched scipy_fftpack: %1.3f seconds' %
+               t.timeit(number=100))
 
 which outputs something like:
 
 .. code-block:: none
 
-   Time with scipy.fftpack: 0.598 seconds
-   Time with monkey patched scipy_fftpack: 0.251 seconds
+   Time with scipy.fft: 0.598 seconds
+   Time with monkey patched scipy_fft: 0.251 seconds
 
-Note that prior to Scipy 0.16, it was necessary to patch the individual
+Prior to SciPy 1.4 it was necessary to monkey patch the libraries
+directly. :mod:`pyfftw.interfaces.numpy_fft` and
+:mod:`pyfftw.interfaces.scipy_fftpack` are drop-in replacements for the
+:mod:`numpy.fft` and :mod:`scipy.fftpack` libraries respectively so it is
+possible to use them as replacements at run-time through monkey patching.
+
+.. codeblock:: python
+
+   # Monkey patch fftpack with pyfftw.interfaces.scipy_fftpack
+   scipy.fftpack = pyfftw.interfaces.scipy_fftpack
+   scipy.signal.fftconvolve(a, b) # We cheat a bit by doing the planning first
+
+Note that prior to SciPy 0.16, it was necessary to patch the individual
 functions in ``scipy.signal.signaltools``. For example:
 
 .. code-block:: python

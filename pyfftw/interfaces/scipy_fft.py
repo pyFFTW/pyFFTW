@@ -59,6 +59,8 @@ from scipy.fft import (dct, idct, dst, idst, dctn, idctn, dstn, idstn,
 # a next_fast_len specific to pyFFTW is used in place of the scipy.fft one
 from ..pyfftw import next_fast_len
 
+import scipy.fft as _fft
+
 
 __all__ = ['fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
            'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn', 'irfftn',
@@ -67,6 +69,30 @@ __all__ = ['fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
            'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq']
 
 
+# Backend support for scipy.fft
+
+_implemented = {}
+
+__ua_domain__ = 'numpy.scipy.fft'
+
+
+def __ua_function__(method, args, kwargs):
+    fn = _implemented.get(method, None)
+    if fn is None:
+        return NotImplemented
+    return fn(*args, **kwargs)
+
+
+def _implements(scipy_func):
+    '''Decorator adds function to the dictionary of implemented functions'''
+    def inner(func):
+        _implemented[scipy_func] = func
+        return func
+
+    return inner
+
+
+@_implements(_fft.fft)
 def fft(x, n=None, axis=-1, norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
@@ -79,6 +105,7 @@ def fft(x, n=None, axis=-1, norm=None, overwrite_x=False,
     return numpy_fft.fft(x, n, axis, norm, overwrite_x, planner_effort,
             threads, auto_align_input, auto_contiguous)
 
+@_implements(_fft.ifft)
 def ifft(x, n=None, axis=-1, norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
@@ -92,6 +119,7 @@ def ifft(x, n=None, axis=-1, norm=None, overwrite_x=False,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
+@_implements(_fft.fft2)
 def fft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
@@ -105,6 +133,7 @@ def fft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
+@_implements(_fft.ifft2)
 def ifft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
@@ -118,6 +147,7 @@ def ifft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
+@_implements(_fft.fftn)
 def fftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
@@ -141,6 +171,7 @@ def fftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
+@_implements(_fft.ifftn)
 def ifftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
@@ -164,6 +195,7 @@ def ifftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
+@_implements(_fft.rfft)
 def rfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
@@ -176,6 +208,7 @@ def rfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
     return numpy_fft.rfft(x, n, axis, norm, overwrite_x, planner_effort,
                           threads, auto_align_input, auto_contiguous)
 
+@_implements(_fft.irfft)
 def irfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
@@ -189,6 +222,7 @@ def irfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
                            threads, auto_align_input, auto_contiguous)
 
 
+@_implements(_fft.rfft2)
 def rfft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
@@ -202,6 +236,7 @@ def rfft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
+@_implements(_fft.irfft2)
 def irfft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
@@ -215,6 +250,7 @@ def irfft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
+@_implements(_fft.rfftn)
 def rfftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
@@ -238,6 +274,7 @@ def rfftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
+@_implements(_fft.irfftn)
 def irfftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
@@ -261,6 +298,7 @@ def irfftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
 
+@_implements(_fft.hfft)
 def hfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
@@ -273,6 +311,7 @@ def hfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
     return numpy_fft.hfft(x, n, axis, norm, overwrite_x, planner_effort,
                           threads, auto_align_input, auto_contiguous)
 
+@_implements(_fft.ihfft)
 def ihfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
