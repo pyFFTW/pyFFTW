@@ -57,7 +57,7 @@ import numpy
 from scipy.fftpack import (dct, idct, dst, idst, diff, tilbert, itilbert,
         hilbert, ihilbert, cs_diff, sc_diff, ss_diff, cc_diff,
         shift, fftshift, ifftshift, fftfreq, rfftfreq,
-        convolve, _fftpack)
+        convolve)
 
 # a next_fast_len specific to pyFFTW is used in place of the scipy.fftpack one
 from ..pyfftw import next_fast_len
