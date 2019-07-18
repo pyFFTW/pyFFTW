@@ -60,6 +60,7 @@ from scipy.fft import (dct, idct, dst, idst, dctn, idctn, dstn, idstn,
 from ..pyfftw import next_fast_len
 
 import scipy.fft as _fft
+import numpy as np
 
 
 __all__ = ['fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
@@ -205,6 +206,10 @@ def rfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
+    x = np.asanyarray(x)
+    if not np.isrealobj(x):
+        raise TypeError('x must be a real sequence')
+
     return numpy_fft.rfft(x, n, axis, norm, overwrite_x, planner_effort,
                           threads, auto_align_input, auto_contiguous)
 
@@ -232,6 +237,10 @@ def rfft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
+    x = np.asanyarray(x)
+    if not np.isrealobj(x):
+        raise TypeError('x must be a real sequence')
+
     return numpy_fft.rfft2(x, shape, axes, norm, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
@@ -260,6 +269,10 @@ def rfftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
+    x = np.asanyarray(x)
+    if not np.isrealobj(x):
+        raise TypeError('x must be a real sequence')
+
 
     if shape is not None:
         if ((axes is not None and len(shape) != len(axes)) or
@@ -321,5 +334,9 @@ def ihfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
+    x = np.asanyarray(x)
+    if not np.isrealobj(x):
+        raise TypeError('x must be a real sequence')
+
     return numpy_fft.ihfft(x, n, axis, norm, overwrite_x, planner_effort,
                            threads, auto_align_input, auto_contiguous)
