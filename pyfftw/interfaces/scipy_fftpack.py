@@ -42,14 +42,6 @@ The exceptions raised by each of these functions are mostly as per their
 equivalents in :mod:`scipy.fftpack`, though there are some corner cases in
 which this may not be true.
 
-It is notable that unlike :mod:`scipy.fftpack`, these functions will
-generally return an output array with the same precision as the input
-array, and the transform that is chosen is chosen based on the precision
-of the input array. That is, if the input array is 32-bit floating point,
-then the transform will be 32-bit floating point and so will the returned
-array. Half precision input will be converted to single precision.  Otherwise,
-if any type conversion is required, the default will be double precision.
-
 Some corner (mis)usages of :mod:`scipy.fftpack` may not transfer neatly.
 For example, using :func:`scipy.fftpack.fft2` with a non 1D array and
 a 2D `shape` argument will return without exception whereas
