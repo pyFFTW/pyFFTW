@@ -259,17 +259,15 @@ try:
 except ImportError:
     pass
 else:
+    from distutils.version import LooseVersion as _LooseVersion
+
+    has_scipy_fft = _LooseVersion(scipy.__version__) >= _LooseVersion('1.4.0')
+    del _LooseVersion
     del scipy
+
     from . import scipy_fftpack
-
-
-try:
-    import scipy.fft
-except ImportError:
-    pass
-else:
-    del scipy
-    from . import scipy_fft
+    if has_scipy_fft:
+        from . import scipy_fft
 
 
 fft_wrap = None
