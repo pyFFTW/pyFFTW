@@ -1,7 +1,4 @@
-# Copyright 2014 Knowledge Economy Developments Ltd
-#
-# Henry Gomersall
-# heng@kedevelopments.co.uk
+# Copyright 2019, The pyFFTW developers
 #
 # All rights reserved.
 #

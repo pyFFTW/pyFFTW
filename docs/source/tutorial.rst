@@ -124,17 +124,19 @@ backend to speed up :func:`scipy.signal.fftconvolve`.
 
    t = Timer(lambda: scipy.signal.fftconvolve(a, b))
 
-   print('Time with scipy.fft default backend: %1.3f seconds' % t.timeit(number=100))
+   print('Time with scipy.fft default backend: %1.3f seconds' %
+         t.timeit(number=100))
 
    # Configure PyFFTW to use all cores (the default is single-threaded)
    pyfftw.config.NUM_THREADS = multiprocessing.cpu_count()
 
    # Use the backend pyfftw.interfaces.scipy_fft
    with scipy.fft.set_backend(pyfftw.interfaces.scipy_fft):
-        scipy.signal.fftconvolve(a, b) # We cheat a bit by doing the planning first
-
         # Turn on the cache for optimum performance
         pyfftw.interfaces.cache.enable()
+
+         # We cheat a bit by doing the planning first
+        scipy.signal.fftconvolve(a, b)
 
         print('Time with pyfftw backend installed: %1.3f seconds' %
                t.timeit(number=100))
@@ -143,8 +145,8 @@ which outputs something like:
 
 .. code-block:: none
 
-   Time with scipy.fft default backend: 0.598 seconds
-   Time with pyfftw backend installed: 0.251 seconds
+   Time with scipy.fft default backend: 0.267 seconds
+   Time with pyfftw backend installed: 0.162 seconds
 
 Prior to SciPy 1.4 it was necessary to monkey patch the libraries
 directly. :mod:`pyfftw.interfaces.numpy_fft` and
@@ -156,7 +158,7 @@ possible to use them as replacements at run-time through monkey patching.
 
    # Monkey patch fftpack with pyfftw.interfaces.scipy_fftpack
    scipy.fftpack = pyfftw.interfaces.scipy_fftpack
-   scipy.signal.fftconvolve(a, b) # We cheat a bit by doing the planning first
+   scipy.signal.fftconvolve(a, b)
 
 Note that prior to SciPy 0.16, it was necessary to patch the individual
 functions in ``scipy.signal.signaltools``. For example:

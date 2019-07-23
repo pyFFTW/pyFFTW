@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 #
-# Henry Gomersall
-# heng@kedevelopments.co.uk
+# Copyright 2019, The pyFFTW developers
 #
 # All rights reserved.
 #
@@ -207,7 +206,7 @@ def rfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
     x = np.asanyarray(x)
-    if not np.isrealobj(x):
+    if x.dtype.kind == 'c':
         raise TypeError('x must be a real sequence')
 
     return numpy_fft.rfft(x, n, axis, norm, overwrite_x, planner_effort,
@@ -238,7 +237,7 @@ def rfft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
     x = np.asanyarray(x)
-    if not np.isrealobj(x):
+    if x.dtype.kind == 'c':
         raise TypeError('x must be a real sequence')
 
     return numpy_fft.rfft2(x, shape, axes, norm, overwrite_x,
@@ -270,7 +269,7 @@ def rfftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
     x = np.asanyarray(x)
-    if not np.isrealobj(x):
+    if x.dtype.kind == 'c':
         raise TypeError('x must be a real sequence')
 
 
@@ -335,7 +334,7 @@ def ihfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
     x = np.asanyarray(x)
-    if not np.isrealobj(x):
+    if x.dtype.kind == 'c':
         raise TypeError('x must be a real sequence')
 
     return numpy_fft.ihfft(x, n, axis, norm, overwrite_x, planner_effort,
