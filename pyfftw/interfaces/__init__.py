@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 '''The :mod:`pyfftw.interfaces` package provides interfaces to :mod:`pyfftw`
-that implement the API of other, more commonly used FFT libraries;
-specifically :mod:`numpy.fft` and :mod:`scipy.fftpack`. The
-intention is to satisfy two clear use cases:
+that implement the API of other, more commonly used FFT libraries; specifically
+:mod:`numpy.fft`, :mod:`scipy.fft` and :mod:`scipy.fftpack`. The intention is
+to satisfy two clear use cases:
 
 1. Simple, clean and well established interfaces to using :mod:`pyfftw`,
    removing the requirement for users to know or understand about creating and
@@ -79,24 +79,24 @@ having performed the transform once.
 Implemented Functions
 ---------------------
 
-The implemented functions are listed below. :mod:`numpy.fft` is implemented
-by :mod:`pyfftw.interfaces.numpy_fft` and :mod:`scipy.fftpack` by
-:mod:`pyfftw.interfaces.scipy_fftpack`. All the implemented functions are
-extended by the use of additional arguments, which are
+The implemented functions are listed below. :mod:`numpy.fft` is implemented by
+:mod:`pyfftw.interfaces.numpy_fft`, :mod:`scipy.fftpack` by
+:mod:`pyfftw.interfaces.scipy_fftpack` and :mod:`scipy.fft` by
+:mod:`pyfftw.interfaces.scipy_fft`. All the implemented functions are extended
+by the use of additional arguments, which are
 :ref:`documented below<interfaces_additional_args>`.
 
-Not all the functions provided by :mod:`numpy.fft` and :mod:`scipy.fftpack`
-are implemented by :mod:`pyfftw.interfaces`. In the case where a function is
-not implemented, the function is imported into the namespace from the
-corresponding library. This means that all the documented functionality of the
-library *is* provided through :mod:`pyfftw.interfaces`.
+Not all the functions provided by :mod:`numpy.fft`, :mod:`scipy.fft` and
+:mod:`scipy.fftpack` are implemented by :mod:`pyfftw.interfaces`. In the case
+where a function is not implemented, the function is imported into the
+namespace from the corresponding library. This means that all the documented
+functionality of the library *is* provided through :mod:`pyfftw.interfaces`.
 
-One known caveat is that repeated axes are potentially handled
-differently. This is certainly the case for :mod:`numpy.fft` and probably
-also true for :mod:`scipy.fftpack` (though it is not defined in the
-docs); axes that are repeated in the axes argument are considered only once, as
-compared to :mod:`numpy.fft` in which repeated axes results in the DFT
-being taken along that axes as many times as the axis occurs.
+One known caveat is that repeated axes are handled differently. Axes that are
+repeated in the ``axes`` argument are considered only once and without error;
+as compared to :mod:`numpy.fft` in which repeated axes results in the DFT being
+taken along that axes as many times as the axis occurs, or to :mod:`scipy`
+where an error is raised.
 
 :mod:`~pyfftw.interfaces.numpy_fft`
 """""""""""""""""""""""""""""""""""
@@ -115,6 +115,25 @@ being taken along that axes as many times as the axis occurs.
 * :func:`pyfftw.interfaces.numpy_fft.irfftn`
 * :func:`pyfftw.interfaces.numpy_fft.hfft`
 * :func:`pyfftw.interfaces.numpy_fft.ihfft`
+
+:mod:`~pyfftw.interfaces.scipy_fft`
+"""""""""""""""""""""""""""""""""""""""
+
+* :func:`pyfftw.interfaces.scipy_fft.fft`
+* :func:`pyfftw.interfaces.scipy_fft.ifft`
+* :func:`pyfftw.interfaces.scipy_fft.fft2`
+* :func:`pyfftw.interfaces.scipy_fft.ifft2`
+* :func:`pyfftw.interfaces.scipy_fft.fftn`
+* :func:`pyfftw.interfaces.scipy_fft.ifftn`
+* :func:`pyfftw.interfaces.scipy_fft.rfft`
+* :func:`pyfftw.interfaces.scipy_fft.irfft`
+* :func:`pyfftw.interfaces.scipy_fft.rfft2`
+* :func:`pyfftw.interfaces.scipy_fft.irfft2`
+* :func:`pyfftw.interfaces.scipy_fft.rfftn`
+* :func:`pyfftw.interfaces.scipy_fft.irfftn`
+* :func:`pyfftw.interfaces.scipy_fft.hfft`
+* :func:`pyfftw.interfaces.scipy_fft.ihfft`
+* :func:`pyfftw.interfaces.scipy_fft.next_fast_len`
 
 :mod:`~pyfftw.interfaces.scipy_fftpack`
 """""""""""""""""""""""""""""""""""""""
@@ -153,12 +172,11 @@ being taken along that axes as many times as the axis occurs.
 Additional Arguments
 --------------------
 
-In addition to the equivalent arguments in :mod:`numpy.fft` and
-:mod:`scipy.fftpack`, all these functions also add several additional
+In addition to the equivalent arguments in :mod:`numpy.fft`, :mod:`scipy.fft`
+and :mod:`scipy.fftpack`, all these functions also add several additional
 arguments for finer control over the FFT. These additional arguments are
-largely a subset of the
-keyword arguments in :mod:`pyfftw.builders` with a few exceptions and with
-different defaults.
+largely a subset of the keyword arguments in :mod:`pyfftw.builders` with a few
+exceptions and with different defaults.
 
 * ``overwrite_input``: Whether or not the input array can be
   overwritten during the transform. This sometimes results in a faster
@@ -167,9 +185,9 @@ different defaults.
   Unlike with :mod:`pyfftw.builders`, this argument is included with
   *every* function in this package.
 
-  In :mod:`~pyfftw.interfaces.scipy_fftpack`, this argument is replaced
-  by ``overwrite_x``, to which it is equivalent (albeit at the same
-  position).
+  In :mod:`~pyfftw.interfaces.scipy_fftpack` and
+  :mod:`~pyfftw.interfaces.scipy_fft`, this argument is replaced by
+  ``overwrite_x``, to which it is equivalent (albeit at the same position).
 
   The default is ``False`` to be consistent with :mod:`numpy.fft`.
 
@@ -241,8 +259,15 @@ try:
 except ImportError:
     pass
 else:
+    from distutils.version import LooseVersion as _LooseVersion
+
+    has_scipy_fft = _LooseVersion(scipy.__version__) >= _LooseVersion('1.4.0')
+    del _LooseVersion
     del scipy
+
     from . import scipy_fftpack
+    if has_scipy_fft:
+        from . import scipy_fft
 
 
 fft_wrap = None
