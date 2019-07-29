@@ -43,7 +43,7 @@ this may not be true.
 
 Some corner (mis)usages of :mod:`scipy.fft` may not transfer neatly.
 For example, using :func:`scipy.fft.fft2` with a non 1D array and
-a 2D `shape` argument will return without exception whereas
+a 2D `s` argument will return without exception whereas
 :func:`pyfftw.interfaces.scipy_fft.fft2` will raise a `ValueError`.
 
 '''
@@ -103,7 +103,7 @@ def fft(x, n=None, axis=-1, norm=None, overwrite_x=False,
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
     return numpy_fft.fft(x, n, axis, norm, overwrite_x, planner_effort,
-            threads, auto_align_input, auto_contiguous)
+                         threads, auto_align_input, auto_contiguous)
 
 @_implements(_fft.ifft)
 def ifft(x, n=None, axis=-1, norm=None, overwrite_x=False,
@@ -120,37 +120,37 @@ def ifft(x, n=None, axis=-1, norm=None, overwrite_x=False,
 
 
 @_implements(_fft.fft2)
-def fft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def fft2(x, s=None, axes=(-2,-1), norm=None, overwrite_x=False,
+         planner_effort=None, threads=None, auto_align_input=True,
+         auto_contiguous=True):
     '''Perform a 2D FFT.
 
     The first three arguments are as per :func:`scipy.fft.fft2`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-    return numpy_fft.fft2(x, shape, axes, norm, overwrite_x,
-            planner_effort, threads, auto_align_input, auto_contiguous)
+    return numpy_fft.fft2(x, s, axes, norm, overwrite_x, planner_effort,
+                          threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.ifft2)
-def ifft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def ifft2(x, s=None, axes=(-2,-1), norm=None, overwrite_x=False,
+          planner_effort=None, threads=None, auto_align_input=True,
+          auto_contiguous=True):
     '''Perform a 2D inverse FFT.
 
     The first five arguments are as per :func:`scipy.fft.ifft2`;
     the rest of the arguments are documented in the
     :ref:`additional argument docs <interfaces_additional_args>`.
     '''
-    return numpy_fft.ifft2(x, shape, axes, norm, overwrite_x,
-            planner_effort, threads, auto_align_input, auto_contiguous)
+    return numpy_fft.ifft2(x, s, axes, norm, overwrite_x, planner_effort,
+                           threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.fftn)
-def fftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def fftn(x, s=None, axes=None, norm=None, overwrite_x=False,
+         planner_effort=None, threads=None, auto_align_input=True,
+         auto_contiguous=True):
     '''Perform an n-D FFT.
 
     The first five arguments are as per :func:`scipy.fft.fftn`;
@@ -158,41 +158,41 @@ def fftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
 
-    if shape is not None:
-        if ((axes is not None and len(shape) != len(axes)) or
-                (axes is None and len(shape) != x.ndim)):
+    if s is not None:
+        if ((axes is not None and len(s) != len(axes)) or
+                (axes is None and len(s) != x.ndim)):
             raise ValueError('Shape error: In order to maintain better '
                     'compatibility with scipy.fft.fftn, a ValueError '
-                    'is raised when the length of the shape argument is '
+                    'is raised when the length of the s argument is '
                     'not the same as x.ndim if axes is None or the length '
                     'of axes if it is not. If this is problematic, consider '
                     'using the numpy interface.')
-    return numpy_fft.fftn(x, shape, axes, norm, overwrite_x,
-            planner_effort, threads, auto_align_input, auto_contiguous)
+    return numpy_fft.fftn(x, s, axes, norm, overwrite_x, planner_effort,
+                          threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.ifftn)
-def ifftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def ifftn(x, s=None, axes=None, norm=None, overwrite_x=False,
+          planner_effort=None, threads=None, auto_align_input=True,
+          auto_contiguous=True):
     '''Perform an n-D inverse FFT.
 
     The first five arguments are as per :func:`scipy.fft.ifftn`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-    if shape is not None:
-        if ((axes is not None and len(shape) != len(axes)) or
-                (axes is None and len(shape) != x.ndim)):
+    if s is not None:
+        if ((axes is not None and len(s) != len(axes)) or
+                (axes is None and len(s) != x.ndim)):
             raise ValueError('Shape error: In order to maintain better '
                     'compatibility with scipy.fft.ifftn, a ValueError '
-                    'is raised when the length of the shape argument is '
+                    'is raised when the length of the s argument is '
                     'not the same as x.ndim if axes is None or the length '
                     'of axes if it is not. If this is problematic, consider '
                     'using the numpy interface.')
 
-    return numpy_fft.ifftn(x, shape, axes, norm, overwrite_x,
-            planner_effort, threads, auto_align_input, auto_contiguous)
+    return numpy_fft.ifftn(x, s, axes, norm, overwrite_x, planner_effort,
+                           threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.rfft)
@@ -227,9 +227,9 @@ def irfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
 
 
 @_implements(_fft.rfft2)
-def rfft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def rfft2(x, s=None, axes=(-2,-1), norm=None, overwrite_x=False,
+          planner_effort=None, threads=None, auto_align_input=True,
+          auto_contiguous=True):
     '''Perform a 2D real FFT.
 
     The first five arguments are as per :func:`scipy.fft.rfft2`;
@@ -240,28 +240,28 @@ def rfft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
     if x.dtype.kind == 'c':
         raise TypeError('x must be a real sequence')
 
-    return numpy_fft.rfft2(x, shape, axes, norm, overwrite_x,
-            planner_effort, threads, auto_align_input, auto_contiguous)
+    return numpy_fft.rfft2(x, s, axes, norm, overwrite_x, planner_effort,
+                           threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.irfft2)
-def irfft2(x, shape=None, axes=(-2,-1), norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def irfft2(x, s=None, axes=(-2,-1), norm=None, overwrite_x=False,
+           planner_effort=None, threads=None, auto_align_input=True,
+           auto_contiguous=True):
     '''Perform a 2D real inverse FFT.
 
     The first five arguments are as per :func:`scipy.fft.irfft2`;
     the rest of the arguments are documented in the
     :ref:`additional argument docs <interfaces_additional_args>`.
     '''
-    return numpy_fft.irfft2(x, shape, axes, norm, overwrite_x,
-            planner_effort, threads, auto_align_input, auto_contiguous)
+    return numpy_fft.irfft2(x, s, axes, norm, overwrite_x, planner_effort,
+                            threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.rfftn)
-def rfftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def rfftn(x, s=None, axes=None, norm=None, overwrite_x=False,
+          planner_effort=None, threads=None, auto_align_input=True,
+          auto_contiguous=True):
     '''Perform an n-D real FFT.
 
     The first five arguments are as per :func:`scipy.fft.rfftn`;
@@ -273,41 +273,41 @@ def rfftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
         raise TypeError('x must be a real sequence')
 
 
-    if shape is not None:
-        if ((axes is not None and len(shape) != len(axes)) or
-                (axes is None and len(shape) != x.ndim)):
+    if s is not None:
+        if ((axes is not None and len(s) != len(axes)) or
+                (axes is None and len(s) != x.ndim)):
             raise ValueError('Shape error: In order to maintain better '
                     'compatibility with scipy.fft.rfftn, a ValueError '
-                    'is raised when the length of the shape argument is '
+                    'is raised when the length of the s argument is '
                     'not the same as x.ndim if axes is None or the length '
                     'of axes if it is not. If this is problematic, consider '
                     'using the numpy interface.')
-    return numpy_fft.rfftn(x, shape, axes, norm, overwrite_x,
-            planner_effort, threads, auto_align_input, auto_contiguous)
+    return numpy_fft.rfftn(x, s, axes, norm, overwrite_x, planner_effort,
+                           threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.irfftn)
-def irfftn(x, shape=None, axes=None, norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def irfftn(x, s=None, axes=None, norm=None, overwrite_x=False,
+           planner_effort=None, threads=None, auto_align_input=True,
+           auto_contiguous=True):
     '''Perform an n-D real inverse FFT.
 
     The first five arguments are as per :func:`scipy.fft.irfftn`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-    if shape is not None:
-        if ((axes is not None and len(shape) != len(axes)) or
-                (axes is None and len(shape) != x.ndim)):
+    if s is not None:
+        if ((axes is not None and len(s) != len(axes)) or
+                (axes is None and len(s) != x.ndim)):
             raise ValueError('Shape error: In order to maintain better '
                     'compatibility with scipy.fft.irfftn, a ValueError '
-                    'is raised when the length of the shape argument is '
+                    'is raised when the length of the s argument is '
                     'not the same as x.ndim if axes is None or the length '
                     'of axes if it is not. If this is problematic, consider '
                     'using the numpy interface.')
 
-    return numpy_fft.irfftn(x, shape, axes, norm, overwrite_x,
-            planner_effort, threads, auto_align_input, auto_contiguous)
+    return numpy_fft.irfftn(x, s, axes, norm, overwrite_x, planner_effort,
+                            threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.hfft)
