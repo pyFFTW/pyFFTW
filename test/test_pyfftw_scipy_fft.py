@@ -125,7 +125,8 @@ for each_func in funcs:
                   'test_interface': scipy_fft if has_scipy_fft else None,
                   'io_dtypes': io_dtypes,
                   'overwrite_input_flag': 'overwrite_x',
-                  'default_s_from_shape_slicer': slice(None)}
+                  'default_s_from_shape_slicer': slice(None),
+                  'threads_arg_name': 'workers'}
 
     cls = type(class_name, (parent_class,), class_dict)
     cls = unittest.skipIf(not has_scipy_fft, "scipy.fft is not available")(cls)

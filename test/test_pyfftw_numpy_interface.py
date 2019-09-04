@@ -159,6 +159,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
     test_interface = interfaces.numpy_fft
     func = 'fft'
     axes_kw = 'axis'
+    threads_arg_name = 'threads'
     overwrite_input_flag = 'overwrite_input'
     default_s_from_shape_slicer = slice(-1, None)
 
@@ -593,10 +594,10 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             else:
                 kwargs = {'axes': (-1,)}
 
-            self.check_arg('threads', (1, 2, 5, 10),
+            self.check_arg(self.threads_arg_name, (1, 2, 5, 10),
                         dtype_tuple[1], test_shape, dtype, s, kwargs)
 
-            kwargs['threads'] = 'bleh'
+            kwargs[self.threads_arg_name] = 'bleh'
 
             # Should not work
             self.assertRaises(TypeError,
