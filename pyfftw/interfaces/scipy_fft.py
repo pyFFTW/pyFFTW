@@ -181,16 +181,6 @@ def fftn(x, s=None, axes=None, norm=None, overwrite_x=False, workers=None,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-
-    if s is not None:
-        if ((axes is not None and len(s) != len(axes)) or
-                (axes is None and len(s) != x.ndim)):
-            raise ValueError(
-                'Shape error: In order to maintain better compatibility '
-                'with scipy.fft.fftn, a ValueError is raised when the length'
-                'of the s argument is not the same as x.ndim if axes is None '
-                'or the length of axes if it is not. If this is problematic, '
-                'consider using the numpy interface.')
     threads = _workers_to_threads(workers)
     return numpy_fft.fftn(x, s, axes, norm, overwrite_x, planner_effort,
                           threads, auto_align_input, auto_contiguous)
@@ -205,15 +195,6 @@ def ifftn(x, s=None, axes=None, norm=None, overwrite_x=False, workers=None,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-    if s is not None:
-        if ((axes is not None and len(s) != len(axes)) or
-                (axes is None and len(s) != x.ndim)):
-            raise ValueError(
-                'Shape error: In order to maintain better compatibility '
-                'with scipy.fft.ifftn, a ValueError is raised when the length'
-                'of the s argument is not the same as x.ndim if axes is None '
-                'or the length of axes if it is not. If this is problematic, '
-                'consider using the numpy interface.')
     threads = _workers_to_threads(workers)
     return numpy_fft.ifftn(x, s, axes, norm, overwrite_x, planner_effort,
                            threads, auto_align_input, auto_contiguous)
@@ -294,16 +275,6 @@ def rfftn(x, s=None, axes=None, norm=None, overwrite_x=False, workers=None,
     x = np.asanyarray(x)
     if x.dtype.kind == 'c':
         raise TypeError('x must be a real sequence')
-
-    if s is not None:
-        if ((axes is not None and len(s) != len(axes)) or
-                (axes is None and len(s) != x.ndim)):
-            raise ValueError(
-                'Shape error: In order to maintain better compatibility '
-                'with scipy.fft.rfftn, a ValueError is raised when the length'
-                'of the s argument is not the same as x.ndim if axes is None '
-                'or the length of axes if it is not. If this is problematic, '
-                'consider using the numpy interface.')
     threads = _workers_to_threads(workers)
     return numpy_fft.rfftn(x, s, axes, norm, overwrite_x, planner_effort,
                            threads, auto_align_input, auto_contiguous)
@@ -318,15 +289,6 @@ def irfftn(x, s=None, axes=None, norm=None, overwrite_x=False, workers=None,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-    if s is not None:
-        if ((axes is not None and len(s) != len(axes)) or
-                (axes is None and len(s) != x.ndim)):
-            raise ValueError(
-                'Shape error: In order to maintain better compatibility '
-                'with scipy.fft.irfftn, a ValueError is raised when the length'
-                'of the s argument is not the same as x.ndim if axes is None '
-                'or the length of axes if it is not. If this is problematic, '
-                'consider using the numpy interface.')
     threads = _workers_to_threads(workers)
     return numpy_fft.irfftn(x, s, axes, norm, overwrite_x, planner_effort,
                             threads, auto_align_input, auto_contiguous)
