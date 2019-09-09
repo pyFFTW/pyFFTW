@@ -215,6 +215,10 @@ exceptions and with different defaults.
 
 * ``threads``: The number of threads used to perform the FFT.
 
+  In :mod:`~pyfftw.interfaces.scipy_fft`, this argument is replaced by
+  ``workers``, which serves the same purpose, but is also compatible with the
+  :func:`scipy.fft.set_workers` context manager.
+
   The default is ``1``.
 
 * ``auto_align_input``: Correctly byte align the input array for optimal
