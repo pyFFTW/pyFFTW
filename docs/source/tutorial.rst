@@ -510,7 +510,7 @@ and planning effort.
 
 The initial values in pyfftw.config at import time can be controlled via the
 environment variables as detailed in the
-:ref:`configuration <_configuration_variables>` documentation.
+:ref:`configuration <configuration_variables>` documentation.
 
 .. rubric:: Footnotes
 
