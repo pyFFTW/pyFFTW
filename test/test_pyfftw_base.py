@@ -41,8 +41,13 @@ import unittest
 
 try:
     import mkl_fft
-    # mkl_fft monkeypatches numpy.fft so explicitly import from fftpack instead
-    from numpy.fft import fftpack as np_fft
+    # mkl_fft monkeypatches numpy.fft
+    # explicitly import from fftpack or pocketfft instead
+    try:
+        # numpy 1.17 replaced fftpack with pocketfft
+        from numpy.fft import pocketfft as np_fft
+    except ImportError:
+        from numpy.fft import fftpack as np_fft
 except ImportError:
     from numpy import fft as np_fft
 

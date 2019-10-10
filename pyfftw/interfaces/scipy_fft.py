@@ -47,13 +47,15 @@ a 2D `s` argument will return without exception whereas
 :func:`pyfftw.interfaces.scipy_fft.fft2` will raise a `ValueError`.
 
 '''
+import os
 
 from . import numpy_fft
 
 # Complete the namespace (these are not actually used in this module)
 from scipy.fft import (dct, idct, dst, idst, dctn, idctn, dstn, idstn,
                        hfft2, ihfft2, hfftn, ihfftn,
-                       fftshift, ifftshift, fftfreq, rfftfreq)
+                       fftshift, ifftshift, fftfreq, rfftfreq,
+                       get_workers, set_workers)
 
 # a next_fast_len specific to pyFFTW is used in place of the scipy.fft one
 from ..pyfftw import next_fast_len
@@ -66,7 +68,8 @@ __all__ = ['fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
            'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn', 'irfftn',
            'hfft', 'ihfft', 'hfft2', 'ihfft2', 'hfftn', 'ihfftn',
            'dct', 'idct', 'dst', 'idst', 'dctn', 'idctn', 'dstn', 'idstn',
-           'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq']
+           'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'get_workers',
+           'set_workers', 'next_fast_len']
 
 
 # Backend support for scipy.fft
@@ -74,6 +77,8 @@ __all__ = ['fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
 _implemented = {}
 
 __ua_domain__ = 'numpy.scipy.fft'
+
+_cpu_count = os.cpu_count()
 
 
 def __ua_function__(method, args, kwargs):
@@ -92,244 +97,223 @@ def _implements(scipy_func):
     return inner
 
 
+def _workers_to_threads(workers):
+    """Handle conversion of workers to a positive number of threads in the
+    same way as scipy.fft.helpers._workers.
+    """
+    if workers is None:
+        return get_workers()
+
+    if workers < 0:
+        if workers >= -_cpu_count:
+            workers += 1 + _cpu_count
+        else:
+            raise ValueError("workers value out of range; got {}, must not be"
+                             " less than {}".format(workers, -_cpu_count))
+    elif workers == 0:
+        raise ValueError("workers must not be zero")
+    return workers
+
+
 @_implements(_fft.fft)
-def fft(x, n=None, axis=-1, norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def fft(x, n=None, axis=-1, norm=None, overwrite_x=False, workers=None,
+        planner_effort=None, auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D FFT.
 
-    The first five arguments are as per :func:`scipy.fft.fft`;
+    The first six arguments are as per :func:`scipy.fft.fft`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
+    threads = _workers_to_threads(workers)
     return numpy_fft.fft(x, n, axis, norm, overwrite_x, planner_effort,
                          threads, auto_align_input, auto_contiguous)
 
+
 @_implements(_fft.ifft)
-def ifft(x, n=None, axis=-1, norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def ifft(x, n=None, axis=-1, norm=None, overwrite_x=False, workers=None,
+         planner_effort=None, auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D inverse FFT.
 
-    The first five arguments are as per :func:`scipy.fft.ifft`;
+    The first six arguments are as per :func:`scipy.fft.ifft`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
+    threads = _workers_to_threads(workers)
     return numpy_fft.ifft(x, n, axis, norm, overwrite_x,
-            planner_effort, threads, auto_align_input, auto_contiguous)
+                          planner_effort, threads, auto_align_input,
+                          auto_contiguous)
 
 
 @_implements(_fft.fft2)
-def fft2(x, s=None, axes=(-2,-1), norm=None, overwrite_x=False,
-         planner_effort=None, threads=None, auto_align_input=True,
-         auto_contiguous=True):
+def fft2(x, s=None, axes=(-2, -1), norm=None, overwrite_x=False, workers=None,
+         planner_effort=None, auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D FFT.
 
-    The first three arguments are as per :func:`scipy.fft.fft2`;
+    The first six arguments are as per :func:`scipy.fft.fft2`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
+    threads = _workers_to_threads(workers)
     return numpy_fft.fft2(x, s, axes, norm, overwrite_x, planner_effort,
                           threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.ifft2)
-def ifft2(x, s=None, axes=(-2,-1), norm=None, overwrite_x=False,
-          planner_effort=None, threads=None, auto_align_input=True,
-          auto_contiguous=True):
+def ifft2(x, s=None, axes=(-2, -1), norm=None, overwrite_x=False, workers=None,
+          planner_effort=None, auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D inverse FFT.
 
-    The first five arguments are as per :func:`scipy.fft.ifft2`;
+    The first six arguments are as per :func:`scipy.fft.ifft2`;
     the rest of the arguments are documented in the
     :ref:`additional argument docs <interfaces_additional_args>`.
     '''
+    threads = _workers_to_threads(workers)
     return numpy_fft.ifft2(x, s, axes, norm, overwrite_x, planner_effort,
                            threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.fftn)
-def fftn(x, s=None, axes=None, norm=None, overwrite_x=False,
-         planner_effort=None, threads=None, auto_align_input=True,
-         auto_contiguous=True):
+def fftn(x, s=None, axes=None, norm=None, overwrite_x=False, workers=None,
+         planner_effort=None, auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D FFT.
 
-    The first five arguments are as per :func:`scipy.fft.fftn`;
+    The first six arguments are as per :func:`scipy.fft.fftn`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-
-    if s is not None:
-        if ((axes is not None and len(s) != len(axes)) or
-                (axes is None and len(s) != x.ndim)):
-            raise ValueError('Shape error: In order to maintain better '
-                    'compatibility with scipy.fft.fftn, a ValueError '
-                    'is raised when the length of the s argument is '
-                    'not the same as x.ndim if axes is None or the length '
-                    'of axes if it is not. If this is problematic, consider '
-                    'using the numpy interface.')
+    threads = _workers_to_threads(workers)
     return numpy_fft.fftn(x, s, axes, norm, overwrite_x, planner_effort,
                           threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.ifftn)
-def ifftn(x, s=None, axes=None, norm=None, overwrite_x=False,
-          planner_effort=None, threads=None, auto_align_input=True,
-          auto_contiguous=True):
+def ifftn(x, s=None, axes=None, norm=None, overwrite_x=False, workers=None,
+          planner_effort=None, auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D inverse FFT.
 
-    The first five arguments are as per :func:`scipy.fft.ifftn`;
+    The first six arguments are as per :func:`scipy.fft.ifftn`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-    if s is not None:
-        if ((axes is not None and len(s) != len(axes)) or
-                (axes is None and len(s) != x.ndim)):
-            raise ValueError('Shape error: In order to maintain better '
-                    'compatibility with scipy.fft.ifftn, a ValueError '
-                    'is raised when the length of the s argument is '
-                    'not the same as x.ndim if axes is None or the length '
-                    'of axes if it is not. If this is problematic, consider '
-                    'using the numpy interface.')
-
+    threads = _workers_to_threads(workers)
     return numpy_fft.ifftn(x, s, axes, norm, overwrite_x, planner_effort,
                            threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.rfft)
-def rfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def rfft(x, n=None, axis=-1, norm=None, overwrite_x=False, workers=None,
+         planner_effort=None, auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D real FFT.
 
-    The first five arguments are as per :func:`scipy.fft.rfft`;
+    The first six arguments are as per :func:`scipy.fft.rfft`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
     x = np.asanyarray(x)
     if x.dtype.kind == 'c':
         raise TypeError('x must be a real sequence')
-
+    threads = _workers_to_threads(workers)
     return numpy_fft.rfft(x, n, axis, norm, overwrite_x, planner_effort,
                           threads, auto_align_input, auto_contiguous)
 
+
 @_implements(_fft.irfft)
-def irfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def irfft(x, n=None, axis=-1, norm=None, overwrite_x=False, workers=None,
+          planner_effort=None, auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D real inverse FFT.
 
-    The first five arguments are as per :func:`scipy.fft.irfft`;
+    The first six arguments are as per :func:`scipy.fft.irfft`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
+    threads = _workers_to_threads(workers)
     return numpy_fft.irfft(x, n, axis, norm, overwrite_x, planner_effort,
                            threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.rfft2)
-def rfft2(x, s=None, axes=(-2,-1), norm=None, overwrite_x=False,
-          planner_effort=None, threads=None, auto_align_input=True,
-          auto_contiguous=True):
+def rfft2(x, s=None, axes=(-2, -1), norm=None, overwrite_x=False, workers=None,
+          planner_effort=None, auto_align_input=True, auto_contiguous=True):
     '''Perform a 2D real FFT.
 
-    The first five arguments are as per :func:`scipy.fft.rfft2`;
+    The first six arguments are as per :func:`scipy.fft.rfft2`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
     x = np.asanyarray(x)
     if x.dtype.kind == 'c':
         raise TypeError('x must be a real sequence')
-
+    threads = _workers_to_threads(workers)
     return numpy_fft.rfft2(x, s, axes, norm, overwrite_x, planner_effort,
                            threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.irfft2)
-def irfft2(x, s=None, axes=(-2,-1), norm=None, overwrite_x=False,
-           planner_effort=None, threads=None, auto_align_input=True,
+def irfft2(x, s=None, axes=(-2, -1), norm=None, overwrite_x=False,
+           workers=None, planner_effort=None, auto_align_input=True,
            auto_contiguous=True):
     '''Perform a 2D real inverse FFT.
 
-    The first five arguments are as per :func:`scipy.fft.irfft2`;
+    The first six arguments are as per :func:`scipy.fft.irfft2`;
     the rest of the arguments are documented in the
     :ref:`additional argument docs <interfaces_additional_args>`.
     '''
+    threads = _workers_to_threads(workers)
     return numpy_fft.irfft2(x, s, axes, norm, overwrite_x, planner_effort,
                             threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.rfftn)
-def rfftn(x, s=None, axes=None, norm=None, overwrite_x=False,
-          planner_effort=None, threads=None, auto_align_input=True,
-          auto_contiguous=True):
+def rfftn(x, s=None, axes=None, norm=None, overwrite_x=False, workers=None,
+          planner_effort=None, auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D real FFT.
 
-    The first five arguments are as per :func:`scipy.fft.rfftn`;
+    The first six arguments are as per :func:`scipy.fft.rfftn`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
     x = np.asanyarray(x)
     if x.dtype.kind == 'c':
         raise TypeError('x must be a real sequence')
-
-
-    if s is not None:
-        if ((axes is not None and len(s) != len(axes)) or
-                (axes is None and len(s) != x.ndim)):
-            raise ValueError('Shape error: In order to maintain better '
-                    'compatibility with scipy.fft.rfftn, a ValueError '
-                    'is raised when the length of the s argument is '
-                    'not the same as x.ndim if axes is None or the length '
-                    'of axes if it is not. If this is problematic, consider '
-                    'using the numpy interface.')
+    threads = _workers_to_threads(workers)
     return numpy_fft.rfftn(x, s, axes, norm, overwrite_x, planner_effort,
                            threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.irfftn)
-def irfftn(x, s=None, axes=None, norm=None, overwrite_x=False,
-           planner_effort=None, threads=None, auto_align_input=True,
-           auto_contiguous=True):
+def irfftn(x, s=None, axes=None, norm=None, overwrite_x=False, workers=None,
+           planner_effort=None, auto_align_input=True, auto_contiguous=True):
     '''Perform an n-D real inverse FFT.
 
-    The first five arguments are as per :func:`scipy.fft.irfftn`;
+    The first six arguments are as per :func:`scipy.fft.irfftn`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-    if s is not None:
-        if ((axes is not None and len(s) != len(axes)) or
-                (axes is None and len(s) != x.ndim)):
-            raise ValueError('Shape error: In order to maintain better '
-                    'compatibility with scipy.fft.irfftn, a ValueError '
-                    'is raised when the length of the s argument is '
-                    'not the same as x.ndim if axes is None or the length '
-                    'of axes if it is not. If this is problematic, consider '
-                    'using the numpy interface.')
-
+    threads = _workers_to_threads(workers)
     return numpy_fft.irfftn(x, s, axes, norm, overwrite_x, planner_effort,
                             threads, auto_align_input, auto_contiguous)
 
 
 @_implements(_fft.hfft)
-def hfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def hfft(x, n=None, axis=-1, norm=None, overwrite_x=False, workers=None,
+         planner_effort=None, auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D Hermitian FFT.
 
-    The first five arguments are as per :func:`scipy.fft.hfft`;
+    The first six arguments are as per :func:`scipy.fft.hfft`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
+    threads = _workers_to_threads(workers)
     return numpy_fft.hfft(x, n, axis, norm, overwrite_x, planner_effort,
                           threads, auto_align_input, auto_contiguous)
 
+
 @_implements(_fft.ihfft)
-def ihfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def ihfft(x, n=None, axis=-1, norm=None, overwrite_x=False, workers=None,
+          planner_effort=None, auto_align_input=True, auto_contiguous=True):
     '''Perform a 1D Hermitian inverse FFT.
 
-    The first five arguments are as per :func:`scipy.fft.ihfft`;
+    The first six arguments are as per :func:`scipy.fft.ihfft`;
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
@@ -337,5 +321,6 @@ def ihfft(x, n=None, axis=-1, norm=None, overwrite_x=False,
     if x.dtype.kind == 'c':
         raise TypeError('x must be a real sequence')
 
+    threads = _workers_to_threads(workers)
     return numpy_fft.ihfft(x, n, axis, norm, overwrite_x, planner_effort,
                            threads, auto_align_input, auto_contiguous)

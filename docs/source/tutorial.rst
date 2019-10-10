@@ -107,7 +107,7 @@ number of threads to use can be configured by assigning a positive integer to
 <interfaces_tutorial>). The following code demonstrates using the :mod:`pyfftw`
 backend to speed up :func:`scipy.signal.fftconvolve`.
 
-.. codeblock:: python
+.. code-block:: python
 
    import pyfftw
    import multiprocessing
@@ -154,7 +154,7 @@ directly. :mod:`pyfftw.interfaces.numpy_fft` and
 :mod:`numpy.fft` and :mod:`scipy.fftpack` libraries respectively so it is
 possible to use them as replacements at run-time through monkey patching.
 
-.. codeblock:: python
+.. code-block:: python
 
    # Monkey patch fftpack with pyfftw.interfaces.scipy_fftpack
    scipy.fftpack = pyfftw.interfaces.scipy_fftpack
@@ -478,7 +478,7 @@ self-explanatory. We point the reader to the :mod:`API docs <pyfftw.builders>`
 for more information.
 
 If you like the :mod:`pyfftw.builders` functions, but do not need or wish to
-interact with :class:`pyfftw.FFTW`-instances directly, the third party 
+interact with :class:`pyfftw.FFTW`-instances directly, the third party
 :mod:`planfftw` package provides helper functions that return planned functions
 similar to those in :mod:`numpy.fft`, as well as FFTW-powered versions of some
 functions from :mod:`scipy.signal`.
@@ -510,7 +510,7 @@ and planning effort.
 
 The initial values in pyfftw.config at import time can be controlled via the
 environment variables as detailed in the
-:ref:`configuration <_configuration_variables>` documentation.
+:ref:`configuration <configuration_variables>` documentation.
 
 .. rubric:: Footnotes
 

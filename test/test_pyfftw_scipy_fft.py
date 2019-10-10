@@ -43,6 +43,7 @@ has_scipy_fft = LooseVersion(scipy_version) >= LooseVersion('1.4.0')
 
 if has_scipy_fft:
     import scipy.fft
+    import scipy.signal
     from pyfftw.interfaces import scipy_fft
 
 import unittest
@@ -54,8 +55,8 @@ from . import test_pyfftw_numpy_interface
 All the tests here just check that the call is made correctly.
 '''
 
-funcs = ('fft','ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
-         'rfft','irfft', 'rfft2', 'irfft2', 'rfftn', 'irfftn',
+funcs = ('fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
+         'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn', 'irfftn',
          'hfft', 'ihfft')
 
 acquired_names = ('dct', 'idct', 'dst', 'idst', 'dctn', 'idctn', 'dstn', 'idstn',
@@ -125,7 +126,8 @@ for each_func in funcs:
                   'test_interface': scipy_fft if has_scipy_fft else None,
                   'io_dtypes': io_dtypes,
                   'overwrite_input_flag': 'overwrite_x',
-                  'default_s_from_shape_slicer': slice(None)}
+                  'default_s_from_shape_slicer': slice(None),
+                  'threads_arg_name': 'workers'}
 
     cls = type(class_name, (parent_class,), class_dict)
     cls = unittest.skipIf(not has_scipy_fft, "scipy.fft is not available")(cls)
