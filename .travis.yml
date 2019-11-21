@@ -17,6 +17,8 @@ matrix:
   include:
     - python: 3.7
       env: SCIPY_WHEELS="https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com/"
+    - python: 3.8
+      env: SCIPY_WHEELS="https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com/"
 
 branches:
     except:
@@ -38,7 +40,7 @@ before_install:
 
 install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION nomkl numpy cython setuptools
-  - conda install -q -n test-environment dask=0.15.0 || true
+  - conda install -q -n test-environment dask=2.8.0 || true
   - |
     if [ -z "$SCIPY_WHEELS" ]; then
       conda install -q -n test-environment scipy

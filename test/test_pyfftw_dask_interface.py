@@ -31,6 +31,10 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
+import warnings
+warnings.filterwarnings('always')
+warnings.simplefilter('ignore', category=FutureWarning)
+
 
 from pyfftw import interfaces
 
@@ -63,9 +67,7 @@ else:
     da_fft = None
     fft_wrap = None
 
-import warnings
 import copy
-warnings.filterwarnings('always')
 
 def make_complex_data(shape, dtype):
     ar, ai = dtype(numpy.random.randn(2, *shape))
@@ -209,6 +211,7 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
 
         with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('ignore', category=FutureWarning)
             # We catch the warnings so as to pick up on when
             # a complex array is turned into a real array
 
