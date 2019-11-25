@@ -253,16 +253,21 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
                         self.assertIs(
                                 w[-1].category, numpy.ComplexWarning)
 
+        # convert dask arrays to NumPy ones prior to calling allclose
+        output_np = output_array.compute()
+        input_np = input_array.compute()
+        test_out_array = test_out_array.compute()
+
         self.assertTrue(
-                numpy.allclose(output_array, test_out_array,
+                numpy.allclose(output_np, test_out_array,
                     rtol=1e-2, atol=1e-4))
 
-        if numpy.asanyarray(input_array).real.dtype == numpy.float16:
+        if input_np.real.dtype == numpy.float16:
             # FFTW output will never be single precision for half precision
             # inputs as there is no half-precision FFTW routine
             input_precision_dtype = numpy.float32
         else:
-            input_precision_dtype = numpy.asanyarray(input_array).real.dtype
+            input_precision_dtype = input_np.real.dtype
 
         self.assertEqual(input_precision_dtype,
                 output_array.real.dtype)
