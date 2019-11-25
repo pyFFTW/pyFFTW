@@ -455,7 +455,7 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
                         test_shape, dtype, s, kwargs)
 
 
-    def test_dtype_coercian(self):
+    def test_dtype_coercion(self):
         # Make sure we input a dtype that needs to be coerced
         if functions[self.func] == 'r2c':
             dtype_tuple = self.io_dtypes['complex']
