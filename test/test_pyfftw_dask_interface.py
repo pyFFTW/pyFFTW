@@ -247,7 +247,7 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
                     input_array, s, **kwargs)
 
             if (functions[self.func] == 'r2c'):
-                if numpy.iscomplexobj(input_array):
+                if input_array.dtype.kind == 'c':
                     if len(w) > 0:
                         # Make sure a warning is raised
                         self.assertIs(
