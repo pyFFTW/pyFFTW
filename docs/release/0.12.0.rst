@@ -1,0 +1,81 @@
+============================
+pyFFTW v0.12.0 Release Notes
+============================
+
+We are happy to announce the release of pyFFTW v0.12.0.
+
+The highlight of this release is the addition of interfaces for the
+scipy.fft module that was introduced with SciPy 1.4. This release is now
+compatibile with SciPy 1.4. This release supports Python 2.7 and
+3.5-3.8.
+
+pyFFTW is a pythonic wrapper around FFTW 3, the speedy FFT library. The
+ultimate aim is to present a unified interface for all the possible transforms
+that FFTW can perform.
+
+Both the complex DFT and the real DFT are supported, as well as on arbitrary
+axes of abitrary shaped and strided arrays. Operating FFTW in multithreaded
+mode is supported.
+
+pyFFTW implements the numpy and scipy fft interfaces in order for users to take
+advantage of the speed of FFTW with minimal code modifications. A dask fft
+interface is provided as a drop-in replacement for the equivalent module in
+dask.
+
+
+New features
+============
+
+scipy.fft interface
+-------------------
+This interface operates like the existing scipy.fftpack interface, but
+matches the API of the newer scipy.fft module introduced in SciPy 1.4.
+
+
+Bugs Fixed
+==========
+
+The test suite was updated to be compatible with more recent dask (#278).
+
+The Cython variable _N was renamed to avoid a name conflict with a preprocessor
+token on some platforms (#259).
+
+
+Other changes
+=============
+
+Python 3.4 support has been dropped. pyFFTW now supports Python 2.7 and 3.5-3.8.
+
+
+Authors
+=======
+
+* Peter Bell +
+* Gregory R. Lee
+* Stefan Peterson +
+* DWesl +
+
+A total of 4 people contributed PRs to this release.
+People with a "+" by their names contributed a patch for the first time.
+
+John Kirkham and Henry Gommersall also contributed by helping review PRs.
+
+
+Issues closed for v0.12
+------------------------
+- `#268 <https://github.com/pyFFTW/pyFFTW/issues/268>`__: Add a scipy.fft interface
+- `#276 <https://github.com/pyFFTW/pyFFTW/issues/276>`__: futurewarnings in dask 2.8 break test suite
+
+
+Pull requests for v0.12
+-----------------------
+- `#257 <https://github.com/pyFFTW/pyFFTW/issues/257>`__: Update install instructions in README
+- `#259 <https://github.com/pyFFTW/pyFFTW/issues/259>`__: Avoid using "_N".
+- `#262 <https://github.com/pyFFTW/pyFFTW/issues/262>`__: Add reference to third-party planfftw package
+- `#265 <https://github.com/pyFFTW/pyFFTW/issues/265>`__: remove import of non-public _fftpack within the scipy interfaces
+- `#267 <https://github.com/pyFFTW/pyFFTW/issues/267>`__: DOC: scipy_fftpack does not treat dtypes differently from scipy.fftpack
+- `#269 <https://github.com/pyFFTW/pyFFTW/issues/269>`__: scipy.fft interface
+- `#271 <https://github.com/pyFFTW/pyFFTW/issues/271>`__: bump conda package versions on Appveyor
+- `#273 <https://github.com/pyFFTW/pyFFTW/issues/273>`__: Fix shape argument in scipy_fft interface
+- `#274 <https://github.com/pyFFTW/pyFFTW/issues/274>`__: Update scipy.fft interface to fix shape handling and add workers argument
+- `#278 <https://github.com/pyFFTW/pyFFTW/issues/278>`__: Update Dask tests for compatibility with recent Dask
