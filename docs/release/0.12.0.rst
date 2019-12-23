@@ -58,7 +58,7 @@ Authors
 A total of 4 people contributed PRs to this release.
 People with a "+" by their names contributed a patch for the first time.
 
-John Kirkham and Henry Gommersall also contributed by helping review PRs.
+John Kirkham and Henry Gomersall also contributed by helping review PRs.
 
 
 Issues closed for v0.12
