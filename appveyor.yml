@@ -8,7 +8,7 @@ environment:
         PYTHON_HOME: "C:\\pyfftw_miniconda"
         NP_BUILD_DEP: "=1.11"
         SP_BUILD_DEP: "=1.0"
-        CYTHON_BUILD_DEP: "=0.29"
+        CYTHON_BUILD_DEP: "==0.29"
         DASK_BUILD_DEP: "=0.16"
         EXTRA_CONDA_ARGS: ""
         CONDA_ACTIVATE_CMD: "conda activate"
@@ -78,8 +78,10 @@ install:
 
     - "conda config --set always_yes yes --set changeps1 no"
     - "conda update -q conda"
-    - "conda create -q -n build_env %EXTRA_CONDA_ARGS% python=%PYTHON_VERSION% numpy%NP_BUILD_DEP% scipy%SP_BUILD_DEP% cython%CYTHON_BUILD_DEP% dask%DASK_BUILD_DEP% setuptools"
+    - "conda create -q -n build_env %EXTRA_CONDA_ARGS% python=%PYTHON_VERSION% numpy%NP_BUILD_DEP% scipy%SP_BUILD_DEP% dask%DASK_BUILD_DEP% setuptools"
     - "%CONDA_ACTIVATE_CMD% build_env"
+    # install Cython via pip because conda doesn't have Cython 0.29 for Python 3.5
+    - pip install "cython%CYTHON_BUILD_DEP%"
     - "%CMD_IN_ENV% python setup.py -v bdist_wheel"
     - "%CMD_IN_ENV% python setup.py -v build_ext --inplace"
 
