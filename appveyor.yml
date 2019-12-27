@@ -8,7 +8,7 @@ environment:
         PYTHON_HOME: "C:\\pyfftw_miniconda"
         NP_BUILD_DEP: "=1.11"
         SP_BUILD_DEP: "=1.0"
-        CYTHON_BUILD_DEP: "=0.26"
+        CYTHON_BUILD_DEP: "=0.29"
         DASK_BUILD_DEP: "=0.16"
         EXTRA_CONDA_ARGS: ""
         CONDA_ACTIVATE_CMD: "conda activate"
