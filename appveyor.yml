@@ -69,6 +69,22 @@ environment:
           CYTHON_BUILD_DEP: ""
           DASK_BUILD_DEP: ""
 
+        - PYTHON_HOME: "C:\\Miniconda36"
+          PYTHON_ARCH: "32"
+          PYTHON_VERSION: "3.8"
+          NP_BUILD_DEP: ""
+          SP_BUILD_DEP: ""
+          CYTHON_BUILD_DEP: ""
+          DASK_BUILD_DEP: ""
+
+        - PYTHON_HOME: "C:\\Miniconda36-x64"
+          PYTHON_ARCH: "64"
+          PYTHON_VERSION: "3.8"
+          NP_BUILD_DEP: ""
+          SP_BUILD_DEP: ""
+          CYTHON_BUILD_DEP: ""
+          DASK_BUILD_DEP: ""
+
 install:
     # Get and configure the FFTW libs
     - "%CMD_IN_ENV% ./appveyor/setup_fftw_dlls.cmd"
