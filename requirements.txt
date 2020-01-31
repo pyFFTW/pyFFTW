@@ -1,4 +1,4 @@
-cython>=0.23
+cython>=0.29
 numpy>=1.10
 scipy>=0.16.0
 dask[array]>=0.15.0

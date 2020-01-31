@@ -50,7 +50,7 @@ The documentation can be found on
 - [FFTW](https://www.fftw.org) >= 3.3 (lower versions *may* work) libraries for
   single, double, and long double precision in serial and multithreading
   (pthreads or openMP) versions.
-- [Cython](https://cython.org) >= 0.23 (lower versions *may* work)
+- [Cython](https://cython.org) >= 0.29
 
 (install these as much as possible with your preferred package manager).
 

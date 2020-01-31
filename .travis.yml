@@ -45,7 +45,7 @@ before_install:
   - conda info -a
 
 install:
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION nomkl numpy cython setuptools
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION nomkl numpy setuptools
   - conda install -q -n test-environment $DASK_SPEC || true
   - |
     if [ -z "$SCIPY_WHEELS" ]; then
@@ -55,6 +55,7 @@ install:
       source activate test-environment
       pip install --pre --upgrade --timeout=60 -f "$SCIPY_WHEELS" scipy
     fi
+  - pip install cython  # conda doesn't have new enough Cython for Python 3.5
   - python setup.py -v build_ext --inplace
 
 script:
