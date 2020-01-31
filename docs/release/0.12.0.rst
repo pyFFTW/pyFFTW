@@ -46,6 +46,8 @@ Other changes
 
 Python 3.4 support has been dropped. pyFFTW now supports Python 2.7 and 3.5-3.8.
 
+The Cython code has been updated to explicitly use `language_level=3str` for compatibility with a future Cython 3.0 release.
+
 
 Authors
 =======
@@ -79,3 +81,4 @@ Pull requests for v0.12
 - `#273 <https://github.com/pyFFTW/pyFFTW/issues/273>`__: Fix shape argument in scipy_fft interface
 - `#274 <https://github.com/pyFFTW/pyFFTW/issues/274>`__: Update scipy.fft interface to fix shape handling and add workers argument
 - `#278 <https://github.com/pyFFTW/pyFFTW/issues/278>`__: Update Dask tests for compatibility with recent Dask
+- `#283 <https://github.com/pyFFTW/pyFFTW/issues/283>`__: explicitly set the Cython language level
