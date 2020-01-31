@@ -1,3 +1,5 @@
+# cython: language_level=3str
+#
 # Copyright 2014 Knowledge Economy Developments Ltd
 #
 # Henry Gomersall

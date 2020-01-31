@@ -37,7 +37,7 @@
 
 from bisect import bisect_left
 cimport numpy as np
-cimport cpu
+from . cimport cpu
 from libc.stdint cimport intptr_t
 import warnings
 

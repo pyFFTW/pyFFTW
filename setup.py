@@ -755,7 +755,7 @@ def setup_package():
     try:
         import cython
     except ImportError:
-        build_requires.append('cython>=0.23, <1.0')
+        build_requires.append('cython>=0.29, <1.0')
 
     install_requires = [numpy_requirement]
 
