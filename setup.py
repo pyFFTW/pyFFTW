@@ -785,7 +785,8 @@ def setup_package():
             'Topic :: Scientific/Engineering',
             'Topic :: Scientific/Engineering :: Mathematics',
             'Topic :: Multimedia :: Sound/Audio :: Analysis'],
-        'cmdclass': cmdclass
+        'cmdclass': cmdclass,
+        'python_requires': ">=3.6",
     }
 
     if using_setuptools:
