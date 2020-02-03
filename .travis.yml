@@ -9,10 +9,7 @@ os: linux
 
 jobs:
   include:
-    - python: 2.7
-      env:
-        - DASK_SPEC="dask=0.15"  # minimum supported version
-    - python: 3.5
+    - python: 3.6
       env:
         - DASK_SPEC="dask=0.15"  # minimum supported version
     - python: 3.6

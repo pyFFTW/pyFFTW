@@ -45,7 +45,7 @@ The documentation can be found on
 
 ## Requirements (i.e. what it was designed for)
 
-- [Python](https://python.org) 2.7 or >= 3.4
+- [Python](https://python.org) >= 3.6
 - [Numpy](https://www.numpy.org) >= 1.10.4  (lower versions *may* work)
 - [FFTW](https://www.fftw.org) >= 3.3 (lower versions *may* work) libraries for
   single, double, and long double precision in serial and multithreading

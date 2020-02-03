@@ -27,24 +27,6 @@ environment:
 
     matrix:
 
-        - PYTHON_HOME: "C:\\Miniconda"
-          PYTHON_ARCH: "32"
-          PYTHON_VERSION: "2.7"
-
-        - PYTHON_HOME: "C:\\Miniconda-x64"
-          PYTHON_ARCH: "64"
-          PYTHON_VERSION: "2.7"
-
-        - PYTHON_HOME: "C:\\Miniconda36"
-          PYTHON_ARCH: "32"
-          PYTHON_VERSION: "3.5"
-          CONDA_ACTIVATE_CMD: "activate"
-
-        - PYTHON_HOME: "C:\\Miniconda36-x64"
-          PYTHON_ARCH: "64"
-          PYTHON_VERSION: "3.5"
-          CONDA_ACTIVATE_CMD: "activate"
-
         - PYTHON_HOME: "C:\\Miniconda36"
           PYTHON_ARCH: "32"
           PYTHON_VERSION: "3.6"
