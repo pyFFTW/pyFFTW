@@ -50,7 +50,8 @@ a 2D `s` argument will return without exception whereas
 import os
 
 from . import numpy_fft
-from . import scipy_fftpack
+from .scipy_fftpack import (_dct, _idct, _dctn, _idctn,
+                            _dst, _idst, _dstn, _idstn)
 
 # Complete the namespace (these are not actually used in this module)
 from scipy.fft import (hfft2, ihfft2, hfftn, ihfftn,
@@ -337,11 +338,11 @@ def dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     threads = _workers_to_threads(workers)
-    return scipy_fftpack.dct(x, type=type, n=n, axis=axis, norm=norm,
-                             overwrite_x=overwrite_x,
-                             planner_effort=planner_effort, threads=threads,
-                             auto_align_input=auto_align_input,
-                             auto_contiguous=auto_contiguous)
+    return _dct(x, type=type, n=n, axis=axis, norm=norm,
+                overwrite_x=overwrite_x,
+                planner_effort=planner_effort, threads=threads,
+                auto_align_input=auto_align_input,
+                auto_contiguous=auto_contiguous)
 
 
 @_implements(_fft.idct)
@@ -355,11 +356,11 @@ def idct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     threads = _workers_to_threads(workers)
-    return scipy_fftpack.idct(x, type=type, n=n, axis=axis, norm=norm,
-                              overwrite_x=overwrite_x,
-                              planner_effort=planner_effort, threads=threads,
-                              auto_align_input=auto_align_input,
-                              auto_contiguous=auto_contiguous)
+    return _idct(x, type=type, n=n, axis=axis, norm=norm,
+                 overwrite_x=overwrite_x,
+                 planner_effort=planner_effort, threads=threads,
+                 auto_align_input=auto_align_input,
+                 auto_contiguous=auto_contiguous)
 
 
 @_implements(_fft.dst)
@@ -373,11 +374,11 @@ def dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     threads = _workers_to_threads(workers)
-    return scipy_fftpack.dst(x, type=type, n=n, axis=axis, norm=norm,
-                             overwrite_x=overwrite_x,
-                             planner_effort=planner_effort, threads=threads,
-                             auto_align_input=auto_align_input,
-                             auto_contiguous=auto_contiguous)
+    return _dst(x, type=type, n=n, axis=axis, norm=norm,
+                overwrite_x=overwrite_x,
+                planner_effort=planner_effort, threads=threads,
+                auto_align_input=auto_align_input,
+                auto_contiguous=auto_contiguous)
 
 
 @_implements(_fft.idst)
@@ -391,11 +392,11 @@ def idst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     threads = _workers_to_threads(workers)
-    return scipy_fftpack.idst(x, type=type, n=n, axis=axis, norm=norm,
-                              overwrite_x=overwrite_x,
-                              planner_effort=planner_effort, threads=threads,
-                              auto_align_input=auto_align_input,
-                              auto_contiguous=auto_contiguous)
+    return _idst(x, type=type, n=n, axis=axis, norm=norm,
+                 overwrite_x=overwrite_x,
+                 planner_effort=planner_effort, threads=threads,
+                 auto_align_input=auto_align_input,
+                 auto_contiguous=auto_contiguous)
 
 @_implements(_fft.dctn)
 def dctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
@@ -408,11 +409,11 @@ def dctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
     threads = _workers_to_threads(workers)
-    return scipy_fftpack.dctn(x, type=type, s=shape, axes=axes, norm=norm,
-                              overwrite_x=overwrite_x,
-                              planner_effort=planner_effort, threads=threads,
-                              auto_align_input=auto_align_input,
-                              auto_contiguous=auto_contiguous)
+    return _dctn(x, type=type, s=shape, axes=axes, norm=norm,
+                 overwrite_x=overwrite_x,
+                 planner_effort=planner_effort, threads=threads,
+                 auto_align_input=auto_align_input,
+                 auto_contiguous=auto_contiguous)
 
 
 @_implements(_fft.idctn)
@@ -426,11 +427,11 @@ def idctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
     threads = _workers_to_threads(workers)
-    return scipy_fftpack.idctn(x, type=type, s=shape, axes=axes, norm=norm,
-                               overwrite_x=overwrite_x,
-                               planner_effort=planner_effort, threads=threads,
-                               auto_align_input=auto_align_input,
-                               auto_contiguous=auto_contiguous)
+    return _idctn(x, type=type, s=shape, axes=axes, norm=norm,
+                  overwrite_x=overwrite_x,
+                  planner_effort=planner_effort, threads=threads,
+                  auto_align_input=auto_align_input,
+                  auto_contiguous=auto_contiguous)
 
 
 @_implements(_fft.dstn)
@@ -444,11 +445,11 @@ def dstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
     threads = _workers_to_threads(workers)
-    return scipy_fftpack.dstn(x, type=type, s=shape, axes=axes, norm=norm,
-                             overwrite_x=overwrite_x,
-                             planner_effort=planner_effort, threads=threads,
-                             auto_align_input=auto_align_input,
-                             auto_contiguous=auto_contiguous)
+    return _dstn(x, type=type, s=shape, axes=axes, norm=norm,
+                 overwrite_x=overwrite_x,
+                 planner_effort=planner_effort, threads=threads,
+                 auto_align_input=auto_align_input,
+                 auto_contiguous=auto_contiguous)
 
 
 @_implements(_fft.idstn)
@@ -462,8 +463,8 @@ def idstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
     threads = _workers_to_threads(workers)
-    return scipy_fftpack.idstn(x, type=type, s=shape, axes=axes, norm=norm,
-                               overwrite_x=overwrite_x,
-                               planner_effort=planner_effort, threads=threads,
-                               auto_align_input=auto_align_input,
-                               auto_contiguous=auto_contiguous)
+    return _idstn(x, type=type, s=shape, axes=axes, norm=norm,
+                  overwrite_x=overwrite_x,
+                  planner_effort=planner_effort, threads=threads,
+                  auto_align_input=auto_align_input,
+                  auto_contiguous=auto_contiguous)
