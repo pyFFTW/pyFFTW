@@ -381,9 +381,8 @@ def _dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     elif n != x.shape[axis]:
         raise NotImplementedError("Padding/truncating not yet implemented")
 
-    if norm is not None:
-        if norm != 'ortho':
-            raise ValueError("Unknown normalize mode %s" % norm)
+    if norm not in [None, 'forward', 'backward', 'ortho']:
+        raise ValueError("Unknown normalize mode %s" % norm)
 
     if norm == 'ortho':
         if type == 1:
@@ -514,9 +513,8 @@ def _dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     elif n != x.shape[axis]:
         raise NotImplementedError("Padding/truncating not yet implemented")
 
-    if norm is not None:
-        if norm != 'ortho':
-            raise ValueError("Unknown normalize mode %s" % norm)
+    if norm not in [None, 'forward', 'backward', 'ortho']:
+        raise ValueError("Unknown normalize mode %s" % norm)
 
     if type == 3 and norm == 'ortho':
         x = numpy.copy(x)

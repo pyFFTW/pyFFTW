@@ -338,6 +338,8 @@ def dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     threads = _workers_to_threads(workers)
+    if norm is None:
+        norm = 'backward'
     return _dct(x, type=type, n=n, axis=axis, norm=norm,
                 overwrite_x=overwrite_x,
                 planner_effort=planner_effort, threads=threads,
@@ -356,6 +358,8 @@ def idct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     threads = _workers_to_threads(workers)
+    if norm is None:
+        norm = 'backward'
     return _idct(x, type=type, n=n, axis=axis, norm=norm,
                  overwrite_x=overwrite_x,
                  planner_effort=planner_effort, threads=threads,
@@ -374,6 +378,8 @@ def dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     threads = _workers_to_threads(workers)
+    if norm is None:
+        norm = 'backward'
     return _dst(x, type=type, n=n, axis=axis, norm=norm,
                 overwrite_x=overwrite_x,
                 planner_effort=planner_effort, threads=threads,
@@ -392,6 +398,8 @@ def idst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
     threads = _workers_to_threads(workers)
+    if norm is None:
+        norm = 'backward'
     return _idst(x, type=type, n=n, axis=axis, norm=norm,
                  overwrite_x=overwrite_x,
                  planner_effort=planner_effort, threads=threads,
@@ -399,7 +407,7 @@ def idst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
                  auto_contiguous=auto_contiguous)
 
 @_implements(_fft.dctn)
-def dctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
+def dctn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
          workers=None, planner_effort=None, auto_align_input=True,
          auto_contiguous=True):
     """Performan a multidimensional Discrete Cosine Transform.
@@ -409,7 +417,9 @@ def dctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
     threads = _workers_to_threads(workers)
-    return _dctn(x, type=type, s=shape, axes=axes, norm=norm,
+    if norm is None:
+        norm = 'backward'
+    return _dctn(x, type=type, shape=s, axes=axes, norm=norm,
                  overwrite_x=overwrite_x,
                  planner_effort=planner_effort, threads=threads,
                  auto_align_input=auto_align_input,
@@ -417,7 +427,7 @@ def dctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
 
 
 @_implements(_fft.idctn)
-def idctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
+def idctn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
           workers=None, planner_effort=None, auto_align_input=True,
           auto_contiguous=True):
     """Performan a multidimensional inverse Discrete Cosine Transform.
@@ -427,7 +437,9 @@ def idctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
     threads = _workers_to_threads(workers)
-    return _idctn(x, type=type, s=shape, axes=axes, norm=norm,
+    if norm is None:
+        norm = 'backward'
+    return _idctn(x, type=type, shape=s, axes=axes, norm=norm,
                   overwrite_x=overwrite_x,
                   planner_effort=planner_effort, threads=threads,
                   auto_align_input=auto_align_input,
@@ -435,7 +447,7 @@ def idctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
 
 
 @_implements(_fft.dstn)
-def dstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
+def dstn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
          workers=None, planner_effort=None, auto_align_input=True,
          auto_contiguous=True):
     """Performan a multidimensional Discrete Sine Transform.
@@ -445,7 +457,9 @@ def dstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
     threads = _workers_to_threads(workers)
-    return _dstn(x, type=type, s=shape, axes=axes, norm=norm,
+    if norm is None:
+        norm = 'backward'
+    return _dstn(x, type=type, shape=s, axes=axes, norm=norm,
                  overwrite_x=overwrite_x,
                  planner_effort=planner_effort, threads=threads,
                  auto_align_input=auto_align_input,
@@ -453,7 +467,7 @@ def dstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
 
 
 @_implements(_fft.idstn)
-def idstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
+def idstn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
           workers=None, planner_effort=None, auto_align_input=True,
           auto_contiguous=True):
     """Performan a multidimensional inverse Discrete Sine Transform.
@@ -463,7 +477,9 @@ def idstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
     threads = _workers_to_threads(workers)
-    return _idstn(x, type=type, s=shape, axes=axes, norm=norm,
+    if norm is None:
+        norm = 'backward'
+    return _idstn(x, type=type, shape=s, axes=axes, norm=norm,
                   overwrite_x=overwrite_x,
                   planner_effort=planner_effort, threads=threads,
                   auto_align_input=auto_align_input,
