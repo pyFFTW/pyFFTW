@@ -333,7 +333,7 @@ def dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
         auto_contiguous=True):
     '''Perform a 1D discrete cosine transform.
 
-    The first three arguments are as per :func:`scipy.fftpack.dct`;
+    The first seven arguments are as per :func:`scipy.fft.dct`;
     the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
@@ -353,7 +353,7 @@ def idct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
          auto_contiguous=True):
     '''Perform an inverse 1D discrete cosine transform.
 
-    The first three arguments are as per :func:`scipy.fftpack.idct`;
+    The first seven arguments are as per :func:`scipy.fft.idct`;
     the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
@@ -373,7 +373,7 @@ def dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
         auto_contiguous=True):
     '''Perform a 1D discrete sine transform.
 
-    The first three arguments are as per :func:`scipy.fftpack.dst`;
+    The first seven arguments are as per :func:`scipy.fft.dst`;
     the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
@@ -393,7 +393,7 @@ def idst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
          auto_contiguous=True):
     '''Perform an inverse 1D discrete sine transform.
 
-    The first three arguments are as per :func:`scipy.fftpack.idst`;
+    The first seven arguments are as per :func:`scipy.fft.idst`;
     the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
@@ -412,7 +412,7 @@ def dctn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
          auto_contiguous=True):
     """Performan a multidimensional Discrete Cosine Transform.
 
-    The first six arguments are as per :func:`scipy.fftpack.dctn`;
+    The first seven arguments are as per :func:`scipy.fft.dctn`;
     the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
@@ -432,7 +432,7 @@ def idctn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
           auto_contiguous=True):
     """Performan a multidimensional inverse Discrete Cosine Transform.
 
-    The first six arguments are as per :func:`scipy.fftpack.idctn`;
+    The first seven arguments are as per :func:`scipy.fft.idctn`;
     the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
@@ -452,7 +452,7 @@ def dstn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
          auto_contiguous=True):
     """Performan a multidimensional Discrete Sine Transform.
 
-    The first six arguments are as per :func:`scipy.fftpack.dstn`;
+    The first seven arguments are as per :func:`scipy.fft.dstn`;
     the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
@@ -472,7 +472,7 @@ def idstn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
           auto_contiguous=True):
     """Performan a multidimensional inverse Discrete Sine Transform.
 
-    The first six arguments are as per :func:`scipy.fftpack.idstn`;
+    The first seven arguments are as per :func:`scipy.fft.idstn`;
     the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """

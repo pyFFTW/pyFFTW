@@ -83,53 +83,6 @@ __all__ = ['fft', 'ifft', 'fftn', 'ifftn', 'rfft', 'irfft', 'fft2', 'ifft2',
            'shift', 'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve',
            'next_fast_len', 'dctn', 'idctn', 'dstn', 'idstn']
 
-_NORM_MAP = {None: 0, 'backward': 0, 'ortho': 1, 'forward': 2}
-
-
-def _normalization(norm, forward):
-    """Returns the pypocketfft normalization mode from the norm argument"""
-    try:
-        inorm = _NORM_MAP[norm]
-        return inorm if forward else (2 - inorm)
-    except KeyError:
-        raise ValueError(
-            f'Invalid norm value {norm!r}, should '
-             'be "backward", "ortho" or "forward"') from None
-
-
-def _norm_factor(inorm, n):
-    if inorm == 0:
-        return 1
-    elif inorm == 2:
-        return 1 / n
-    elif inorm == 1:
-        return 1 / math.sqrt(n)
-
-
-def _norm_factor_nd(inorm, shape, axes, fct=1, delta=0):
-    if inorm == 0:
-        return 1
-    n = 1
-    for ax in axes:
-        n *= fct * (shape[ax] + delta)
-    return _norm_factor(inorm, n)
-
-
-def _dct_norm_factor(norm, forward, type, shape, axes):
-    inorm = _normalization(norm, forward)
-    if type == 1:
-        return _norm_factor_nd(inorm, shape, axes, fct=2, delta=-1)
-    else:
-        return _norm_factor_nd(inorm, shape, axes, fct=2)
-
-
-def _dst_norm_factor(norm, forward, type, shape, axes):
-    inorm = _normalization(norm, forward)
-    if type == 1:
-        return _norm_factor_nd(inorm, shape, axes, fct=2, delta=1)
-    else:
-        return _norm_factor_nd(inorm, shape, axes, fct=2)
-
 
 def fft(x, n=None, axis=-1, overwrite_x=False,
         planner_effort=None, threads=None,
