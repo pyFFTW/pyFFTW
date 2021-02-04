@@ -6,10 +6,10 @@ environment:
         CMD_IN_ENV: "cmd /E:ON /V:ON /C .\\appveyor\\run_with_env.cmd"
         # The miniconda installations are put in pyfftw_miniconda
         PYTHON_HOME: "C:\\pyfftw_miniconda"
-        NP_BUILD_DEP: "=1.11"
-        SP_BUILD_DEP: "=1.0"
-        CYTHON_BUILD_DEP: "==0.29"
-        DASK_BUILD_DEP: "=0.16"
+        NP_BUILD_DEP: ""
+        SP_BUILD_DEP: ""
+        CYTHON_BUILD_DEP: "=0.29"
+        DASK_BUILD_DEP: ""
         EXTRA_CONDA_ARGS: ""
         CONDA_ACTIVATE_CMD: "conda activate"
 
@@ -27,44 +27,46 @@ environment:
 
     matrix:
 
-        - PYTHON_HOME: "C:\\Miniconda36"
-          PYTHON_ARCH: "32"
-          PYTHON_VERSION: "3.6"
-
-        - PYTHON_HOME: "C:\\Miniconda36-x64"
-          PYTHON_ARCH: "64"
-          PYTHON_VERSION: "3.6"
-
-        - PYTHON_HOME: "C:\\Miniconda36"
+        - PYTHON_HOME: "C:\\Miniconda37"
           PYTHON_ARCH: "32"
           PYTHON_VERSION: "3.7"
-          NP_BUILD_DEP: ""
-          SP_BUILD_DEP: ""
-          CYTHON_BUILD_DEP: ""
-          DASK_BUILD_DEP: ""
+          NP_BUILD_DEP: "=1.16"
+          SP_BUILD_DEP: "=1.2"
+          DASK_BUILD_DEP: "=1.0"
 
-        - PYTHON_HOME: "C:\\Miniconda36-x64"
+        - PYTHON_HOME: "C:\\Miniconda37-x64"
           PYTHON_ARCH: "64"
           PYTHON_VERSION: "3.7"
-          NP_BUILD_DEP: ""
-          SP_BUILD_DEP: ""
-          CYTHON_BUILD_DEP: ""
-          DASK_BUILD_DEP: ""
+          NP_BUILD_DEP: "=1.16"
+          SP_BUILD_DEP: "=1.2"
+          DASK_BUILD_DEP: "=1.0"
 
-        - PYTHON_HOME: "C:\\Miniconda36"
+        - PYTHON_HOME: "C:\\Miniconda37"
           PYTHON_ARCH: "32"
           PYTHON_VERSION: "3.8"
           NP_BUILD_DEP: ""
           SP_BUILD_DEP: ""
-          CYTHON_BUILD_DEP: ""
           DASK_BUILD_DEP: ""
 
-        - PYTHON_HOME: "C:\\Miniconda36-x64"
+        - PYTHON_HOME: "C:\\Miniconda37-x64"
           PYTHON_ARCH: "64"
           PYTHON_VERSION: "3.8"
           NP_BUILD_DEP: ""
           SP_BUILD_DEP: ""
-          CYTHON_BUILD_DEP: ""
+          DASK_BUILD_DEP: ""
+
+        - PYTHON_HOME: "C:\\Miniconda37"
+          PYTHON_ARCH: "32"
+          PYTHON_VERSION: "3.9"
+          NP_BUILD_DEP: ""
+          SP_BUILD_DEP: ""
+          DASK_BUILD_DEP: ""
+
+        - PYTHON_HOME: "C:\\Miniconda37-x64"
+          PYTHON_ARCH: "64"
+          PYTHON_VERSION: "3.9"
+          NP_BUILD_DEP: ""
+          SP_BUILD_DEP: ""
           DASK_BUILD_DEP: ""
 
 install:
@@ -76,10 +78,9 @@ install:
 
     - "conda config --set always_yes yes --set changeps1 no"
     - "conda update -q conda"
-    - "conda create -q -n build_env %EXTRA_CONDA_ARGS% python=%PYTHON_VERSION% numpy%NP_BUILD_DEP% scipy%SP_BUILD_DEP% dask%DASK_BUILD_DEP% setuptools"
+    - "conda create -q -n build_env %EXTRA_CONDA_ARGS% python=%PYTHON_VERSION%
     - "%CONDA_ACTIVATE_CMD% build_env"
-    # install Cython via pip because conda doesn't have Cython 0.29 for Python 3.5
-    - pip install "cython%CYTHON_BUILD_DEP%"
+    - conda install -y cython%CYTHON_BUILD_DEP% numpy%NP_BUILD_DEP% scipy%SP_BUILD_DEP% dask%DASK_BUILD_DEP% setuptools
     - "%CMD_IN_ENV% python setup.py -v bdist_wheel"
     - "%CMD_IN_ENV% python setup.py -v build_ext --inplace"
 
