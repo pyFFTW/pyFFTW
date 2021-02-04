@@ -706,9 +706,9 @@ class InterfacesNumpyFFTTestFFT2(InterfacesNumpyFFTTestFFT):
             )
 
     invalid_args = (
-            ((100,), ((100, 200),), ValueError, 'Shape error'),
-            ((100, 200), ((100, 200, 100),), ValueError, 'Shape error'),
-            ((100,), ((100, 200), (-3, -2, -1)), ValueError, 'Shape error'),
+            ((100,), ((100, 200),), ValueError, ''),
+            ((100, 200), ((100, 200, 100),), ValueError, ''),
+            ((100,), ((100, 200), (-3, -2, -1)), ValueError, ''),
             ((100, 200), (100, -1), TypeError, ''),
             ((100, 200), ((100, 200), (-3, -2)), IndexError, 'Invalid axes'),
             ((100, 200), ((100,), (-3,)), IndexError, 'Invalid axes'),

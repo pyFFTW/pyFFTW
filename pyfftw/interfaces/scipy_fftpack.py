@@ -53,6 +53,9 @@ a 2D `shape` argument will return without exception whereas
 
 import itertools as it
 import math
+from numbers import Number
+import operator
+
 from . import numpy_fft
 
 from ..builders._utils import _default_effort, _default_threads, _cook_nd_args
@@ -68,20 +71,96 @@ from scipy.fftpack import (diff, tilbert, itilbert,
 # a next_fast_len specific to pyFFTW is used in place of the scipy.fftpack one
 from ..pyfftw import next_fast_len
 
-try:
-    # scipy 1.2.0 introduced helpers for validating shape and axes
-    from scipy.fftpack.helper import (
-        _init_nd_shape_and_axes_sorted, _init_nd_shape_and_axes_sorted)
-except ImportError:
-    _init_nd_shape_and_axes_sorted = None
-    _init_nd_shape_and_axes = None
-
-
 __all__ = ['fft', 'ifft', 'fftn', 'ifftn', 'rfft', 'irfft', 'fft2', 'ifft2',
            'dct', 'idct', 'dst', 'idst', 'diff', 'tilbert', 'itilbert',
            'hilbert', 'ihilbert', 'cs_diff', 'sc_diff', 'ss_diff', 'cc_diff',
            'shift', 'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve',
            'next_fast_len', 'dctn', 'idctn', 'dstn', 'idstn']
+
+
+def _iterable_of_int(x, name=None):
+    """Convert ``x`` to an iterable sequence of int
+
+    vendored from scipy.fft._pocketfft.helper
+
+    Parameters
+    ----------
+    x : value, or sequence of values, convertible to int
+    name : str, optional
+        Name of the argument being converted, only used in the error message
+
+    Returns
+    -------
+    y : ``List[int]``
+    """
+    if isinstance(x, Number):
+        x = (x,)
+
+    try:
+        x = [operator.index(a) for a in x]
+    except TypeError as e:
+        name = name or "value"
+        raise ValueError("{} must be a scalar or iterable of integers"
+                         .format(name)) from e
+
+    return x
+
+
+def _good_shape(x, shape, axes):
+    """Ensure that shape argument is valid for scipy.fftpack
+
+    scipy.fftpack does not support len(shape) < x.ndim when axes is not given.
+    """
+    if shape is not None and axes is None:
+        shape = _iterable_of_int(shape, 'shape')
+        if len(shape) != numpy.ndim(x):
+            raise ValueError("when given, axes and shape arguments"
+                             " have to be of the same length")
+    return shape
+
+
+def _init_nd_shape_and_axes(x, shape, axes):
+    """Handles shape and axes arguments for nd transforms
+
+    vendored from scipy.fft._pocketfft.helper
+    """
+    noshape = shape is None
+    noaxes = axes is None
+
+    if not noaxes:
+        axes = _iterable_of_int(axes, 'axes')
+        axes = [a + x.ndim if a < 0 else a for a in axes]
+
+        if any(a >= x.ndim or a < 0 for a in axes):
+            raise ValueError("Shape error: axes exceeds dimensionality of "
+                             "input")
+        if len(set(axes)) != len(axes):
+            raise ValueError("Shape error: all axes must be unique")
+
+    if not noshape:
+        shape = _iterable_of_int(shape, 'shape')
+
+        if axes and len(axes) != len(shape):
+            raise ValueError("Shape error: when given, axes and shape "
+                             " arguments have to be of the same length")
+        if noaxes:
+            if len(shape) > x.ndim:
+                raise ValueError("Shape error: shape requires more axes than "
+                                  "are present")
+            axes = range(x.ndim - len(shape), x.ndim)
+
+        shape = [x.shape[a] if s == -1 else s for s, a in zip(shape, axes)]
+    elif noaxes:
+        shape = list(x.shape)
+        axes = range(x.ndim)
+    else:
+        shape = [x.shape[a] for a in axes]
+
+    if any(s < 1 for s in shape):
+        raise ValueError(
+            "invalid number of data points ({0}) specified".format(shape))
+
+    return shape, axes
 
 
 def fft(x, n=None, axis=-1, overwrite_x=False,
@@ -124,6 +203,7 @@ def fft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
     '''
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
+    shape = _good_shape(x, shape, axes)
     return numpy_fft.fft2(x, shape, axes, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
@@ -139,6 +219,7 @@ def ifft2(x, shape=None, axes=(-2,-1), overwrite_x=False,
     '''
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
+    shape = _good_shape(x, shape, axes)
     return numpy_fft.ifft2(x, shape, axes, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
@@ -152,20 +233,7 @@ def fftn(x, shape=None, axes=None, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional argument docs<interfaces_additional_args>`.
     '''
-
-    if _init_nd_shape_and_axes_sorted is not None:
-        shape, axes = _init_nd_shape_and_axes_sorted(x, shape, axes)
-    else:
-        if shape is not None:
-            if ((axes is not None and len(shape) != len(axes)) or
-                    (axes is None and len(shape) != x.ndim)):
-                raise ValueError(
-                    'Shape error: In order to maintain better '
-                    'compatibility with scipy.fftpack.fftn, a ValueError '
-                    'is raised when the length of the shape argument is '
-                    'not the same as x.ndim if axes is None or the length '
-                    'of axes if it is not. If this is problematic, '
-                    'consider using the numpy interface.')
+    shape = _good_shape(x, shape, axes)
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
     return numpy_fft.fftn(x, shape, axes, None, overwrite_x,
@@ -183,20 +251,7 @@ def ifftn(x, shape=None, axes=None, overwrite_x=False,
     '''
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
-    if _init_nd_shape_and_axes_sorted is not None:
-        shape, axes = _init_nd_shape_and_axes_sorted(x, shape, axes)
-    else:
-        if shape is not None:
-            if ((axes is not None and len(shape) != len(axes)) or
-                    (axes is None and len(shape) != x.ndim)):
-                raise ValueError(
-                    'Shape error: In order to maintain better '
-                    'compatibility with scipy.fftpack.ifftn, a ValueError '
-                    'is raised when the length of the shape argument is '
-                    'not the same as x.ndim if axes is None or the length '
-                    'of axes if it is not. If this is problematic, '
-                    'consider using the numpy interface.')
-
+    shape = _good_shape(x, shape, axes)
     return numpy_fft.ifftn(x, shape, axes, None, overwrite_x,
             planner_effort, threads, auto_align_input, auto_contiguous)
 
@@ -573,24 +628,7 @@ def _dctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
           planner_effort=None, threads=None,
           auto_align_input=True, auto_contiguous=True):
     x = numpy.asanyarray(x)
-    if _init_nd_shape_and_axes is not None:
-        shape, axes = _init_nd_shape_and_axes(x, shape, axes)
-    else:
-        if shape is not None:
-            if ((axes is not None and len(shape) != len(axes)) or
-                    (axes is None and len(shape) != x.ndim)):
-                raise ValueError(
-                    'Shape error: In order to maintain better '
-                    'compatibility with scipy.fftpack.ifftn, a ValueError '
-                    'is raised when the length of the shape argument is '
-                    'not the same as x.ndim if axes is None or the length '
-                    'of axes if it is not. If this is problematic, '
-                    'consider using the numpy interface.')
-        if numpy.isscalar(shape):
-            shape = (shape, )
-        if numpy.isscalar(axes):
-            axes = (axes, )
-        shape, axes = _cook_nd_args(x, s=shape, axes=axes, invreal=False)
+    shape, axes = _init_nd_shape_and_axes(x, shape, axes)
     for n, ax in zip(shape, axes):
         x = _dct(x, type=type, n=n, axis=ax, norm=norm,
                  overwrite_x=overwrite_x, planner_effort=planner_effort,
@@ -608,6 +646,7 @@ def dctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
+    shape = _good_shape(x, shape, axes)
     if norm not in [None, 'ortho']:
         raise ValueError("unrecognized norm: {}".format(norm))
     return _dctn(x, type, shape, axes, norm, overwrite_x, planner_effort,
@@ -618,24 +657,7 @@ def _idctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
            planner_effort=None, threads=None,
            auto_align_input=True, auto_contiguous=True):
     x = numpy.asanyarray(x)
-    if _init_nd_shape_and_axes is not None:
-        shape, axes = _init_nd_shape_and_axes(x, shape, axes)
-    else:
-        if shape is not None:
-            if ((axes is not None and len(shape) != len(axes)) or
-                    (axes is None and len(shape) != x.ndim)):
-                raise ValueError(
-                    'Shape error: In order to maintain better '
-                    'compatibility with scipy.fftpack.ifftn, a ValueError '
-                    'is raised when the length of the shape argument is '
-                    'not the same as x.ndim if axes is None or the length '
-                    'of axes if it is not. If this is problematic, '
-                    'consider using the numpy interface.')
-        if numpy.isscalar(shape):
-            shape = (shape, )
-        if numpy.isscalar(axes):
-            axes = (axes, )
-        shape, axes = _cook_nd_args(x, s=shape, axes=axes, invreal=False)
+    shape, axes = _init_nd_shape_and_axes(x, shape, axes)
     for n, ax in zip(shape, axes):
         x = _idct(x, type=type, n=n, axis=ax, norm=norm,
                   overwrite_x=overwrite_x, planner_effort=planner_effort,
@@ -653,6 +675,7 @@ def idctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
+    shape = _good_shape(x, shape, axes)
     if norm not in [None, 'ortho']:
         raise ValueError("unrecognized norm: {}".format(norm))
     return _idctn(x, type, shape, axes, norm, overwrite_x, planner_effort,
@@ -663,24 +686,8 @@ def _dstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
           planner_effort=None, threads=None,
           auto_align_input=True, auto_contiguous=True):
     x = numpy.asanyarray(x)
-    if _init_nd_shape_and_axes is not None:
-        shape, axes = _init_nd_shape_and_axes(x, shape, axes)
-    else:
-        if shape is not None:
-            if ((axes is not None and len(shape) != len(axes)) or
-                    (axes is None and len(shape) != x.ndim)):
-                raise ValueError(
-                    'Shape error: In order to maintain better '
-                    'compatibility with scipy.fftpack.ifftn, a ValueError '
-                    'is raised when the length of the shape argument is '
-                    'not the same as x.ndim if axes is None or the length '
-                    'of axes if it is not. If this is problematic, '
-                    'consider using the numpy interface.')
-        if numpy.isscalar(shape):
-            shape = (shape, )
-        if numpy.isscalar(axes):
-            axes = (axes, )
-        shape, axes = _cook_nd_args(x, s=shape, axes=axes, invreal=False)
+    # if _init_nd_shape_and_axes is not None:
+    shape, axes = _init_nd_shape_and_axes(x, shape, axes)
     for n, ax in zip(shape, axes):
         x = _dst(x, type=type, n=n, axis=ax, norm=norm,
                  overwrite_x=overwrite_x, planner_effort=planner_effort,
@@ -699,6 +706,7 @@ def dstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
+    shape = _good_shape(x, shape, axes)
     if norm not in [None, 'ortho']:
         raise ValueError("unrecognized norm: {}".format(norm))
     return _dstn(x, type, shape, axes, norm, overwrite_x, planner_effort,
@@ -709,24 +717,9 @@ def _idstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
            planner_effort=None, threads=None,
            auto_align_input=True, auto_contiguous=True):
     x = numpy.asanyarray(x)
-    if _init_nd_shape_and_axes is not None:
-        shape, axes = _init_nd_shape_and_axes(x, shape, axes)
-    else:
-        if shape is not None:
-            if ((axes is not None and len(shape) != len(axes)) or
-                    (axes is None and len(shape) != x.ndim)):
-                raise ValueError(
-                    'Shape error: In order to maintain better '
-                    'compatibility with scipy.fftpack.ifftn, a ValueError '
-                    'is raised when the length of the shape argument is '
-                    'not the same as x.ndim if axes is None or the length '
-                    'of axes if it is not. If this is problematic, '
-                    'consider using the numpy interface.')
-        if numpy.isscalar(shape):
-            shape = (shape, )
-        if numpy.isscalar(axes):
-            axes = (axes, )
-        shape, axes = _cook_nd_args(x, s=shape, axes=axes, invreal=False)
+    # if _init_nd_shape_and_axes is not None:
+    shape, axes = _init_nd_shape_and_axes(x, shape, axes)
+
     for n, ax in zip(shape, axes):
         x = _idst(x, type=type, n=n, axis=ax, norm=norm,
                   overwrite_x=overwrite_x, planner_effort=planner_effort,
@@ -744,6 +737,7 @@ def idstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     """
+    shape = _good_shape(x, shape, axes)
     if norm not in [None, 'ortho']:
         raise ValueError("unrecognized norm: {}".format(norm))
     return _idstn(x, type, shape, axes, norm, overwrite_x, planner_effort,
