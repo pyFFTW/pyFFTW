@@ -35,18 +35,18 @@ addons:
         libfftw3-dev
 
 before_install:
-  - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  # reference: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/use-conda-with-travis-ci.html#the-travis-yml-file
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
 
 install:
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION setuptools
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION setuptools cython $NUMPY_SPEC $SCIPY_SPEC $DASK_SPEC blas=*=openblas
   - conda activate test-environment
-  - conda install -y cython $NUMPY_SPEC $SCIPY_SPEC $DASK_SPEC blas=*=openblas
   - python setup.py -v build_ext --inplace
 
 script:
