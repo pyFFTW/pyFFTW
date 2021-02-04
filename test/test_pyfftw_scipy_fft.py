@@ -39,7 +39,7 @@ except ImportError:
     scipy_version = '0.0.0'
 
 from distutils.version import LooseVersion
-has_scipy_fft = LooseVersion(scipy_version) >= LooseVersion('1.4.0')
+has_scipy_fft = LooseVersion(scipy_version) >= '1.4.0'
 
 if has_scipy_fft:
     import scipy.fft
@@ -128,6 +128,12 @@ atol_dict = dict(f=1e-5, d=1e-7, g=1e-7)
 rtol_dict = dict(f=1e-4, d=1e-5, g=1e-5)
 transform_types = [1, 2, 3, 4]
 
+if LooseVersion(scipy_version) >= '1.6.0':
+    # all norm options aside from None
+    scipy_norms = ['ortho', 'forward', 'backward']
+else:
+    scipy_norms = ['ortho']
+
 @unittest.skipIf(not has_scipy_fft, 'scipy.fft is unavailable')
 class InterfacesScipyR2RFFTTest(unittest.TestCase):
     ''' Class template for building the scipy real to real tests.
@@ -168,12 +174,11 @@ class InterfacesScipyR2RFFTTest(unittest.TestCase):
             self.assertTrue(numpy.allclose(data_hat_p, data_hat_s,
                                            atol=self.atol, rtol=self.rtol))
 
-
     def test_normalized(self):
         '''Test normalized against scipy results. Note that scipy does
         not support normalization for all transformations.
         '''
-        for norm in ['ortho', 'backward', 'forward']:
+        for norm in scipy_norms:
             for transform_type in transform_types:
                 data_hat_p = self.pyfftw_func(self.data, type=transform_type,
                                               norm=norm,
