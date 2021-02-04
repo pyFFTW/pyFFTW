@@ -9,22 +9,21 @@ os: linux
 
 jobs:
   include:
-    - python: 2.7
-      env:
-        - DASK_SPEC="dask=0.15"  # minimum supported version
-    - python: 3.5
-      env:
-        - DASK_SPEC="dask=0.15"  # minimum supported version
-    - python: 3.6
-      env:
-        - DASK_SPEC="dask"  # most recent available
     - python: 3.7
       env:
-        - DASK_SPEC="dask"  # most recent available
+        - DASK_SPEC="dask=1.0"      # oldest supported
+        - SCIPY_SPEC="scipy=1.2"     # oldest supported
+        - NUMPY_SPEC="numpy=1.16"   # oldest supported
     - python: 3.8
       env:
         - DASK_SPEC="dask"  # most recent available
-        - SCIPY_WHEELS="https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com/"
+        - SCIPY_SPEC="scipy"
+        - NUMPY_SPEC="numpy"
+    - python: 3.9
+      env:
+        - DASK_SPEC="dask"  # most recent available
+        - SCIPY_SPEC="scipy"
+        - NUMPY_SPEC="numpy"
 
 branches:
     except:
@@ -36,26 +35,18 @@ addons:
         libfftw3-dev
 
 before_install:
-  - wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  # reference: https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/use-conda-with-travis-ci.html#the-travis-yml-file
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
 
 install:
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION nomkl numpy setuptools
-  - conda install -q -n test-environment $DASK_SPEC || true
-  - |
-    if [ -z "$SCIPY_WHEELS" ]; then
-      conda install -q -n test-environment scipy
-      source activate test-environment
-    else
-      source activate test-environment
-      pip install --pre --upgrade --timeout=60 -f "$SCIPY_WHEELS" scipy
-    fi
-  - pip install cython  # conda doesn't have new enough Cython for Python 3.5
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION setuptools cython $NUMPY_SPEC $SCIPY_SPEC $DASK_SPEC blas=*=openblas
+  - conda activate test-environment
   - python setup.py -v build_ext --inplace
 
 script:
@@ -77,5 +68,5 @@ deploy:
     on:
         repo: pyFFTW/pyFFTW
         # We only need to build deploy one source release
-        condition: $TRAVIS_PYTHON_VERSION = "2.7"
+        condition: $TRAVIS_PYTHON_VERSION = "3.6"
         tags: true

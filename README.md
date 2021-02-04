@@ -45,8 +45,8 @@ The documentation can be found on
 
 ## Requirements (i.e. what it was designed for)
 
-- [Python](https://python.org) 2.7 or >= 3.4
-- [Numpy](https://www.numpy.org) >= 1.10.4  (lower versions *may* work)
+- [Python](https://python.org) >= 3.7 (lower versions *may* work)
+- [Numpy](https://www.numpy.org) >= 1.16 (lower versions *may* work)
 - [FFTW](https://www.fftw.org) >= 3.3 (lower versions *may* work) libraries for
   single, double, and long double precision in serial and multithreading
   (pthreads or openMP) versions.
@@ -59,10 +59,12 @@ it is not tested against them.
 
 ## Optional Dependencies
 
-- [Scipy](https://www.scipy.org) >= 0.16
-- [Dask](https://dask.pydata.org) >= 0.14.2
+- [Scipy](https://www.scipy.org) >= 1.2  (>= 1.4 required for the scipy.fft interface)
+- [Dask](https://dask.pydata.org) >= 1.0
 
 Scipy and Dask are only required in order to use their respective interfaces.
+In practice, older versions may work, but they are not tested against. On SciPy
+versions prior to 1.4, only the scipy.fftpack interface will be available.
 
 ## Installation
 

@@ -1,4 +1,4 @@
-# cython: language_level=3str
+# cython: language_level=3
 #
 # Copyright 2014 Knowledge Economy Developments Ltd
 #
