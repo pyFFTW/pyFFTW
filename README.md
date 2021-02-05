@@ -160,7 +160,7 @@ suitable ``.lib`` files as described on the
 
 #### Mac OSX
 
-Install FFTW from [homebrew](http://brew.sh>)::
+Install FFTW from [homebrew](http://brew.sh):
 
   brew install fftw
 
