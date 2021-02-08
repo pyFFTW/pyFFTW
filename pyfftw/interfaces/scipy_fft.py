@@ -50,10 +50,11 @@ a 2D `s` argument will return without exception whereas
 import os
 
 from . import numpy_fft
+from .scipy_fftpack import (_dct, _idct, _dctn, _idctn,
+                            _dst, _idst, _dstn, _idstn)
 
 # Complete the namespace (these are not actually used in this module)
-from scipy.fft import (dct, idct, dst, idst, dctn, idctn, dstn, idstn,
-                       hfft2, ihfft2, hfftn, ihfftn,
+from scipy.fft import (hfft2, ihfft2, hfftn, ihfftn,
                        fftshift, ifftshift, fftfreq, rfftfreq,
                        get_workers, set_workers)
 
@@ -324,3 +325,162 @@ def ihfft(x, n=None, axis=-1, norm=None, overwrite_x=False, workers=None,
     threads = _workers_to_threads(workers)
     return numpy_fft.ihfft(x, n, axis, norm, overwrite_x, planner_effort,
                            threads, auto_align_input, auto_contiguous)
+
+
+@_implements(_fft.dct)
+def dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
+        workers=None, planner_effort=None, auto_align_input=True,
+        auto_contiguous=True):
+    '''Perform a 1D discrete cosine transform.
+
+    The first seven arguments are as per :func:`scipy.fft.dct`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    '''
+    threads = _workers_to_threads(workers)
+    if norm is None:
+        norm = 'backward'
+    return _dct(x, type=type, n=n, axis=axis, norm=norm,
+                overwrite_x=overwrite_x,
+                planner_effort=planner_effort, threads=threads,
+                auto_align_input=auto_align_input,
+                auto_contiguous=auto_contiguous)
+
+
+@_implements(_fft.idct)
+def idct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
+         workers=None, planner_effort=None, auto_align_input=True,
+         auto_contiguous=True):
+    '''Perform an inverse 1D discrete cosine transform.
+
+    The first seven arguments are as per :func:`scipy.fft.idct`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    '''
+    threads = _workers_to_threads(workers)
+    if norm is None:
+        norm = 'backward'
+    return _idct(x, type=type, n=n, axis=axis, norm=norm,
+                 overwrite_x=overwrite_x,
+                 planner_effort=planner_effort, threads=threads,
+                 auto_align_input=auto_align_input,
+                 auto_contiguous=auto_contiguous)
+
+
+@_implements(_fft.dst)
+def dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
+        workers=None, planner_effort=None, auto_align_input=True,
+        auto_contiguous=True):
+    '''Perform a 1D discrete sine transform.
+
+    The first seven arguments are as per :func:`scipy.fft.dst`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    '''
+    threads = _workers_to_threads(workers)
+    if norm is None:
+        norm = 'backward'
+    return _dst(x, type=type, n=n, axis=axis, norm=norm,
+                overwrite_x=overwrite_x,
+                planner_effort=planner_effort, threads=threads,
+                auto_align_input=auto_align_input,
+                auto_contiguous=auto_contiguous)
+
+
+@_implements(_fft.idst)
+def idst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
+         workers=None, planner_effort=None, auto_align_input=True,
+         auto_contiguous=True):
+    '''Perform an inverse 1D discrete sine transform.
+
+    The first seven arguments are as per :func:`scipy.fft.idst`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    '''
+    threads = _workers_to_threads(workers)
+    if norm is None:
+        norm = 'backward'
+    return _idst(x, type=type, n=n, axis=axis, norm=norm,
+                 overwrite_x=overwrite_x,
+                 planner_effort=planner_effort, threads=threads,
+                 auto_align_input=auto_align_input,
+                 auto_contiguous=auto_contiguous)
+
+@_implements(_fft.dctn)
+def dctn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
+         workers=None, planner_effort=None, auto_align_input=True,
+         auto_contiguous=True):
+    """Performan a multidimensional Discrete Cosine Transform.
+
+    The first seven arguments are as per :func:`scipy.fft.dctn`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    """
+    threads = _workers_to_threads(workers)
+    if norm is None:
+        norm = 'backward'
+    return _dctn(x, type=type, shape=s, axes=axes, norm=norm,
+                 overwrite_x=overwrite_x,
+                 planner_effort=planner_effort, threads=threads,
+                 auto_align_input=auto_align_input,
+                 auto_contiguous=auto_contiguous)
+
+
+@_implements(_fft.idctn)
+def idctn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
+          workers=None, planner_effort=None, auto_align_input=True,
+          auto_contiguous=True):
+    """Performan a multidimensional inverse Discrete Cosine Transform.
+
+    The first seven arguments are as per :func:`scipy.fft.idctn`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    """
+    threads = _workers_to_threads(workers)
+    if norm is None:
+        norm = 'backward'
+    return _idctn(x, type=type, shape=s, axes=axes, norm=norm,
+                  overwrite_x=overwrite_x,
+                  planner_effort=planner_effort, threads=threads,
+                  auto_align_input=auto_align_input,
+                  auto_contiguous=auto_contiguous)
+
+
+@_implements(_fft.dstn)
+def dstn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
+         workers=None, planner_effort=None, auto_align_input=True,
+         auto_contiguous=True):
+    """Performan a multidimensional Discrete Sine Transform.
+
+    The first seven arguments are as per :func:`scipy.fft.dstn`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    """
+    threads = _workers_to_threads(workers)
+    if norm is None:
+        norm = 'backward'
+    return _dstn(x, type=type, shape=s, axes=axes, norm=norm,
+                 overwrite_x=overwrite_x,
+                 planner_effort=planner_effort, threads=threads,
+                 auto_align_input=auto_align_input,
+                 auto_contiguous=auto_contiguous)
+
+
+@_implements(_fft.idstn)
+def idstn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
+          workers=None, planner_effort=None, auto_align_input=True,
+          auto_contiguous=True):
+    """Performan a multidimensional inverse Discrete Sine Transform.
+
+    The first seven arguments are as per :func:`scipy.fft.idstn`;
+    the rest of the arguments are documented
+    in the :ref:`additional arguments docs<interfaces_additional_args>`.
+    """
+    threads = _workers_to_threads(workers)
+    if norm is None:
+        norm = 'backward'
+    return _idstn(x, type=type, shape=s, axes=axes, norm=norm,
+                  overwrite_x=overwrite_x,
+                  planner_effort=planner_effort, threads=threads,
+                  auto_align_input=auto_align_input,
+                  auto_contiguous=auto_contiguous)

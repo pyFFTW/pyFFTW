@@ -1,4 +1,5 @@
 # Copyright 2014 Knowledge Economy Developments Ltd
+# Copyright 2014 David Wells
 #
 # Henry Gomersall
 # heng@kedevelopments.co.uk
@@ -33,7 +34,10 @@
 #
 
 from pyfftw.interfaces import scipy_fftpack
+from distutils.version import LooseVersion
+
 import pyfftw
+from pyfftw import _supported_types
 import numpy
 
 try:
@@ -51,15 +55,16 @@ import unittest
 from .test_pyfftw_base import run_test_suites, miss
 from . import test_pyfftw_numpy_interface
 
-'''pyfftw.interfaces.scipy_fftpack just wraps pyfftw.interfaces.numpy_fft.
+'''pyfftw.interfaces.scipy_fftpack wraps pyfftw.interfaces.numpy_fft and
+implements the dct and dst functions.
 
 All the tests here just check that the call is made correctly.
 '''
 
-funcs = ('fft','ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
-           'rfft', 'irfft')
+funcs = ('fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
+         'rfft', 'irfft')
 
-acquired_names = ('dct', 'idct', 'diff', 'tilbert', 'itilbert', 'hilbert',
+acquired_names = ('diff', 'tilbert', 'itilbert', 'hilbert',
         'ihilbert', 'cs_diff', 'sc_diff', 'ss_diff', 'cc_diff', 'shift',
         'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve')
 
@@ -100,9 +105,18 @@ io_dtypes = {
         'r2c': (real_dtypes, make_r2c_real_data),
         'c2r': (real_dtypes, make_c2r_real_data)}
 
+if '64' in _supported_types:
+    default_floating_type = numpy.float64
+elif '32' in _supported_types:
+    default_floating_type = numpy.float32
+elif 'ld' in _supported_types:
+    default_floating_type = numpy.longdouble
+atol_dict = dict(f=1e-5, d=1e-7, g=1e-7)
+rtol_dict = dict(f=1e-4, d=1e-5, g=1e-5)
+
 @unittest.skipIf(scipy_missing, 'scipy is not installed, so this feature is'
                  'unavailable')
-class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
+class InterfacesScipyR2RFFTPackTestSimple(unittest.TestCase):
     ''' A really simple test suite to check simple implementation.
     '''
 
@@ -185,21 +199,203 @@ class InterfacesScipyFFTPackTestSimple(unittest.TestCase):
 
             self.assertIs(fftpack_attr, acquired_attr)
 
+transform_types = [1, 2, 3, 4]
 
-# Construct all the test classes automatically.
+@unittest.skipIf(scipy_missing or
+                 (LooseVersion(scipy.__version__) <= LooseVersion('1.2.0')),
+                'SciPy >= 1.2.0 is not installed')
+class InterfacesScipyR2RFFTTest(unittest.TestCase):
+    ''' Class template for building the scipy real to real tests.
+    '''
+
+    # unittest is not very smart and will always turn this class into a test,
+    # even though it is not on the list. Hence mark test-dependent values as
+    # constants (so this particular test ends up being run twice).
+    func_name = 'dct'
+    float_type = default_floating_type
+    atol = atol_dict['f']
+    rtol = rtol_dict['f']
+
+    def setUp(self):
+        self.scipy_func = getattr(scipy.fftpack, self.func_name)
+        self.pyfftw_func = getattr(scipy_fftpack, self.func_name)
+        self.ndims = numpy.random.randint(1, high=3)
+        self.axis = numpy.random.randint(0, high=self.ndims)
+        self.shape = numpy.random.randint(2, high=10, size=self.ndims)
+        self.data = numpy.random.rand(*self.shape).astype(self.float_type)
+        self.data_copy = self.data.copy()
+
+        if self.func_name in ['dctn', 'idctn', 'dstn', 'idstn']:
+            self.kwargs = dict(axes=(self.axis, ))
+        else:
+            self.kwargs = dict(axis=self.axis)
+
+    def test_unnormalized(self):
+        '''Test unnormalized pyfftw transformations against their scipy
+        equivalents.
+        '''
+        for transform_type in transform_types:
+            data_hat_p = self.pyfftw_func(self.data, type=transform_type,
+                                          overwrite_x=False, **self.kwargs)
+            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy), 0.0)
+            data_hat_s = self.scipy_func(self.data, type=transform_type,
+                                         overwrite_x=False, **self.kwargs)
+            self.assertTrue(numpy.allclose(data_hat_p, data_hat_s,
+                                           atol=self.atol, rtol=self.rtol))
+
+    def test_normalized(self):
+        '''Test normalized against scipy results. Note that scipy does
+        not support normalization for all transformations.
+        '''
+        for transform_type in transform_types:
+            data_hat_p = self.pyfftw_func(self.data, type=transform_type,
+                                          norm='ortho',
+                                          overwrite_x=False, **self.kwargs)
+            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy), 0.0)
+            data_hat_s = self.scipy_func(self.data, type=transform_type,
+                                         norm='ortho',
+                                         overwrite_x=False, **self.kwargs)
+            self.assertTrue(numpy.allclose(data_hat_p, data_hat_s,
+                                           atol=self.atol, rtol=self.rtol))
+
+    def test_normalization_inverses(self):
+        '''Test normalization in all of the pyfftw scipy wrappers.
+        '''
+        for transform_type in transform_types:
+            inverse_type = {1: 1, 2: 3, 3: 2, 4: 4}[transform_type]
+            forward = self.pyfftw_func(self.data, type=transform_type,
+                                       norm='ortho',
+                                       overwrite_x=False, **self.kwargs)
+            result = self.pyfftw_func(forward, type=inverse_type,
+                                      norm='ortho',
+                                      overwrite_x=False, **self.kwargs)
+            self.assertTrue(numpy.allclose(self.data, result,
+                                           atol=self.atol, rtol=self.rtol))
+
+@unittest.skipIf(scipy_missing or
+                 (LooseVersion(scipy.__version__) <= LooseVersion('1.2.0')),
+                 'SciPy >= 1.2.0 is not installed')
+class InterfacesScipyR2RFFTNTest(InterfacesScipyR2RFFTTest):
+    ''' Class template for building the scipy real to real tests.
+    '''
+
+    # unittest is not very smart and will always turn this class into a test,
+    # even though it is not on the list. Hence mark test-dependent values as
+    # constants (so this particular test ends up being run twice).
+    func_name = 'dctn'
+    float_type = default_floating_type
+    atol = atol_dict['f']
+    rtol = rtol_dict['f']
+
+    def setUp(self):
+        self.scipy_func = getattr(scipy.fftpack, self.func_name)
+        self.pyfftw_func = getattr(scipy_fftpack, self.func_name)
+        self.ndims = numpy.random.randint(1, high=3)
+        self.shape = numpy.random.randint(2, high=10, size=self.ndims)
+        self.data = numpy.random.rand(*self.shape).astype(self.float_type)
+        self.data_copy = self.data.copy()
+        # random subset of axes
+        self.axes = tuple(range(0, numpy.random.randint(0, high=self.ndims)))
+        self.kwargs = dict(axes=self.axes)
+
+    def test_axes_none(self):
+        '''Test transformation over all axes.
+        '''
+        for transform_type in transform_types:
+            data_hat_p = self.pyfftw_func(self.data, type=transform_type,
+                                          overwrite_x=False, axes=None)
+            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy), 0.0)
+            data_hat_s = self.scipy_func(self.data, type=transform_type,
+                                         overwrite_x=False, axes=None)
+            self.assertTrue(numpy.allclose(data_hat_p, data_hat_s,
+                                           atol=self.atol, rtol=self.rtol))
+
+    @unittest.skipIf(LooseVersion(scipy.__version__) <= LooseVersion('1.2.0'),
+                     'scipy version not new enough')
+    def test_axes_scalar(self):
+        '''Test transformation over a single, scalar axis.
+        '''
+        for transform_type in transform_types:
+            if scipy.__version__ < '1.2':
+                # scalar axes not supported in older SciPy
+                continue
+            data_hat_p = self.pyfftw_func(self.data, type=transform_type,
+                                          overwrite_x=False, axes=-1)
+            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy), 0.0)
+            data_hat_s = self.scipy_func(self.data, type=transform_type,
+                                         overwrite_x=False, axes=-1)
+            self.assertTrue(numpy.allclose(data_hat_p, data_hat_s,
+                                           atol=self.atol, rtol=self.rtol))
+
+
 built_classes = []
+# Construct the r2r test classes.
+for floating_type, floating_name in [[numpy.float32, 'Float32'],
+                                     [numpy.float64, 'Float64']]:
+    if floating_type == numpy.float32 and '32' not in _supported_types:
+        # skip single precision tests if library is unavailable
+        continue
+    elif floating_type == numpy.float64 and '64' not in _supported_types:
+        # skip double precision tests if library is unavailable
+        continue
+
+    real_transforms = ('dct', 'idct', 'dst', 'idst')
+    try:
+        # additional n-dimensional real transforms in scipy 1.0+
+        from scipy.fftpack import dctn
+        real_transforms_nd = ('dctn', 'idctn', 'dstn', 'idstn')
+        real_transforms += real_transforms_nd
+    except ImportError:
+        real_transforms_nd = ()
+
+    dt_char = numpy.dtype(floating_type).char
+    atol = atol_dict[dt_char]
+    rtol = rtol_dict[dt_char]
+
+    # test-cases where only one axis is transformed
+    for transform_name in real_transforms:
+        class_name = ('InterfacesScipyR2RFFTTest' + transform_name.upper() +
+                      floating_name)
+
+        globals()[class_name] = type(
+            class_name,
+            (InterfacesScipyR2RFFTTest,),
+            {'func_name': transform_name,
+             'float_type': floating_type,
+             'atol': atol,
+             'rtol': rtol})
+
+        built_classes.append(globals()[class_name])
+
+    # n-dimensional test-cases
+    for transform_name in real_transforms_nd:
+        class_name = ('InterfacesScipyR2RFFTNTest' + transform_name.upper() +
+                      floating_name)
+
+        globals()[class_name] = type(
+            class_name,
+            (InterfacesScipyR2RFFTNTest,),
+            {'func_name': transform_name,
+             'float_type': floating_type,
+             'atol': atol,
+             'rtol': rtol})
+
+        built_classes.append(globals()[class_name])
+
+
+# Construct the test classes derived from the numpy tests.
 for each_func in funcs:
 
-    class_name = 'InterfacesScipyFFTPackTest' + each_func.upper()
+    class_name = 'InterfacesScipyR2RFFTPackTest' + each_func.upper()
 
     parent_class_name = 'InterfacesNumpyFFTTest' + each_func.upper()
     parent_class = getattr(test_pyfftw_numpy_interface, parent_class_name)
 
     class_dict = {'validator_module': scipy.fftpack,
-                'test_interface': scipy_fftpack,
-                'io_dtypes': io_dtypes,
-                'overwrite_input_flag': 'overwrite_x',
-                'default_s_from_shape_slicer': slice(None)}
+                  'test_interface': scipy_fftpack,
+                  'io_dtypes': io_dtypes,
+                  'overwrite_input_flag': 'overwrite_x',
+                  'default_s_from_shape_slicer': slice(None)}
 
     globals()[class_name] = type(class_name,
             (parent_class,), class_dict)
@@ -212,10 +408,10 @@ for each_func in funcs:
 built_classes = tuple(built_classes)
 
 test_cases = (
-        InterfacesScipyFFTPackTestSimple,) + built_classes
+        InterfacesScipyR2RFFTPackTestSimple,) + built_classes
 
 test_set = None
-#test_set = {'InterfacesScipyFFTPackTestIFFTN': ['test_auto_align_input']}
+#test_set = {'InterfacesScipyR2RFFTPackTestIFFTN': ['test_auto_align_input']}
 
 
 if __name__ == '__main__':
