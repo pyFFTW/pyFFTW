@@ -73,12 +73,12 @@ package index with tools such as pip:
 
     pip install pyfftw
 
-Pre-built binary wheels for 64-bit Python on Linux, Mac OS X and Windows are 
+Pre-built binary wheels for 64-bit Python on Linux, Mac OS X and Windows are
 available on the [PyPI](https://pypi.org/) page for all supported Python versions.
 Note that we only support binaries for 64-bit Python. If you need to use 32-bit
 python for some reason, you will have to build pyFFTW from source.
 
-Note that prior to Python 3.9, the Windows installation defaulted to being 32-bit 
+Note that prior to Python 3.9, the Windows installation defaulted to being 32-bit
 even on 64-bit Windows, so if you are having problems installing using pip
 (typically with an error message like `ERROR: Failed building wheel for pyfftw`)
 then please check your Python version.
@@ -106,11 +106,7 @@ Read on if you do want to build from source...
 
 To build in place:
 
-    python setup.py build_ext --inplace
-
-or:
-
-    pip install -r requirements.txt -e . -v
+    pip install -e . -v
 
 That cythonizes the python extension and builds it into a shared library
 which is placed in ``pyfftw/``. The directory can then be treated as a python
