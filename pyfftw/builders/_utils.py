@@ -35,7 +35,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-'''
+"""
 A set of utility functions for use with the builders. Users should
 not need to use the functions directly, but they are included here for
 completeness and to aid with understanding of what is happening behind
@@ -46,8 +46,8 @@ Certainly, users may encounter instances of
 
 Everything documented in this module is *not* part of the public API
 and may change in future versions.
-'''
 
+"""
 import multiprocessing
 import pyfftw
 import numpy
@@ -55,12 +55,13 @@ import warnings
 from .. import _threading_type
 from .. import config
 
+
 __all__ = ['_FFTWWrapper', '_rc_dtype_pairs', '_default_dtype', '_Xfftn',
-        '_setup_input_slicers', '_compute_array_shapes', '_precook_1d_args',
-        '_cook_nd_args']
+           '_setup_input_slicers', '_compute_array_shapes', '_precook_1d_args',
+           '_cook_nd_args']
 
 _valid_efforts = ('FFTW_ESTIMATE', 'FFTW_MEASURE',
-        'FFTW_PATIENT', 'FFTW_EXHAUSTIVE')
+                  'FFTW_PATIENT', 'FFTW_EXHAUSTIVE')
 
 _real_to_real_dtypes = [numpy.dtype('float32'), numpy.dtype('float64'),
                         numpy.dtype('longdouble')]
@@ -73,9 +74,9 @@ _real_to_real_dtypes = [numpy.dtype('float32'), numpy.dtype('float64'),
 _rc_dtype_pairs = {}
 _default_dtype = None
 
-# Double precision is the default default precision. Prefer casting to higher precision if
-# possible. If missing, long double is mapped to double and so we lose less
-# precision than by converting to single.
+# Double precision is the default default precision. Prefer casting to higher
+# precision if possible. If missing, long double is mapped to double and so we
+# lose less precision than by converting to single.
 if '64' in pyfftw._supported_types:
     _default_dtype = numpy.dtype('float64')
     _rc_dtype_pairs.update({
@@ -141,8 +142,9 @@ def _Xfftn(a, s, axes, overwrite_input,
            planner_effort, threads, auto_align_input, auto_contiguous,
            avoid_copy, inverse, real, normalise_idft=True, ortho=False,
            real_direction_flag=None):
-    '''Generic transform interface for all the transforms. No
-    defaults exist. The transform must be specified exactly.
+    """
+    Generic transform interface for all the transforms; no defaults exist.
+    The transform must be specified exactly.
 
     The argument ``real_direction_flag`` is a slight exception to this
     rule: for backwards compatibility this function defaults to standard
@@ -150,7 +152,8 @@ def _Xfftn(a, s, axes, overwrite_input,
     If this flag is set to one of the standard real transform types
     (e.g., 'FFTW_RODFT00') then the arguments ``inverse`` and ``real``
     are ignored.
-    '''
+
+    """
     a_orig = a
     invreal = inverse and real
 
@@ -187,7 +190,8 @@ def _Xfftn(a, s, axes, overwrite_input,
 
             # warn when losing precision but not when using a higher precision
             if dtype.itemsize < a.dtype.itemsize:
-                warnings.warn("Narrowing conversion from %s to %s precision" % (a.dtype, dtype))
+                warnings.warn("Narrowing conversion from %s to %s\
+                              precision" % (a.dtype, dtype))
 
             if not real or inverse:
                 # It's going to be complex
@@ -204,7 +208,7 @@ def _Xfftn(a, s, axes, overwrite_input,
             a = numpy.asarray(a, dtype=_rc_dtype_pairs[a.dtype.char])
 
     # Make the output dtype correct
-    if not real: # 'real' implies c2r or r2c; hence 'not real' means r2r or c2c.
+    if not real:  # 'real' implies c2r or r2c; so 'not real' means r2r or c2c
         output_dtype = a.dtype
 
     else:
@@ -227,8 +231,8 @@ def _Xfftn(a, s, axes, overwrite_input,
 
         if avoid_copy:
             raise ValueError('Cannot avoid copy: '
-                    'The transform shape is not the same as the array size. '
-                    '(from avoid_copy flag)')
+                             'the transform shape is not the same as the '
+                             'array size (from avoid_copy flag).')
 
         # This means we need to use an _FFTWWrapper object
         # and so need to create slicers.
@@ -240,15 +244,15 @@ def _Xfftn(a, s, axes, overwrite_input,
         input_array = pyfftw.empty_aligned(input_shape, a.dtype)
 
         FFTW_object = _FFTWWrapper(input_array, output_array, axes, direction,
-                flags, threads, input_array_slicer=update_input_array_slicer,
-                FFTW_array_slicer=FFTW_array_slicer,
-                normalise_idft=normalise_idft, ortho=ortho)
+                                   flags, threads,
+                                   input_array_slicer=update_input_array_slicer,
+                                   FFTW_array_slicer=FFTW_array_slicer,
+                                   normalise_idft=normalise_idft, ortho=ortho)
 
         # We copy the data back into the internal FFTW object array
         internal_array = FFTW_object.input_array
         internal_array[:] = 0
-        internal_array[FFTW_array_slicer] = (
-                a_copy[update_input_array_slicer])
+        internal_array[FFTW_array_slicer] = (a_copy[update_input_array_slicer])
 
     else:
         # Otherwise we can use `a` as-is
@@ -261,8 +265,9 @@ def _Xfftn(a, s, axes, overwrite_input,
             if not (a.flags['C_CONTIGUOUS'] or a.flags['F_CONTIGUOUS']):
                 if avoid_copy:
                     raise ValueError('Cannot avoid copy: '
-                            'The input array is not contiguous and '
-                            'auto_contiguous is set. (from avoid_copy flag)')
+                                     'the input array is not contiguous and '
+                                     'auto_contiguous is set (from '
+                                     'avoid_copy flag).')
 
                 input_array = pyfftw.empty_aligned(a.shape, a.dtype)
 
@@ -270,14 +275,14 @@ def _Xfftn(a, s, axes, overwrite_input,
 
             if avoid_copy:
                 raise ValueError('Cannot avoid copy: '
-                        'The input array is not aligned and '
-                        'auto_align is set. (from avoid_copy flag)')
+                                 'the input array is not aligned and '
+                                 'auto_align is set (from avoid_copy flag).')
 
             input_array = pyfftw.byte_align(input_array)
 
-
         FFTW_object = pyfftw.FFTW(input_array, output_array, axes, direction,
-                flags, threads, normalise_idft=normalise_idft, ortho=ortho)
+                                  flags, threads,
+                                  normalise_idft=normalise_idft, ortho=ortho)
 
         if not avoid_copy:
             # Copy the data back into the (likely) destroyed array
@@ -287,15 +292,19 @@ def _Xfftn(a, s, axes, overwrite_input,
 
 
 class _FFTWWrapper(pyfftw.FFTW):
-    ''' A class that wraps :class:`pyfftw.FFTW`, providing a slicer on the input
-    stage during calls to :meth:`~pyfftw.builders._utils._FFTWWrapper.__call__`.
-    '''
+    """
+    A class that wraps :class:`pyfftw.FFTW`, providing a slicer on the input
+    stage during calls to
+    :meth:`~pyfftw.builders._utils._FFTWWrapper.__call__`.
+
+    """
 
     def __init__(self, input_array, output_array, axes=[-1],
-            direction='FFTW_FORWARD', flags=['FFTW_MEASURE'],
-            threads=1, input_array_slicer=None, FFTW_array_slicer=None,
-            normalise_idft=True, ortho=False):
-        '''The arguments are as per :class:`pyfftw.FFTW`, but with the addition
+                 direction='FFTW_FORWARD', flags=['FFTW_MEASURE'],
+                 threads=1, input_array_slicer=None, FFTW_array_slicer=None,
+                 normalise_idft=True, ortho=False):
+        """
+        The arguments are as per :class:`pyfftw.FFTW`, but with the addition
         of 2 keyword arguments: ``input_array_slicer`` and
         ``FFTW_array_slicer``.
 
@@ -306,8 +315,8 @@ class _FFTWWrapper(pyfftw.FFTW):
         The arrays that are returned from both of these slicing operations
         should be the same size. The data is then copied from the sliced
         input array into the sliced internal array.
-        '''
 
+        """
         self._input_array_slicer = input_array_slicer
         self._FFTW_array_slicer = FFTW_array_slicer
         self._normalise_idft = normalise_idft
@@ -322,23 +331,23 @@ class _FFTWWrapper(pyfftw.FFTW):
                              axes, direction, flags, threads)
 
     def __call__(self, input_array=None, output_array=None,
-            normalise_idft=None, ortho=None):
-        '''Wrap :meth:`pyfftw.FFTW.__call__` by firstly slicing the
+                 normalise_idft=None, ortho=None):
+        """
+        Wrap :meth:`pyfftw.FFTW.__call__` by firstly slicing the
         passed-in input array and then copying it into a sliced version
         of the internal array. These slicers are set at instantiation.
 
-        When input array is not ``None``, this method always results in
-        a copy. Consequently, the alignment and dtype are maintained in
-        the internal array.
+        When input array is not ``None``, this method always results in a
+        copy. Consequently, the alignment and dtype are maintained in the
+        internal array.
 
         ``output_array`` and ``normalise_idft`` are passed through to
         :meth:`pyfftw.FFTW.__call__` untouched.
-        '''
 
+        """
         if input_array is not None:
-            # Do the update here (which is a copy, so it's alignment
-            # safe etc).
-
+            # do the update here (which is a copy, so it's alignment
+            # safe etc)
             internal_input_array = self.input_array
             input_array = numpy.asanyarray(input_array)
 
@@ -350,9 +359,9 @@ class _FFTWWrapper(pyfftw.FFTW):
 
             if sliced_internal.shape != sliced_input.shape:
                 raise ValueError('Invalid input shape: '
-                        'The new input array should be the same shape '
-                        'as the input array used to instantiate the '
-                        'object.')
+                                 'the new input array should be the same '
+                                 'shape as the input array used to '
+                                 'instantiate the object.')
 
             sliced_internal[:] = sliced_input
 
@@ -363,16 +372,18 @@ class _FFTWWrapper(pyfftw.FFTW):
             ortho = self._ortho
 
         output = super(_FFTWWrapper, self).__call__(input_array=None,
-                output_array=output_array, normalise_idft=normalise_idft,
-                ortho=ortho)
+                                                    output_array=output_array,
+                                                    normalise_idft=normalise_idft,
+                                                    ortho=ortho)
 
         return output
 
 
 def _setup_input_slicers(a_shape, input_shape):
-    ''' This function returns two slicers that are to be used to
-    copy the data from the input array to the FFTW object internal
-    array, which can then be passed to _FFTWWrapper:
+    """
+    This function returns two slicers that are to be used to copy the data
+    from the input array to the FFTW object internal array, which can then
+    be passed to _FFTWWrapper:
 
     ``(update_input_array_slicer, FFTW_array_slicer)``
 
@@ -380,11 +391,10 @@ def _setup_input_slicers(a_shape, input_shape):
     the input array is copied in as:
 
     ``FFTW_array[FFTW_array_slicer] = input_array[update_input_array_slicer]``
-    '''
 
+    """
     # default the slicers to include everything
-    update_input_array_slicer = (
-            [slice(None)]*len(a_shape))
+    update_input_array_slicer = ([slice(None)]*len(a_shape))
     FFTW_array_slicer = [slice(None)]*len(a_shape)
 
     # iterate over each dimension and modify the slicer and FFTW dimension
@@ -407,17 +417,18 @@ def _setup_input_slicers(a_shape, input_shape):
 
     return tuple(update_input_array_slicer), tuple(FFTW_array_slicer)
 
-def _compute_array_shapes(a, s, axes, inverse, real):
-    '''Given a passed in array ``a``, and the rest of the arguments
-    (that have been fleshed out with
-    :func:`~pyfftw.builders._utils._cook_nd_args`), compute
-    the shape the input and output arrays need to be in order
-    to satisfy all the requirements for the transform. The input
-    shape *may* be different to the shape of a.
 
-    returns:
-    ``(input_shape, output_shape)``
-    '''
+def _compute_array_shapes(a, s, axes, inverse, real):
+    """
+    Given a passed in array ``a``, and the rest of the arguments (that have
+    been fleshed out with :func:`~pyfftw.builders._utils._cook_nd_args`),
+    compute the shape the input and output arrays need to be in order to
+    satisfy all the requirements for the transform. The input shape *may* be
+    different to the shape of a.
+
+    Returns: ``(input_shape, output_shape)``
+
+    """
     # Start with the shape of a
     orig_domain_shape = list(a.shape)
     fft_domain_shape = list(a.shape)
@@ -432,7 +443,7 @@ def _compute_array_shapes(a, s, axes, inverse, real):
 
     except IndexError:
         raise IndexError('Invalid axes: '
-                'At least one of the passed axes is invalid.')
+                         'at least one of the passed axes is invalid.')
 
     if inverse:
         input_shape = fft_domain_shape
@@ -443,9 +454,12 @@ def _compute_array_shapes(a, s, axes, inverse, real):
 
     return tuple(input_shape), tuple(output_shape)
 
+
 def _precook_1d_args(a, n, axis):
-    '''Turn ``*(n, axis)`` into ``(s, axes)``
-    '''
+    """
+    Turns ``*(n, axis)`` into ``(s, axes)``
+
+    """
     if n is not None:
         s = [int(n)]
     else:
@@ -456,10 +470,12 @@ def _precook_1d_args(a, n, axis):
 
     return s, (axis,)
 
-def _cook_nd_args(a, s=None, axes=None, invreal=False):
-    '''Similar to :func:`numpy.fft.fftpack._cook_nd_args`.
-    '''
 
+def _cook_nd_args(a, s=None, axes=None, invreal=False):
+    """
+    Similar to :func:`numpy.fft.fftpack._cook_nd_args`.
+
+    """
     if axes is None:
         if s is None:
             len_s = len(a.shape)
@@ -474,14 +490,13 @@ def _cook_nd_args(a, s=None, axes=None, invreal=False):
         if invreal:
             s[-1] = (a.shape[axes[-1]] - 1) * 2
 
-
     if len(s) != len(axes):
         raise ValueError('Shape error: '
-                'Shape and axes have different lengths.')
+                         'shape and axes have different lengths.')
 
     if len(s) > len(a.shape):
         raise ValueError('Shape error: '
-                'The length of s or axes cannot exceed the dimensionality '
-                'of the input array, a.')
+                         'the length of s or axes cannot exceed the '
+                         'dimensionality of the input array, a.')
 
     return tuple(s), tuple(axes)

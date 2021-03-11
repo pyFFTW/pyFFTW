@@ -35,9 +35,9 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-'''
+"""
 Overview
-""""""""
+--------
 
 This module contains a set of functions that return
 :class:`pyfftw.FFTW` objects.
@@ -113,7 +113,7 @@ operations are scaled by 1/sqrt(N).
 More examples can be found in the :doc:`tutorial </source/tutorial>`.
 
 Supported Functions and Caveats
-"""""""""""""""""""""""""""""""
+-------------------------------
 
 The following functions are supported. They can be used with the
 same calling signature as their respective functions in
@@ -168,7 +168,7 @@ array is not already aligned correctly.
 .. _builders_args:
 
 Additional Arguments
-""""""""""""""""""""
+--------------------
 
 In addition to the arguments that are present with their complementary
 functions in :mod:`numpy.fft`, each of these functions also offers the
@@ -265,25 +265,26 @@ following additional keyword arguments:
 
 The exceptions raised by each of these functions are as per their
 equivalents in :mod:`numpy.fft`, or as documented above.
-'''
 
+"""
 from ._utils import (_precook_1d_args, _Xfftn, _norm_args, _default_effort,
                      _default_threads)
 
-__all__ = ['fft','ifft', 'fft2', 'ifft2', 'fftn',
-           'ifftn', 'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn',
-           'irfftn', 'dct', 'dst']
+__all__ = ['fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn', 'rfft', 'irfft',
+           'rfft2', 'irfft2', 'rfftn', 'irfftn', 'dct', 'dst']
+
 
 def fft(a, n=None, axis=-1, overwrite_input=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, norm=None):
-    '''Return a :class:`pyfftw.FFTW` object representing a 1D FFT.
+    """
+    Return a :class:`pyfftw.FFTW` object representing an 1D FFT.
 
-    The first three arguments are as per :func:`numpy.fft.fft`;
-    the rest of the arguments are documented
-    :ref:`in the module docs <builders_args>`.
-    '''
+    The first three arguments are as per :func:`numpy.fft.fft`; the rest of
+    the arguments are documented :ref:`in the module docs <builders_args>`.
+
+    """
     inverse = False
     real = False
 
@@ -292,21 +293,21 @@ def fft(a, n=None, axis=-1, overwrite_input=False,
     threads = _default_threads(threads)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
-            avoid_copy, inverse, real, **_norm_args(norm))
+                  threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, **_norm_args(norm))
+
 
 def ifft(a, n=None, axis=-1, overwrite_input=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True,
-        avoid_copy=False, norm=None):
-    '''Return a :class:`pyfftw.FFTW` object representing a 1D
-    inverse FFT.
+         planner_effort=None, threads=None,
+         auto_align_input=True, auto_contiguous=True,
+         avoid_copy=False, norm=None):
+    """
+    Return a :class:`pyfftw.FFTW` object representing an 1D inverse FFT.
 
-    The first three arguments are as per :func:`numpy.fft.ifft`;
-    the rest of the arguments are documented
-    :ref:`in the module docs <builders_args>`.
-    '''
+    The first three arguments are as per :func:`numpy.fft.ifft`; the rest of
+    the arguments are documented :ref:`in the module docs <builders_args>`.
 
+    """
     inverse = True
     real = False
 
@@ -315,109 +316,105 @@ def ifft(a, n=None, axis=-1, overwrite_input=False,
     threads = _default_threads(threads)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
-            avoid_copy, inverse, real, **_norm_args(norm))
+                  threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, **_norm_args(norm))
 
 
-def fft2(a, s=None, axes=(-2,-1), overwrite_input=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True,
-        avoid_copy=False, norm=None):
-    '''Return a :class:`pyfftw.FFTW` object representing a 2D FFT.
+def fft2(a, s=None, axes=(-2, -1), overwrite_input=False,
+         planner_effort=None, threads=None,
+         auto_align_input=True, auto_contiguous=True,
+         avoid_copy=False, norm=None):
+    """
+    Return a :class:`pyfftw.FFTW` object representing a 2D FFT.
 
-    The first three arguments are as per :func:`numpy.fft.fft2`;
-    the rest of the arguments are documented
-    :ref:`in the module docs <builders_args>`.
-    '''
+    The first three arguments are as per :func:`numpy.fft.fft2`; the rest of
+    the arguments are documented :ref:`in the module docs <builders_args>`.
 
-
+    """
     inverse = False
     real = False
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
-            avoid_copy, inverse, real, **_norm_args(norm))
-
-def ifft2(a, s=None, axes=(-2,-1), overwrite_input=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True,
-        avoid_copy=False, norm=None):
-    '''Return a :class:`pyfftw.FFTW` object representing a
-    2D inverse FFT.
-
-    The first three arguments are as per :func:`numpy.fft.ifft2`;
-    the rest of the arguments are documented
-    :ref:`in the module docs <builders_args>`.
-    '''
+                  threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, **_norm_args(norm))
 
 
+def ifft2(a, s=None, axes=(-2, -1), overwrite_input=False,
+          planner_effort=None, threads=None,
+          auto_align_input=True, auto_contiguous=True,
+          avoid_copy=False, norm=None):
+    """
+    Return a :class:`pyfftw.FFTW` object representing a 2D inverse FFT.
+
+    The first three arguments are as per :func:`numpy.fft.ifft2`; the rest of
+    the arguments are documented :ref:`in the module docs <builders_args>`.
+
+    """
     inverse = True
     real = False
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
-            avoid_copy, inverse, real, **_norm_args(norm))
+                  threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, **_norm_args(norm))
 
 
 def fftn(a, s=None, axes=None, overwrite_input=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True,
-        avoid_copy=False, norm=None):
-    '''Return a :class:`pyfftw.FFTW` object representing a n-D FFT.
+         planner_effort=None, threads=None,
+         auto_align_input=True, auto_contiguous=True,
+         avoid_copy=False, norm=None):
+    """
+    Return a :class:`pyfftw.FFTW` object representing an n-D FFT.
 
-    The first three arguments are as per :func:`numpy.fft.fftn`;
-    the rest of the arguments are documented
-    :ref:`in the module docs <builders_args>`.
-    '''
+    The first three arguments are as per :func:`numpy.fft.fftn`; the rest of
+    the arguments are documented :ref:`in the module docs <builders_args>`.
 
-
+    """
     inverse = False
     real = False
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
-            avoid_copy, inverse, real, **_norm_args(norm))
+                  threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, **_norm_args(norm))
+
 
 def ifftn(a, s=None, axes=None, overwrite_input=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True,
-        avoid_copy=False, norm=None):
-    '''Return a :class:`pyfftw.FFTW` object representing an n-D
-    inverse FFT.
+          planner_effort=None, threads=None,
+          auto_align_input=True, auto_contiguous=True,
+          avoid_copy=False, norm=None):
+    """
+    Return a :class:`pyfftw.FFTW` object representing an n-D inverse FFT.
 
-    The first three arguments are as per :func:`numpy.fft.ifftn`;
-    the rest of the arguments are documented
-    :ref:`in the module docs <builders_args>`.
-    '''
+    The first three arguments are as per :func:`numpy.fft.ifftn`; the rest of
+    the arguments are documented :ref:`in the module docs <builders_args>`.
 
-
+    """
     inverse = True
     real = False
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
-            avoid_copy, inverse, real, **_norm_args(norm))
+                  threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, **_norm_args(norm))
+
 
 def rfft(a, n=None, axis=-1, overwrite_input=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True,
-        avoid_copy=False, norm=None):
-    '''Return a :class:`pyfftw.FFTW` object representing a 1D
-    real FFT.
+         planner_effort=None, threads=None,
+         auto_align_input=True, auto_contiguous=True,
+         avoid_copy=False, norm=None):
+    """
+    Return a :class:`pyfftw.FFTW` object representing an 1D real FFT.
 
     The first three arguments are as per :func:`numpy.fft.rfft`;
     the rest of the arguments are documented
     :ref:`in the module docs <builders_args>`.
-    '''
-
+    """
 
     inverse = False
     real = True
@@ -427,22 +424,21 @@ def rfft(a, n=None, axis=-1, overwrite_input=False,
     threads = _default_threads(threads)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
-            avoid_copy, inverse, real, **_norm_args(norm))
+                  threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, **_norm_args(norm))
+
 
 def irfft(a, n=None, axis=-1, overwrite_input=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True,
-        avoid_copy=False, norm=None):
-    '''Return a :class:`pyfftw.FFTW` object representing a 1D
-    real inverse FFT.
+          planner_effort=None, threads=None,
+          auto_align_input=True, auto_contiguous=True,
+          avoid_copy=False, norm=None):
+    """
+    Return a :class:`pyfftw.FFTW` object representing an 1D real inverse FFT.
 
-    The first three arguments are as per :func:`numpy.fft.irfft`;
-    the rest of the arguments are documented
-    :ref:`in the module docs <builders_args>`.
-    '''
+    The first three arguments are as per :func:`numpy.fft.irfft`; the rest of
+    the arguments are documented :ref:`in the module docs <builders_args>`.
 
-
+    """
     inverse = True
     real = True
 
@@ -451,43 +447,42 @@ def irfft(a, n=None, axis=-1, overwrite_input=False,
     threads = _default_threads(threads)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
-            avoid_copy, inverse, real, **_norm_args(norm))
+                  threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, **_norm_args(norm))
 
-def rfft2(a, s=None, axes=(-2,-1), overwrite_input=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True,
-        avoid_copy=False, norm=None):
-    '''Return a :class:`pyfftw.FFTW` object representing a 2D
-    real FFT.
 
-    The first three arguments are as per :func:`numpy.fft.rfft2`;
-    the rest of the arguments are documented
-    :ref:`in the module docs <builders_args>`.
-    '''
+def rfft2(a, s=None, axes=(-2, -1), overwrite_input=False,
+          planner_effort=None, threads=None,
+          auto_align_input=True, auto_contiguous=True,
+          avoid_copy=False, norm=None):
+    """
+    Return a :class:`pyfftw.FFTW` object representing a 2D real FFT.
 
+    The first three arguments are as per :func:`numpy.fft.rfft2`; the rest of
+    the arguments are documented :ref:`in the module docs <builders_args>`.
+
+    """
     inverse = False
     real = True
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
-            avoid_copy, inverse, real, **_norm_args(norm))
-
-def irfft2(a, s=None, axes=(-2,-1),
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True,
-        avoid_copy=False, norm=None):
-    '''Return a :class:`pyfftw.FFTW` object representing a 2D
-    real inverse FFT.
-
-    The first three arguments are as per :func:`numpy.fft.irfft2`;
-    the rest of the arguments are documented
-    :ref:`in the module docs <builders_args>`.
-    '''
+                  threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, **_norm_args(norm))
 
 
+def irfft2(a, s=None, axes=(-2, -1),
+           planner_effort=None, threads=None,
+           auto_align_input=True, auto_contiguous=True,
+           avoid_copy=False, norm=None):
+    """
+    Return a :class:`pyfftw.FFTW` object representing a 2D real inverse FFT.
+
+    The first three arguments are as per :func:`numpy.fft.irfft2`; the rest of
+    the arguments are documented :ref:`in the module docs <builders_args>`.
+
+    """
     inverse = True
     real = True
 
@@ -496,46 +491,42 @@ def irfft2(a, s=None, axes=(-2,-1),
     threads = _default_threads(threads)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
-            avoid_copy, inverse, real, **_norm_args(norm))
+                  threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, **_norm_args(norm))
 
 
 def rfftn(a, s=None, axes=None, overwrite_input=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True,
-        avoid_copy=False, norm=None):
-    '''Return a :class:`pyfftw.FFTW` object representing an n-D
-    real FFT.
+          planner_effort=None, threads=None,
+          auto_align_input=True, auto_contiguous=True,
+          avoid_copy=False, norm=None):
+    """
+    Return a :class:`pyfftw.FFTW` object representing an n-D real FFT.
 
-    The first three arguments are as per :func:`numpy.fft.rfftn`;
-    the rest of the arguments are documented
-    :ref:`in the module docs <builders_args>`.
-    '''
+    The first three arguments are as per :func:`numpy.fft.rfftn`; the rest of
+    the arguments are documented :ref:`in the module docs <builders_args>`.
 
-
+    """
     inverse = False
     real = True
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
-            avoid_copy, inverse, real, **_norm_args(norm))
+                  threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, **_norm_args(norm))
 
 
 def irfftn(a, s=None, axes=None,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True,
-        avoid_copy=False, norm=None):
-    '''Return a :class:`pyfftw.FFTW` object representing an n-D
-    real inverse FFT.
+           planner_effort=None, threads=None,
+           auto_align_input=True, auto_contiguous=True,
+           avoid_copy=False, norm=None):
+    """
+    Return a :class:`pyfftw.FFTW` object representing an n-D real inverse FFT.
 
-    The first three arguments are as per :func:`numpy.fft.rfftn`;
-    the rest of the arguments are documented
-    :ref:`in the module docs <builders_args>`.
-    '''
+    The first three arguments are as per :func:`numpy.fft.rfftn`; the rest of
+    the arguments are documented :ref:`in the module docs <builders_args>`.
 
-
+    """
     inverse = True
     real = True
 
@@ -544,20 +535,22 @@ def irfftn(a, s=None, axes=None,
     threads = _default_threads(threads)
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
-            avoid_copy, inverse, real, **_norm_args(norm))
+                  threads, auto_align_input, auto_contiguous,
+                  avoid_copy, inverse, real, **_norm_args(norm))
 
 
 def dct(a, n=None, axis=-1, overwrite_input=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, type=2):
-    '''Return a :class:`pyfftw.FFTW` object representing a 1D DCT.
+    """
+    Return a :class:`pyfftw.FFTW` object representing an 1D DCT.
 
-    The first three arguments and 'type' are as per
-    :func:`scipy.fftpack.dct`; the rest of the arguments are documented
+    The first three arguments and 'type' are as per :func:`scipy.fftpack.dct`;
+    the rest of the arguments are documented
     :ref:`in the module docs <builders_args>`.
-    '''
+
+    """
     dct_types = ['FFTW_REDFT00', 'FFTW_REDFT10', 'FFTW_REDFT01',
                  'FFTW_REDFT11', 1, 2, 3, 4]
     if type not in dct_types:
@@ -587,12 +580,14 @@ def dst(a, n=None, axis=-1, overwrite_input=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True,
         avoid_copy=False, type=2):
-    '''Return a :class:`pyfftw.FFTW` object representing a 1D DST.
+    """
+    Return a :class:`pyfftw.FFTW` object representing an 1D DST.
 
-    The first three arguments and 'type' are as per
-    :func:`scipy.fftpack.dst`; the rest of the arguments are documented
+    The first three arguments and 'type' are as per :func:`scipy.fftpack.dst`;
+    the rest of the arguments are documented
     :ref:`in the module docs <builders_args>`.
-    '''
+
+    """
     dst_types = ['FFTW_RODFT00', 'FFTW_RODFT10', 'FFTW_RODFT01',
                  'FFTW_RODFT11', 1, 2, 3, 4]
     if type not in dst_types:
