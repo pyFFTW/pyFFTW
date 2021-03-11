@@ -740,24 +740,11 @@ cmdclass.update(versioneer.get_cmdclass())
 
 def setup_package():
 
-    # Figure out whether to add ``*_requires = ['numpy']``.
-    build_requires = []
     numpy_requirement = 'numpy>=1.10, <2.0'
-    try:
-        import numpy
-    except ImportError:
-        build_requires = [numpy_requirement]
+    cython_requirement = 'cython>=0.29, <1.0'
 
-    # we require cython because we need to know which part of the wrapper
-    # to build to avoid missing symbols at runtime. But if this script is
-    # called without building pyfftw, for example to install the
-    # dependencies, then we have to hide the cython dependency.
-    try:
-        import cython
-    except ImportError:
-        build_requires.append('cython>=0.29, <1.0')
-
-    install_requires = [numpy_requirement]
+    build_requires = [numpy_requirement, cython_requirement]
+    install_requires = [numpy_requirement, cython_requirement]
 
     opt_requires = {
         'dask': ['numpy>=1.10, <2.0', 'dask[array]>=0.15.0'],
