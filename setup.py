@@ -53,8 +53,13 @@ from distutils.util import get_platform
 import contextlib
 import os
 import sys
-import versioneer
 
+# ensure the current directory is on sys.path so versioneer can be imported
+# when pip uses PEP 517/518 build rules.
+# https://github.com/python-versioneer/python-versioneer/issues/193
+sys.path.append(os.path.dirname(__file__))
+
+import versioneer
 
 if os.environ.get("READTHEDOCS") == "True":
     try:
@@ -742,7 +747,7 @@ def setup_package():
 
     # Figure out whether to add ``*_requires = ['numpy']``.
     build_requires = []
-    numpy_requirement = 'numpy>=1.10, <2.0'
+    numpy_requirement = 'numpy>=1.16, <2.0'
     try:
         import numpy
     except ImportError:
@@ -755,13 +760,13 @@ def setup_package():
     try:
         import cython
     except ImportError:
-        build_requires.append('cython>=0.29, <1.0')
+        build_requires.append('cython>=0.29.18, <1.0')
 
     install_requires = [numpy_requirement]
 
     opt_requires = {
-        'dask': ['numpy>=1.10, <2.0', 'dask[array]>=0.15.0'],
-        'scipy': ['scipy>=0.12.0']
+        'dask': ['numpy>=1.16, <2.0', 'dask[array]>=1.0'],
+        'scipy': ['scipy>=1.2.0']
     }
 
     setup_args = {
@@ -786,7 +791,7 @@ def setup_package():
             'Topic :: Scientific/Engineering :: Mathematics',
             'Topic :: Multimedia :: Sound/Audio :: Analysis'],
         'cmdclass': cmdclass,
-        'python_requires': ">=3.6",
+        'python_requires': ">=3.7",
     }
 
     if using_setuptools:

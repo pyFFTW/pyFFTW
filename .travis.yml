@@ -47,7 +47,7 @@ before_install:
 install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION setuptools cython $NUMPY_SPEC $SCIPY_SPEC $DASK_SPEC blas=*=openblas
   - conda activate test-environment
-  - python setup.py -v build_ext --inplace
+  - pip install -e . -v --no-build-isolation
 
 script:
   - python setup.py test
