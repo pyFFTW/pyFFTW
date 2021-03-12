@@ -123,6 +123,11 @@ def _norm_args(norm):
     """
     Returns the proper normalization parameter values.
 
+    Possible `norm` values are "backward" (alias of None), "ortho",
+    "forward".
+
+    This function is used both by the builders and by the interfaces.
+
     """
     if norm == "ortho":
         ortho = True
@@ -155,7 +160,7 @@ def _Xfftn(a, s, axes, overwrite_input,
     are ignored.
 
     """
-    # a_orig = a
+    # a_orig = a  # a_orig doesn't appear to be used
     invreal = inverse and real
 
     if real_direction_flag is not None:

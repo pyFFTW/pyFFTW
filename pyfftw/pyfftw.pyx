@@ -855,6 +855,7 @@ cdef class FFTW:
 
     See the documentation on the :meth:`~pyfftw.FFTW.__call__` method
     for more information.
+
     '''
     # Each of these function pointers simply
     # points to a chosen fftw wrapper function
@@ -908,6 +909,7 @@ cdef class FFTW:
         The product of the lengths of the DFT over all DFT axes.
         1/N is the normalisation constant. For any input array A,
         and for any set of axes, 1/N * ifft(fft(A)) = A
+
         '''
         return self._total_size
 
@@ -1061,7 +1063,9 @@ cdef class FFTW:
 
     def _get_normalise_idft(self):
         '''
-        If ``normalise_idft=True``, the inverse transform is scaled by 1/N.
+        If ``normalise_idft=True``, the backward transform is
+        scaled by 1/N.
+
         '''
         return self._normalise_idft
 
@@ -1069,8 +1073,9 @@ cdef class FFTW:
 
     def _get_ortho(self):
         '''
-        If ``ortho=True`` both the forward and inverse transforms are scaled by
-        1/sqrt(N).
+        If ``ortho=True`` both the forward and backward
+        transforms are scaled by 1/sqrt(N).
+
         '''
         return self._ortho
 
@@ -1276,8 +1281,9 @@ cdef class FFTW:
                     total_N *= 2*(self._input_shape[self._axes[n]] + 1)
                 elif self._direction[n] == FFTW_REDFT00:
                     if (self._input_shape[self._axes[n]] < 2):
-                        raise ValueError('FFTW_REDFT00 (also known as DCT-1) is'
-                                ' not defined for inputs of length less than two.')
+                        raise ValueError('FFTW_REDFT00 (also known as DCT-1) '
+                                         'is not defined for inputs of '
+                                         'length less than two.')
                     total_N *= 2*(self._input_shape[self._axes[n]] - 1)
                 else:
                     total_N *= 2*self._input_shape[self._axes[n]]
@@ -1692,8 +1698,8 @@ cdef class FFTW:
         array, and then rely on the array being copied in before the
         transform (which :class:`pyfftw.FFTW` will handle for you when
         accessed through :meth:`~pyfftw.FFTW.__call__`).
-        '''
 
+        '''
     def __dealloc__(self):
 
         if not self._axes == NULL:
@@ -1715,8 +1721,9 @@ cdef class FFTW:
             free(self._direction)
 
     def __call__(self, input_array=None, output_array=None,
-            normalise_idft=None, ortho=None):
-        '''__call__(input_array=None, output_array=None, normalise_idft=True,
+                 normalise_idft=None, ortho=None):
+        '''
+        __call__(input_array=None, output_array=None, normalise_idft=True,
                     ortho=False)
 
         Calling the class instance (optionally) updates the arrays, then
@@ -1782,16 +1789,16 @@ cdef class FFTW:
         internally and will be overwritten again on subsequent calls. If you
         need the data to persist longer than a subsequent call, you should
         copy the returned array.
-        '''
 
+        '''
         if ortho is None:
             ortho = self._ortho
         if normalise_idft is None:
             normalise_idft = self._normalise_idft
 
         if ortho and normalise_idft:
-            raise ValueError('Invalid options: ortho and normalise_idft cannot'
-                             ' both be True.')
+            raise ValueError('Invalid options: ortho and normalise_idft '
+                             'cannot both be True.')
 
         if input_array is not None or output_array is not None:
 
@@ -1837,6 +1844,7 @@ cdef class FFTW:
 
         self.execute()
 
+        # after executing, optionally normalize output array
         if ortho:
             self._output_array *= self._sqrt_normalisation_scaling
         elif normalise_idft and self._direction[0] == FFTW_BACKWARD:
@@ -1848,7 +1856,8 @@ cdef class FFTW:
 
     cpdef update_arrays(self,
             new_input_array, new_output_array):
-        '''update_arrays(new_input_array, new_output_array)
+        '''
+        update_arrays(new_input_array, new_output_array)
 
         Update the arrays upon which the DFT is taken.
 
@@ -1868,6 +1877,7 @@ cdef class FFTW:
         If all these conditions are not met, a ``ValueError`` will
         be raised and the data will *not* be updated (though the
         object will still be in a sane state).
+
         '''
         if not isinstance(new_input_array, np.ndarray):
             raise ValueError('Invalid input array: '
@@ -1970,12 +1980,13 @@ cdef class FFTW:
         return self._output_array
 
     cpdef execute(self):
-        '''execute()
+        '''
+        execute()
 
         Execute the planned operation, taking the correct kind of FFT of
-        the input array (i.e. :attr:`FFTW.input_array`),
-        and putting the result in the output array (i.e.
-        :attr:`FFTW.output_array`).
+        the input array (i.e. :attr:`FFTW.input_array`), and putting the
+        result in the output array (i.e. :attr:`FFTW.output_array`).
+
         '''
         cdef void *input_pointer = (
                 <void *>np.PyArray_DATA(self._input_array))
