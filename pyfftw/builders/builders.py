@@ -73,8 +73,7 @@ internal input array is then extracted using
 persistently fill the padding space with whatever the user desires, so
 subsequent calls with a new input only overwrite the values that aren't
 padding (even if the array that is used for the call is bigger than the
-original - see the point above about bigger arrays being sliced to
-fit).
+original - see the point above about bigger arrays being sliced to fit).
 
 The precision of the FFT operation is acquired from the input array.
 If an array is passed in that is not of float type, or is of an
@@ -92,12 +91,20 @@ not necessarily the case that the internal array *is* the input array.
 The actual internal input array can always be retrieved with
 :attr:`pyfftw.FFTW.input_array`.
 
-The behaviour of the ``norm`` option in all builder routines matches that of
-the corresponding numpy functions.  In short, if ``norm`` is ``None``, then the
-output from the forward DFT is unscaled and the inverse DFT is scaled by 1/N,
-where N is the product of the lengths of input array on which the FFT is taken.
-If ``norm == 'ortho'``, then the output of both forward and inverse DFT
-operations are scaled by 1/sqrt(N).
+The behavior of the ``norm`` parameter in all builder routines matches that of
+the corresponding ``numpy.fft`` functions.  In particular, if
+``norm == "backward"`` (alias of ``None``) then the forward/direct FFT is
+unscaled and the backward/inverse is scaled by 1/N, where N is the length of
+the input array (for multidimensional FFTs it's the product of the lengths of
+each dimension). If ``norm == "ortho"`` then both the forward and the backward
+FFTs are scaled by 1/sqrt(N). Finally, if ``norm == "forward"`` then the
+forward FFT is scaled by 1/N and the backward is unscaled (exact opposite of
+the ``"backward"`` case). The default case is ``norm == "backward"``.
+
+In all three cases, using the same ``norm`` value for both the forward and the
+backward FFT ensures *roundtrip equality*, i.e. that applying the forwad and
+then the backward FFT to an input array returns the original array (up to
+numerical accuracy).
 
 **Example:**
 

@@ -56,9 +56,9 @@ from .. import _threading_type
 from .. import config
 
 
-__all__ = ['_FFTWWrapper', '_rc_dtype_pairs', '_default_dtype', '_Xfftn',
-           '_setup_input_slicers', '_compute_array_shapes', '_precook_1d_args',
-           '_cook_nd_args']
+__all__ = ['_FFTWWrapper', '_rc_dtype_pairs', '_default_dtype',
+           '_Xfftn', '_setup_input_slicers', '_compute_array_shapes',
+           '_precook_1d_args', '_cook_nd_args']
 
 _valid_efforts = ('FFTW_ESTIMATE', 'FFTW_MEASURE',
                   'FFTW_PATIENT', 'FFTW_EXHAUSTIVE')
@@ -119,22 +119,23 @@ def _default_threads(threads):
         return threads
 
 
-def _unitary(norm):
-    """_unitary() utility copied from numpy"""
-    if norm not in (None, "ortho"):
-        raise ValueError("Invalid norm value %s, should be None or \"ortho\"."
-                         % norm)
-    return norm is not None
-
-
 def _norm_args(norm):
-    """ pass the proper normalization-related keyword arguments. """
-    if _unitary(norm):
+    """
+    Returns the proper normalization parameter values.
+
+    """
+    if norm == "ortho":
         ortho = True
         normalise_idft = False
-    else:
+    elif norm is None or norm == "backward":
         ortho = False
         normalise_idft = True
+    elif norm == "forward":
+        ortho = False
+        normalise_idft = False
+    else:
+        raise ValueError(f'Invalid norm value {norm}; should be \"ortho\", '
+                         '\"backward\" or \"forward\".')
     return dict(normalise_idft=normalise_idft, ortho=ortho)
 
 
@@ -154,7 +155,7 @@ def _Xfftn(a, s, axes, overwrite_input,
     are ignored.
 
     """
-    a_orig = a
+    # a_orig = a
     invreal = inverse and real
 
     if real_direction_flag is not None:
