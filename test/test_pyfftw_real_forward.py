@@ -37,10 +37,9 @@ import numpy
 from timeit import Timer
 
 from .test_pyfftw_base import run_test_suites, miss, require, np_fft
-
 import unittest
-
 from .test_pyfftw_complex import Complex64FFTWTest
+
 
 class RealForwardDoubleFFTWTest(Complex64FFTWTest):
 
@@ -70,19 +69,18 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
         a = self.input_dtype(numpy.random.randn(*input_shape))
 
         b = self.output_dtype(numpy.random.randn(*output_shape)
-                +1j*numpy.random.randn(*output_shape))
+                              + 1j*numpy.random.randn(*output_shape))
 
         return a, b
 
     def reference_fftn(self, a, axes):
-
         return np_fft.rfftn(a, axes=axes)
 
     def test_wrong_direction_fail(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
 
-        axes=(-1,)
+        axes = (-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         with self.assertRaisesRegex(ValueError, 'Invalid direction'):
@@ -92,7 +90,7 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
 
-        axes=(-2,-1)
+        axes = (-2, -1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Some arbitrary and crazy slicing
@@ -100,12 +98,13 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
         # b needs to be compatible
         b_sliced = b[20:146:2, 100:786:7]
 
-        self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
+        self.run_validate_fft(a_sliced, b_sliced, axes,
+                              create_array_copies=False)
 
     def test_non_contiguous_2d_in_3d(self):
         in_shape = (256, 4, 2048)
         out_shape = in_shape
-        axes=(0,2)
+        axes = (0, 2)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Some arbitrary and crazy slicing
@@ -113,7 +112,9 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
         # b needs to be compatible
         b_sliced = b[20:146:2, :, 100:786:7]
 
-        self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
+        self.run_validate_fft(a_sliced, b_sliced, axes,
+                              create_array_copies=False)
+
 
 @unittest.skipIf(*miss('32'))
 class RealForwardSingleFFTWTest(RealForwardDoubleFFTWTest):
@@ -125,6 +126,7 @@ class RealForwardSingleFFTWTest(RealForwardDoubleFFTWTest):
         self.np_fft_comparison = np_fft.rfft
 
         self.direction = 'FFTW_FORWARD'
+
 
 @unittest.skipIf(*miss('ld'))
 class RealForwardLongDoubleFFTWTest(RealForwardDoubleFFTWTest):
@@ -150,6 +152,7 @@ class RealForwardLongDoubleFFTWTest(RealForwardDoubleFFTWTest):
         a = numpy.float64(a)
         return np_fft.rfftn(a, axes=axes)
 
+
 test_cases = (
         RealForwardDoubleFFTWTest,
         RealForwardSingleFFTWTest,
@@ -158,7 +161,6 @@ test_cases = (
 test_set = None
 
 if __name__ == '__main__':
-
     run_test_suites(test_cases, test_set)
 
 del Complex64FFTWTest

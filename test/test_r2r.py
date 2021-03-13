@@ -99,6 +99,7 @@ nodes_lookup = {
     'FFTW_REDFT11': lambda n: (numpy.arange(n) + 0.5)/n,
 }
 
+
 @unittest.skipIf('64' not in _supported_types, 'double precision unavailable')
 class TestRealToRealLookups(unittest.TestCase):
     '''Test that the lookup tables correctly pair node choices and
@@ -108,10 +109,10 @@ class TestRealToRealLookups(unittest.TestCase):
         n = rand.randint(10, 20)
         j = rand.randint(5, n) - 3
         for transform in real_transforms:
-            nodes   = nodes_lookup[transform](n)
-            data    = interpolated_function_lookup[transform](j, nodes)
-            output  = numpy.empty_like(data)
-            plan    = pyfftw.FFTW(data, output, direction=[transform])
+            nodes = nodes_lookup[transform](n)
+            data = interpolated_function_lookup[transform](j, nodes)
+            output = numpy.empty_like(data)
+            plan = pyfftw.FFTW(data, output, direction=[transform])
             data[:] = interpolated_function_lookup[transform](j, nodes)
             plan.execute()
             tol = 4*j*n*1e-16
@@ -121,6 +122,7 @@ class TestRealToRealLookups(unittest.TestCase):
                 self.assertTrue(abs(output[j] - n + 1) < tol)
             else:
                 self.assertTrue(abs(output[j] - n) < tol)
+
 
 class TestRealTransform(object):
     '''Common set of functionality for performing tests on the real to
@@ -147,16 +149,16 @@ class TestRealTransform(object):
             self.axes = axes
         for dim in dims:
             if dim < 3:
-                raise NotImplementedError("Due to complications with the DCT1, "
-                                          "arrays must be of length at least "
-                                          "three.")
+                raise NotImplementedError("Due to complications with the "
+                                          "DCT1, arrays must be of length "
+                                          "at least three.")
 
         if len(self.axes) != len(directions):
             raise ValueError("There must be exactly one axis per direction.")
 
         self.directions = directions
         self.inverse_directions = [inverse_lookup[direction]
-                                    for direction in directions]
+                                   for direction in directions]
         self.dims = dims
         self._normalisation_factor = 1.0
         for index, axis in enumerate(self.axes):
@@ -170,10 +172,12 @@ class TestRealTransform(object):
         else:
             self._input_array = numpy.zeros(dims)
             self._output_array = numpy.zeros(dims)
+
         self.plan = pyfftw.FFTW(self._input_array, self._output_array,
-            axes=self.axes, direction=self.directions)
+                                axes=self.axes, direction=self.directions)
         self.inverse_plan = pyfftw.FFTW(self._input_array, self._output_array,
-            axes=self.axes, direction=self.inverse_directions)
+                                        axes=self.axes,
+                                        direction=self.inverse_directions)
 
         self.tol = 1e-10
         if dtype is None:
@@ -198,7 +202,8 @@ class TestRealTransform(object):
         self.inverse_plan.execute()
 
         data *= self._normalisation_factor
-        err = numpy.mean(numpy.abs(data - self._output_array))/self._normalisation_factor
+        err = numpy.mean(numpy.abs(data - self._output_array)
+                         )/self._normalisation_factor
         return err < self.tol
 
     def test_against_exact_data(self):
@@ -215,13 +220,18 @@ class TestRealTransform(object):
             else:
                 wavenumber_min = 0
                 wavenumber_max = self.dims[axis] - 2
-            _wavenumbers = sorted({rand.randint(wavenumber_min, wavenumber_max)
+            _wavenumbers = sorted({rand.randint(wavenumber_min,
+                                                wavenumber_max)
                                   for _ in range(self.dims[axis])})
+
             _factors = [rand.randint(1, 8) for _ in _wavenumbers]
             interpolated_function = interpolated_function_lookup[
                 self.directions[index]]
+
             data *= sum((factor*interpolated_function(wavenumber, points[axis])
-                         for factor, wavenumber in zip(_factors, _wavenumbers)))
+                         for factor, wavenumber in zip(_factors,
+                                                       _wavenumbers)))
+
             wavenumbers.append(numpy.array(_wavenumbers))
             factors.append(numpy.array(_factors))
 
@@ -265,8 +275,9 @@ def meshgrid(*x):
         args = numpy.atleast_1d(*x)
         s0 = (1,)*len(args)
         return list(map(numpy.squeeze,
-                        numpy.broadcast_arrays(*[x.reshape(s0[:i] + (-1,) + s0[i + 1::])
-                                              for i, x in enumerate(args)])))
+                        numpy.broadcast_arrays(*[x.reshape(s0[:i] + (-1,)
+                                                           + s0[i + 1::])
+                                               for i, x in enumerate(args)])))
 
 
 def grid(shape, axes, directions, aspect_ratio=None):
@@ -335,6 +346,7 @@ class RealToRealNormalisation(unittest.TestCase):
             testcase = random_testcase()
             self.assertTrue(testcase.test_normalisation())
 
+
 @unittest.skipIf('64' not in _supported_types, 'double precision unavailable')
 class RealToRealExactData(unittest.TestCase):
     def test_exact_data(self):
@@ -342,12 +354,14 @@ class RealToRealExactData(unittest.TestCase):
             testcase = random_testcase()
             self.assertTrue(testcase.test_against_exact_data())
 
+
 @unittest.skipIf('64' not in _supported_types, 'double precision unavailable')
 class RealToRealRandomData(unittest.TestCase):
     def test_random_data(self):
         for _ in range(50):
             testcase = random_testcase()
             self.assertTrue(testcase.test_against_random_data())
+
 
 test_cases = (TestRealToRealLookups,
               RealToRealNormalisation,

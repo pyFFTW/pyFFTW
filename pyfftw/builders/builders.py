@@ -91,8 +91,8 @@ not necessarily the case that the internal array *is* the input array.
 The actual internal input array can always be retrieved with
 :attr:`pyfftw.FFTW.input_array`.
 
-The behavior of the ``norm`` parameter in all builder routines matches that of
-the corresponding ``numpy.fft`` functions.  In particular, if
+The behavior of the ``norm`` parameter in all builder routines matches that
+of the corresponding ``numpy.fft`` functions.  In particular, if
 ``norm == "backward"`` (alias of ``None``) then the forward/direct FFT is
 unscaled and the backward/inverse is scaled by 1/N, where N is the length of
 the input array (for multidimensional FFTs it's the product of the lengths of

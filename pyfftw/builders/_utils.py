@@ -112,8 +112,8 @@ def _default_threads(threads):
         return config.NUM_THREADS
     else:
         if threads > 1 and _threading_type is None:
-            raise ValueError("threads > 1 requested, but pyFFTW was not built "
-                             "with multithreaded FFTW.")
+            raise ValueError("threads > 1 requested, but pyFFTW was not "
+                             "built with multithreaded FFTW.")
         elif threads <= 0:
             return multiprocessing.cpu_count()
         return threads
@@ -190,7 +190,8 @@ def _Xfftn(a, s, axes, overwrite_input,
     else:
         if a.dtype.char not in _rc_dtype_pairs:
             dtype = _default_dtype
-            if a.dtype == numpy.dtype('float16') and '32' in pyfftw._supported_types:
+            if a.dtype == numpy.dtype('float16'
+                                      ) and '32' in pyfftw._supported_types:
                 # convert half-precision to single precision, if available
                 dtype = numpy.dtype('float32')
 
@@ -253,7 +254,8 @@ def _Xfftn(a, s, axes, overwrite_input,
                                    flags, threads,
                                    input_array_slicer=update_input_array_slicer,
                                    FFTW_array_slicer=FFTW_array_slicer,
-                                   normalise_idft=normalise_idft, ortho=ortho)
+                                   normalise_idft=normalise_idft,
+                                   ortho=ortho)
 
         # We copy the data back into the internal FFTW object array
         internal_array = FFTW_object.input_array
@@ -377,11 +379,11 @@ class _FFTWWrapper(pyfftw.FFTW):
         if ortho is None:
             ortho = self._ortho
 
-        output = super(_FFTWWrapper, self).__call__(input_array=None,
-                                                    output_array=output_array,
-                                                    normalise_idft=normalise_idft,
-                                                    ortho=ortho)
-
+        output = super(_FFTWWrapper,
+                       self).__call__(input_array=None,
+                                      output_array=output_array,
+                                      normalise_idft=normalise_idft,
+                                      ortho=ortho)
         return output
 
 

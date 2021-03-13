@@ -39,10 +39,9 @@ from timeit import Timer
 import time
 
 from .test_pyfftw_base import run_test_suites, miss, require, np_fft
-
 import unittest
-
 from .test_pyfftw_complex import Complex64FFTWTest
+
 
 class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
@@ -73,7 +72,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         in_shape = self.input_shapes['1d']
         out_shape = self.output_shapes['1d']
 
-        axes=(-1,)
+        axes = (-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Note "thread" is incorrect, it should be "threads"
@@ -83,7 +82,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
     def create_test_arrays(self, input_shape, output_shape, axes=None):
 
         a = self.input_dtype(numpy.random.randn(*input_shape)
-                +1j*numpy.random.randn(*input_shape))
+                             + 1j*numpy.random.randn(*input_shape))
 
         b = self.output_dtype(numpy.random.randn(*output_shape))
 
@@ -92,10 +91,10 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         # real will be (for example the zero freq component).
         # This is easier than writing a complicate system to work it out.
         try:
-            if axes == None:
-                fft = FFTW(b,a,direction='FFTW_FORWARD')
+            if axes is None:
+                fft = FFTW(b, a, direction='FFTW_FORWARD')
             else:
-                fft = FFTW(b,a,direction='FFTW_FORWARD', axes=axes)
+                fft = FFTW(b, a, direction='FFTW_FORWARD', axes=axes)
 
             b[:] = self.output_dtype(numpy.random.randn(*output_shape))
 
@@ -114,9 +113,10 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         return a, b
 
     def run_validate_fft(self, a, b, axes, fft=None, ifft=None,
-            force_unaligned_data=False, create_array_copies=True,
-            threads=1, flags=('FFTW_ESTIMATE',)):
-        ''' *** EVERYTHING IS FLIPPED AROUND BECAUSE WE ARE
+                         force_unaligned_data=False, create_array_copies=True,
+                         threads=1, flags=('FFTW_ESTIMATE',)):
+        '''
+        *** EVERYTHING IS FLIPPED AROUND BECAUSE WE ARE
         VALIDATING AN INVERSE FFT ***
 
         Run a validation of the FFTW routines for the passed pair
@@ -129,6 +129,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
         If force_unaligned_data is True, the flag FFTW_UNALIGNED
         will be passed to the fftw routines.
+
         '''
         if create_array_copies:
             # Don't corrupt the original mutable arrays
@@ -142,18 +143,17 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         if force_unaligned_data:
             flags.append('FFTW_UNALIGNED')
 
-        if ifft == None:
+        if ifft is None:
             ifft = FFTW(a, b, axes=axes, direction='FFTW_BACKWARD',
-                    flags=flags, threads=threads)
+                        flags=flags, threads=threads)
         else:
-            ifft.update_arrays(a,b)
+            ifft.update_arrays(a, b)
 
-        if fft == None:
+        if fft is None:
             fft = FFTW(b, a, axes=axes, direction='FFTW_FORWARD',
-                    flags=flags, threads=threads)
+                       flags=flags, threads=threads)
         else:
-            fft.update_arrays(b,a)
-
+            fft.update_arrays(b, a)
 
         a[:] = a_orig
         # Test the inverse FFT by comparing it to the result from numpy.fft
@@ -171,30 +171,31 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         # This is actually quite a poor relative error, but it still
         # sometimes fails. I assume that numpy.fft has different internals
         # to fftw.
-        self.assertTrue(numpy.allclose(b/scaling, ref_b, rtol=1e-2, atol=1e-3))
-
+        self.assertTrue(numpy.allclose(b/scaling, ref_b, rtol=1e-2,
+                                       atol=1e-3))
         # Test the FFT by comparing the result to the starting
         # value (which is scaled as per FFTW being unnormalised).
         fft.execute()
 
-        self.assertTrue(numpy.allclose(a/scaling, a_orig, rtol=1e-2, atol=1e-3))
+        self.assertTrue(numpy.allclose(a/scaling, a_orig, rtol=1e-2,
+                                       atol=1e-3))
         return fft, ifft
 
     def test_time_with_array_update(self):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
 
-        axes=(-1,)
+        axes = (-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         fft, ifft = self.run_validate_fft(a, b, axes)
 
         def fftw_callable():
-            fft.update_arrays(b,a)
+            fft.update_arrays(b, a)
             fft.execute()
 
         self.timer_routine(fftw_callable,
-                lambda: self.np_fft_comparison(a))
+                           lambda: self.np_fft_comparison(a))
 
         self.assertTrue(True)
 
@@ -206,7 +207,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
 
-        axes=(-1,)
+        axes = (-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         with self.assertRaisesRegex(ValueError, 'Invalid direction'):
@@ -216,7 +217,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         in_shape = self.input_shapes['1d']
         out_shape = self.output_shapes['1d']
 
-        axes=(0,)
+        axes = (0,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # run this a few times
@@ -251,11 +252,12 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         in_shape = self.input_shapes['1d']
         out_shape = self.output_shapes['1d']
 
-        axes=(0,)
+        axes = (0,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         self.assertRaisesRegex(TypeError, 'Invalid planning timelimit',
-                FFTW, *(b, a, axes), **{'planning_timelimit': 'foo'})
+                               FFTW, *(b, a, axes),
+                               **{'planning_timelimit': 'foo'})
 
     def test_default_args(self):
         in_shape = self.input_shapes['2d']
@@ -272,7 +274,7 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
 
-        axes=(-2,-1)
+        axes = (-2, -1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Some arbitrary and crazy slicing
@@ -280,12 +282,13 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
         # b needs to be compatible
         b_sliced = b[12:200:3, 300:2041:9]
 
-        self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
+        self.run_validate_fft(a_sliced, b_sliced, axes,
+                              create_array_copies=False)
 
     def test_non_contiguous_2d_in_3d(self):
         in_shape = (256, 4, 1025)
         out_shape = (256, 4, 2048)
-        axes=(0,2)
+        axes = (0, 2)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Some arbitrary and crazy slicing
@@ -295,17 +298,20 @@ class RealBackwardDoubleFFTWTest(Complex64FFTWTest):
 
         # The data doesn't work, so we need to generate it for the
         # correct size
-        a_, b_ = self.create_test_arrays(a_sliced.shape, b_sliced.shape, axes=axes)
+        a_, b_ = self.create_test_arrays(a_sliced.shape, b_sliced.shape,
+                                         axes=axes)
 
         # And then copy it into the non contiguous array
         a_sliced[:] = a_
         b_sliced[:] = b_
 
-        self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
+        self.run_validate_fft(a_sliced, b_sliced, axes,
+                              create_array_copies=False)
 
     def test_non_monotonic_increasing_axes(self):
         super(RealBackwardDoubleFFTWTest,
-                self).test_non_monotonic_increasing_axes()
+              self).test_non_monotonic_increasing_axes()
+
 
 @unittest.skipIf(*miss('32'))
 class RealBackwardSingleFFTWTest(RealBackwardDoubleFFTWTest):
@@ -317,6 +323,7 @@ class RealBackwardSingleFFTWTest(RealBackwardDoubleFFTWTest):
         self.np_fft_comparison = np_fft.irfft
 
         self.direction = 'FFTW_BACKWARD'
+
 
 @unittest.skipIf(*miss('ld'))
 class RealBackwardLongDoubleFFTWTest(RealBackwardDoubleFFTWTest):
@@ -342,6 +349,7 @@ class RealBackwardLongDoubleFFTWTest(RealBackwardDoubleFFTWTest):
     def test_time_with_array_update(self):
         pass
 
+
 test_cases = (
         RealBackwardDoubleFFTWTest,
         RealBackwardSingleFFTWTest,
@@ -350,7 +358,6 @@ test_cases = (
 test_set = None
 
 if __name__ == '__main__':
-
     run_test_suites(test_cases, test_set)
 
 del Complex64FFTWTest

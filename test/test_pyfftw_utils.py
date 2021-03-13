@@ -41,12 +41,11 @@ import platform
 import os
 from numpy.testing import assert_, assert_equal
 
-def get_cpus_info():
 
+def get_cpus_info():
     if 'Linux' in platform.system():
         # A simple /proc/cpuinfo parser
-        with open(os.path.join('/', 'proc','cpuinfo'), 'r') as f:
-
+        with open(os.path.join('/', 'proc', 'cpuinfo'), 'r') as f:
             cpus_info = []
             idx = 0
             for line in f.readlines():
@@ -60,24 +59,23 @@ def get_cpus_info():
                     cpus_info[idx][key] = values
                 except IndexError:
                     cpus_info.append({key: values})
-
     else:
         cpus_info = None
 
     return cpus_info
 
+
 class UtilsTest(unittest.TestCase):
 
     def setUp(self):
-
         return
 
     def tearDown(self):
-
         return
 
     @unittest.skipIf('Linux' not in platform.system(),
-            'Skipping as we only have it set up for Linux at present.')
+                     'Skipping as we only have it set up for Linux '
+                     'at present.')
     def test_get_alignment(self):
         cpus_info = get_cpus_info()
 
@@ -93,9 +91,7 @@ class UtilsTest(unittest.TestCase):
 class NextFastLenTest(unittest.TestCase):
 
     def __init__(self, *args, **kwargs):
-
         super(NextFastLenTest, self).__init__(*args, **kwargs)
-
         if not hasattr(self, 'assertRaisesRegex'):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
@@ -164,12 +160,10 @@ class NextFastLenTest(unittest.TestCase):
         for x, y in strict_test_cases.items():
             assert_equal(pyfftw.next_fast_len(x), y)
 
-test_cases = (
-        UtilsTest,
-        NextFastLenTest)
+
+test_cases = (UtilsTest, NextFastLenTest)
 
 test_set = None
 
 if __name__ == '__main__':
-
     run_test_suites(test_cases, test_set)

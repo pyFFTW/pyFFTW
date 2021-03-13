@@ -50,22 +50,27 @@ import time
 import os
 import hashlib
 
-'''Test the caching functionality of the interfaces package.
+'''
+Test the caching functionality of the interfaces package.
+
 '''
 
+
 def _check_n_cache_threads_running():
-    '''Return how many threads have the name 'PyFFTWCacheThread.
+    '''
+    Return how many threads have the name 'PyFFTWCacheThread.
 
     Obviously, this isn't production quality, but it should suffice for
     the tests here.
-    '''
 
+    '''
     cache_threads = 0
     for each_thread in threading.enumerate():
         if each_thread.name == 'PyFFTWCacheThread':
             cache_threads += 1
 
     return cache_threads
+
 
 @unittest.skipIf(*miss('64'))
 class InterfacesNumpyFFTCacheTestFFT(InterfacesNumpyFFTTestFFT):
@@ -91,17 +96,21 @@ class InterfacesNumpyFFTCacheTestFFT(InterfacesNumpyFFTTestFFT):
         # Turn it off to finish
         interfaces.cache.disable()
 
+
 @unittest.skipIf(*miss('64'))
 class CacheSpecificInterfacesUtils(unittest.TestCase):
 
     def test_slow_lookup_no_race_condition(self):
-        '''Checks that lookups in _utils longer than the keepalive time are ok.
+        '''
+        Checks that lookups in _utils longer than the keepalive time are ok.
+
         '''
         # Any old size, it doesn't matter
         data_shape = (128,)
 
         # Monkey patch the module with a custom _Cache object
         _Cache_class = interfaces.cache._Cache
+
         class _SlowLookupCache(_Cache_class):
 
             def _lookup(self, key):
@@ -364,12 +373,15 @@ class CacheTest(unittest.TestCase):
 class InterfacesNumpyFFTCacheTestIFFT(InterfacesNumpyFFTCacheTestFFT):
     func = 'ifft'
 
+
 class InterfacesNumpyFFTCacheTestRFFT(InterfacesNumpyFFTCacheTestFFT):
     func = 'rfft'
+
 
 class InterfacesNumpyFFTCacheTestIRFFT(InterfacesNumpyFFTCacheTestFFT):
     func = 'irfft'
     realinv = True
+
 
 class InterfacesNumpyFFTCacheTestFFT2(InterfacesNumpyFFTCacheTestFFT):
     axes_kw = 'axes'
@@ -393,12 +405,15 @@ class InterfacesNumpyFFTCacheTestFFT2(InterfacesNumpyFFTCacheTestFFT):
 class InterfacesNumpyFFTCacheTestIFFT2(InterfacesNumpyFFTCacheTestFFT2):
     func = 'ifft2'
 
+
 class InterfacesNumpyFFTCacheTestRFFT2(InterfacesNumpyFFTCacheTestFFT2):
     func = 'rfft2'
+
 
 class InterfacesNumpyFFTCacheTestIRFFT2(InterfacesNumpyFFTCacheTestFFT2):
     func = 'irfft2'
     realinv = True
+
 
 class InterfacesNumpyFFTCacheTestFFTN(InterfacesNumpyFFTCacheTestFFT2):
     func = 'ifftn'
@@ -409,15 +424,19 @@ class InterfacesNumpyFFTCacheTestFFTN(InterfacesNumpyFFTCacheTestFFT2):
             ((4, 6, 8, 4), {'axes': (0, 3, 1, 2)}),
             )
 
+
 class InterfacesNumpyFFTCacheTestIFFTN(InterfacesNumpyFFTCacheTestFFTN):
     func = 'ifftn'
+
 
 class InterfacesNumpyFFTCacheTestRFFTN(InterfacesNumpyFFTCacheTestFFTN):
     func = 'rfftn'
 
+
 class InterfacesNumpyFFTCacheTestIRFFTN(InterfacesNumpyFFTCacheTestFFTN):
     func = 'irfftn'
     realinv = True
+
 
 test_cases = (
         CacheTest,
@@ -439,5 +458,4 @@ test_cases = (
 test_set = None
 
 if __name__ == '__main__':
-
     run_test_suites(test_cases, test_set)

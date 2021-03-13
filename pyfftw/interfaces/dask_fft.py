@@ -32,7 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-'''
+"""
 This module implements those functions that replace aspects of the
 :mod:`dask.fft` module. This module *provides* the entire documented
 namespace of :mod:`dask.fft`, but those functions that are not included
@@ -51,16 +51,14 @@ required, the default will be double precision.
 The exceptions raised by each of these functions are mostly as per their
 equivalents in :mod:`dask.fft`, though there are some corner cases in
 which this may not be true.
-'''
+"""
 
 from . import numpy_fft as _numpy_fft
-from dask.array.fft import (
-    fft_wrap,
-    fftfreq,
-    rfftfreq,
-    fftshift,
-    ifftshift,
-)
+from dask.array.fft import (fft_wrap,
+                            fftfreq,
+                            rfftfreq,
+                            fftshift,
+                            ifftshift)
 
 fft = fft_wrap(_numpy_fft.fft)
 ifft = fft_wrap(_numpy_fft.ifft)

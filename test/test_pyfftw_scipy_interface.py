@@ -54,29 +54,34 @@ else:
 import unittest
 from .test_pyfftw_base import run_test_suites, miss
 from . import test_pyfftw_numpy_interface
-
-'''pyfftw.interfaces.scipy_fftpack wraps pyfftw.interfaces.numpy_fft and
+'''
+pyfftw.interfaces.scipy_fftpack wraps pyfftw.interfaces.numpy_fft and
 implements the dct and dst functions.
 
 All the tests here just check that the call is made correctly.
-'''
 
+'''
 funcs = ('fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
          'rfft', 'irfft')
 
 acquired_names = ('diff', 'tilbert', 'itilbert', 'hilbert',
-        'ihilbert', 'cs_diff', 'sc_diff', 'ss_diff', 'cc_diff', 'shift',
-        'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve')
+                  'ihilbert', 'cs_diff', 'sc_diff', 'ss_diff',
+                  'cc_diff', 'shift', 'fftshift', 'ifftshift',
+                  'fftfreq', 'rfftfreq', 'convolve')
+
 
 def make_complex_data(shape, dtype):
     ar, ai = dtype(numpy.random.randn(2, *shape))
     return ar + 1j*ai
 
+
 def make_r2c_real_data(shape, dtype):
     return dtype(numpy.random.randn(*shape))
 
+
 def make_c2r_real_data(shape, dtype):
     return dtype(numpy.random.randn(*shape))
+
 
 make_complex_data = test_pyfftw_numpy_interface.make_complex_data
 
@@ -94,16 +99,17 @@ else:
 complex_dtypes = [x for x in complex_dtypes if x != numpy.clongdouble]
 real_dtypes = [x for x in real_dtypes if x != numpy.longdouble]
 
+
 def numpy_fft_replacement(a, s, axes, overwrite_input, planner_effort,
-        threads, auto_align_input, auto_contiguous):
+                          threads, auto_align_input, auto_contiguous):
 
     return (a, s, axes, overwrite_input, planner_effort,
-        threads, auto_align_input, auto_contiguous)
+            threads, auto_align_input, auto_contiguous)
 
-io_dtypes = {
-        'complex': (complex_dtypes, make_complex_data),
-        'r2c': (real_dtypes, make_r2c_real_data),
-        'c2r': (real_dtypes, make_c2r_real_data)}
+
+io_dtypes = {'complex': (complex_dtypes, make_complex_data),
+             'r2c': (real_dtypes, make_r2c_real_data),
+             'c2r': (real_dtypes, make_c2r_real_data)}
 
 if '64' in _supported_types:
     default_floating_type = numpy.float64
@@ -111,11 +117,13 @@ elif '32' in _supported_types:
     default_floating_type = numpy.float32
 elif 'ld' in _supported_types:
     default_floating_type = numpy.longdouble
+
 atol_dict = dict(f=1e-5, d=1e-7, g=1e-7)
 rtol_dict = dict(f=1e-4, d=1e-5, g=1e-5)
 
-@unittest.skipIf(scipy_missing, 'scipy is not installed, so this feature is'
-                 'unavailable')
+
+@unittest.skipIf(scipy_missing, 'scipy is not installed, so this feature '
+                 'is unavailable')
 class InterfacesScipyR2RFFTPackTestSimple(unittest.TestCase):
     ''' A really simple test suite to check simple implementation.
     '''
@@ -139,7 +147,6 @@ class InterfacesScipyR2RFFTPackTestSimple(unittest.TestCase):
                 1j*numpy.random.randn(*a.shape))
         b[:] = (numpy.random.randn(*b.shape) +
                 1j*numpy.random.randn(*b.shape))
-
 
         scipy_c = scipy.signal.fftconvolve(a, b)
 
@@ -168,7 +175,7 @@ class InterfacesScipyR2RFFTPackTestSimple(unittest.TestCase):
         for each_func in funcs:
             func_being_replaced = getattr(scipy_fftpack, each_func)
 
-            #create args (8 of them)
+            # create args (8 of them)
             args = []
             for n in range(8):
                 args.append(object())
@@ -199,11 +206,13 @@ class InterfacesScipyR2RFFTPackTestSimple(unittest.TestCase):
 
             self.assertIs(fftpack_attr, acquired_attr)
 
+
 transform_types = [1, 2, 3, 4]
+
 
 @unittest.skipIf(scipy_missing or
                  (LooseVersion(scipy.__version__) <= LooseVersion('1.2.0')),
-                'SciPy >= 1.2.0 is not installed')
+                 'SciPy >= 1.2.0 is not installed')
 class InterfacesScipyR2RFFTTest(unittest.TestCase):
     ''' Class template for building the scipy real to real tests.
     '''
@@ -237,7 +246,8 @@ class InterfacesScipyR2RFFTTest(unittest.TestCase):
         for transform_type in transform_types:
             data_hat_p = self.pyfftw_func(self.data, type=transform_type,
                                           overwrite_x=False, **self.kwargs)
-            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy), 0.0)
+            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy),
+                             0.0)
             data_hat_s = self.scipy_func(self.data, type=transform_type,
                                          overwrite_x=False, **self.kwargs)
             self.assertTrue(numpy.allclose(data_hat_p, data_hat_s,
@@ -251,10 +261,11 @@ class InterfacesScipyR2RFFTTest(unittest.TestCase):
             data_hat_p = self.pyfftw_func(self.data, type=transform_type,
                                           norm='ortho',
                                           overwrite_x=False, **self.kwargs)
-            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy), 0.0)
+            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy),
+                             0.0)
             data_hat_s = self.scipy_func(self.data, type=transform_type,
-                                         norm='ortho',
-                                         overwrite_x=False, **self.kwargs)
+                                         norm='ortho', overwrite_x=False,
+                                         **self.kwargs)
             self.assertTrue(numpy.allclose(data_hat_p, data_hat_s,
                                            atol=self.atol, rtol=self.rtol))
 
@@ -264,13 +275,14 @@ class InterfacesScipyR2RFFTTest(unittest.TestCase):
         for transform_type in transform_types:
             inverse_type = {1: 1, 2: 3, 3: 2, 4: 4}[transform_type]
             forward = self.pyfftw_func(self.data, type=transform_type,
-                                       norm='ortho',
-                                       overwrite_x=False, **self.kwargs)
+                                       norm='ortho', overwrite_x=False,
+                                       **self.kwargs)
             result = self.pyfftw_func(forward, type=inverse_type,
-                                      norm='ortho',
-                                      overwrite_x=False, **self.kwargs)
+                                      norm='ortho', overwrite_x=False,
+                                      **self.kwargs)
             self.assertTrue(numpy.allclose(self.data, result,
                                            atol=self.atol, rtol=self.rtol))
+
 
 @unittest.skipIf(scipy_missing or
                  (LooseVersion(scipy.__version__) <= LooseVersion('1.2.0')),
@@ -304,7 +316,8 @@ class InterfacesScipyR2RFFTNTest(InterfacesScipyR2RFFTTest):
         for transform_type in transform_types:
             data_hat_p = self.pyfftw_func(self.data, type=transform_type,
                                           overwrite_x=False, axes=None)
-            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy), 0.0)
+            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy),
+                             0.0)
             data_hat_s = self.scipy_func(self.data, type=transform_type,
                                          overwrite_x=False, axes=None)
             self.assertTrue(numpy.allclose(data_hat_p, data_hat_s,
@@ -321,7 +334,8 @@ class InterfacesScipyR2RFFTNTest(InterfacesScipyR2RFFTTest):
                 continue
             data_hat_p = self.pyfftw_func(self.data, type=transform_type,
                                           overwrite_x=False, axes=-1)
-            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy), 0.0)
+            self.assertEqual(numpy.linalg.norm(self.data - self.data_copy),
+                             0.0)
             data_hat_s = self.scipy_func(self.data, type=transform_type,
                                          overwrite_x=False, axes=-1)
             self.assertTrue(numpy.allclose(data_hat_p, data_hat_s,
@@ -397,8 +411,7 @@ for each_func in funcs:
                   'overwrite_input_flag': 'overwrite_x',
                   'default_s_from_shape_slicer': slice(None)}
 
-    globals()[class_name] = type(class_name,
-            (parent_class,), class_dict)
+    globals()[class_name] = type(class_name, (parent_class,), class_dict)
 
     # unlike numpy, none of the scipy functions support the norm kwarg
     globals()[class_name].has_norm_kwarg = False
@@ -407,13 +420,10 @@ for each_func in funcs:
 
 built_classes = tuple(built_classes)
 
-test_cases = (
-        InterfacesScipyR2RFFTPackTestSimple,) + built_classes
+test_cases = (InterfacesScipyR2RFFTPackTestSimple,) + built_classes
 
 test_set = None
-#test_set = {'InterfacesScipyR2RFFTPackTestIFFTN': ['test_auto_align_input']}
-
+# test_set = {'InterfacesScipyR2RFFTPackTestIFFTN': ['test_auto_align_input']}
 
 if __name__ == '__main__':
-
     run_test_suites(test_cases, test_set)

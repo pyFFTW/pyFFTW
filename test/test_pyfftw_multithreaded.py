@@ -37,18 +37,17 @@ import numpy
 from timeit import Timer
 
 from .test_pyfftw_base import run_test_suites, miss, np_fft
-
 import unittest
-
 from .test_pyfftw_base import FFTWBaseTest
+
 
 class Complex64MultiThreadedTest(FFTWBaseTest):
 
     def run_multithreaded_test(self, threads):
-        in_shape = self.input_shapes['2d'];
+        in_shape = self.input_shapes['2d']
         out_shape = self.output_shapes['2d']
 
-        axes=(-1,)
+        axes = (-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         fft, ifft = self.run_validate_fft(a, b, axes, threads=threads)
@@ -56,9 +55,8 @@ class Complex64MultiThreadedTest(FFTWBaseTest):
         fft_, ifft_ = self.run_validate_fft(a, b, axes, threads=1)
 
         self.timer_routine(fft.execute, fft_.execute,
-                comparison_string='singled threaded')
+                           comparison_string='single threaded')
         self.assertTrue(True)
-
 
     def test_2_threads(self):
         self.run_multithreaded_test(2)
@@ -72,6 +70,7 @@ class Complex64MultiThreadedTest(FFTWBaseTest):
     def test_25_threads(self):
         self.run_multithreaded_test(25)
 
+
 @unittest.skipIf(*miss('64'))
 class Complex128MultiThreadedTest(Complex64MultiThreadedTest):
 
@@ -81,6 +80,7 @@ class Complex128MultiThreadedTest(Complex64MultiThreadedTest):
         self.output_dtype = numpy.complex128
         self.np_fft_comparison = np_fft.fft
         return
+
 
 @unittest.skipIf(*miss('ld'))
 class ComplexLongDoubleMultiThreadedTest(Complex64MultiThreadedTest):
@@ -99,6 +99,7 @@ class ComplexLongDoubleMultiThreadedTest(Complex64MultiThreadedTest):
         a = numpy.complex128(a)
         return np_fft.fftn(a, axes=axes)
 
+
 test_cases = (
         Complex64MultiThreadedTest,
         Complex128MultiThreadedTest,
@@ -107,5 +108,4 @@ test_cases = (
 test_set = None
 
 if __name__ == '__main__':
-
     run_test_suites(test_cases, test_set)

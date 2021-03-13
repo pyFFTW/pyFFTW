@@ -1062,21 +1062,21 @@ cdef class FFTW:
     axes = property(_get_axes)
 
     def _get_normalise_idft(self):
-        '''
+        """
         If ``normalise_idft=True``, the backward transform is
         scaled by 1/N.
 
-        '''
+        """
         return self._normalise_idft
 
     normalise_idft = property(_get_normalise_idft)
 
     def _get_ortho(self):
-        '''
+        """
         If ``ortho=True`` both the forward and backward
         transforms are scaled by 1/sqrt(N).
 
-        '''
+        """
         return self._ortho
 
     ortho = property(_get_ortho)

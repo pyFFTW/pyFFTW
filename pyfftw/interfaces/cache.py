@@ -70,14 +70,14 @@ is not available and trying to use it will raise an ImportError exception.
 
 The actual implementation of the cache is liable to change, but the
 documented API is stable.
-'''
 
+'''
 try:
     import threading as _threading
     _threading_import_error = None
 except ImportError as e:
     _threading_import_error = e
-    _threading == None
+    _threading = None
 
 import time
 import weakref
@@ -86,8 +86,10 @@ __all__ = ['enable', 'disable', 'set_keepalive_time']
 
 _fftw_cache = None
 
+
 class CacheError(Exception):
     pass
+
 
 def enable():
     '''Enable the cache.
@@ -100,11 +102,13 @@ def enable():
     else:
         raise ImportError(_threading_import_error)
 
+
 def disable():
     '''Disable the cache.
     '''
     global _fftw_cache
     _fftw_cache = None
+
 
 def is_enabled():
     '''Return whether the cache is currently enabled.
@@ -114,9 +118,11 @@ def is_enabled():
     else:
         return True
 
+
 def set_keepalive_time(keepalive_time):
-    '''Set the minimum time in seconds for which any :mod:`pyfftw.FFTW` object
-    in the cache is kept alive.
+    '''
+    Set the minimum time in seconds for which any :mod:`pyfftw.FFTW`
+    object in the cache is kept alive.
 
     When the cache is enabled, the interim objects that are used through
     a :mod:`pyfftw.interfaces` function are cached for the time set through
@@ -125,8 +131,9 @@ def set_keepalive_time(keepalive_time):
 
     The time is not precise, and sets a minimum time to be alive. In
     practice, it may be quite a bit longer before the object is
-    deleted from the cache (due to implementational details - e.g. contention
-    from other threads).
+    deleted from the cache (due to implementational details - e.g.
+    contention from other threads).
+
     '''
     global _fftw_cache
 
@@ -134,6 +141,7 @@ def set_keepalive_time(keepalive_time):
         raise CacheError('Cache is not currently enabled')
     else:
         _fftw_cache.set_keepalive_time(keepalive_time)
+
 
 class _Cache(object):
 
@@ -158,10 +166,11 @@ class _Cache(object):
         self._close_thread_now = _threading.Event()
 
         self._initialised = _threading.Event()
-        self._initialised.clear() # Explicitly clear it for clarity
+        self._initialised.clear()  # explicitly clear it for clarity
 
         self._thread_object = _threading.Thread(target=_Cache._run,
-                args=(weakref.proxy(self), ), name='PyFFTWCacheThread')
+                                                args=(weakref.proxy(self), ),
+                                                name='PyFFTWCacheThread')
 
         self._thread_object.daemon = True
         self._thread_object.start()
@@ -195,7 +204,7 @@ class _Cache(object):
 
             while True:
                 if (not self._parent_thread.is_alive() or
-                    self._close_thread_now.is_set()):
+                        self._close_thread_now.is_set()):
                     break
 
                 if time.time() - last_cull_time > self._keepalive_time:
@@ -227,12 +236,14 @@ class _Cache(object):
             pass
 
     def set_keepalive_time(self, keepalive_time=0.1):
-        '''Set the minimum time in seconds for which any object in the cache
+        '''
+        Set the minimum time in seconds for which any object in the cache
         is kept alive.
 
         The time is not precise, and sets a minimum time to be alive. In
         practice, it may be up to twice as long before the object is
         deleted from the cache (due to implementational details).
+
         '''
         self._keepalive_time = float(keepalive_time)
 
@@ -242,23 +253,29 @@ class _Cache(object):
             self._wakeup_time = self._keepalive_time/2
 
     def _refresh(self, key):
-        '''Refresh the object referenced by key to stop it being culled
+        '''
+        Refresh the object referenced by key to stop it being culled
         on the next round.
+
         '''
         with self._keepalive_set_lock:
             self._keepalive_set.add(key)
 
     def insert(self, obj, key):
-        '''Insert the passed object into the cache, referenced by key,
+        '''
+        Insert the passed object into the cache, referenced by key,
         a hashable.
+
         '''
         with self._cull_lock:
             self._cache_dict[key] = obj
             self._refresh(key)
 
     def lookup(self, key):
-        '''Lookup the object referenced by key and return it, refreshing
+        '''
+        Lookup the object referenced by key and return it, refreshing
         the cache at the same time.
+
         '''
         self._refresh(key)
         return self._cache_dict[key]
