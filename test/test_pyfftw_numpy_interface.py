@@ -167,7 +167,8 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
     overwrite_input_flag = 'overwrite_input'
     default_s_from_shape_slicer = slice(-1, None)
 
-    test_shapes = (
+    if numpy.__version__ >= '1.20.0':
+        test_shapes = (
             ((100,), {}),
             ((128, 64), {'axis': 0}),
             ((128, 32), {'axis': -1}),
@@ -179,6 +180,19 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             ((32, 32, 2), {'axis': 1, 'norm': None}),
             ((32, 32, 2), {'axis': 1, 'norm': 'backward'}),
             ((32, 32, 2), {'axis': 1, 'norm': 'forward'}),
+            ((64, 128, 16), {}),
+            )
+    else:
+        test_shapes = (
+            ((100,), {}),
+            ((128, 64), {'axis': 0}),
+            ((128, 32), {'axis': -1}),
+            ((59, 100), {}),
+            ((59, 99), {'axis': -1}),
+            ((59, 99), {'axis': 0}),
+            ((32, 32, 4), {'axis': 1}),
+            ((32, 32, 2), {'axis': 1, 'norm': 'ortho'}),
+            ((32, 32, 2), {'axis': 1, 'norm': None}),
             ((64, 128, 16), {}),
             )
 
@@ -702,7 +716,8 @@ class InterfacesNumpyFFTTestIHFFT(InterfacesNumpyFFTTestFFT):
 class InterfacesNumpyFFTTestFFT2(InterfacesNumpyFFTTestFFT):
     axes_kw = 'axes'
     func = 'ifft2'
-    test_shapes = (
+    if numpy.__version__ >= '1.20.0':
+        test_shapes = (
             ((128, 64), {'axes': None}),
             ((128, 32), {'axes': None}),
             ((128, 32, 4), {'axes': (0, 2)}),
@@ -711,6 +726,17 @@ class InterfacesNumpyFFTTestFFT2(InterfacesNumpyFFTTestFFT):
             ((32, 32), {'axes': (-2, -1), 'norm': None}),
             ((32, 32), {'axes': (-2, -1), 'norm': 'backward'}),
             ((32, 32), {'axes': (-2, -1), 'norm': 'forward'}),
+            ((64, 128, 16), {'axes': (0, 2)}),
+            ((4, 6, 8, 4), {'axes': (0, 3)}),
+            )
+    else:
+        test_shapes = (
+            ((128, 64), {'axes': None}),
+            ((128, 32), {'axes': None}),
+            ((128, 32, 4), {'axes': (0, 2)}),
+            ((59, 100), {'axes': (-2, -1)}),
+            ((32, 32), {'axes': (-2, -1), 'norm': 'ortho'}),
+            ((32, 32), {'axes': (-2, -1), 'norm': None}),
             ((64, 128, 16), {'axes': (0, 2)}),
             ((4, 6, 8, 4), {'axes': (0, 3)}),
             )
@@ -755,7 +781,8 @@ class InterfacesNumpyFFTTestIRFFT2(InterfacesNumpyFFTTestFFT2):
 
 class InterfacesNumpyFFTTestFFTN(InterfacesNumpyFFTTestFFT2):
     func = 'ifftn'
-    test_shapes = (
+    if numpy.__version__ >= '1.20.0':
+        test_shapes = (
             ((128, 32, 4), {'axes': None}),
             ((64, 128, 16), {'axes': (0, 1, 2)}),
             ((4, 6, 8, 4), {'axes': (0, 3, 1)}),
@@ -763,6 +790,15 @@ class InterfacesNumpyFFTTestFFTN(InterfacesNumpyFFTTestFFT2):
             ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': None}),
             ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': 'backward'}),
             ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': 'forward'}),
+            ((4, 6, 8, 4), {'axes': (0, 3, 1, 2)}),
+            )
+    else:
+        test_shapes = (
+            ((128, 32, 4), {'axes': None}),
+            ((64, 128, 16), {'axes': (0, 1, 2)}),
+            ((4, 6, 8, 4), {'axes': (0, 3, 1)}),
+            ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': 'ortho'}),
+            ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': None}),
             ((4, 6, 8, 4), {'axes': (0, 3, 1, 2)}),
             )
 
