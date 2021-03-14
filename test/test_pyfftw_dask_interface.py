@@ -67,49 +67,53 @@ import warnings
 import copy
 warnings.filterwarnings('always')
 
+
 def make_complex_data(shape, dtype):
     ar, ai = dtype(numpy.random.randn(2, *shape))
     ac = ar + 1j*ai
-
     return da.from_array(ac, chunks=shape)
+
 
 def make_real_data(shape, dtype):
     ar = dtype(numpy.random.randn(*shape))
-
     return da.from_array(ar, chunks=shape)
 
-def _dask_array_fft_has_norm_kwarg():
-    """returns True if dask.array's fft supports the norm keyword argument
-    """
 
+def _dask_array_fft_has_norm_kwarg():
+    """
+    Returns True if dask.array's fft supports the
+    norm keyword argument.
+
+    """
     return False
 
-functions = {
-        'fft': 'complex',
-        'fft2': 'complex',
-        'fftn': 'complex',
-        'ifft': 'complex',
-        'ifft2': 'complex',
-        'ifftn': 'complex',
-        'rfft': 'r2c',
-        'rfft2': 'r2c',
-        'rfftn': 'r2c',
-        'irfft': 'c2r',
-        'irfft2': 'c2r',
-        'irfftn': 'c2r',
-        'hfft': 'c2r',
-        'ihfft': 'r2c'}
 
-acquired_names = ('fft_wrap', 'fftfreq', 'rfftfreq', 'fftshift', 'ifftshift')
+functions = {'fft': 'complex',
+             'fft2': 'complex',
+             'fftn': 'complex',
+             'ifft': 'complex',
+             'ifft2': 'complex',
+             'ifftn': 'complex',
+             'rfft': 'r2c',
+             'rfft2': 'r2c',
+             'rfftn': 'r2c',
+             'irfft': 'c2r',
+             'irfft2': 'c2r',
+             'irfftn': 'c2r',
+             'hfft': 'c2r',
+             'ihfft': 'r2c'}
 
-@unittest.skipIf(
-    not interfaces.dask_fft,
-    "dask interface is not available, so skipping tests."
-)
+acquired_names = ('fft_wrap', 'fftfreq', 'rfftfreq',
+                  'fftshift', 'ifftshift')
+
+
+@unittest.skipIf(not interfaces.dask_fft,
+                 "dask interface not available, skipping tests.")
 class InterfacesDaskFFTTestModule(unittest.TestCase):
-    ''' A really simple test suite to check the module works as expected.
-    '''
+    """
+    A really simple test suite to check the module works as expected.
 
+    """
     def test_acquired_names(self):
         for each_name in acquired_names:
 
@@ -119,16 +123,13 @@ class InterfacesDaskFFTTestModule(unittest.TestCase):
             self.assertIs(da_fft_attr, acquired_attr)
 
 
-@unittest.skipIf(
-    not interfaces.dask_fft,
-    "dask interface is not available, so skipping tests."
-)
+@unittest.skipIf(not interfaces.dask_fft,
+                 "dask interface not available, skipping tests.")
 class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
-    io_dtypes = {
-            'complex': (complex_dtypes, make_complex_data),
-            'r2c': (real_dtypes, make_real_data),
-            'c2r': (complex_dtypes, make_complex_data)}
+    io_dtypes = {'complex': (complex_dtypes, make_complex_data),
+                 'r2c': (real_dtypes, make_real_data),
+                 'c2r': (complex_dtypes, make_complex_data)}
 
     validator_module = da_fft
     test_wrapped_interface = interfaces.numpy_fft
@@ -146,6 +147,9 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
             ((59, 99), {'axis': 0}),
             ((32, 32, 4), {'axis': 1}),
             ((32, 32, 2), {'axis': 1, 'norm': 'ortho'}),
+            ((32, 32, 2), {'axis': 1, 'norm': None}),
+            ((32, 32, 2), {'axis': 1, 'norm': 'backward'}),
+            ((32, 32, 2), {'axis': 1, 'norm': 'forward'}),
             ((64, 128, 16), {}),
             )
 
@@ -171,16 +175,13 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
     def __init__(self, *args, **kwargs):
 
         super(InterfacesDaskFFTTestFFT, self).__init__(*args, **kwargs)
-
         # Assume python 3, but keep backwards compatibility
         if not hasattr(self, 'assertRaisesRegex'):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
     def validate(self, array_type, test_shape, dtype,
                  s, kwargs):
-
         # Do it without the cache
-
         # without:
         interfaces.cache.disable()
         self._validate(array_type, test_shape, dtype, s, kwargs)
@@ -206,7 +207,6 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
         da_input_array = da.from_array(np_input_array,
                                        chunks=np_input_array.shape)
-
 
         with warnings.catch_warnings(record=True) as w:
             # We catch the warnings so as to pick up on when
@@ -239,8 +239,8 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
                 # If the test interface raised, so must this.
                 self.assertEqual(type(interface_exception), type(e),
-                        msg='Interface exception raised. ' +
-                        'Testing for: ' + repr(e))
+                                 msg='Interface exception raised. ' +
+                                 'Testing for: ' + repr(e))
                 return
 
             output_array = getattr(self.test_interface, self.func)(
@@ -260,7 +260,7 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
 
         self.assertTrue(
                 numpy.allclose(output_np, test_out_array,
-                    rtol=1e-2, atol=1e-4))
+                               rtol=1e-2, atol=1e-4))
 
         if input_np.real.dtype == numpy.float16:
             # FFTW output will never be single precision for half precision
@@ -270,10 +270,9 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
             input_precision_dtype = input_np.real.dtype
 
         self.assertEqual(input_precision_dtype,
-                output_array.real.dtype)
+                         output_array.real.dtype)
 
-        self.assertTrue(numpy.allclose(input_array,
-                orig_input_array))
+        self.assertTrue(numpy.allclose(input_array, orig_input_array))
 
         return output_array
 
@@ -303,9 +302,11 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
         return axes
 
     def s_from_kwargs(self, test_shape, kwargs):
-        ''' Return either a scalar s or a tuple depending on
+        """
+        Return either a scalar s or a tuple depending on
         whether axis or axes is specified
-        '''
+
+        """
         default_args = get_default_args(
             getattr(self.test_wrapped_interface, self.func))
 
@@ -354,18 +355,15 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
                 s = None
-
-                self.validate(dtype_tuple[1],
-                        test_shape, dtype, s, kwargs)
-
+                self.validate(dtype_tuple[1], test_shape,
+                              dtype, s, kwargs)
 
     def test_same_sized_s(self):
         dtype_tuple = self.io_dtypes[functions[self.func]]
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
-
-                self.validate(dtype_tuple[1],
-                        test_shape, dtype, s, kwargs)
+                self.validate(dtype_tuple[1], test_shape,
+                              dtype, s, kwargs)
 
     def test_bigger_s(self):
         dtype_tuple = self.io_dtypes[functions[self.func]]
@@ -378,9 +376,8 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
                 except TypeError:
                     s += 2
 
-                self.validate(dtype_tuple[1],
-                        test_shape, dtype, s, kwargs)
-
+                self.validate(dtype_tuple[1], test_shape,
+                              dtype, s, kwargs)
 
     def test_smaller_s(self):
         dtype_tuple = self.io_dtypes[functions[self.func]]
@@ -393,15 +390,17 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
                 except TypeError:
                     s -= 2
 
-                self.validate(dtype_tuple[1],
-                        test_shape, dtype, s, kwargs)
+                self.validate(dtype_tuple[1], test_shape,
+                              dtype, s, kwargs)
 
     def check_arg(self, arg, arg_test_values, array_type, test_shape,
-            dtype, s, kwargs):
-        '''Check that the correct arg is passed to the builder'''
+                  dtype, s, kwargs):
+        """
+        Check that the correct arg is passed to the builder.
+
+        """
         # We trust the builders to work as expected when passed
         # the correct arg (the builders have their own unittests).
-
         return_values = []
         input_array = array_type(test_shape, dtype)
 
@@ -410,7 +409,6 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
             return (args, kwargs)
 
         try:
-
             # Replace the function that is to be used
             real_fft = getattr(self.test_interface, self.func)
             setattr(self.test_interface, self.func, fake_fft)
@@ -420,12 +418,12 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
             for each_value in arg_test_values:
                 _kwargs[arg] = each_value
                 builder_args = getattr(self.test_interface, self.func)(
-                input_array.copy(), s, **_kwargs)
-
+                        input_array.copy(), s, **_kwargs)
                 self.assertTrue(builder_args[1][arg] == each_value)
 
             # make sure it was called
             self.assertTrue(len(return_values) > 0)
+
         except:
             raise
 
@@ -437,17 +435,14 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
         for each_value in arg_test_values:
             _kwargs[arg] = each_value
             builder_args = getattr(self.test_interface, self.func)(
-            input_array.copy(), s, **_kwargs)
-
+                    input_array.copy(), s, **_kwargs)
             self.validate(array_type, test_shape, dtype, s, _kwargs)
-
 
     def test_bigger_and_smaller_s(self):
         dtype_tuple = self.io_dtypes[functions[self.func]]
         for dtype in dtype_tuple[0]:
             i = -1
             for test_shape, s, kwargs in self.test_data:
-
                 try:
                     for each_axis, length in enumerate(s):
                         s[each_axis] += i * 2
@@ -455,10 +450,8 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
                 except TypeError:
                     s += i * 2
                     i *= i
-
-                self.validate(dtype_tuple[1],
-                        test_shape, dtype, s, kwargs)
-
+                self.validate(dtype_tuple[1], test_shape,
+                              dtype, s, kwargs)
 
     def test_dtype_coercion(self):
         # Make sure we input a dtype that needs to be coerced
@@ -470,20 +463,18 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
                 s = None
-
-                self.validate(dtype_tuple[1],
-                        test_shape, dtype, s, kwargs)
-
+                self.validate(dtype_tuple[1], test_shape,
+                              dtype, s, kwargs)
 
     def test_input_maintained(self):
-        '''Test to make sure the input is maintained by default.
-        '''
+        """
+        Test to make sure the input is maintained by default.
+
+        """
         dtype_tuple = self.io_dtypes[functions[self.func]]
         for dtype in dtype_tuple[0]:
             for test_shape, s, kwargs in self.test_data:
-
                 input_array = dtype_tuple[1](test_shape, dtype)
-
                 orig_input_array = input_array.copy()
 
                 getattr(self.test_interface, self.func)(
@@ -503,6 +494,9 @@ class InterfacesDaskFFTTestFFT2(InterfacesDaskFFTTestFFT):
             ((128, 32, 4), {'axes': (0, 2)}),
             ((59, 100), {'axes': (-2, -1)}),
             ((32, 32), {'axes': (-2, -1), 'norm': 'ortho'}),
+            ((32, 32), {'axes': (-2, -1), 'norm': None}),
+            ((32, 32), {'axes': (-2, -1), 'norm': 'backward'}),
+            ((32, 32), {'axes': (-2, -1), 'norm': 'forward'}),
             ((64, 128, 16), {'axes': (0, 2)}),
             ((4, 6, 8, 4), {'axes': (0, 3)}),
             )
@@ -523,8 +517,8 @@ class InterfacesDaskFFTTestFFT2(InterfacesDaskFFTTestFFT):
                 s = s if s else None
 
                 del kwargs['axes']
-                self.validate(dtype_tuple[1],
-                        test_shape, dtype, s, kwargs)
+                self.validate(dtype_tuple[1], test_shape,
+                              dtype, s, kwargs)
 
 
 class InterfacesDaskFFTTestFFTN(InterfacesDaskFFTTestFFT2):
@@ -535,6 +529,9 @@ class InterfacesDaskFFTTestFFTN(InterfacesDaskFFTTestFFT2):
             ((64, 128, 16), {'axes': (0, 1, 2)}),
             ((4, 6, 8, 4), {'axes': (0, 3, 1)}),
             ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': 'ortho'}),
+            ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': None}),
+            ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': 'backward'}),
+            ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': 'forward'}),
             ((4, 6, 8, 4), {'axes': (0, 3, 1, 2)}),
             )
 
@@ -543,49 +540,60 @@ class InterfacesDaskFFTTestIFFT(InterfacesDaskFFTTestFFT):
     func = 'ifft'
     has_norm_kwarg = False
 
+
 class InterfacesDaskFFTTestIFFT2(InterfacesDaskFFTTestFFT2):
     func = 'ifft2'
     has_norm_kwarg = False
+
 
 class InterfacesDaskFFTTestIFFTN(InterfacesDaskFFTTestFFTN):
     func = 'ifftn'
     has_norm_kwarg = False
 
+
 class InterfacesDaskFFTTestRFFT(InterfacesDaskFFTTestFFT):
     func = 'rfft'
     has_norm_kwarg = False
+
 
 class InterfacesDaskFFTTestRFFT2(InterfacesDaskFFTTestFFT2):
     func = 'rfft2'
     has_norm_kwarg = False
 
+
 class InterfacesDaskFFTTestRFFTN(InterfacesDaskFFTTestFFTN):
     func = 'rfftn'
     has_norm_kwarg = False
+
 
 class InterfacesDaskFFTTestIRFFT(InterfacesDaskFFTTestFFT):
     func = 'irfft'
     realinv = True
     has_norm_kwarg = False
 
+
 class InterfacesDaskFFTTestIRFFT2(InterfacesDaskFFTTestFFT2):
     func = 'irfft2'
     has_norm_kwarg = False
     realinv = True
+
 
 class InterfacesDaskFFTTestIRFFTN(InterfacesDaskFFTTestFFTN):
     func = 'irfftn'
     has_norm_kwarg = False
     realinv = True
 
+
 class InterfacesDaskFFTTestHFFT(InterfacesDaskFFTTestFFT):
     func = 'hfft'
     realinv = True
     has_norm_kwarg = False
 
+
 class InterfacesDaskFFTTestIHFFT(InterfacesDaskFFTTestFFT):
     func = 'ihfft'
     has_norm_kwarg = False
+
 
 test_cases = (
         InterfacesDaskFFTTestModule,

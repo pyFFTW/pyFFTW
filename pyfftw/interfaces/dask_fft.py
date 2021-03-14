@@ -38,8 +38,7 @@ This module implements those functions that replace aspects of the
 namespace of :mod:`dask.fft`, but those functions that are not included
 here are imported directly from :mod:`dask.fft`.
 
-
-It is notable that unlike :mod:`numpy.fftpack`, which :mod:`dask.fft`
+It is notable that unlike :mod:`numpy.fft`, which :mod:`dask.fft`
 wraps, these functions will generally return an output array with the
 same precision as the input array, and the transform that is chosen is
 chosen based on the precision of the input array. That is, if the input
@@ -51,14 +50,11 @@ required, the default will be double precision.
 The exceptions raised by each of these functions are mostly as per their
 equivalents in :mod:`dask.fft`, though there are some corner cases in
 which this may not be true.
-"""
 
+"""
 from . import numpy_fft as _numpy_fft
-from dask.array.fft import (fft_wrap,
-                            fftfreq,
-                            rfftfreq,
-                            fftshift,
-                            ifftshift)
+from dask.array.fft import (fft_wrap, fftfreq, rfftfreq,
+                            fftshift, ifftshift)
 
 fft = fft_wrap(_numpy_fft.fft)
 ifft = fft_wrap(_numpy_fft.ifft)
