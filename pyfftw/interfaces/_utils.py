@@ -38,10 +38,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-'''
+"""
 Utility functions for the interfaces routines.
 
-'''
+"""
 import pyfftw.builders as builders
 import pyfftw
 import numpy as np

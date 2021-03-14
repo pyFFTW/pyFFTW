@@ -126,7 +126,7 @@ def _norm_args(norm):
     Possible `norm` values are "backward" (alias of None), "ortho",
     "forward".
 
-    This function is used both by the builders and by the interfaces.
+    This function is used by both the builders and the interfaces.
 
     """
     if norm == "ortho":
@@ -139,8 +139,8 @@ def _norm_args(norm):
         ortho = False
         normalise_idft = False
     else:
-        raise ValueError(f'Invalid norm value {norm}; should be \"ortho\", '
-                         '\"backward\" or \"forward\".')
+        raise ValueError(f'Invalid norm value {norm}; should be "ortho", '
+                         '"backward" or "forward".')
     return dict(normalise_idft=normalise_idft, ortho=ortho)
 
 
@@ -197,8 +197,8 @@ def _Xfftn(a, s, axes, overwrite_input,
 
             # warn when losing precision but not when using a higher precision
             if dtype.itemsize < a.dtype.itemsize:
-                warnings.warn("Narrowing conversion from %s to %s\
-                              precision" % (a.dtype, dtype))
+                warnings.warn(f'Narrowing conversion from {a.dtype} to '
+                              f'{dtype} precision')
 
             if not real or inverse:
                 # It's going to be complex
@@ -250,12 +250,13 @@ def _Xfftn(a, s, axes, overwrite_input,
         # `a`, so we need to create a new array.
         input_array = pyfftw.empty_aligned(input_shape, a.dtype)
 
-        FFTW_object = _FFTWWrapper(input_array, output_array, axes, direction,
-                                   flags, threads,
-                                   input_array_slicer=update_input_array_slicer,
-                                   FFTW_array_slicer=FFTW_array_slicer,
-                                   normalise_idft=normalise_idft,
-                                   ortho=ortho)
+        FFTW_object = _FFTWWrapper(
+                            input_array, output_array, axes, direction,
+                            flags, threads,
+                            input_array_slicer=update_input_array_slicer,
+                            FFTW_array_slicer=FFTW_array_slicer,
+                            normalise_idft=normalise_idft,
+                            ortho=ortho)
 
         # We copy the data back into the internal FFTW object array
         internal_array = FFTW_object.input_array
@@ -288,9 +289,10 @@ def _Xfftn(a, s, axes, overwrite_input,
 
             input_array = pyfftw.byte_align(input_array)
 
-        FFTW_object = pyfftw.FFTW(input_array, output_array, axes, direction,
-                                  flags, threads,
-                                  normalise_idft=normalise_idft, ortho=ortho)
+        FFTW_object = pyfftw.FFTW(input_array, output_array, axes,
+                                  direction, flags, threads,
+                                  normalise_idft=normalise_idft,
+                                  ortho=ortho)
 
         if not avoid_copy:
             # Copy the data back into the (likely) destroyed array
@@ -301,8 +303,8 @@ def _Xfftn(a, s, axes, overwrite_input,
 
 class _FFTWWrapper(pyfftw.FFTW):
     """
-    A class that wraps :class:`pyfftw.FFTW`, providing a slicer on the input
-    stage during calls to
+    A class that wraps :class:`pyfftw.FFTW`, providing a slicer
+    on the input stage during calls to
     :meth:`~pyfftw.builders._utils._FFTWWrapper.__call__`.
 
     """
@@ -431,8 +433,8 @@ def _compute_array_shapes(a, s, axes, inverse, real):
     Given a passed in array ``a``, and the rest of the arguments (that have
     been fleshed out with :func:`~pyfftw.builders._utils._cook_nd_args`),
     compute the shape the input and output arrays need to be in order to
-    satisfy all the requirements for the transform. The input shape *may* be
-    different to the shape of a.
+    satisfy all the requirements for the transform. The input shape *may*
+    be different to the shape of a.
 
     Returns: ``(input_shape, output_shape)``
 

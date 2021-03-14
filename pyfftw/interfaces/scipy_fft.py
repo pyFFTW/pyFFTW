@@ -64,14 +64,12 @@ from ..pyfftw import next_fast_len
 import scipy.fft as _fft
 import numpy as np
 
-
 __all__ = ['fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
            'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn', 'irfftn',
            'hfft', 'ihfft', 'hfft2', 'ihfft2', 'hfftn', 'ihfftn',
            'dct', 'idct', 'dst', 'idst', 'dctn', 'idctn', 'dstn', 'idstn',
            'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'get_workers',
            'set_workers', 'next_fast_len']
-
 
 # Backend support for scipy.fft
 _implemented = {}
@@ -114,7 +112,7 @@ def _workers_to_threads(workers):
             raise ValueError(f"workers value out of range; got {workers}, "
                              f"must not be less than {-_cpu_count}")
     elif workers == 0:
-        raise ValueError("workers must not be zero")
+        raise ValueError("workers cannot be zero")
     return workers
 
 
@@ -238,7 +236,7 @@ def rfft(x, n=None, axis=-1, norm=None, overwrite_x=False, workers=None,
 def irfft(x, n=None, axis=-1, norm=None, overwrite_x=False, workers=None,
           planner_effort=None, auto_align_input=True, auto_contiguous=True):
     """
-    Perform an 1D real inverse FFT.
+    Perform an 1D inverse real FFT.
 
     The first six arguments are as per :func:`scipy.fft.irfft`;
     the rest of the arguments are documented in the
@@ -274,7 +272,7 @@ def irfft2(x, s=None, axes=(-2, -1), norm=None, overwrite_x=False,
            workers=None, planner_effort=None, auto_align_input=True,
            auto_contiguous=True):
     """
-    Perform a 2D real inverse FFT.
+    Perform a 2D inverse real FFT.
 
     The first six arguments are as per :func:`scipy.fft.irfft2`;
     the rest of the arguments are documented in the
@@ -309,7 +307,7 @@ def rfftn(x, s=None, axes=None, norm=None, overwrite_x=False, workers=None,
 def irfftn(x, s=None, axes=None, norm=None, overwrite_x=False, workers=None,
            planner_effort=None, auto_align_input=True, auto_contiguous=True):
     """
-    Perform an nD real inverse FFT.
+    Perform an nD inverse real FFT.
 
     The first six arguments are as per :func:`scipy.fft.irfftn`;
     the rest of the arguments are documented in the
@@ -341,7 +339,7 @@ def hfft(x, n=None, axis=-1, norm=None, overwrite_x=False, workers=None,
 def ihfft(x, n=None, axis=-1, norm=None, overwrite_x=False, workers=None,
           planner_effort=None, auto_align_input=True, auto_contiguous=True):
     """
-    Perform an 1D hermitian inverse FFT.
+    Perform an 1D inverse hermitian FFT.
 
     The first six arguments are as per :func:`scipy.fft.ihfft`;
     the rest of the arguments are documented in the
@@ -370,8 +368,10 @@ def dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
 
     """
     threads = _workers_to_threads(workers)
+    # not sure why's that if-clause necessary, but some `scipy_fft`
+    # tests fail otherwise
     if norm is None:
-        norm = 'backward'
+        norm = "backward"
     return _dct(x, type=type, n=n, axis=axis, norm=norm,
                 overwrite_x=overwrite_x,
                 planner_effort=planner_effort, threads=threads,
@@ -384,7 +384,7 @@ def idct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
          workers=None, planner_effort=None, auto_align_input=True,
          auto_contiguous=True):
     """
-    Perform an inverse 1D discrete cosine transform.
+    Perform an 1D inverse discrete cosine transform.
 
     The first seven arguments are as per :func:`scipy.fft.idct`;
     the rest of the arguments are documented in the
@@ -392,8 +392,10 @@ def idct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
 
     """
     threads = _workers_to_threads(workers)
+    # not sure why's that if-clause necessary, but some `scipy_fft`
+    # tests fail otherwise
     if norm is None:
-        norm = 'backward'
+        norm = "backward"
     return _idct(x, type=type, n=n, axis=axis, norm=norm,
                  overwrite_x=overwrite_x,
                  planner_effort=planner_effort, threads=threads,
@@ -414,8 +416,10 @@ def dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
 
     """
     threads = _workers_to_threads(workers)
+    # not sure why's that if-clause necessary, but some `scipy_fft`
+    # tests fail otherwise
     if norm is None:
-        norm = 'backward'
+        norm = "backward"
     return _dst(x, type=type, n=n, axis=axis, norm=norm,
                 overwrite_x=overwrite_x,
                 planner_effort=planner_effort, threads=threads,
@@ -428,7 +432,7 @@ def idst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
          workers=None, planner_effort=None, auto_align_input=True,
          auto_contiguous=True):
     """
-    Perform an inverse 1D discrete sine transform.
+    Perform an 1D inverse discrete sine transform.
 
     The first seven arguments are as per :func:`scipy.fft.idst`;
     the rest of the arguments are documented in the
@@ -436,8 +440,10 @@ def idst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
 
     """
     threads = _workers_to_threads(workers)
+    # not sure why's that if-clause necessary, but some `scipy_fft`
+    # tests fail otherwise
     if norm is None:
-        norm = 'backward'
+        norm = "backward"
     return _idst(x, type=type, n=n, axis=axis, norm=norm,
                  overwrite_x=overwrite_x,
                  planner_effort=planner_effort, threads=threads,
@@ -450,7 +456,7 @@ def dctn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
          workers=None, planner_effort=None, auto_align_input=True,
          auto_contiguous=True):
     """
-    Performan an nD discrete cosine transform.
+    Perform an nD discrete cosine transform.
 
     The first seven arguments are as per :func:`scipy.fft.dctn`;
     the rest of the arguments are documented in the
@@ -458,8 +464,10 @@ def dctn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
 
     """
     threads = _workers_to_threads(workers)
+    # not sure why's that if-clause necessary, but some `scipy_fft`
+    # tests fail otherwise
     if norm is None:
-        norm = 'backward'
+        norm = "backward"
     return _dctn(x, type=type, shape=s, axes=axes, norm=norm,
                  overwrite_x=overwrite_x,
                  planner_effort=planner_effort, threads=threads,
@@ -472,7 +480,7 @@ def idctn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
           workers=None, planner_effort=None, auto_align_input=True,
           auto_contiguous=True):
     """
-    Performan an nD inverse discrete cosine transform.
+    Perform an nD inverse discrete cosine transform.
 
     The first seven arguments are as per :func:`scipy.fft.idctn`;
     the rest of the arguments are documented in the
@@ -480,8 +488,10 @@ def idctn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
 
     """
     threads = _workers_to_threads(workers)
+    # not sure why's that if-clause necessary, but some `scipy_fft`
+    # tests fail otherwise
     if norm is None:
-        norm = 'backward'
+        norm = "backward"
     return _idctn(x, type=type, shape=s, axes=axes, norm=norm,
                   overwrite_x=overwrite_x,
                   planner_effort=planner_effort, threads=threads,
@@ -494,7 +504,7 @@ def dstn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
          workers=None, planner_effort=None, auto_align_input=True,
          auto_contiguous=True):
     """
-    Performan an nD discrete sine transform.
+    Perform an nD discrete sine transform.
 
     The first seven arguments are as per :func:`scipy.fft.dstn`;
     the rest of the arguments are documented in the
@@ -502,8 +512,10 @@ def dstn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
 
     """
     threads = _workers_to_threads(workers)
+    # not sure why's that if-clause necessary, but some `scipy_fft`
+    # tests fail otherwise
     if norm is None:
-        norm = 'backward'
+        norm = "backward"
     return _dstn(x, type=type, shape=s, axes=axes, norm=norm,
                  overwrite_x=overwrite_x,
                  planner_effort=planner_effort, threads=threads,
@@ -515,7 +527,8 @@ def dstn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
 def idstn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
           workers=None, planner_effort=None, auto_align_input=True,
           auto_contiguous=True):
-    """Performan an nD inverse discrete sine transform.
+    """
+    Perform an nD inverse discrete sine transform.
 
     The first seven arguments are as per :func:`scipy.fft.idstn`;
     the rest of the arguments are documented in the
@@ -523,8 +536,10 @@ def idstn(x, type=2, s=None, axes=None, norm=None, overwrite_x=False,
 
     """
     threads = _workers_to_threads(workers)
+    # not sure why's that if-clause necessary, but some `scipy_fft`
+    # tests fail otherwise
     if norm is None:
-        norm = 'backward'
+        norm = "backward"
     return _idstn(x, type=type, shape=s, axes=axes, norm=norm,
                   overwrite_x=overwrite_x,
                   planner_effort=planner_effort, threads=threads,

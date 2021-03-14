@@ -137,9 +137,9 @@ transform_types = [1, 2, 3, 4]
 
 if LooseVersion(scipy_version) >= '1.6.0':
     # all norm options aside from None
-    scipy_norms = ['ortho', 'forward', 'backward']
+    scipy_norms = [None, 'ortho', 'forward', 'backward']
 else:
-    scipy_norms = ['ortho']
+    scipy_norms = [None, 'ortho']
 
 
 @unittest.skipIf(not has_scipy_fft, 'scipy.fft is unavailable')

@@ -374,7 +374,7 @@ def fftn(a, s=None, axes=None, overwrite_input=False,
          auto_align_input=True, auto_contiguous=True,
          avoid_copy=False, norm=None):
     """
-    Return a :class:`pyfftw.FFTW` object representing an n-D FFT.
+    Return a :class:`pyfftw.FFTW` object representing an nD FFT.
 
     The first three arguments are as per :func:`numpy.fft.fftn`; the rest of
     the arguments are documented :ref:`in the module docs <builders_args>`.
@@ -395,7 +395,7 @@ def ifftn(a, s=None, axes=None, overwrite_input=False,
           auto_align_input=True, auto_contiguous=True,
           avoid_copy=False, norm=None):
     """
-    Return a :class:`pyfftw.FFTW` object representing an n-D inverse FFT.
+    Return a :class:`pyfftw.FFTW` object representing an nD inverse FFT.
 
     The first three arguments are as per :func:`numpy.fft.ifftn`; the rest of
     the arguments are documented :ref:`in the module docs <builders_args>`.
@@ -440,7 +440,7 @@ def irfft(a, n=None, axis=-1, overwrite_input=False,
           auto_align_input=True, auto_contiguous=True,
           avoid_copy=False, norm=None):
     """
-    Return a :class:`pyfftw.FFTW` object representing an 1D real inverse FFT.
+    Return a :class:`pyfftw.FFTW` object representing an 1D inverse real FFT.
 
     The first three arguments are as per :func:`numpy.fft.irfft`; the rest of
     the arguments are documented :ref:`in the module docs <builders_args>`.
@@ -484,7 +484,7 @@ def irfft2(a, s=None, axes=(-2, -1),
            auto_align_input=True, auto_contiguous=True,
            avoid_copy=False, norm=None):
     """
-    Return a :class:`pyfftw.FFTW` object representing a 2D real inverse FFT.
+    Return a :class:`pyfftw.FFTW` object representing a 2D inverse real FFT.
 
     The first three arguments are as per :func:`numpy.fft.irfft2`; the rest of
     the arguments are documented :ref:`in the module docs <builders_args>`.
@@ -507,7 +507,7 @@ def rfftn(a, s=None, axes=None, overwrite_input=False,
           auto_align_input=True, auto_contiguous=True,
           avoid_copy=False, norm=None):
     """
-    Return a :class:`pyfftw.FFTW` object representing an n-D real FFT.
+    Return a :class:`pyfftw.FFTW` object representing an nD real FFT.
 
     The first three arguments are as per :func:`numpy.fft.rfftn`; the rest of
     the arguments are documented :ref:`in the module docs <builders_args>`.
@@ -528,7 +528,7 @@ def irfftn(a, s=None, axes=None,
            auto_align_input=True, auto_contiguous=True,
            avoid_copy=False, norm=None):
     """
-    Return a :class:`pyfftw.FFTW` object representing an n-D real inverse FFT.
+    Return a :class:`pyfftw.FFTW` object representing an nD inverse real FFT.
 
     The first three arguments are as per :func:`numpy.fft.rfftn`; the rest of
     the arguments are documented :ref:`in the module docs <builders_args>`.
@@ -553,15 +553,15 @@ def dct(a, n=None, axis=-1, overwrite_input=False,
     """
     Return a :class:`pyfftw.FFTW` object representing an 1D DCT.
 
-    The first three arguments and 'type' are as per :func:`scipy.fftpack.dct`;
-    the rest of the arguments are documented
-    :ref:`in the module docs <builders_args>`.
+    The first three arguments and 'type' are as per
+    :func:`scipy.fftpack.dct`; the rest of the arguments are
+    documented :ref:`in the module docs <builders_args>`.
 
     """
     dct_types = ['FFTW_REDFT00', 'FFTW_REDFT10', 'FFTW_REDFT01',
                  'FFTW_REDFT11', 1, 2, 3, 4]
     if type not in dct_types:
-        raise ValueError("Unrecognised DCT type {}".format(type))
+        raise ValueError(f"Unrecognised DCT type {type}")
 
     if n is not None and n != a.shape[axis]:
         raise NotImplementedError
@@ -580,7 +580,8 @@ def dct(a, n=None, axis=-1, overwrite_input=False,
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
                   threads, auto_align_input, auto_contiguous,
-                  avoid_copy, inverse, real, real_direction_flag=direction)
+                  avoid_copy, inverse, real,
+                  real_direction_flag=direction)
 
 
 def dst(a, n=None, axis=-1, overwrite_input=False,
@@ -590,15 +591,15 @@ def dst(a, n=None, axis=-1, overwrite_input=False,
     """
     Return a :class:`pyfftw.FFTW` object representing an 1D DST.
 
-    The first three arguments and 'type' are as per :func:`scipy.fftpack.dst`;
-    the rest of the arguments are documented
-    :ref:`in the module docs <builders_args>`.
+    The first three arguments and 'type' are as per
+    :func:`scipy.fftpack.dst`; the rest of the arguments are
+    documented :ref:`in the module docs <builders_args>`.
 
     """
     dst_types = ['FFTW_RODFT00', 'FFTW_RODFT10', 'FFTW_RODFT01',
                  'FFTW_RODFT11', 1, 2, 3, 4]
     if type not in dst_types:
-        raise ValueError("Unrecognised DST type {}".format(type))
+        raise ValueError(f"Unrecognised DST type {type}")
 
     if n is not None and n != a.shape[axis]:
         raise NotImplementedError
@@ -617,4 +618,5 @@ def dst(a, n=None, axis=-1, overwrite_input=False,
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
                   threads, auto_align_input, auto_contiguous,
-                  avoid_copy, inverse, real, real_direction_flag=direction)
+                  avoid_copy, inverse, real,
+                  real_direction_flag=direction)

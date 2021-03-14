@@ -32,7 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-'''
+"""
 This module implements those functions that replace aspects of the
 :mod:`numpy.fft` module. This module *provides* the entire documented
 namespace of :mod:`numpy.fft`, but those functions that are not included
@@ -58,7 +58,7 @@ The exceptions raised by each of these functions are mostly as per their
 equivalents in :mod:`numpy.fft`, though there are some corner cases in
 which this may not be true.
 
-'''
+"""
 from ._utils import _Xfftn
 
 from ..builders._utils import (_norm_args, _default_effort,
@@ -96,14 +96,14 @@ def _swap_direction(norm):
 def fft(a, n=None, axis=-1, norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
         auto_align_input=True, auto_contiguous=True):
-    '''
+    """
     Perform an 1D FFT.
 
     The first four arguments are as per :func:`numpy.fft.fft`;
     the rest of the arguments are documented in the
     :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     calling_func = 'fft'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
@@ -116,14 +116,14 @@ def fft(a, n=None, axis=-1, norm=None, overwrite_input=False,
 def ifft(a, n=None, axis=-1, norm=None, overwrite_input=False,
          planner_effort=None, threads=None,
          auto_align_input=True, auto_contiguous=True):
-    '''
+    """
     Perform an 1D inverse FFT.
 
     The first four arguments are as per :func:`numpy.fft.ifft`;
     the rest of the arguments are documented in the
     :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     calling_func = 'ifft'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
@@ -136,14 +136,14 @@ def ifft(a, n=None, axis=-1, norm=None, overwrite_input=False,
 def fft2(a, s=None, axes=(-2, -1), norm=None, overwrite_input=False,
          planner_effort=None, threads=None,
          auto_align_input=True, auto_contiguous=True):
-    '''
+    """
     Perform a 2D FFT.
 
     The first four arguments are as per :func:`numpy.fft.fft2`;
     the rest of the arguments are documented in the
     :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     calling_func = 'fft2'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
@@ -156,14 +156,14 @@ def fft2(a, s=None, axes=(-2, -1), norm=None, overwrite_input=False,
 def ifft2(a, s=None, axes=(-2, -1), norm=None, overwrite_input=False,
           planner_effort=None, threads=None,
           auto_align_input=True, auto_contiguous=True):
-    '''
+    """
     Perform a 2D inverse FFT.
 
     The first four arguments are as per :func:`numpy.fft.ifft2`;
     the rest of the arguments are documented in the
     :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     calling_func = 'ifft2'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
@@ -176,14 +176,14 @@ def ifft2(a, s=None, axes=(-2, -1), norm=None, overwrite_input=False,
 def fftn(a, s=None, axes=None, norm=None, overwrite_input=False,
          planner_effort=None, threads=None,
          auto_align_input=True, auto_contiguous=True):
-    '''
+    """
     Perform an nD FFT.
 
     The first four arguments are as per :func:`numpy.fft.fftn`;
     the rest of the arguments are documented in the
     :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     calling_func = 'fftn'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
@@ -196,14 +196,14 @@ def fftn(a, s=None, axes=None, norm=None, overwrite_input=False,
 def ifftn(a, s=None, axes=None, norm=None, overwrite_input=False,
           planner_effort=None, threads=None,
           auto_align_input=True, auto_contiguous=True):
-    '''
+    """
     Perform an nD inverse FFT.
 
     The first four arguments are as per :func:`numpy.fft.ifftn`;
     the rest of the arguments are documented in the
     :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     calling_func = 'ifftn'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
@@ -216,14 +216,14 @@ def ifftn(a, s=None, axes=None, norm=None, overwrite_input=False,
 def rfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
          planner_effort=None, threads=None,
          auto_align_input=True, auto_contiguous=True):
-    '''
+    """
     Perform an 1D real FFT.
 
     The first four arguments are as per :func:`numpy.fft.rfft`;
     the rest of the arguments are documented in the
     :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     calling_func = 'rfft'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
@@ -236,14 +236,14 @@ def rfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
 def irfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
           planner_effort=None, threads=None,
           auto_align_input=True, auto_contiguous=True):
-    '''
-    Perform an 1D real inverse FFT.
+    """
+    Perform an 1D inverse real FFT.
 
     The first four arguments are as per :func:`numpy.fft.irfft`;
     the rest of the arguments are documented in the
     :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     calling_func = 'irfft'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
@@ -256,14 +256,14 @@ def irfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
 def rfft2(a, s=None, axes=(-2, -1), norm=None, overwrite_input=False,
           planner_effort=None, threads=None,
           auto_align_input=True, auto_contiguous=True):
-    '''
+    """
     Perform a 2D real FFT.
 
     The first four arguments are as per :func:`numpy.fft.rfft2`;
     the rest of the arguments are documented in the
     :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     calling_func = 'rfft2'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
@@ -276,14 +276,14 @@ def rfft2(a, s=None, axes=(-2, -1), norm=None, overwrite_input=False,
 def irfft2(a, s=None, axes=(-2, -1), norm=None, overwrite_input=False,
            planner_effort=None, threads=None,
            auto_align_input=True, auto_contiguous=True):
-    '''
-    Perform a 2D real inverse FFT.
+    """
+    Perform a 2D inverse real FFT.
 
     The first four arguments are as per :func:`numpy.fft.irfft2`;
     the rest of the arguments are documented in the
     :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     calling_func = 'irfft2'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
@@ -296,14 +296,14 @@ def irfft2(a, s=None, axes=(-2, -1), norm=None, overwrite_input=False,
 def rfftn(a, s=None, axes=None, norm=None, overwrite_input=False,
           planner_effort=None, threads=None,
           auto_align_input=True, auto_contiguous=True):
-    '''
+    """
     Perform an nD real FFT.
 
     The first four arguments are as per :func:`numpy.fft.rfftn`;
     the rest of the arguments are documented in the
     :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     calling_func = 'rfftn'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
@@ -316,14 +316,14 @@ def rfftn(a, s=None, axes=None, norm=None, overwrite_input=False,
 def irfftn(a, s=None, axes=None, norm=None, overwrite_input=False,
            planner_effort=None, threads=None,
            auto_align_input=True, auto_contiguous=True):
-    '''
-    Perform an nD real inverse FFT.
+    """
+    Perform an nD inverse real FFT.
 
     The first four arguments are as per :func:`numpy.fft.rfftn`;
     the rest of the arguments are documented
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     calling_func = 'irfftn'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
@@ -336,16 +336,14 @@ def irfftn(a, s=None, axes=None, norm=None, overwrite_input=False,
 def hfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
          planner_effort=None, threads=None,
          auto_align_input=True, auto_contiguous=True):
-    '''
-    Perform an 1D FFT of a hermitian input array (conjugate symmetric).
-    This yields a real output spectrum. See :func:`numpy.fft.hfft`
-    for more information.
+    """
+    Perform an 1D hermitian FFT.
 
     The first four arguments are as per :func:`numpy.fft.hfft`;
     the rest of the arguments are documented in the
     :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     # hfft(a) is equivalent to irfft(conjugate(a))
     calling_func = 'irfft'
     planner_effort = _default_effort(planner_effort)
@@ -370,16 +368,14 @@ def hfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
 def ihfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
           planner_effort=None, threads=None,
           auto_align_input=True, auto_contiguous=True):
-    '''
-    Perform an 1D inverse FFT of a real-spectrum, yielding
-    a hermitian output array (conjugate symmetric).
-    See :func:`numpy.fft.ihfft` for more information.
+    """
+    Perform an 1D inverse hermitian FFT.
 
     The first four arguments are as per :func:`numpy.fft.ihfft`;
     the rest of the arguments are documented in the
     :ref:`additional arguments docs<interfaces_additional_args>`.
 
-    '''
+    """
     # ihfft(a) is equivalent to conjugate(rfft(a))
     calling_func = 'rfft'
     planner_effort = _default_effort(planner_effort)
