@@ -94,9 +94,9 @@ install from the [conda-forge](https://conda-forge.org/) channel via:
 Windows development builds are also automatically uploaded to
 [bintray](https://bintray.com/hgomersall/generic/PyFFTW-development-builds/view)
 as wheels (which are built against numpy 1.10), from where they can be
-downloaded and installed with something like::
+downloaded and installed with something like:
 
-  pip install pyFFTW-0.11.1+3.g898bce5-cp36-cp36m-win_amd64.whl
+    pip install pyFFTW-0.11.1+3.g898bce5-cp36-cp36m-win_amd64.whl
 
 where the version and the revision hash are set accordingly.
 
@@ -121,6 +121,14 @@ to the output when running ``setup.py``. On certain platforms, for example the
 long double precision is not available. pyFFTW still builds fine but will fail
 at runtime if asked to perform a transform involving long double precision.
 
+To build against FFTW libraries at non standard location, [some compilers are
+sensitive to the environment
+variables](https://gcc.gnu.org/onlinedocs/gcc/Environment-Variables.html)
+`CPATH` and `LIBRARY_PATH`. Moreover, you can also use `PYFFTW_INCLUDE` and
+`PYFFTW_LIB_DIR`. If the FFTW libraries still cannot be found, you might also
+need to set the environment variable `CC` to build with the compiler used to
+compile the libraries.
+
 Regarding multithreading, if both posix and openMP FFTW libs are available, the
 openMP libs are preferred. This preference can be reversed by defining the
 environment variable ``PYFFTW_USE_PTHREADS`` prior to building. If neither
@@ -131,7 +139,6 @@ For more ways of building and installing, see the
 and [setuptools documentation](https://setuptools.readthedocs.io).
 
 ### Platform specific build info
-
 
 #### Windows
 
@@ -158,17 +165,17 @@ suitable ``.lib`` files as described on the
 
 Install FFTW from [homebrew](http://brew.sh):
 
-  brew install fftw
+    brew install fftw
 
-Set temporary environmental variables, such that pyfftw finds fftw::
+Set temporary environmental variables, such that pyfftw finds fftw:
 
-  export DYLD_LIBRARY_PATH=/usr/local/lib
-  export LDFLAGS="-L/usr/local/lib"
-  export CFLAGS="-I/usr/local/include"
+    export DYLD_LIBRARY_PATH=/usr/local/lib
+    export LDFLAGS="-L/usr/local/lib"
+    export CFLAGS="-I/usr/local/include"
 
-Now install pyfftw from pip::
+Now install pyfftw from pip:
 
-  pip install pyfftw
+    pip install pyfftw
 
 It has been suggested that [macports](https://www.macports.org) might also work
 fine. You should then replace the LD environmental variables above with the
