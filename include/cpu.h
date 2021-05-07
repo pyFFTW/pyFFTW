@@ -90,6 +90,15 @@ static inline int simd_alignment(void){
         return 4;
 }
 
+#elif defined(__arm__) || defined (_M_ARM)
+
+/* On ARM, we do not explicitly detect NEON SIMD, but instead just default to a
+ * NEON-compatible 128-bit alignment.
+ * */
+static inline int simd_alignment(void){
+    return 16;
+}
+
 #else
 
 static inline int simd_alignment(void){

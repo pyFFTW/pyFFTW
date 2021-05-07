@@ -291,8 +291,9 @@ class Complex64FFTW1DTest(object):
         fft, ifft = self.run_validate_fft(a, b, axes,
                 create_array_copies=False)
 
-        self.assertTrue(fft.input_alignment == 16)
-        self.assertTrue(fft.output_alignment == 16)
+        if 'FFTW_UNALIGNED' not in fft.flags:
+            self.assertTrue(fft.input_alignment == 16)
+            self.assertTrue(fft.output_alignment == 16)
 
         a[:] = a_orig
         fft, ifft = self.run_validate_fft(a, b_, axes,
