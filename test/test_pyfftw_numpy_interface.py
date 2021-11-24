@@ -415,7 +415,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 input_array = dtype_tuple[1](test_shape, dtype)
 
                 if len(args) > 2 and not self.has_norm_kwarg:
-                    # skip tests invovling norm argument if it isn't available
+                    # skip tests involving norm argument if it isn't available
                     continue
 
                 self.assertRaisesRegex(exception, e_str,
