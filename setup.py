@@ -33,6 +33,7 @@
 #
 
 # import only from standard library so dependencies can be installed
+import contextlib
 from setuptools import setup, Command
 from setuptools.command.build_ext import build_ext
 
@@ -40,7 +41,7 @@ from distutils.errors import CompileError, LinkError
 from distutils.extension import Extension
 from distutils.util import get_platform
 
-import contextlib
+from contextlib import redirect_stderr, redirect_stdout
 import os
 import logging
 import sys
@@ -123,33 +124,6 @@ def get_library_dirs():
         library_dirs.append('/usr/local/lib')
 
     return library_dirs
-
-
-@contextlib.contextmanager
-def stdchannel_redirected(stdchannel, dest_filename):
-    """
-    A context manager to temporarily redirect stdout and stderr to a file.
-
-    e.g.:
-
-    with stdchannel_redirected(sys.stderr, os.devnull):
-        if compiler.has_function('clock_gettime', libraries=['rt']):
-            libraries.append('rt')
-
-    Taken from http://stackoverflow.com/a/17752729/987623
-    """
-    dest_file = None
-    try:
-        oldstdchannel = os.dup(stdchannel.fileno())
-        dest_file = open(dest_filename, 'w')
-        os.dup2(dest_file.fileno(), stdchannel.fileno())
-
-        yield
-    finally:
-        if oldstdchannel is not None:
-            os.dup2(oldstdchannel, stdchannel.fileno())
-        if dest_file is not None:
-            dest_file.close()
 
 
 class EnvironmentSniffer(object):
@@ -432,41 +406,42 @@ deletes the output and hides calls to the compiler and linker.'''
                 f.close()
                 # the root directory
                 file_root = os.path.abspath(os.sep)
+
+            stdout_path = os.path.join(tmpdir, "compile-stdout")
+            stderr_path = os.path.join(tmpdir, "compile-stderr")
+
             try:
                 # output file is stored relative to input file since
                 # the output has the full directory, joining with the
                 # file root gives the right directory
-                stdout = os.path.join(tmpdir, "compile-stdout")
-                stderr = os.path.join(tmpdir, "compile-stderr")
-                with stdchannel_redirected(sys.stdout, stdout), stdchannel_redirected(sys.stderr, stderr):
-                    tmp_objects = self.compiler.compile([fname], output_dir=file_root, include_dirs=include_dirs)
-                with open(stdout, 'r') as f: log.debug(f.read())
-                with open(stderr, 'r') as f: log.debug(f.read())
-            except CompileError:
-                with open(stdout, 'r') as f: log.debug(f.read())
-                with open(stderr, 'r') as f: log.debug(f.read())
+                with open(stdout_path, "w") as stdout, open(stderr_path, "w") as stderr:
+                    with redirect_stdout(stdout), redirect_stderr(stderr):
+                        tmp_objects = self.compiler.compile(
+                            [fname], output_dir=file_root, include_dirs=include_dirs
+                        )
                 return False
             except Exception as e:
                 log.error(e)
                 return False
+
+            stdout_path = os.path.join(tmpdir, "link-stdout")
+            stderr_path = os.path.join(tmpdir, "link-stderr")
+
             try:
                 # additional objects should come last to resolve symbols, linker order matters
                 tmp_objects.extend(objects)
-                stdout = os.path.join(tmpdir, "link-stdout")
-                stderr = os.path.join(tmpdir, "link-stderr")
-                with stdchannel_redirected(sys.stdout, stdout), stdchannel_redirected(sys.stderr, stderr):
-                    # TODO using link_executable, LDFLAGS that the
-                    # user can modify are ignored
-                    self.compiler.link_executable(tmp_objects, 'a.out',
-                                                  output_dir=tmpdir,
-                                                  libraries=libraries,
-                                                  extra_preargs=linker_flags,
-                                                  library_dirs=library_dirs)
-                with open(stdout, 'r') as f: log.debug(f.read())
-                with open(stderr, 'r') as f: log.debug(f.read())
-            except (LinkError, TypeError):
-                with open(stdout, 'r') as f: log.debug(f.read())
-                with open(stderr, 'r') as f: log.debug(f.read())
+                with open(stdout_path, "w") as stdout, open(stderr_path, "w") as stderr:
+                    with redirect_stdout(stdout), redirect_stderr(stderr):
+                        # TODO using link_executable, LDFLAGS that the
+                        # user can modify are ignored
+                        self.compiler.link_executable(
+                            tmp_objects,
+                            "a.out",
+                            output_dir=tmpdir,
+                            libraries=libraries,
+                            # extra_preargs=linker_flags,
+                            library_dirs=library_dirs,
+                        )
                 return False
             except Exception as e:
                 log.error(e)
