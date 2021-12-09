@@ -8,54 +8,48 @@ on:
       - 'buildwheels*'
 env:
   CIBW_BUILD_VERBOSITY: 2
-  CIBW_BEFORE_ALL_LINUX: yum install -y fftw-devel
-  CIBW_BEFORE_ALL_MACOS: brew install fftw
-  CIBW_BEFORE_ALL_WINDOWS: powershell.exe .\bin\download_fftw.ps1
-  CIBW_ENVIRONMENT_MACOS: PYFFTW_INCLUDE="/usr/local/opt/fftw/include" PYFFTW_LIB_DIR="/usr/local/opt/fftw/lib"
-  CIBW_TEST_REQUIRES: # scipy dask
+  # Below is run within docker containers
+  # Only relevant for Linux
+  CIBW_TEST_REQUIRES: scipy dask
   CIBW_TEST_COMMAND: >
     python -c "import pyfftw; import numpy as np; from pyfftw.interfaces import numpy_fft as fft; np.testing.assert_allclose(fft.fft(np.zeros(8)), np.zeros(8));"
 
 jobs:
-  build_linux_37_and_above_wheels:
+  build_linux_wheels:
     name: Build python ${{ matrix.cibw_python }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04]
-        cibw_python: [ "cp37-*", "cp38-*" ]
-        cibw_manylinux: [ manylinux1 ]
-        include:
-          - os: ubuntu-18.04
-            cibw_python: "cp39-*"
-            cibw_manylinux: manylinux2010
-          - os: ubuntu-18.04
-            cibw_python: "cp310-*"
-            cibw_manylinux: manylinux2014
+        os: [ubuntu-20.04]
+        cibw_python: ["cp37-*", "cp38-*", "cp39-*", "cp310-*"]
+
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.7'
+          python-version: '3.9'
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
         with:
           platforms: arm64
+
       - name: Install cibuildwheel
         run: |
           python -m pip install cibuildwheel
+
       - name: Build the wheel
         run: |
           python -m cibuildwheel --output-dir dist
         env:
           CIBW_BUILD: ${{ matrix.cibw_python }}
-          CIBW_ARCHS_LINUX: auto aarch64
-          CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.cibw_manylinux }}
-          CIBW_MANYLINUX_I686_IMAGE: ${{ matrix.cibw_manylinux }}
+          CIBW_SKIP: "*-musllinux*"
+
       - uses: actions/upload-artifact@v2
         with:
           name: wheels
@@ -67,7 +61,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest]
+        os: [macos-11]
     env:
       MACOSX_DEPLOYMENT_TARGET: "10.13"
     steps:
@@ -75,26 +69,22 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install FFTW3 libraries
+        run: |
+          brew install fftw
+
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.7'
+          python-version: '3.9'
 
       - name: Install cibuildwheel
         run: |
           python -m pip install cibuildwheel
+
       - name: Build wheels for CPython (MacOS)
         run: |
           python -m cibuildwheel --output-dir dist
-        env:
-          CIBW_BUILD: "cp3?-*"
-          CIBW_SKIP: "cp36-*"
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
-          CIBW_MANYLINUX_I686_IMAGE: manylinux1
-          CC: /usr/bin/clang
-          CXX: /usr/bin/clang++
-          CFLAGS: "-Wno-implicit-function-declaration -I/usr/local/opt/fftw/include"
-          LDFLAGS: "-Wl,-rpath,/usr/local/opt/fftw/lib -L/usr/local/opt/fftw/lib"
 
       - uses: actions/upload-artifact@v2
         with:
@@ -102,12 +92,15 @@ jobs:
           path: ./dist/*.whl
 
   build_windows_wheels:
+    # Only works for 64-bit.
+    # 32-bit is likely possible, but probably not worth the time investment to get
+    # working given low usage
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest]
+        os: [windows-2022]
 
     steps:
       - uses: actions/checkout@v2
@@ -117,22 +110,37 @@ jobs:
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.7'
+          python-version: '3.9'
 
       - name: Install cibuildwheel
         run: |
           python -m pip install cibuildwheel
-      - name: Build Windows wheels for CPython
+
+      - name: Download FFTW libraries
+        run: |
+          Write-Output "Downloading FFTW release (64 bit)"
+          Invoke-WebRequest -Uri "https://fftw.org/pub/fftw/fftw-3.3.5-dll64.zip" -OutFile "${{ github.workspace }}\fftw.zip"
+          Write-Output "Unzipping FFTW release"
+          Expand-Archive -Path "${{ github.workspace }}\fftw.zip" -DestinationPath "${{ github.workspace }}\pyfftw"
+        shell: powershell
+
+        # Annoyingly these two next steps are needed as FFTW does not ship with
+        # .lib files which msvc requires for linking
+      - uses: ilammy/msvc-dev-cmd@v1
+        name: Setup Visual Code build tools
+
+      - name: Convert .def files to .lib
+        run: |
+          lib.exe /def:${{ github.workspace }}\pyfftw\libfftw3-3.def /out:${{ github.workspace }}\pyfftw\libfftw3-3.lib /machine:x64
+          lib.exe /def:${{ github.workspace }}\pyfftw\libfftw3f-3.def /out:${{ github.workspace }}\pyfftw\libfftw3f-3.lib /machine:x64
+          lib.exe /def:${{ github.workspace }}\pyfftw\libfftw3l-3.def /out:${{ github.workspace }}\pyfftw\libfftw3l-3.lib /machine:x64
+
+      - name: Build Windows wheels for CPython (Win64)
         run: |
           python -m cibuildwheel --output-dir dist
-        env:
-          CIBW_BUILD: "cp3?-*"
-          CIBW_SKIP: "cp36-*"
-          CIBW_ARCHS_WINDOWS: "auto"  # auto is equivalent to "AMD64 x86"
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux1
-          CIBW_MANYLINUX_I686_IMAGE: manylinux1
 
       - uses: actions/upload-artifact@v2
+        name: Upload wheels as artifacts
         with:
           name: wheels
           path: ./dist/*.whl
@@ -140,7 +148,7 @@ jobs:
 
   deploy:
     name: Release
-    needs: [build_linux_37_and_above_wheels, build_macos_wheels, build_windows_wheels]
+    needs: [build_linux_wheels, build_macos_wheels, build_windows_wheels]
     if: github.repository_owner == 'pyFFTW' && startsWith(github.ref, 'refs/tags/v') && always()
     runs-on: ubuntu-latest
     steps:
@@ -150,7 +158,7 @@ jobs:
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.7'
+          python-version: '3.9'
 
       - name: Install Twine
         run: |

@@ -56,6 +56,7 @@ sys.path.append(os.path.dirname(__file__))
 import versioneer
 
 if os.environ.get("READTHEDOCS") == "True":
+    # Todo: Is this hacky environb still needed in Python 3?
     try:
         environ = os.environb
     except AttributeError:
@@ -78,6 +79,9 @@ def get_include_dirs():
     if 'PYFFTW_INCLUDE' in os.environ:
         include_dirs.append(os.environ['PYFFTW_INCLUDE'])
 
+    if get_build_platform().startswith("linux"):
+        include_dirs.append('/usr/include')
+
     if get_build_platform() in ('win32', 'win-amd64'):
         include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
 
@@ -86,9 +90,7 @@ def get_include_dirs():
 
     return include_dirs
 
-# TODO Do we need to determine package data dynamically? If so, should
-# take the output from Sniffer but it's only available when the
-# extension is build and not when setup() is called.
+
 def get_package_data():
     from pkg_resources import get_build_platform
 
@@ -184,6 +186,8 @@ class EnvironmentSniffer(object):
         if get_platform().startswith('linux'):
             # needed at least libm for linker checks to succeed
             self.libraries.append('m')
+
+        log.debug("Sniffer include_dirs: %s" % self.include_dirs)
 
         # main fftw3 header is required
         if not self.has_header(['fftw3.h'], include_dirs=self.include_dirs):
