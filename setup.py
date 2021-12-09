@@ -356,10 +356,19 @@ class EnvironmentSniffer(object):
     def add_library(self, lib):
         raise NotImplementedError
 
+    @staticmethod
+    def _log_file(filepath: str, level: int = logging.DEBUG) -> None:
+        with open(filepath) as f:
+            contents = f.read()
+            if contents:
+                log.log(level=level, msg=contents)
+
     def has_function(self, function, includes=None, objects=None, libraries=None,
                      include_dirs=None, library_dirs=None, linker_flags=None):
-        '''Alternative implementation of distutils.ccompiler.has_function that
-deletes the output and hides calls to the compiler and linker.'''
+        '''
+        Alternative implementation of distutils.ccompiler.has_function that
+        deletes the output and hides calls to the compiler and linker.
+        '''
         if includes is None:
             includes = []
         if objects is None:
@@ -419,7 +428,17 @@ deletes the output and hides calls to the compiler and linker.'''
                         tmp_objects = self.compiler.compile(
                             [fname], output_dir=file_root, include_dirs=include_dirs
                         )
+
+                self._log_file(stdout_path)
+                self._log_file(stderr_path)
+
+            except CompileError as e:
+                log.warning("Compilation error: %s", e)
+                self._log_file(stdout_path)
+                self._log_file(stderr_path)
+
                 return False
+
             except Exception as e:
                 log.error(e)
                 return False
@@ -442,13 +461,22 @@ deletes the output and hides calls to the compiler and linker.'''
                             # extra_preargs=linker_flags,
                             library_dirs=library_dirs,
                         )
+
+            except (LinkError, TypeError) as e:
+                log.debug("Could not link %s due to %s", function, e)
                 return False
+
             except Exception as e:
-                log.error(e)
+                log.error("Failure during linking: %s", e)
                 return False
+
+            finally:
+                self._log_file(stdout_path)
+                self._log_file(stderr_path)
             # no error, seems to work
             status = "ok"
             return True
+
         finally:
             shutil.rmtree(tmpdir)
             log.debug(msg + status)
