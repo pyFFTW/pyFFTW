@@ -33,7 +33,6 @@
 #
 
 # import only from standard library so dependencies can be installed
-import contextlib
 from setuptools import setup, Command
 from setuptools.command.build_ext import build_ext
 
@@ -473,6 +472,7 @@ class EnvironmentSniffer(object):
             finally:
                 self._log_file(stdout_path)
                 self._log_file(stderr_path)
+
             # no error, seems to work
             status = "ok"
             return True
@@ -797,6 +797,19 @@ def setup_package():
             'pyfftw', 'pyfftw.builders', 'pyfftw.interfaces']
         setup_args['ext_modules'] = get_extensions()
         setup_args['package_data'] = get_package_data()
+
+    # Do a trial run to determine dependencies
+    # Not ideal, but distutils, setuptools and cython are hard to work with
+    # and several hours of messing around didn't yield a good solution
+    # The problem is getting access to either a good compiler object or
+    # the compile_time_env before calling setup()
+    if sys.argv[1] == "build_ext":
+        from Cython.Build import cythonize
+
+        trial_distribution = setup(**setup_args)
+        cython_compile_time_env = trial_distribution.get_command_obj("build_ext")
+
+        setup_args["ext_modules"] = cythonize(get_extensions(), compile_time_env=cython_compile_time_env)
 
     setup(**setup_args)
 
