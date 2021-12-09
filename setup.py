@@ -33,25 +33,20 @@
 #
 
 # import only from standard library so dependencies can be installed
-try:
-    # use setuptools if we can
-    from setuptools import setup, Command
-    from setuptools.command.build_ext import build_ext
-    using_setuptools = True
-except ImportError:
-    from distutils.core import setup, Command
-    from distutils.command.build_ext import build_ext
-    using_setuptools = False
+from setuptools import setup, Command
+from setuptools.command.build_ext import build_ext
 
-from distutils import log
-from distutils.ccompiler import get_default_compiler
 from distutils.errors import CompileError, LinkError
 from distutils.extension import Extension
 from distutils.util import get_platform
 
 import contextlib
 import os
+import logging
 import sys
+
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
 
 # ensure the current directory is on sys.path so versioneer can be imported
 # when pip uses PEP 517/518 build rules.
@@ -784,10 +779,9 @@ def setup_package():
         'python_requires': ">=3.7",
     }
 
-    if using_setuptools:
-        setup_args['setup_requires'] = build_requires
-        setup_args['install_requires'] = install_requires
-        setup_args['extras_require'] = opt_requires
+    setup_args['setup_requires'] = build_requires
+    setup_args['install_requires'] = install_requires
+    setup_args['extras_require'] = opt_requires
 
     if len(sys.argv) >= 2 and (
         '--help' in sys.argv[1:] or
