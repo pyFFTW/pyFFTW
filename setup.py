@@ -44,10 +44,9 @@ except ImportError:
     using_setuptools = False
 
 from distutils import log
-from distutils.ccompiler import get_default_compiler, new_compiler
+from distutils.ccompiler import get_default_compiler
 from distutils.errors import CompileError, LinkError
 from distutils.extension import Extension
-from distutils.sysconfig import customize_compiler
 from distutils.util import get_platform
 
 import contextlib
@@ -600,15 +599,6 @@ is on `github <https://github.com/pyFFTW/pyFFTW>`_.
 
 
 class custom_build_ext(build_ext):
-    def finalize_options(self):
-
-        build_ext.finalize_options(self)
-
-        if self.compiler is None:
-            compiler = get_default_compiler()
-        else:
-            compiler = self.compiler
-
     def build_extensions(self):
         '''Check for availability of fftw libraries before building the wrapper.
 
