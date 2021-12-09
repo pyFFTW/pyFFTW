@@ -10,7 +10,7 @@ env:
   CIBW_BUILD_VERBOSITY: 2
   CIBW_BEFORE_ALL_LINUX: yum install -y fftw-devel
   CIBW_BEFORE_ALL_MACOS: brew install fftw
-  CIBW_BEFORE_ALL_WINDOWS:  # TODO: run cmd or powershell script to download and configure the FFTW libs
+  CIBW_BEFORE_ALL_WINDOWS: powershell.exe .\bin\download_fftw.ps1
   CIBW_ENVIRONMENT_MACOS: PYFFTW_INCLUDE="/usr/local/opt/fftw/include" PYFFTW_LIB_DIR="/usr/local/opt/fftw/lib"
   CIBW_TEST_REQUIRES: # scipy dask
   CIBW_TEST_COMMAND: >
@@ -151,18 +151,18 @@ jobs:
         name: Install Python
         with:
           python-version: '3.7'
-      
+
       - name: Install Twine
         run: |
           python -m pip install --upgrade pip
           pip install twine
-      
+
       - uses: actions/download-artifact@v2
         id: download
         with:
           name: wheels
           path: ./dist
-    
+
       - name: Publish the source distribution on PyPI
         run: |
           PYFFTW_VERSION=$(git describe --tags)
@@ -175,7 +175,7 @@ jobs:
         env:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-              
+
       - name: Github release
         uses: softprops/action-gh-release@v1
         env:
