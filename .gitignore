@@ -1,4 +1,4 @@
-*.pyc
+*.py[cod]
 *.so
 *.c
 *.swp
@@ -23,3 +23,10 @@ venv/
 *.lib
 *.def
 *.zip
+*.f
+*.f03
+*.exp
+pyfftw/fftw3.h
+
+# Editors
+.vscode
