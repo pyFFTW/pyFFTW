@@ -1,7 +1,7 @@
 ### Current Build Status
 
-|Travis | Appveyor | Read the Docs |
-| --- | --- | --- |
+| Travis                                                                                                     | Appveyor                                                                                                                                                 | Read the Docs                                                                                                                           |
+| ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | [![travis_ci](https://travis-ci.org/pyFFTW/pyFFTW.svg?branch=master)](https://travis-ci.org/pyFFTW/pyFFTW) | [![appveyor_ci](https://ci.appveyor.com/api/projects/status/uf854abck4x1qsjj/branch/master?svg=true)](https://ci.appveyor.com/project/hgomersall/pyfftw) | [![read_the_docs](https://readthedocs.org/projects/pyfftw/badge/?version=latest)](http://pyfftw.readthedocs.io/en/latest/?badge=latest) |
 
 ### Conda-forge Status
@@ -11,8 +11,8 @@
 
 ### Conda-forge Info
 
-| Name | Downloads | Version | Platforms |
-| --- | --- | --- | --- |
+| Name                                                                                                             | Downloads                                                                                                             | Version                                                                                                             | Platforms                                                                                                             |
+| ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-pyfftw-green.svg)](https://anaconda.org/conda-forge/pyfftw) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/pyfftw.svg)](https://anaconda.org/conda-forge/pyfftw) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/pyfftw.svg)](https://anaconda.org/conda-forge/pyfftw) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/pyfftw.svg)](https://anaconda.org/conda-forge/pyfftw) |
 
 # PyFFTW
@@ -75,8 +75,8 @@ package index with tools such as pip:
 
 Pre-built binary wheels for 64-bit Python on Linux, Mac OS X and Windows are
 available on the [PyPI](https://pypi.org/) page for all supported Python versions.
-Note that we only support binaries for 64-bit Python. If you need to use 32-bit
-python for some reason, you will have to build pyFFTW from source.
+Note that we only support binaries for 64-bit Python. 32-bit and ARM architectures have
+prebuilt wheels for some configurations - see below.
 
 Note that prior to Python 3.9, the Windows installation defaulted to being 32-bit
 even on 64-bit Windows, so if you are having problems installing using pip
@@ -101,6 +101,21 @@ downloaded and installed with something like:
 where the version and the revision hash are set accordingly.
 
 Read on if you do want to build from source...
+
+## Wheels
+
+Prebuilt wheels are available for the following configurations:
+
+| Python version      | Windows (32 bit) | Windows (64 bit) | Windows ARM (64 bit) | MacOS | MacOS ARM | Linux (32 bit) | Linux (64 bit) | Linux ARM (64 bit) |
+| :-----------------: | :--------------: | :--------------: | :------------------: | :---: | :-------- | :------------: | :------------: | :----------------: |
+| > 3.7 (unsupported) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
+| 3.7                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
+| 3.8                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
+| 3.9                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
+| 3.10                |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ❌       |       ✔       |         ✔         |
+
+If your configuration does not match one of these you will have to build `pyfft` from source yourself.
+See instructions below.
 
 ## Building
 
