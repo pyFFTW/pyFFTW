@@ -6,6 +6,16 @@ build = [
     "cp310-*",
 ]
 
+build-verbosity = 2
+
+# Note: Tests are run within a docker container on Linux builds
+# This will have a different
+test-requires = "pytest scipy dask"
+# Import-mode=append to use installed (wheel) version of pyfftw
+# rather than the local module
+test-command = "pytest --import-mode=append {project}"
+
+
     [tool.cibuildwheel.environment]
     PIP_PREFER_BINARY = true
 
@@ -16,6 +26,10 @@ build = [
 
 
     [tool.cibuildwheel.macos]
+
+    # See: https://github.com/pyFFTW/pyFFTW/issues/324
+    test-skip = "*"
+
     archs = [
         "x86_64",
 
@@ -31,10 +45,15 @@ build = [
         CC = "/usr/bin/clang"
         CXX = "/usr/bin/clang++"
         CFLAGS = "-Wno-implicit-function-declaration -I/usr/local/opt/fftw/include"
-        LDFLAGS = "-Wl,-rpath,/usr/local/opt/fftw/lib -L/usr/local/opt/fftw/lib"
+        LDFLAGS = "-S -Wl,-rpath,/usr/local/opt/fftw/lib -L/usr/local/opt/fftw/lib"
 
     # On Linux we need to use different package managers depending on image used
     [tool.cibuildwheel.linux]
+
+    # See: https://github.com/pyFFTW/pyFFTW/issues/325
+    test-skip = "*i686"
+
+    test-command = "ls -la; echo $PYTHONPATH; pytest -v --import-mode=append {project}/tests"
     # Fallback, but we specify versions more explicitly below to achieve maximal
     # compatibility
     before-all = "apt update; apt install libfftw3-dev"

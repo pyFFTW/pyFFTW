@@ -1,18 +1,16 @@
 name: Build Wheels and Release
+
 on:
   push:
     branches:
       - cibuildwheel
+      - master
+
     tags:
       - 'v*'
       - 'buildwheels*'
-env:
-  CIBW_BUILD_VERBOSITY: 2
-  # Below is run within docker containers
-  # Only relevant for Linux
-  CIBW_TEST_REQUIRES: scipy dask
-  CIBW_TEST_COMMAND: >
-    python -c "import pyfftw; import numpy as np; from pyfftw.interfaces import numpy_fft as fft; np.testing.assert_allclose(fft.fft(np.zeros(8)), np.zeros(8));"
+
+  pull_request:
 
 jobs:
   build_linux_wheels:
