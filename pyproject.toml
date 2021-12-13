@@ -45,7 +45,7 @@ test-command = "pytest --import-mode=append {project}"
         CC = "/usr/bin/clang"
         CXX = "/usr/bin/clang++"
         CFLAGS = "-Wno-implicit-function-declaration -I/usr/local/opt/fftw/include"
-        LDFLAGS = "-S -Wl,-rpath,/usr/local/opt/fftw/lib -L/usr/local/opt/fftw/lib"
+        LDFLAGS = "-Wl,-S,-rpath=/usr/local/opt/fftw/lib -L/usr/local/opt/fftw/lib"
 
     # On Linux we need to use different package managers depending on image used
     [tool.cibuildwheel.linux]
