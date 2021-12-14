@@ -14,7 +14,7 @@ on:
 
 jobs:
   build_linux_wheels:
-    name: Build python ${{ matrix.cibw_python }} wheels on ${{ matrix.os }}
+    name: Build ${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -58,12 +58,18 @@ jobs:
           path: ./dist/*.whl
 
   build_macos_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [macos-11]
+        cibw_python: ["cp37", "cp38", "cp39", "cp310"]
+        # Add arm64 when we support it
+        # TODO: Fix this
+        # Current problem seems to be that installed libfftw3 does not provide arm64
+        # symbols
+        cibw_arch: ["x86_64"]
     env:
       MACOSX_DEPLOYMENT_TARGET: "10.13"
     steps:
@@ -87,6 +93,8 @@ jobs:
       - name: Build wheels for CPython (MacOS)
         run: |
           python -m cibuildwheel --output-dir dist
+        env:
+          CIBW_BUILD: ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
 
       - uses: actions/upload-artifact@v2
         with:
@@ -97,12 +105,16 @@ jobs:
     # Only works for 64-bit.
     # 32-bit is likely possible, but probably not worth the time investment to get
     # working given low usage
-    name: Build wheels on ${{ matrix.os }}
+    name: Build ${{ matrix.cibw_python }}-win_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [windows-2022]
+        cibw_python: ["cp37", "cp38", "cp39", "cp310"]
+        # Add arm64 when we support it
+        # We don't support Windows 32-bit
+        cibw_arch: ["amd64"]
 
     steps:
       - uses: actions/checkout@v2
@@ -140,6 +152,8 @@ jobs:
       - name: Build Windows wheels for CPython (Win64)
         run: |
           python -m cibuildwheel --output-dir dist
+        env:
+          CIBW_BUILD: ${{ matrix.cibw_python }}-win_${{ matrix.cibw_arch }}
 
       - uses: actions/upload-artifact@v2
         name: Upload wheels as artifacts

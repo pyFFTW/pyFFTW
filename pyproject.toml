@@ -1,11 +1,4 @@
 [tool.cibuildwheel]
-build = [
-    "cp37-*",
-    "cp38-*",
-    "cp39-*",
-    "cp310-*",
-]
-
 build-verbosity = 2
 
 # Note: Tests are run within a docker container on Linux builds
@@ -19,27 +12,10 @@ test-command = "pytest --import-mode=append {project}"
     [tool.cibuildwheel.environment]
     PIP_PREFER_BINARY = true
 
-    [tool.cibuildwheel.windows]
-    archs = [
-        "AMD64",
-    ]
-
-
     [tool.cibuildwheel.macos]
 
     # See: https://github.com/pyFFTW/pyFFTW/issues/324
     test-skip = "*"
-
-    archs = [
-        "x86_64",
-
-        # Unfortunately we don't have Apple Silicon support yet
-        # TODO: Fix this
-        # Current problem seems to be that installed libfftw3 does not provide arm64
-        # symbols
-        # "universal2",
-        # "arm64",
-    ]
 
         [tool.cibuildwheel.macos.environment]
         CC = "/usr/bin/clang"
@@ -70,12 +46,6 @@ test-command = "pytest --import-mode=append {project}"
     manylinux-pypy_x86_64-image = "manylinux_2_24"
     manylinux-pypy_i686-image = "manylinux_2_24"
     manylinux-pypy_aarch64-image = "manylinux_2_24"
-
-    archs = [
-        "x86_64",
-        "i686",
-        "aarch64",
-    ]
 
     # Select based on manylinux availability
     # See: https://github.com/pypa/manylinux
