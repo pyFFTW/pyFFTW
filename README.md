@@ -1,8 +1,8 @@
 ### Current Build Status
 
-| Travis                                                                                                     | Appveyor                                                                                                                                                 | Read the Docs                                                                                                                           |
-| ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| [![travis_ci](https://travis-ci.org/pyFFTW/pyFFTW.svg?branch=master)](https://travis-ci.org/pyFFTW/pyFFTW) | [![appveyor_ci](https://ci.appveyor.com/api/projects/status/uf854abck4x1qsjj/branch/master?svg=true)](https://ci.appveyor.com/project/hgomersall/pyfftw) | [![read_the_docs](https://readthedocs.org/projects/pyfftw/badge/?version=latest)](http://pyfftw.readthedocs.io/en/latest/?badge=latest) |
+| GitHub Actions                                                                                                  | Read the Docs                                                                                                                           |
+| --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| ![github_actions](https://img.shields.io/github/workflow/status/JeppeKlitgaard/pyFFTW/wheel_tests_and_release)  | [![read_the_docs](https://readthedocs.org/projects/pyfftw/badge/?version=latest)](http://pyfftw.readthedocs.io/en/latest/?badge=latest) |
 
 ### Conda-forge Status
 
@@ -64,7 +64,7 @@ it is not tested against them.
 
 Scipy and Dask are only required in order to use their respective interfaces.
 In practice, older versions may work, but they are not tested against. On SciPy
-versions prior to 1.4, only the scipy.fftpack interface will be available.
+versions prior to 1.4, only the `scipy.fftpack` interface will be available.
 
 ## Installation
 
@@ -90,15 +90,6 @@ Alternatively, users of the [conda](https://conda.io/docs/) package manager can
 install from the [conda-forge](https://conda-forge.org/) channel via:
 
     conda install -c conda-forge pyfftw
-
-Windows development builds are also automatically uploaded to
-[bintray](https://bintray.com/hgomersall/generic/PyFFTW-development-builds/view)
-as wheels (which are built against numpy 1.10), from where they can be
-downloaded and installed with something like:
-
-    pip install pyFFTW-0.11.1+3.g898bce5-cp36-cp36m-win_amd64.whl
-
-where the version and the revision hash are set accordingly.
 
 Read on if you do want to build from source...
 
