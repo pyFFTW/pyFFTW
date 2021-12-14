@@ -57,6 +57,8 @@ jobs:
           CIBW_BUILD: ${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}
 
       - uses: actions/upload-artifact@v2
+        name: Upload wheels as artifacts
+        if: ${{ github.event_name != 'pull_request' }}
         with:
           name: wheels
           path: ./dist/*.whl
@@ -103,6 +105,8 @@ jobs:
           CIBW_BUILD: ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
 
       - uses: actions/upload-artifact@v2
+        name: Upload wheels as artifacts
+        if: ${{ github.event_name != 'pull_request' }}
         with:
           name: wheels
           path: ./dist/*.whl
@@ -164,6 +168,7 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         name: Upload wheels as artifacts
+        if: ${{ github.event_name != 'pull_request' }}
         with:
           name: wheels
           path: ./dist/*.whl
