@@ -51,7 +51,11 @@ test-command = "pytest --import-mode=append {project}"
     [tool.cibuildwheel.linux]
 
     # See: https://github.com/pyFFTW/pyFFTW/issues/325
-    test-skip = "*i686"
+    # See: https://github.com/pyFFTW/pyFFTW/issues/326
+    test-skip = [
+        "*i686",
+        "*aarch64",
+    ]
 
     test-command = "ls -la; echo $PYTHONPATH; pytest -v --import-mode=append {project}/tests"
     # Fallback, but we specify versions more explicitly below to achieve maximal
