@@ -16,15 +16,20 @@ jobs:
   build_linux_wheels:
     name: Build ${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    if: '!contains(["cp310-manylinux_i686"], "${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}")'
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04]
+
         cibw_python: ["cp37", "cp38", "cp39", "cp310"]
         # SciPy and NumPy don't support musllinux
         cibw_libc: ["manylinux"]
         cibw_arch: ["x86_64", "i686", "aarch64"]
+
+        exclude:
+          # SciPy and NumPy don't support 32-bit Linux from Python 3.10 and onwards
+          - cibw_python: "cp310"
+            cibw_arch: "i686"
 
     steps:
       - uses: actions/checkout@v2
@@ -50,8 +55,6 @@ jobs:
           python -m cibuildwheel --output-dir dist
         env:
           CIBW_BUILD: ${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}
-          # SciPy and NumPy don't support 32-bit Linux from Python 3.10 and onwards
-          CIBW_SKIP: cp310-manylinux_i686"
 
       - uses: actions/upload-artifact@v2
         with:
@@ -65,12 +68,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-11]
+
         cibw_python: ["cp37", "cp38", "cp39", "cp310"]
         # Add arm64 when we support it
         # TODO: Fix this
         # Current problem seems to be that installed libfftw3 does not provide arm64
         # symbols
         cibw_arch: ["x86_64"]
+
     env:
       MACOSX_DEPLOYMENT_TARGET: "10.13"
     steps:
@@ -112,6 +117,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-2022]
+
         cibw_python: ["cp37", "cp38", "cp39", "cp310"]
         # Add arm64 when we support it
         # We don't support Windows 32-bit
@@ -161,7 +167,6 @@ jobs:
         with:
           name: wheels
           path: ./dist/*.whl
-
 
   deploy:
     name: Release
