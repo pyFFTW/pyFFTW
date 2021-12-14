@@ -200,6 +200,23 @@ Install FFTW from ports tree or ``pkg``:
 
 Please install all of them, if possible.
 
+## Testing
+
+Tests should be run using `pytest`. Install using:
+
+```sh
+pip install pytest
+```
+
+To run tests against the installed (compiled) `pyFFTW` wheel, use:
+
+```sh
+pytest --import-mode=append tests/
+```
+
+**Note**: `--import-mode=append` is needed to prevent `pytest` patching `sys.path`
+in a way that resolves the local installation over the wheel installation.
+
 ## Contributions
 
 Contributions are always welcome and valued. The primary restriction on
