@@ -20,7 +20,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04]
-        cibw_python: ["cp37-*", "cp38-*", "cp39-*", "cp310-*"]
+        cibw_python: ["cp37", "cp38", "cp39", "cp310"]
+        # SciPy and NumPy don't support musllinux
+        cibw_libc: ["manylinux"]
+        cibw_arch: ["x86_64", "i686", "aarch64"]
 
     steps:
       - uses: actions/checkout@v2
@@ -45,10 +48,9 @@ jobs:
         run: |
           python -m cibuildwheel --output-dir dist
         env:
-          CIBW_BUILD: ${{ matrix.cibw_python }}
-          # SciPy and NumPy don't support musllinux
+          CIBW_BUILD: ${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}
           # SciPy and NumPy don't support 32-bit Linux from Python 3.10 and onwards
-          CIBW_SKIP: "*-musllinux* cp310-manylinux_i686"
+          CIBW_SKIP: cp310-manylinux_i686"
 
       - uses: actions/upload-artifact@v2
         with:
