@@ -49,7 +49,6 @@ test-command = "pytest --import-mode=append {project}"
         "*aarch64",
     ]
 
-    test-command = "ls -la; echo $PYTHONPATH; pytest -v --import-mode=append {project}/tests"
     # Fallback, but we specify versions more explicitly below to achieve maximal
     # compatibility
     before-all = "apt update; apt install libfftw3-dev"
