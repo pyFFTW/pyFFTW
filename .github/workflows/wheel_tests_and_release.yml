@@ -1,4 +1,4 @@
-name: Build Wheels and Release
+name: Build Wheels, Test and Release
 
 on:
   push:
