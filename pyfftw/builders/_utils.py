@@ -118,22 +118,28 @@ def _default_threads(threads):
         return threads
 
 
-def _unitary(norm):
-    """_unitary() utility copied from numpy"""
-    if norm not in (None, "ortho"):
-        raise ValueError("Invalid norm value %s, should be None or \"ortho\"."
-                         % norm)
-    return norm is not None
-
-
 def _norm_args(norm):
-    """ pass the proper normalization-related keyword arguments. """
-    if _unitary(norm):
+    """
+    Returns the proper normalization parameter values.
+
+    Possible `norm` values are "backward" (alias of None), "ortho",
+    "forward".
+
+    This function is used by both the builders and the interfaces.
+
+    """
+    if norm == "ortho":
         ortho = True
         normalise_idft = False
-    else:
+    elif norm is None or norm == "backward":
         ortho = False
         normalise_idft = True
+    elif norm == "forward":
+        ortho = False
+        normalise_idft = False
+    else:
+        raise ValueError(f'Invalid norm value {norm}; should be "ortho", '
+                         '"backward" or "forward".')
     return dict(normalise_idft=normalise_idft, ortho=ortho)
 
 

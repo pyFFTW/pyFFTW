@@ -77,7 +77,7 @@ try:
     _threading_import_error = None
 except ImportError as e:
     _threading_import_error = e
-    _threading == None
+    _threading = None
 
 import time
 import weakref
