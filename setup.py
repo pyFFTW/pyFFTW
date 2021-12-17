@@ -36,9 +36,14 @@
 from setuptools import setup, Command
 from setuptools.command.build_ext import build_ext
 
-from distutils.errors import CompileError, LinkError
-from distutils.extension import Extension
-from distutils.util import get_platform
+try:
+    from setuptools.errors import CompileError, LinkError
+    from setuptools.extension import Extension
+except ImportError:
+    # fallback to distutils for older setuptools releases
+    from distutils.errors import CompileError, LinkError
+    from distutils.extension import Extension
+from pkg_resources import get_platform
 
 from contextlib import redirect_stderr, redirect_stdout
 import os
