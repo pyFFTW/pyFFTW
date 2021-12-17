@@ -2,7 +2,7 @@
 
 | GitHub Actions                                                                                                  | Read the Docs                                                                                                                           |
 | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| ![github_actions](https://github.com/pyFFTW/pyFFTW/actions/workflows/wheel_tests_and_release.yml/badge.svg)  | [![read_the_docs](https://readthedocs.org/projects/pyfftw/badge/?version=latest)](http://pyfftw.readthedocs.io/en/latest/?badge=latest) |
+| [![Build Wheels, Test and Release](https://github.com/pyFFTW/pyFFTW/actions/workflows/wheel_tests_and_release.yml/badge.svg)](https://github.com/pyFFTW/pyFFTW/actions/workflows/wheel_tests_and_release.yml) | [![read_the_docs](https://readthedocs.org/projects/pyfftw/badge/?version=latest)](http://pyfftw.readthedocs.io/en/latest/?badge=latest) |
 
 ### Conda-forge Status
 
