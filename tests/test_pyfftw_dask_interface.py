@@ -146,6 +146,9 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
             ((59, 99), {'axis': 0}),
             ((32, 32, 4), {'axis': 1}),
             ((32, 32, 2), {'axis': 1, 'norm': 'ortho'}),
+            ((32, 32, 2), {'axis': 1, 'norm': None}),
+            ((32, 32, 2), {'axis': 1, 'norm': 'backward'}),
+            ((32, 32, 2), {'axis': 1, 'norm': 'forward'}),
             ((64, 128, 16), {}),
             )
 
@@ -503,6 +506,9 @@ class InterfacesDaskFFTTestFFT2(InterfacesDaskFFTTestFFT):
             ((128, 32, 4), {'axes': (0, 2)}),
             ((59, 100), {'axes': (-2, -1)}),
             ((32, 32), {'axes': (-2, -1), 'norm': 'ortho'}),
+            ((32, 32), {'axes': (-2, -1), 'norm': None}),
+            ((32, 32), {'axes': (-2, -1), 'norm': 'backward'}),
+            ((32, 32), {'axes': (-2, -1), 'norm': 'forward'}),
             ((64, 128, 16), {'axes': (0, 2)}),
             ((4, 6, 8, 4), {'axes': (0, 3)}),
             )
@@ -535,6 +541,9 @@ class InterfacesDaskFFTTestFFTN(InterfacesDaskFFTTestFFT2):
             ((64, 128, 16), {'axes': (0, 1, 2)}),
             ((4, 6, 8, 4), {'axes': (0, 3, 1)}),
             ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': 'ortho'}),
+            ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': None}),
+            ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': 'backward'}),
+            ((4, 6, 4, 4), {'axes': (0, 3, 1), 'norm': 'forward'}),
             ((4, 6, 8, 4), {'axes': (0, 3, 1, 2)}),
             )
 

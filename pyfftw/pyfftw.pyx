@@ -1837,10 +1837,12 @@ cdef class FFTW:
 
         self.execute()
 
-        if ortho == True:
+        # after executing, optionally normalize output array
+        if ortho:
             self._output_array *= self._sqrt_normalisation_scaling
-
-        if self._direction[0] == FFTW_BACKWARD and normalise_idft:
+        elif normalise_idft and self._direction[0] == FFTW_BACKWARD:
+            self._output_array *= self._normalisation_scaling
+        elif not normalise_idft and self._direction[0] == FFTW_FORWARD:
             self._output_array *= self._normalisation_scaling
 
         return self._output_array

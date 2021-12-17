@@ -60,13 +60,14 @@ which this may not be true.
 '''
 
 from ._utils import _Xfftn
-from ..builders._utils import (_norm_args, _unitary, _default_effort,
+
+from ..builders._utils import (_norm_args, _default_effort,
                                _default_threads)
 
 # Complete the namespace (these are not actually used in this module)
 from numpy.fft import fftfreq, fftshift, ifftshift
 
-import numpy
+import numpy as np
 
 __all__ = ['fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
            'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn', 'irfftn',
@@ -78,6 +79,18 @@ try:
     __all__ += ['rfftfreq', ]
 except ImportError:
     pass
+
+
+_swap_direction_dict = {"backward": "forward", None: "forward",
+                        "ortho": "ortho", "forward": "backward"}
+
+
+def _swap_direction(norm):
+    try:
+        return _swap_direction_dict[norm]
+    except KeyError:
+        raise ValueError(f'Invalid norm value {norm}; should be "backward", '
+                         '"ortho" or "forward".')
 
 
 def fft(a, n=None, axis=-1, norm=None, overwrite_input=False,
@@ -307,31 +320,25 @@ def hfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
 
-    # The hermitian symmetric transform is equivalent to the
-    # irfft of the conjugate of the input (do the maths!) without
-    # any normalisation of the result (so normalise_idft is set to
-    # False).
-    a = numpy.conjugate(a)
-    if a.size < 2:
-        raise ValueError("hfft requires input with length >= 2")
-
+    # hfft(a) is equivalent to irfft(conjugate(a))
     calling_func = 'irfft'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
 
-    if _unitary(norm):
-        if n is None:
-            if not isinstance(a, numpy.ndarray):
-                a = numpy.asarray(a)
-            n = (a.shape[axis] - 1)*2
-        if a.dtype == numpy.float16:
-            # FFT will be in float32 so perform normalization in this dtype too
-            a = a.astype(numpy.float32)
-        a /= numpy.sqrt(n)
+    a = np.asarray(a)
+    if a.size < 2:
+        raise ValueError("hfft requires input with length >= 2")
+    if a.dtype == np.float16:
+        a = a.astype(np.float32)
 
-    return _Xfftn(a, n, axis, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous,
-            calling_func, normalise_idft=False)
+    if n is None:
+        n = (a.shape[axis] - 1)*2
+
+    new_norm = _swap_direction(norm)
+
+    return _Xfftn(np.conjugate(a), n, axis, overwrite_input, planner_effort,
+                  threads, auto_align_input, auto_contiguous,
+                  calling_func, **_norm_args(new_norm))
 
 
 def ihfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
@@ -346,22 +353,17 @@ def ihfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
     in the :ref:`additional arguments docs<interfaces_additional_args>`.
     '''
 
-    # Result is equivalent to the conjugate of the output of
-    # the rfft of a.
-    # It is necessary to perform the inverse scaling, as this
-    # is not done by rfft.
-    if n is None:
-        if not isinstance(a, numpy.ndarray):
-            a = numpy.asarray(a)
-        n = a.shape[axis]
-
-    if _unitary(norm):
-        scaling = 1.0/numpy.sqrt(n)
-    else:
-        scaling = 1.0/n
-
+    # ihfft(a) is equivalent to conjugate(rfft(a))
+    calling_func = 'rfft'
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
 
-    return scaling * rfft(a, n, axis, None, overwrite_input, planner_effort,
-            threads, auto_align_input, auto_contiguous).conj()
+    a = np.asarray(a)
+    if n is None:
+        n = a.shape[axis]
+
+    new_norm = _swap_direction(norm)
+
+    return np.conjugate(_Xfftn(a, n, axis, overwrite_input, planner_effort,
+                               threads, auto_align_input, auto_contiguous,
+                               calling_func, **_norm_args(new_norm)))
