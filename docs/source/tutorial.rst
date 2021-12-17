@@ -245,6 +245,21 @@ Similarly, to plan the inverse:
 In this case, the direction argument is given as ``'FFTW_BACKWARD'``
 (to override the default of ``'FFTW_FORWARD'``).
 
+:class:`pyfftw.FFTW` also supports all of the discrete sine and cosine
+transformations (also called *real to real transformations*) implemented by
+FFTW: for example
+
+.. testcode::
+
+   d = pyfftw.empty_aligned(128, dtype='float64')
+   e = pyfftw.empty_aligned(128, dtype='float64')
+
+   dct_transform = pyfftw.FFTW(d, e, direction='FFTW_REDFT00')
+
+creates an instance of :class:`pyfftw.FFTW` which can execute the
+discrete cosine boundary condition with even boundary conditions on
+both ends (also known as the DCT-1).
+
 The actual FFT is performed by calling the returned objects:
 
 .. testcode::

@@ -33,30 +33,35 @@
 #
 
 # import only from standard library so dependencies can be installed
+from setuptools import setup, Command
+from setuptools.command.build_ext import build_ext
+
 try:
-    # use setuptools if we can
-    from setuptools import setup, Command
-    from setuptools.command.build_ext import build_ext
-    using_setuptools = True
+    from setuptools.errors import CompileError, LinkError
+    from setuptools.extension import Extension
 except ImportError:
-    from distutils.core import setup, Command
-    from distutils.command.build_ext import build_ext
-    using_setuptools = False
+    # fallback to distutils for older setuptools releases
+    from distutils.errors import CompileError, LinkError
+    from distutils.extension import Extension
+from pkg_resources import get_platform
 
-from distutils import log
-from distutils.ccompiler import get_default_compiler, new_compiler
-from distutils.errors import CompileError, LinkError
-from distutils.extension import Extension
-from distutils.sysconfig import customize_compiler
-from distutils.util import get_platform
-
-import contextlib
+from contextlib import redirect_stderr, redirect_stdout
 import os
+import logging
 import sys
+
+logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger(__name__)
+
+# ensure the current directory is on sys.path so versioneer can be imported
+# when pip uses PEP 517/518 build rules.
+# https://github.com/python-versioneer/python-versioneer/issues/193
+sys.path.append(os.path.dirname(__file__))
+
 import versioneer
 
-
 if os.environ.get("READTHEDOCS") == "True":
+    # Todo: Is this hacky environb still needed in Python 3?
     try:
         environ = os.environb
     except AttributeError:
@@ -79,6 +84,9 @@ def get_include_dirs():
     if 'PYFFTW_INCLUDE' in os.environ:
         include_dirs.append(os.environ['PYFFTW_INCLUDE'])
 
+    if get_build_platform().startswith("linux"):
+        include_dirs.append('/usr/include')
+
     if get_build_platform() in ('win32', 'win-amd64'):
         include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
 
@@ -87,9 +95,7 @@ def get_include_dirs():
 
     return include_dirs
 
-# TODO Do we need to determine package data dynamically? If so, should
-# take the output from Sniffer but it's only available when the
-# extension is build and not when setup() is called.
+
 def get_package_data():
     from pkg_resources import get_build_platform
 
@@ -124,33 +130,6 @@ def get_library_dirs():
         library_dirs.append('/usr/local/lib')
 
     return library_dirs
-
-
-@contextlib.contextmanager
-def stdchannel_redirected(stdchannel, dest_filename):
-    """
-    A context manager to temporarily redirect stdout and stderr to a file.
-
-    e.g.:
-
-    with stdchannel_redirected(sys.stderr, os.devnull):
-        if compiler.has_function('clock_gettime', libraries=['rt']):
-            libraries.append('rt')
-
-    Taken from http://stackoverflow.com/a/17752729/987623
-    """
-    dest_file = None
-    try:
-        oldstdchannel = os.dup(stdchannel.fileno())
-        dest_file = open(dest_filename, 'w')
-        os.dup2(dest_file.fileno(), stdchannel.fileno())
-
-        yield
-    finally:
-        if oldstdchannel is not None:
-            os.dup2(oldstdchannel, stdchannel.fileno())
-        if dest_file is not None:
-            dest_file.close()
 
 
 class EnvironmentSniffer(object):
@@ -212,6 +191,8 @@ class EnvironmentSniffer(object):
         if get_platform().startswith('linux'):
             # needed at least libm for linker checks to succeed
             self.libraries.append('m')
+
+        log.debug("Sniffer include_dirs: %s" % self.include_dirs)
 
         # main fftw3 header is required
         if not self.has_header(['fftw3.h'], include_dirs=self.include_dirs):
@@ -383,10 +364,19 @@ class EnvironmentSniffer(object):
     def add_library(self, lib):
         raise NotImplementedError
 
+    @staticmethod
+    def _log_file(filepath: str, level: int = logging.DEBUG) -> None:
+        with open(filepath) as f:
+            contents = f.read()
+            if contents:
+                log.log(level=level, msg=contents)
+
     def has_function(self, function, includes=None, objects=None, libraries=None,
                      include_dirs=None, library_dirs=None, linker_flags=None):
-        '''Alternative implementation of distutils.ccompiler.has_function that
-deletes the output and hides calls to the compiler and linker.'''
+        '''
+        Alternative implementation of distutils.ccompiler.has_function that
+        deletes the output and hides calls to the compiler and linker.
+        '''
         if includes is None:
             includes = []
         if objects is None:
@@ -433,48 +423,69 @@ deletes the output and hides calls to the compiler and linker.'''
                 f.close()
                 # the root directory
                 file_root = os.path.abspath(os.sep)
+
+            stdout_path = os.path.join(tmpdir, "compile-stdout")
+            stderr_path = os.path.join(tmpdir, "compile-stderr")
+
             try:
                 # output file is stored relative to input file since
                 # the output has the full directory, joining with the
                 # file root gives the right directory
-                stdout = os.path.join(tmpdir, "compile-stdout")
-                stderr = os.path.join(tmpdir, "compile-stderr")
-                with stdchannel_redirected(sys.stdout, stdout), stdchannel_redirected(sys.stderr, stderr):
-                    tmp_objects = self.compiler.compile([fname], output_dir=file_root, include_dirs=include_dirs)
-                with open(stdout, 'r') as f: log.debug(f.read())
-                with open(stderr, 'r') as f: log.debug(f.read())
-            except CompileError:
-                with open(stdout, 'r') as f: log.debug(f.read())
-                with open(stderr, 'r') as f: log.debug(f.read())
+                with open(stdout_path, "w") as stdout, open(stderr_path, "w") as stderr:
+                    with redirect_stdout(stdout), redirect_stderr(stderr):
+                        tmp_objects = self.compiler.compile(
+                            [fname], output_dir=file_root, include_dirs=include_dirs
+                        )
+
+                self._log_file(stdout_path)
+                self._log_file(stderr_path)
+
+            except CompileError as e:
+                log.warning("Compilation error: %s", e)
+                self._log_file(stdout_path)
+                self._log_file(stderr_path)
+
                 return False
+
             except Exception as e:
                 log.error(e)
                 return False
+
+            stdout_path = os.path.join(tmpdir, "link-stdout")
+            stderr_path = os.path.join(tmpdir, "link-stderr")
+
             try:
                 # additional objects should come last to resolve symbols, linker order matters
                 tmp_objects.extend(objects)
-                stdout = os.path.join(tmpdir, "link-stdout")
-                stderr = os.path.join(tmpdir, "link-stderr")
-                with stdchannel_redirected(sys.stdout, stdout), stdchannel_redirected(sys.stderr, stderr):
-                    # TODO using link_executable, LDFLAGS that the
-                    # user can modify are ignored
-                    self.compiler.link_executable(tmp_objects, 'a.out',
-                                                  output_dir=tmpdir,
-                                                  libraries=libraries,
-                                                  extra_preargs=linker_flags,
-                                                  library_dirs=library_dirs)
-                with open(stdout, 'r') as f: log.debug(f.read())
-                with open(stderr, 'r') as f: log.debug(f.read())
-            except (LinkError, TypeError):
-                with open(stdout, 'r') as f: log.debug(f.read())
-                with open(stderr, 'r') as f: log.debug(f.read())
+                with open(stdout_path, "w") as stdout, open(stderr_path, "w") as stderr:
+                    with redirect_stdout(stdout), redirect_stderr(stderr):
+                        # TODO using link_executable, LDFLAGS that the
+                        # user can modify are ignored
+                        self.compiler.link_executable(
+                            tmp_objects,
+                            "a.out",
+                            output_dir=tmpdir,
+                            libraries=libraries,
+                            # extra_preargs=linker_flags,
+                            library_dirs=library_dirs,
+                        )
+
+            except (LinkError, TypeError) as e:
+                log.debug("Could not link %s due to %s", function, e)
                 return False
+
             except Exception as e:
-                log.error(e)
+                log.error("Failure during linking: %s", e)
                 return False
+
+            finally:
+                self._log_file(stdout_path)
+                self._log_file(stderr_path)
+
             # no error, seems to work
             status = "ok"
             return True
+
         finally:
             shutil.rmtree(tmpdir)
             log.debug(msg + status)
@@ -595,15 +606,6 @@ is on `github <https://github.com/pyFFTW/pyFFTW>`_.
 
 
 class custom_build_ext(build_ext):
-    def finalize_options(self):
-
-        build_ext.finalize_options(self)
-
-        if self.compiler is None:
-            compiler = get_default_compiler()
-        else:
-            compiler = self.compiler
-
     def build_extensions(self):
         '''Check for availability of fftw libraries before building the wrapper.
 
@@ -742,7 +744,7 @@ def setup_package():
 
     # Figure out whether to add ``*_requires = ['numpy']``.
     build_requires = []
-    numpy_requirement = 'numpy>=1.10, <2.0'
+    numpy_requirement = 'numpy>=1.16, <2.0'
     try:
         import numpy
     except ImportError:
@@ -755,13 +757,13 @@ def setup_package():
     try:
         import cython
     except ImportError:
-        build_requires.append('cython>=0.29, <1.0')
+        build_requires.append('cython>=0.29.18, <1.0')
 
     install_requires = [numpy_requirement]
 
     opt_requires = {
-        'dask': ['numpy>=1.10, <2.0', 'dask[array]>=0.15.0'],
-        'scipy': ['scipy>=0.12.0']
+        'dask': ['numpy>=1.16, <2.0', 'dask[array]>=1.0'],
+        'scipy': ['scipy>=1.2.0']
     }
 
     setup_args = {
@@ -786,13 +788,12 @@ def setup_package():
             'Topic :: Scientific/Engineering :: Mathematics',
             'Topic :: Multimedia :: Sound/Audio :: Analysis'],
         'cmdclass': cmdclass,
-        'python_requires': ">=3.6",
+        'python_requires': ">=3.7",
     }
 
-    if using_setuptools:
-        setup_args['setup_requires'] = build_requires
-        setup_args['install_requires'] = install_requires
-        setup_args['extras_require'] = opt_requires
+    setup_args['setup_requires'] = build_requires
+    setup_args['install_requires'] = install_requires
+    setup_args['extras_require'] = opt_requires
 
     if len(sys.argv) >= 2 and (
         '--help' in sys.argv[1:] or
@@ -805,6 +806,19 @@ def setup_package():
             'pyfftw', 'pyfftw.builders', 'pyfftw.interfaces']
         setup_args['ext_modules'] = get_extensions()
         setup_args['package_data'] = get_package_data()
+
+    # Do a trial run to determine dependencies
+    # Not ideal, but distutils, setuptools and cython are hard to work with
+    # and several hours of messing around didn't yield a good solution
+    # The problem is getting access to either a good compiler object or
+    # the compile_time_env before calling setup()
+    if sys.argv[1] == "build_ext":
+        from Cython.Build import cythonize
+
+        trial_distribution = setup(**setup_args)
+        cython_compile_time_env = trial_distribution.get_command_obj("build_ext")
+
+        setup_args["ext_modules"] = cythonize(get_extensions(), compile_time_env=cython_compile_time_env)
 
     setup(**setup_args)
 

@@ -263,10 +263,10 @@ try:
 except ImportError:
     pass
 else:
-    from distutils.version import LooseVersion as _LooseVersion
+    from numpy.lib import NumpyVersion
 
-    has_scipy_fft = _LooseVersion(scipy.__version__) >= _LooseVersion('1.4.0')
-    del _LooseVersion
+    has_scipy_fft = NumpyVersion(scipy.__version__) >= NumpyVersion('1.4.0')
+    del NumpyVersion
     del scipy
 
     from . import scipy_fftpack

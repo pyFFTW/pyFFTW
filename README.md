@@ -1,8 +1,8 @@
 ### Current Build Status
 
-|Travis | Appveyor | Read the Docs |
-| --- | --- | --- |
-| [![travis_ci](https://travis-ci.org/pyFFTW/pyFFTW.svg?branch=master)](https://travis-ci.org/pyFFTW/pyFFTW) | [![appveyor_ci](https://ci.appveyor.com/api/projects/status/uf854abck4x1qsjj/branch/master?svg=true)](https://ci.appveyor.com/project/hgomersall/pyfftw) | [![read_the_docs](https://readthedocs.org/projects/pyfftw/badge/?version=latest)](http://pyfftw.readthedocs.io/en/latest/?badge=latest) |
+| GitHub Actions                                                                                                  | Read the Docs                                                                                                                           |
+| --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| [![Build Wheels, Test and Release](https://github.com/pyFFTW/pyFFTW/actions/workflows/wheel_tests_and_release.yml/badge.svg)](https://github.com/pyFFTW/pyFFTW/actions/workflows/wheel_tests_and_release.yml) | [![read_the_docs](https://readthedocs.org/projects/pyfftw/badge/?version=latest)](http://pyfftw.readthedocs.io/en/latest/?badge=latest) |
 
 ### Conda-forge Status
 
@@ -11,8 +11,8 @@
 
 ### Conda-forge Info
 
-| Name | Downloads | Version | Platforms |
-| --- | --- | --- | --- |
+| Name                                                                                                             | Downloads                                                                                                             | Version                                                                                                             | Platforms                                                                                                             |
+| ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-pyfftw-green.svg)](https://anaconda.org/conda-forge/pyfftw) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/pyfftw.svg)](https://anaconda.org/conda-forge/pyfftw) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/pyfftw.svg)](https://anaconda.org/conda-forge/pyfftw) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/pyfftw.svg)](https://anaconda.org/conda-forge/pyfftw) |
 
 # PyFFTW
@@ -64,7 +64,7 @@ it is not tested against them.
 
 Scipy and Dask are only required in order to use their respective interfaces.
 In practice, older versions may work, but they are not tested against. On SciPy
-versions prior to 1.4, only the scipy.fftpack interface will be available.
+versions prior to 1.4, only the `scipy.fftpack` interface will be available.
 
 ## Installation
 
@@ -73,12 +73,12 @@ package index with tools such as pip:
 
     pip install pyfftw
 
-Pre-built binary wheels for 64-bit Python on Linux, Mac OS X and Windows are 
+Pre-built binary wheels for 64-bit Python on Linux, Mac OS X and Windows are
 available on the [PyPI](https://pypi.org/) page for all supported Python versions.
-Note that we only support binaries for 64-bit Python. If you need to use 32-bit
-python for some reason, you will have to build pyFFTW from source.
+Note that we only support binaries for 64-bit Python. 32-bit and ARM architectures have
+prebuilt wheels for some configurations - see below.
 
-Note that prior to Python 3.9, the Windows installation defaulted to being 32-bit 
+Note that prior to Python 3.9, the Windows installation defaulted to being 32-bit
 even on 64-bit Windows, so if you are having problems installing using pip
 (typically with an error message like `ERROR: Failed building wheel for pyfftw`)
 then please check your Python version.
@@ -91,26 +91,28 @@ install from the [conda-forge](https://conda-forge.org/) channel via:
 
     conda install -c conda-forge pyfftw
 
-Windows development builds are also automatically uploaded to
-[bintray](https://bintray.com/hgomersall/generic/PyFFTW-development-builds/view)
-as wheels (which are built against numpy 1.10), from where they can be
-downloaded and installed with something like::
-
-  pip install pyFFTW-0.11.1+3.g898bce5-cp36-cp36m-win_amd64.whl
-
-where the version and the revision hash are set accordingly.
-
 Read on if you do want to build from source...
+
+## Wheels
+
+Prebuilt wheels are available for the following configurations:
+
+| Python version      | Windows (32 bit) | Windows (64 bit) | Windows ARM (64 bit) | MacOS | MacOS ARM | Linux (32 bit) | Linux (64 bit) | Linux ARM (64 bit) |
+| :-----------------: | :--------------: | :--------------: | :------------------: | :---: | :-------- | :------------: | :------------: | :----------------: |
+| > 3.7 (unsupported) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
+| 3.7                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
+| 3.8                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
+| 3.9                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
+| 3.10                |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ❌       |       ✔       |         ✔         |
+
+If your configuration does not match one of these you will have to build `pyfft` from source yourself.
+See instructions below.
 
 ## Building
 
 To build in place:
 
-    python setup.py build_ext --inplace
-
-or:
-
-    pip install -r requirements.txt -e . -v
+    pip install -e . -v
 
 That cythonizes the python extension and builds it into a shared library
 which is placed in ``pyfftw/``. The directory can then be treated as a python
@@ -125,6 +127,14 @@ to the output when running ``setup.py``. On certain platforms, for example the
 long double precision is not available. pyFFTW still builds fine but will fail
 at runtime if asked to perform a transform involving long double precision.
 
+To build against FFTW libraries at non standard location, [some compilers are
+sensitive to the environment
+variables](https://gcc.gnu.org/onlinedocs/gcc/Environment-Variables.html)
+`CPATH` and `LIBRARY_PATH`. Moreover, you can also use `PYFFTW_INCLUDE` and
+`PYFFTW_LIB_DIR`. If the FFTW libraries still cannot be found, you might also
+need to set the environment variable `CC` to build with the compiler used to
+compile the libraries.
+
 Regarding multithreading, if both posix and openMP FFTW libs are available, the
 openMP libs are preferred. This preference can be reversed by defining the
 environment variable ``PYFFTW_USE_PTHREADS`` prior to building. If neither
@@ -135,7 +145,6 @@ For more ways of building and installing, see the
 and [setuptools documentation](https://setuptools.readthedocs.io).
 
 ### Platform specific build info
-
 
 #### Windows
 
@@ -162,17 +171,17 @@ suitable ``.lib`` files as described on the
 
 Install FFTW from [homebrew](http://brew.sh):
 
-  brew install fftw
+    brew install fftw
 
-Set temporary environmental variables, such that pyfftw finds fftw::
+Set temporary environmental variables, such that pyfftw finds fftw:
 
-  export DYLD_LIBRARY_PATH=/usr/local/lib
-  export LDFLAGS="-L/usr/local/lib"
-  export CFLAGS="-I/usr/local/include"
+    export DYLD_LIBRARY_PATH=/usr/local/lib
+    export LDFLAGS="-L/usr/local/lib"
+    export CFLAGS="-I/usr/local/include"
 
-Now install pyfftw from pip::
+Now install pyfftw from pip:
 
-  pip install pyfftw
+    pip install pyfftw
 
 It has been suggested that [macports](https://www.macports.org) might also work
 fine. You should then replace the LD environmental variables above with the
@@ -190,6 +199,23 @@ Install FFTW from ports tree or ``pkg``:
     - math/fftw3-long
 
 Please install all of them, if possible.
+
+## Testing
+
+Tests should be run using `pytest`. Install using:
+
+```sh
+pip install pytest
+```
+
+To run tests against the installed (compiled) `pyFFTW` wheel, use:
+
+```sh
+pytest --import-mode=append tests/
+```
+
+**Note**: `--import-mode=append` is needed to prevent `pytest` patching `sys.path`
+in a way that resolves the local installation over the wheel installation.
 
 ## Contributions
 
