@@ -319,11 +319,7 @@ class CacheTest(unittest.TestCase):
         # still should be there
         self.assertIs(_cache.lookup(key), obj)
 
-        if os.name == 'nt':
-            # As above, but with a bit longer
-            time.sleep(old_keepalive_time * 16)
-        else:
-            time.sleep(old_keepalive_time * 8)
+        time.sleep(old_keepalive_time * 16)
 
         self.assertRaises(KeyError, _cache.lookup, key)
 
