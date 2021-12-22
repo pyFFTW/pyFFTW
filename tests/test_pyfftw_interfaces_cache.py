@@ -34,6 +34,7 @@
 #
 
 import copy
+import sys
 
 from pyfftw import interfaces, builders
 import pyfftw
@@ -298,10 +299,8 @@ class CacheTest(unittest.TestCase):
 
         keepalive_time = _cache.keepalive_time
 
-        if os.name == 'nt':
-            # A hack to keep appveyor from falling over here. I suspect the
-            # contention is too much to work properly. Either way, let's
-            # assume it's a windows problem for now...
+        if os.name == 'nt' or sys.platform == 'darwin':
+            # increase sleep time to address random test failures on CI
             time.sleep(keepalive_time * 8)
         else:
             # Relax a bit more otherwise
