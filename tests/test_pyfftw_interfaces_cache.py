@@ -187,7 +187,7 @@ class CacheTest(unittest.TestCase):
         '''
         # Firstly make sure we've exited any lingering threads from other
         # tests.
-        time.sleep(0.1)
+        time.sleep(0.25)
 
         self.assertTrue(_check_n_cache_threads_running() == 0)
 
@@ -201,12 +201,12 @@ class CacheTest(unittest.TestCase):
             target=cache_parent_thread, name='PyFFTWCacheThread')
         parent_t.start()
 
-        time.sleep(0.1)
+        time.sleep(0.25)
         # Check it's running
         self.assertTrue(_check_n_cache_threads_running() == 2)
 
         parent_t.join()
-        time.sleep(0.1)
+        time.sleep(0.25)
         # Check both threads have exited properly
         self.assertTrue(_check_n_cache_threads_running() == 0)
 
@@ -215,15 +215,15 @@ class CacheTest(unittest.TestCase):
         '''
         # Firstly make sure we've exited any lingering threads from other
         # tests.
-        time.sleep(0.2)
+        time.sleep(0.25)
         self.assertTrue(_check_n_cache_threads_running() == 0)
 
         _cache = interfaces.cache._Cache()
-        time.sleep(0.2)
+        time.sleep(0.25)
         self.assertTrue(_check_n_cache_threads_running() == 1)
 
         del _cache
-        time.sleep(0.2)
+        time.sleep(0.25)
         self.assertTrue(_check_n_cache_threads_running() == 0)
 
     @unittest.skipIf(*miss('64'))
