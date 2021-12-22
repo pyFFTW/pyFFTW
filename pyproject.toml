@@ -19,9 +19,6 @@ test-command = "pytest --import-mode=append {project}"
 
     [tool.cibuildwheel.macos]
 
-    # See: https://github.com/pyFFTW/pyFFTW/issues/327
-    test-skip = "*"
-
     archs = [
         "x86_64",
 
