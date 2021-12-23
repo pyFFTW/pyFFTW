@@ -22,7 +22,7 @@ class ConfigTest(unittest.TestCase):
         return
 
     def tearDown(self):
-        # resstore original environment variables values
+        # restore original environment variables values
         for key in self.env_keys:
             val = self.orig_env[key]
             if val is None:

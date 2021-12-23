@@ -361,7 +361,7 @@ transform is to be taken.
    fft_object_c = pyfftw.FFTW(a, b, axes=(0,1))
 
 For further information on all the supported transforms, including
-real transforms, as well as full documentaion on all the
+real transforms, as well as full documentation on all the
 instantiation arguments, see the :class:`pyfftw.FFTW` documentation.
 
 .. _wisdom_tutorial:

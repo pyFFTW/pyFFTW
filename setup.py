@@ -651,7 +651,7 @@ class custom_build_ext(build_ext):
 
 class CreateChangelogCommand(Command):
     '''Depends on the ruby program github_changelog_generator. Install with
-    gem install gihub_changelog_generator.
+    gem install github_changelog_generator.
     '''
     user_options = []
 
