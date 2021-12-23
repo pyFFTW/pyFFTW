@@ -1,0 +1,68 @@
+============================
+pyFFTW v0.13.0 release notes
+============================
+
+We're happy to announce the release of pyFFTW v0.13.0!
+
+pyFFTW is a pythonic wrapper around FFTW 3, the speedy FFT library. The
+ultimate aim is to present a unified interface for all the possible transforms
+that FFTW can perform.
+
+pyFFTW implements the NumPy and SciPy FFT interfaces in order for users to take
+advantage of the speed of FFTW with minimal code modifications. A Dask FFT
+interface is provided as a drop-in replacement for the equivalent module in
+dask. For more information, examples, and documentation, please see
+the `documentation <https://pyfftw.readthedocs.io/en/latest/>`_.
+
+A highlight of this release is the addition of real-to-real transforms,
+specifically the type I-IV discrete sine and cosine transforms. These
+transforms  are also available from the `pyfftw.interfaces.numpy_fft` and
+`pyfftw.interfaces.scipy_fft` interfaces as well as the legacy
+`pyfftw.interfaces.scipy_fftpack` interface.
+
+The NumPy interfaces have also now been updated to support new normalization
+options added in NumPy 1.20. The new 'backward' and 'forward' options are
+described in the `NumPy docs <https://numpy.org/doc/1.20/reference/routines.fft.html#normalization>`_.
+
+This release supports Python 3.7-3.10 on Windows, MacOS and Linux. For more
+details on the architectures providing binary wheels on PyPI, see the
+full `table of prebuilt wheels <https://github.com/pyFFTW/pyFFTW#wheels>`_.
+Binary packages for new Apple M1 processors will be made available via
+`conda-forge <https://conda-forge.org/>`_.
+
+
+Pull requests for v0.13.0
+*************************
+- add pyproject.toml (#226)
+- Real-to-real transforms (#256)
+- Drop testing on Python 2.7 and 3.5 (#285)
+- Minor doc changes to README (#305)
+- Document PYFFTW_INCLUDE and PYFFTW_LIB_DIR (#311)
+- Build wheels on GitHub Actions via cibuildwheel (#318)
+- Fixed setup.py and working CI builds (#323)
+- Update NumPy and SciPy interfaces with new norm options (take 2) (#330)
+- CI: Added the correct gh actions badge and tweaked the name of the workflow (#331)
+- CI: Improved badge to link to the actual workflow (#332)
+- remove use of distutils (#333)
+- Increase time allowed for cache clearance in test (#334)
+- Increase timing in cache tests (#336)
+- Fix miscellaneous typos (#337)
+
+
+8 authors added to this release [alphabetical by first name or login]
+---------------------------------------------------------------------
+- Chris Val
+- David Wells
+- Gregory Lee
+- Henry Gomersall
+- Jeppe Klitgaard
+- Jonathan Essen
+- Pierre Augier
+- Tim Gates
+
+
+3 reviewers added to this release [alphabetical by first name or login]
+-----------------------------------------------------------------------
+- Gregory Lee
+- Henry Gomersall
+- Jeppe Klitgaard
