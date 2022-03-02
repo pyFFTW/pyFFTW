@@ -99,7 +99,7 @@ Prebuilt wheels are available for the following configurations:
 
 | Python version      | Windows (32 bit) | Windows (64 bit) | Windows ARM (64 bit) | MacOS | MacOS ARM | Linux (32 bit) | Linux (64 bit) | Linux ARM (64 bit) |
 | :-----------------: | :--------------: | :--------------: | :------------------: | :---: | :-------- | :------------: | :------------: | :----------------: |
-| > 3.7 (unsupported) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
+| < 3.7 (unsupported) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
 | 3.7                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
 | 3.8                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
 | 3.9                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
