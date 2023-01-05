@@ -45,8 +45,8 @@ The documentation can be found on
 
 ## Requirements (i.e. what it was designed for)
 
-- [Python](https://python.org) >= 3.7 (lower versions *may* work)
-- [Numpy](https://www.numpy.org) >= 1.16 (lower versions *may* work)
+- [Python](https://python.org) >= 3.8 (lower versions *may* work)
+- [Numpy](https://www.numpy.org) >= 1.20 (lower versions *may* work)
 - [FFTW](https://www.fftw.org) >= 3.3 (lower versions *may* work) libraries for
   single, double, and long double precision in serial and multithreading
   (pthreads or openMP) versions.
@@ -59,12 +59,11 @@ it is not tested against them.
 
 ## Optional Dependencies
 
-- [Scipy](https://www.scipy.org) >= 1.2  (>= 1.4 required for the scipy.fft interface)
+- [Scipy](https://www.scipy.org) >= 1.8
 - [Dask](https://dask.pydata.org) >= 1.0
 
 Scipy and Dask are only required in order to use their respective interfaces.
-In practice, older versions may work, but they are not tested against. On SciPy
-versions prior to 1.4, only the `scipy.fftpack` interface will be available.
+In practice, older versions may work, but they are not tested against.
 
 ## Installation
 
@@ -99,11 +98,11 @@ Prebuilt wheels are available for the following configurations:
 
 | Python version      | Windows (32 bit) | Windows (64 bit) | Windows ARM (64 bit) | MacOS | MacOS ARM | Linux (32 bit) | Linux (64 bit) | Linux ARM (64 bit) |
 | :-----------------: | :--------------: | :--------------: | :------------------: | :---: | :-------- | :------------: | :------------: | :----------------: |
-| > 3.7 (unsupported) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
-| 3.7                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
+| < 3.8 (unsupported) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
 | 3.8                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
 | 3.9                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
 | 3.10                |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ❌       |       ✔       |         ✔         |
+| 3.11                |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ❌       |       ✔       |         ✔         |
 
 If your configuration does not match one of these you will have to build `pyfft` from source yourself.
 See instructions below.
