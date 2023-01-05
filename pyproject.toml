@@ -50,14 +50,14 @@ test-command = "pytest --import-mode=append {project}"
     # compatibility
     before-all = "apt update; apt install libfftw3-dev"
 
-    manylinux-x86_64-image = "manylinux_2_24"
-    manylinux-i686-image = "manylinux_2_24"
-    manylinux-aarch64-image = "manylinux_2_24"
-    manylinux-ppc64le-image = "manylinux_2_24"
-    manylinux-s390x-image = "manylinux_2_24"
-    manylinux-pypy_x86_64-image = "manylinux_2_24"
-    manylinux-pypy_i686-image = "manylinux_2_24"
-    manylinux-pypy_aarch64-image = "manylinux_2_24"
+    manylinux-x86_64-image = "manylinux_2_28"
+    manylinux-i686-image = "manylinux2014"
+    manylinux-aarch64-image = "manylinux_2_28"
+    manylinux-ppc64le-image = "manylinux_2_28"
+    manylinux-s390x-image = "manylinux_2_28"
+    manylinux-pypy_x86_64-image = "manylinux_2_28"
+    manylinux-pypy_i686-image = "manylinux_2_28"
+    manylinux-pypy_aarch64-image = "manylinux_2_28"
 
     archs = [
         "x86_64",
@@ -134,6 +134,21 @@ test-command = "pytest --import-mode=append {project}"
 
     before-all = "yum install -y fftw-devel"
 
+    [[tool.cibuildwheel.overrides]]
+    select = "cp311-manylinux*"
+
+    # Based on https://pypi.org/project/numpy/1.24.0/#files
+    manylinux-x86_64-image = "manylinux2014"
+    manylinux-i686-image = "manylinux2014"
+    manylinux-aarch64-image = "manylinux2014"
+    manylinux-ppc64le-image = "manylinux2014"
+    manylinux-s390x-image = "manylinux2014"
+    manylinux-pypy_x86_64-image = "manylinux2014"
+    manylinux-pypy_i686-image = "manylinux2014"
+    manylinux-pypy_aarch64-image = "manylinux2014"
+
+    before-all = "yum install -y fftw-devel"
+
     # Currently not supported
     # Even numpy does not support this
     # This is ignored in the wheel_tests_and_release.yml file
@@ -170,6 +185,7 @@ requires = [
     "numpy==1.17.3; python_version=='3.8' and (platform_machine!='arm64' or platform_system!='Darwin') and platform_machine!='aarch64' and platform_python_implementation != 'PyPy'",
     "numpy==1.19.3; python_version=='3.9' and (platform_machine!='arm64' or platform_system!='Darwin') and platform_python_implementation != 'PyPy'",
     "numpy==1.21.4; python_version=='3.10' and platform_python_implementation != 'PyPy'",
+    "numpy==1.24.0; python_version=='3.11' and platform_python_implementation != 'PyPy'",
 
     # First PyPy versions for which there are numpy wheels
     "numpy==1.20.0; python_version=='3.7' and platform_python_implementation=='PyPy'",
@@ -178,7 +194,7 @@ requires = [
     # we specify an unpinned NumPy which allows source distributions
     # to be used and allows wheels to be used as soon as they
     # become available.
-    "numpy; python_version>='3.11'",
-    "numpy; python_version>='3.8' and platform_python_implementation=='PyPy'",
+    "numpy; python_version>='3.12'",
+    "numpy; python_version>='3.10' and platform_python_implementation=='PyPy'",
 ]
 build-backend = "setuptools.build_meta"

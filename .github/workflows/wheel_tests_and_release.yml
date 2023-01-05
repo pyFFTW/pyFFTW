@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - 'buildwheels*'
 
     tags:
       - 'v*'
@@ -18,9 +19,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04]
+        os: [ubuntu-22.04]
 
-        cibw_python: ["cp37", "cp38", "cp39", "cp310"]
+        cibw_python: ["cp37", "cp38", "cp39", "cp310", "cp311"]
         # SciPy and NumPy don't support musllinux
         cibw_libc: ["manylinux"]
         cibw_arch: ["x86_64", "i686", "aarch64"]
@@ -28,6 +29,8 @@ jobs:
         exclude:
           # SciPy and NumPy don't support 32-bit Linux from Python 3.10 and onwards
           - cibw_python: "cp310"
+            cibw_arch: "i686"
+          - cibw_python: "cp311"
             cibw_arch: "i686"
 
     steps:
@@ -38,7 +41,7 @@ jobs:
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.9'
+          python-version: '3.11'
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -68,9 +71,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-11]
+        os: [macos-12]
 
-        cibw_python: ["cp37", "cp38", "cp39", "cp310"]
+        cibw_python: ["cp37", "cp38", "cp39", "cp310", "cp311"]
         # Add arm64 when we support it
         # TODO: Fix this
         # Current problem seems to be that installed libfftw3 does not provide arm64
@@ -91,7 +94,7 @@ jobs:
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.9'
+          python-version: '3.11'
 
       - name: Install cibuildwheel
         run: |
@@ -121,7 +124,7 @@ jobs:
       matrix:
         os: [windows-2022]
 
-        cibw_python: ["cp37", "cp38", "cp39", "cp310"]
+        cibw_python: ["cp37", "cp38", "cp39", "cp310", "cp311"]
         # Add arm64 when we support it
         # We don't support Windows 32-bit
         cibw_arch: ["amd64"]
@@ -134,7 +137,7 @@ jobs:
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.9'
+          python-version: '3.11'
 
       - name: Install cibuildwheel
         run: |
@@ -184,7 +187,7 @@ jobs:
       - uses: actions/setup-python@v2
         name: Install Python
         with:
-          python-version: '3.9'
+          python-version: '3.11'
 
       - name: Install Twine
         run: |
