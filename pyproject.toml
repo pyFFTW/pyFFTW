@@ -8,13 +8,25 @@ test-requires = "pytest scipy dask"
 # rather than the local module
 test-command = "pytest --import-mode=append {project}"
 
-
     [tool.cibuildwheel.environment]
     PIP_PREFER_BINARY = true
 
     [tool.cibuildwheel.windows]
     archs = [
         "AMD64",
+        "x86",
+        "ARM64",
+    ]
+
+    test-skip = [
+        # Until SciPy does not support win32
+        "*win32",
+
+        # We can't run tests when cross-compiling for ARM64 on AMD64
+        "*win_arm64",
+
+        # Until SciPy gives us PyPy wheels
+        "pp*",
     ]
 
     [tool.cibuildwheel.macos]
@@ -22,12 +34,17 @@ test-command = "pytest --import-mode=append {project}"
     archs = [
         "x86_64",
 
-        # Unfortunately we don't have Apple Silicon support yet
-        # TODO: Fix this
+        # See issue [#352](https://github.com/pyFFTW/pyFFTW/issues/352)
+        # TODO: Add arm64 when we support it
         # Current problem seems to be that installed libfftw3 does not provide arm64
         # symbols
         # "universal2",
         # "arm64",
+    ]
+
+    test-skip = [
+        # Until SciPy gives us PyPy wheels
+        "pp*",
     ]
 
         [tool.cibuildwheel.macos.environment]
@@ -39,11 +56,15 @@ test-command = "pytest --import-mode=append {project}"
     # On Linux we need to use different package managers depending on image used
     [tool.cibuildwheel.linux]
 
-    # See: https://github.com/pyFFTW/pyFFTW/issues/325
-    # See: https://github.com/pyFFTW/pyFFTW/issues/326
     test-skip = [
+        # See: https://github.com/pyFFTW/pyFFTW/issues/325
         "*i686",
+
+        # See: https://github.com/pyFFTW/pyFFTW/issues/326
         "*aarch64",
+
+        # Until SciPy gives us PyPy wheels
+        "pp*",
     ]
 
     # Fallback, but we specify versions more explicitly below to achieve maximal
@@ -77,7 +98,7 @@ test-command = "pytest --import-mode=append {project}"
 
     # Use manylinux2010 for Python3.8, as <3.8.4 does not initially work with manylinux2014
     [[tool.cibuildwheel.overrides]]
-    select = "cp38-manylinux*"
+    select = "{c,p}p38-manylinux*"
 
     manylinux-x86_64-image = "manylinux2010"
     manylinux-i686-image = "manylinux2010"
@@ -92,7 +113,7 @@ test-command = "pytest --import-mode=append {project}"
 
     # Use manylinux2014 for Python3.9, as <3.9.5 does not initially work with manylinux_x_y
     [[tool.cibuildwheel.overrides]]
-    select = "cp39-manylinux*"
+    select = "{c,p}p39-manylinux*"
 
     manylinux-x86_64-image = "manylinux2014"
     manylinux-i686-image = "manylinux2014"
@@ -106,7 +127,7 @@ test-command = "pytest --import-mode=append {project}"
     before-all = "yum install -y fftw-devel"
 
     [[tool.cibuildwheel.overrides]]
-    select = "cp310-manylinux*"
+    select = "{c,p}p310-manylinux*"
 
     manylinux-x86_64-image = "manylinux2014"
     manylinux-i686-image = "manylinux2014"
@@ -120,7 +141,7 @@ test-command = "pytest --import-mode=append {project}"
     before-all = "yum install -y fftw-devel"
 
     [[tool.cibuildwheel.overrides]]
-    select = "cp311-manylinux*"
+    select = "{c,p}p311-manylinux*"
 
     # Based on https://pypi.org/project/numpy/1.24.0/#files
     manylinux-x86_64-image = "manylinux2014"

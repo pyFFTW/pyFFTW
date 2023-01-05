@@ -1,7 +1,7 @@
 ### Current Build Status
 
-| GitHub Actions                                                                                                  | Read the Docs                                                                                                                           |
-| --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| GitHub Actions                                                                                                                                                                                                | Read the Docs                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | [![Build Wheels, Test and Release](https://github.com/pyFFTW/pyFFTW/actions/workflows/wheel_tests_and_release.yml/badge.svg)](https://github.com/pyFFTW/pyFFTW/actions/workflows/wheel_tests_and_release.yml) | [![read_the_docs](https://readthedocs.org/projects/pyfftw/badge/?version=latest)](http://pyfftw.readthedocs.io/en/latest/?badge=latest) |
 
 ### Conda-forge Status
@@ -57,6 +57,8 @@ The documentation can be found on
 In practice, pyFFTW *may* work with older versions of these dependencies, but
 it is not tested against them.
 
+We build wheels for PyPy 3.8, but this platform has not been tested.
+
 ## Optional Dependencies
 
 - [Scipy](https://www.scipy.org) >= 1.8
@@ -96,13 +98,16 @@ Read on if you do want to build from source...
 
 Prebuilt wheels are available for the following configurations:
 
-| Python version      | Windows (32 bit) | Windows (64 bit) | Windows ARM (64 bit) | MacOS | MacOS ARM | Linux (32 bit) | Linux (64 bit) | Linux ARM (64 bit) |
-| :-----------------: | :--------------: | :--------------: | :------------------: | :---: | :-------- | :------------: | :------------: | :----------------: |
-| < 3.8 (unsupported) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
-| 3.8                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
-| 3.9                 |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
-| 3.10                |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ❌       |       ✔       |         ✔         |
-| 3.11                |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ❌       |       ✔       |         ✔         |
+|          Python version          | Windows (32 bit) | Windows (64 bit) | Windows ARM (64 bit) | MacOS | MacOS ARM | Linux (32 bit) | Linux (64 bit) | Linux ARM (64 bit) |
+| :------------------------------: | :--------------: | :--------------: | :------------------: | :---: | :-------- | :------------: | :------------: | :----------------: |
+|   CPython < 3.8 (unsupported)    |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
+|           CPython 3.8            |        ✔        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
+|           CPython 3.9            |        ✔        |        ✔        |          ✔          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
+|           CPython 3.10           |        ✔        |        ✔        |          ✔          |  ✔   | ❌        |       ❌       |       ✔       |         ✔         |
+|           CPython 3.11           |        ✔        |        ✔        |          ✔          |  ✔   | ❌        |       ❌       |       ✔       |         ✔         |
+|     PyPy < 3.8 (unsupported)     |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
+|             PyPy 3.8             |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ❌       |       ✔       |         ❌         |
+| PyPy > 3.8 (unsupported for now) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
 
 If your configuration does not match one of these you will have to build `pyfft` from source yourself.
 See instructions below.
