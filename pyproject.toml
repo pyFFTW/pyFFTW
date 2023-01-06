@@ -8,13 +8,25 @@ test-requires = "pytest scipy dask"
 # rather than the local module
 test-command = "pytest --import-mode=append {project}"
 
-
     [tool.cibuildwheel.environment]
     PIP_PREFER_BINARY = true
 
     [tool.cibuildwheel.windows]
     archs = [
         "AMD64",
+        "x86",
+        "ARM64",
+    ]
+
+    test-skip = [
+        # Until SciPy does not support win32
+        "*win32",
+
+        # We can't run tests when cross-compiling for ARM64 on AMD64
+        "*win_arm64",
+
+        # Until SciPy gives us PyPy wheels
+        "pp*",
     ]
 
     [tool.cibuildwheel.macos]
@@ -22,12 +34,17 @@ test-command = "pytest --import-mode=append {project}"
     archs = [
         "x86_64",
 
-        # Unfortunately we don't have Apple Silicon support yet
-        # TODO: Fix this
+        # See issue [#352](https://github.com/pyFFTW/pyFFTW/issues/352)
+        # TODO: Add arm64 when we support it
         # Current problem seems to be that installed libfftw3 does not provide arm64
         # symbols
         # "universal2",
         # "arm64",
+    ]
+
+    test-skip = [
+        # Until SciPy gives us PyPy wheels
+        "pp*",
     ]
 
         [tool.cibuildwheel.macos.environment]
@@ -39,25 +56,29 @@ test-command = "pytest --import-mode=append {project}"
     # On Linux we need to use different package managers depending on image used
     [tool.cibuildwheel.linux]
 
-    # See: https://github.com/pyFFTW/pyFFTW/issues/325
-    # See: https://github.com/pyFFTW/pyFFTW/issues/326
     test-skip = [
+        # See: https://github.com/pyFFTW/pyFFTW/issues/325
         "*i686",
+
+        # See: https://github.com/pyFFTW/pyFFTW/issues/326
         "*aarch64",
+
+        # Until SciPy gives us PyPy wheels
+        "pp*",
     ]
 
     # Fallback, but we specify versions more explicitly below to achieve maximal
     # compatibility
     before-all = "apt update; apt install libfftw3-dev"
 
-    manylinux-x86_64-image = "manylinux_2_24"
-    manylinux-i686-image = "manylinux_2_24"
-    manylinux-aarch64-image = "manylinux_2_24"
-    manylinux-ppc64le-image = "manylinux_2_24"
-    manylinux-s390x-image = "manylinux_2_24"
-    manylinux-pypy_x86_64-image = "manylinux_2_24"
-    manylinux-pypy_i686-image = "manylinux_2_24"
-    manylinux-pypy_aarch64-image = "manylinux_2_24"
+    manylinux-x86_64-image = "manylinux_2_28"
+    manylinux-i686-image = "manylinux2014"
+    manylinux-aarch64-image = "manylinux_2_28"
+    manylinux-ppc64le-image = "manylinux_2_28"
+    manylinux-s390x-image = "manylinux_2_28"
+    manylinux-pypy_x86_64-image = "manylinux_2_28"
+    manylinux-pypy_i686-image = "manylinux_2_28"
+    manylinux-pypy_aarch64-image = "manylinux_2_28"
 
     archs = [
         "x86_64",
@@ -75,24 +96,9 @@ test-command = "pytest --import-mode=append {project}"
     # The best choice of manylinux is determined by the following:
     # manylinux version for numpy version for given python version
 
-    # Use manylinux1 for Python3.7, as <3.7.3 does not initially work with manylinux2010
-    [[tool.cibuildwheel.overrides]]
-    select = "cp37-manylinux*"
-
-    manylinux-x86_64-image = "manylinux1"
-    manylinux-i686-image = "manylinux1"
-    manylinux-aarch64-image = "manylinux2014"
-    manylinux-ppc64le-image = "manylinux2014"
-    manylinux-s390x-image = "manylinux2014"
-    manylinux-pypy_x86_64-image = "manylinux1"
-    manylinux-pypy_i686-image = "manylinux1"
-    manylinux-pypy_aarch64-image = "manylinux2014"
-
-    before-all = "yum install -y fftw-devel"
-
     # Use manylinux2010 for Python3.8, as <3.8.4 does not initially work with manylinux2014
     [[tool.cibuildwheel.overrides]]
-    select = "cp38-manylinux*"
+    select = "{c,p}p38-manylinux*"
 
     manylinux-x86_64-image = "manylinux2010"
     manylinux-i686-image = "manylinux2010"
@@ -107,7 +113,7 @@ test-command = "pytest --import-mode=append {project}"
 
     # Use manylinux2014 for Python3.9, as <3.9.5 does not initially work with manylinux_x_y
     [[tool.cibuildwheel.overrides]]
-    select = "cp39-manylinux*"
+    select = "{c,p}p39-manylinux*"
 
     manylinux-x86_64-image = "manylinux2014"
     manylinux-i686-image = "manylinux2014"
@@ -121,8 +127,23 @@ test-command = "pytest --import-mode=append {project}"
     before-all = "yum install -y fftw-devel"
 
     [[tool.cibuildwheel.overrides]]
-    select = "cp310-manylinux*"
+    select = "{c,p}p310-manylinux*"
 
+    manylinux-x86_64-image = "manylinux2014"
+    manylinux-i686-image = "manylinux2014"
+    manylinux-aarch64-image = "manylinux2014"
+    manylinux-ppc64le-image = "manylinux2014"
+    manylinux-s390x-image = "manylinux2014"
+    manylinux-pypy_x86_64-image = "manylinux2014"
+    manylinux-pypy_i686-image = "manylinux2014"
+    manylinux-pypy_aarch64-image = "manylinux2014"
+
+    before-all = "yum install -y fftw-devel"
+
+    [[tool.cibuildwheel.overrides]]
+    select = "{c,p}p311-manylinux*"
+
+    # Based on https://pypi.org/project/numpy/1.24.0/#files
     manylinux-x86_64-image = "manylinux2014"
     manylinux-i686-image = "manylinux2014"
     manylinux-aarch64-image = "manylinux2014"
@@ -155,30 +176,37 @@ requires = [
     # update minimum version to match our install_requires min version
     # ----------------------------------------------------------------
 
-    # numpy 1.19 was the first minor release to provide aarch64 wheels, but
-    # wheels require fixes contained in numpy 1.19.2
-    "numpy==1.19.2; python_version=='3.7' and platform_machine=='aarch64'",
-    "numpy==1.19.2; python_version=='3.8' and platform_machine=='aarch64'",
-    # aarch64 for py39 is covered by default requirement below
+    # now matches minimum supported version, keep here as separate requirement
+    # to be able to sync more easily with oldest-supported-numpy
+    "numpy==1.19.5; python_version=='3.8' and platform_machine=='aarch64' and platform_python_implementation != 'PyPy'",
 
-    # arm64 on Darwin supports Python 3.8 and above requires numpy>=1.20.0
-    "numpy==1.20.0; python_version=='3.8' and platform_machine=='arm64' and platform_system=='Darwin'",
-    "numpy==1.20.0; python_version=='3.9' and platform_machine=='arm64' and platform_system=='Darwin'",
+    # arm64 on Darwin supports Python 3.8 and above requires numpy>=1.21.0
+    # (first version with arm64 wheels available)
+    "numpy==1.21.0; python_version=='3.8' and platform_machine=='arm64' and platform_system=='Darwin'",
+    "numpy==1.21.0; python_version=='3.9' and platform_machine=='arm64' and platform_system=='Darwin'",
+
+    # loongarch64 requires numpy>=1.22.0
+    "numpy==1.22.0; platform_machine=='loongarch64'",
+
+    # On Windows we need to avoid 1.21.6, 1.22.0 and 1.22.1 because they were
+    # built with vc142. 1.22.3 is the first version that has 32-bit Windows
+    # wheels *and* was built with vc141. So use that:
+    "numpy==1.22.3; python_version=='3.10' and platform_system=='Windows' and platform_python_implementation != 'PyPy'",
 
     # default numpy requirements
-    "numpy==1.16.5; python_version=='3.7' and (platform_machine!='arm64' or platform_system!='Darwin') and platform_machine!='aarch64' and platform_python_implementation != 'PyPy'",
-    "numpy==1.17.3; python_version=='3.8' and (platform_machine!='arm64' or platform_system!='Darwin') and platform_machine!='aarch64' and platform_python_implementation != 'PyPy'",
-    "numpy==1.19.3; python_version=='3.9' and (platform_machine!='arm64' or platform_system!='Darwin') and platform_python_implementation != 'PyPy'",
-    "numpy==1.21.4; python_version=='3.10' and platform_python_implementation != 'PyPy'",
-
-    # First PyPy versions for which there are numpy wheels
-    "numpy==1.20.0; python_version=='3.7' and platform_python_implementation=='PyPy'",
+    "numpy==1.19.5; python_version=='3.8' and (platform_machine!='arm64' or platform_system!='Darwin') and platform_machine!='aarch64' and platform_machine!='loongarch64' and platform_python_implementation != 'PyPy'",
+    "numpy==1.19.5; python_version=='3.9' and (platform_machine!='arm64' or platform_system!='Darwin') and platform_machine!='loongarch64' and platform_python_implementation != 'PyPy'",
+    # Note that 1.21.3 was the first version with a complete set of 3.10 wheels,
+    # however macOS was broken and it's safe C API/ABI-wise to build against 1.21.6
+    # (see oldest-supported-numpy issues gh-28 and gh-45)
+    "numpy==1.21.6; python_version=='3.10' and (platform_system!='Windows' and platform_machine!='loongarch64') and platform_python_implementation != 'PyPy'",
+    "numpy==1.23.2; python_version=='3.11' and platform_python_implementation != 'PyPy'",
 
     # For Python versions which aren't yet officially supported,
     # we specify an unpinned NumPy which allows source distributions
     # to be used and allows wheels to be used as soon as they
     # become available.
-    "numpy; python_version>='3.11'",
-    "numpy; python_version>='3.8' and platform_python_implementation=='PyPy'",
+    "numpy; python_version>='3.12'",
+    "numpy; python_version>='3.9' and platform_python_implementation=='PyPy'",
 ]
 build-backend = "setuptools.build_meta"

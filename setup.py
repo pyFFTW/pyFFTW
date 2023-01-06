@@ -61,15 +61,9 @@ sys.path.append(os.path.dirname(__file__))
 import versioneer
 
 if os.environ.get("READTHEDOCS") == "True":
-    # Todo: Is this hacky environb still needed in Python 3?
-    try:
-        environ = os.environb
-    except AttributeError:
-        environ = os.environ
-
-    environ[b"CC"] = b"x86_64-linux-gnu-gcc"
-    environ[b"LD"] = b"x86_64-linux-gnu-ld"
-    environ[b"AR"] = b"x86_64-linux-gnu-ar"
+    os.environ["CC"] = "x86_64-linux-gnu-gcc"
+    os.environ["LD"] = "x86_64-linux-gnu-ld"
+    os.environ["AR"] = "x86_64-linux-gnu-ar"
 
 
 def get_include_dirs():
@@ -744,7 +738,7 @@ def setup_package():
 
     # Figure out whether to add ``*_requires = ['numpy']``.
     build_requires = []
-    numpy_requirement = 'numpy>=1.16, <2.0'
+    numpy_requirement = 'numpy>=1.20, <2.0'
     try:
         import numpy
     except ImportError:
@@ -762,8 +756,8 @@ def setup_package():
     install_requires = [numpy_requirement]
 
     opt_requires = {
-        'dask': ['numpy>=1.16, <2.0', 'dask[array]>=1.0'],
-        'scipy': ['scipy>=1.2.0']
+        'dask': ['numpy>=1.20, <2.0', 'dask[array]>=1.0'],
+        'scipy': ['scipy>=1.8.0']
     }
 
     setup_args = {
@@ -779,6 +773,10 @@ def setup_package():
         'classifiers': [
             'Programming Language :: Python',
             'Programming Language :: Python :: 3',
+            'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
+            'Programming Language :: Python :: 3.11',
             'Development Status :: 4 - Beta',
             'License :: OSI Approved :: BSD License',
             'Operating System :: OS Independent',
@@ -786,9 +784,12 @@ def setup_package():
             'Intended Audience :: Science/Research',
             'Topic :: Scientific/Engineering',
             'Topic :: Scientific/Engineering :: Mathematics',
-            'Topic :: Multimedia :: Sound/Audio :: Analysis'],
+            'Topic :: Scientific/Engineering :: Image Processing',
+            'Topic :: Scientific/Engineering :: Physics',
+            'Topic :: Multimedia :: Sound/Audio :: Analysis'
+        ],
         'cmdclass': cmdclass,
-        'python_requires': ">=3.7",
+        'python_requires': ">=3.8",
     }
 
     setup_args['setup_requires'] = build_requires
