@@ -137,10 +137,10 @@ class EnvironmentSniffer(object):
 
     '''
     def __init__(self, compiler):
-        log.debug("Compiler include_dirs: %s" % compiler.include_dirs)
+        log.debug(f"Compiler include_dirs: {compiler.include_dirs}")
         if hasattr(compiler, "initialize"):
             compiler.initialize() # to set all variables
-            log.debug("Compiler include_dirs after initialize: %s" % compiler.include_dirs)
+            log.debug(f"Compiler include_dirs after initialize: {compiler.include_dirs}")
         self.compiler = compiler
 
         log.debug(sys.version) # contains the compiler used to build this python
@@ -186,7 +186,7 @@ class EnvironmentSniffer(object):
             # needed at least libm for linker checks to succeed
             self.libraries.append('m')
 
-        log.debug("Sniffer include_dirs: %s" % self.include_dirs)
+        log.debug(f"Sniffer include_dirs: {self.include_dirs}")
 
         # main fftw3 header is required
         if not self.has_header(['fftw3.h'], include_dirs=self.include_dirs):
@@ -350,10 +350,10 @@ class EnvironmentSniffer(object):
         '''
         if get_platform() in ('win32', 'win-amd64'):
             if 'PYFFTW_WIN_CONDAFORGE' in os.environ:
-                return '%s' % lib
+                return f'{lib}'
             else:
                 # for download from http://www.fftw.org/install/windows.html
-                return 'lib%s-3' % lib
+                return f'lib{lib}-3'
 
         else:
             return lib
@@ -392,31 +392,30 @@ class EnvironmentSniffer(object):
 
         msg = "Checking"
         if function:
-            msg += " for %s" % function
+            msg += f" for {function}"
         if includes:
             msg += " with includes " + str(includes)
         msg += "..."
         status = "no"
 
-        log.debug("objects: %s" % objects)
-        log.debug("libraries: %s" % libraries)
-        log.debug("include dirs: %s" % include_dirs)
+        log.debug(f"objects: {objects}")
+        log.debug(f"libraries: {libraries}")
+        log.debug(f"include dirs: {include_dirs}")
 
         import tempfile, shutil
 
         tmpdir = tempfile.mkdtemp(prefix='pyfftw-')
         try:
             try:
-                fname = os.path.join(tmpdir, '%s.c' % function)
+                fname = os.path.join(tmpdir, f'{function}.c')
                 f = open(fname, 'w')
-                print(includes)
                 for inc in includes:
-                    f.write('#include <%s>\n' % inc)
+                    f.write(f'#include <{inc}>\n')
                 f.write("""\
                 int main() {
                 """)
                 if function:
-                    f.write('%s(%s);\n' % (function, function_args))
+                    f.write(f'{function}({function_args});\n')
                 f.write("""\
                 return 0;
                 }""")
@@ -442,7 +441,7 @@ class EnvironmentSniffer(object):
                 self._log_file(stderr_path)
 
             except CompileError as e:
-                log.warning("Compilation error: %s", e)
+                log.warning(f"Compilation error: {e}")
                 self._log_file(stdout_path)
                 self._log_file(stderr_path)
 
@@ -472,11 +471,11 @@ class EnvironmentSniffer(object):
                         )
 
             except (LinkError, TypeError) as e:
-                log.debug("Could not link %s due to %s", function, e)
+                log.debug(f"Could not link {function} due to {e}")
                 return False
 
             except Exception as e:
-                log.error("Failure during linking: %s", e)
+                log.error(f"Failure during linking: {e}")
                 return False
 
             finally:
@@ -518,7 +517,7 @@ class StaticSniffer(EnvironmentSniffer):
     def __init__(self, compiler):
         self.static_fftw_dir = os.environ.get('STATIC_FFTW_DIR', None)
         if not os.path.exists(self.static_fftw_dir):
-            raise LinkError('STATIC_FFTW_DIR="%s" was specified but does not exist' % self.static_fftw_dir)
+            raise LinkError(f'STATIC_FFTW_DIR="{self.static_fftw_dir}" was specified but does not exist')
 
         # call parent init
         super(self.__class__, self).__init__(compiler)
