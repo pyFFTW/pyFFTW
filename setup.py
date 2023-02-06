@@ -137,10 +137,10 @@ class EnvironmentSniffer(object):
 
     '''
     def __init__(self, compiler):
-        log.debug("Compiler include_dirs: %s" % compiler.include_dirs)
+        log.debug(f"Compiler include_dirs: {compiler.include_dirs}")
         if hasattr(compiler, "initialize"):
             compiler.initialize() # to set all variables
-            log.debug("Compiler include_dirs after initialize: %s" % compiler.include_dirs)
+            log.debug(f"Compiler include_dirs after initialize: {compiler.include_dirs}")
         self.compiler = compiler
 
         log.debug(sys.version) # contains the compiler used to build this python
@@ -186,7 +186,7 @@ class EnvironmentSniffer(object):
             # needed at least libm for linker checks to succeed
             self.libraries.append('m')
 
-        log.debug("Sniffer include_dirs: %s" % self.include_dirs)
+        log.debug(f"Sniffer include_dirs: {self.include_dirs}")
 
         # main fftw3 header is required
         if not self.has_header(['fftw3.h'], include_dirs=self.include_dirs):
@@ -220,7 +220,10 @@ class EnvironmentSniffer(object):
 
         for d, s in zip(data_types, data_types_short):
             # first check for serial library...
-            basic_lib = self.check('', 'plan_dft', d, s, True)
+            # We just populate with nonsense arguments that satisfy the compiler.
+            # It's never actually run, so this is ok.
+            basic_lib = self.check(
+                '', 'plan_dft', d, s, True, function_args='1, NULL, NULL, NULL, 1, 0')
             self.add_library(basic_lib)
 
             # ...then multithreading: link check with threads requires
@@ -311,7 +314,7 @@ class EnvironmentSniffer(object):
                 s += ' + MPI'
             log.info(s)
 
-    def check(self, lib_type, function, data_type, data_type_short, do_check):
+    def check(self, lib_type, function, data_type, data_type_short, do_check, function_args=None):
         m = self.HAVE(data_type, lib_type)
         exists = False
         lib = ''
@@ -320,7 +323,7 @@ class EnvironmentSniffer(object):
                 'fftw3' + data_type_short +
                 ('_' + lib_type.lower() if lib_type else ''))
             function = 'fftw' + data_type_short + '_' + function
-            exists = self.has_library(lib, function)
+            exists = self.has_library(lib, function, function_args)
 
         self.compile_time_env[m] = exists
         return lib if exists else ''
@@ -347,10 +350,10 @@ class EnvironmentSniffer(object):
         '''
         if get_platform() in ('win32', 'win-amd64'):
             if 'PYFFTW_WIN_CONDAFORGE' in os.environ:
-                return '%s' % lib
+                return f'{lib}'
             else:
                 # for download from http://www.fftw.org/install/windows.html
-                return 'lib%s-3' % lib
+                return f'lib{lib}-3'
 
         else:
             return lib
@@ -366,7 +369,8 @@ class EnvironmentSniffer(object):
                 log.log(level=level, msg=contents)
 
     def has_function(self, function, includes=None, objects=None, libraries=None,
-                     include_dirs=None, library_dirs=None, linker_flags=None):
+                     include_dirs=None, library_dirs=None, linker_flags=None,
+                     function_args=None):
         '''
         Alternative implementation of distutils.ccompiler.has_function that
         deletes the output and hides calls to the compiler and linker.
@@ -383,33 +387,35 @@ class EnvironmentSniffer(object):
             library_dirs = self.library_dirs
         if linker_flags is None:
             linker_flags = self.linker_flags
+        if function_args is None:
+            function_args = ''
 
         msg = "Checking"
         if function:
-            msg += " for %s" % function
+            msg += f" for {function}"
         if includes:
             msg += " with includes " + str(includes)
         msg += "..."
         status = "no"
 
-        log.debug("objects: %s" % objects)
-        log.debug("libraries: %s" % libraries)
-        log.debug("include dirs: %s" % include_dirs)
+        log.debug(f"objects: {objects}")
+        log.debug(f"libraries: {libraries}")
+        log.debug(f"include dirs: {include_dirs}")
 
         import tempfile, shutil
 
         tmpdir = tempfile.mkdtemp(prefix='pyfftw-')
         try:
             try:
-                fname = os.path.join(tmpdir, '%s.c' % function)
+                fname = os.path.join(tmpdir, f'{function}.c')
                 f = open(fname, 'w')
                 for inc in includes:
-                    f.write('#include <%s>\n' % inc)
+                    f.write(f'#include <{inc}>\n')
                 f.write("""\
                 int main() {
                 """)
                 if function:
-                    f.write('%s();\n' % function)
+                    f.write(f'{function}({function_args});\n')
                 f.write("""\
                 return 0;
                 }""")
@@ -435,7 +441,7 @@ class EnvironmentSniffer(object):
                 self._log_file(stderr_path)
 
             except CompileError as e:
-                log.warning("Compilation error: %s", e)
+                log.warning(f"Compilation error: {e}")
                 self._log_file(stdout_path)
                 self._log_file(stderr_path)
 
@@ -465,11 +471,11 @@ class EnvironmentSniffer(object):
                         )
 
             except (LinkError, TypeError) as e:
-                log.debug("Could not link %s due to %s", function, e)
+                log.debug(f"Could not link {function} due to {e}")
                 return False
 
             except Exception as e:
-                log.error("Failure during linking: %s", e)
+                log.error(f"Failure during linking: {e}")
                 return False
 
             finally:
@@ -488,7 +494,7 @@ class EnvironmentSniffer(object):
         '''Check for existence and usability of header files by compiling a test file.'''
         return self.has_function(None, includes=headers, include_dirs=include_dirs)
 
-    def has_library(function, lib):
+    def has_library(function, lib, function_args):
         raise NotImplementedError
 
     def openmp_linker_flag(self):
@@ -511,17 +517,18 @@ class StaticSniffer(EnvironmentSniffer):
     def __init__(self, compiler):
         self.static_fftw_dir = os.environ.get('STATIC_FFTW_DIR', None)
         if not os.path.exists(self.static_fftw_dir):
-            raise LinkError('STATIC_FFTW_DIR="%s" was specified but does not exist' % self.static_fftw_dir)
+            raise LinkError(f'STATIC_FFTW_DIR="{self.static_fftw_dir}" was specified but does not exist')
 
         # call parent init
         super(self.__class__, self).__init__(compiler)
 
-    def has_library(self, root_name, function):
+    def has_library(self, root_name, function, function_args):
         '''Expect library in root form'''
         # get full name of lib
         objects = [os.path.join(self.static_fftw_dir, self.lib_full_name(root_name))]
         objects.extend(self.objects)
-        return self.has_function(function, objects=objects)
+        return self.has_function(
+            function, includes=['fftw3.h'], objects=objects, function_args=function_args)
 
     def lib_full_name(self, root_lib):
         # TODO use self.compiler.library_filename
@@ -543,11 +550,12 @@ class DynamicSniffer(EnvironmentSniffer):
     def __init__(self, compiler):
         super(self.__class__, self).__init__(compiler)
 
-    def has_library(self, lib, function):
+    def has_library(self, lib, function, function_args):
         '''Expect lib in root name so it can be passed to compiler'''
         libraries = [lib]
         libraries.extend(self.libraries)
-        return self.has_function(function, libraries=libraries)
+        return self.has_function(
+            function, includes=['fftw3.h'], libraries=libraries, function_args=function_args)
 
     def add_library(self, lib):
         if lib:
