@@ -466,7 +466,7 @@ class EnvironmentSniffer(object):
                             "a.out",
                             output_dir=tmpdir,
                             libraries=libraries,
-                            # extra_preargs=linker_flags,
+                            extra_preargs=linker_flags,
                             library_dirs=library_dirs,
                         )
 
