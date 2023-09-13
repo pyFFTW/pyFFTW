@@ -70,24 +70,24 @@ _supported_types = []
 _supported_nptypes_complex = []
 _supported_nptypes_real = []
 
-IF HAVE_SINGLE:
+if HAVE_SINGLE:
     _supported_types.append('32')
     _supported_nptypes_complex.append(np.complex64)
     _supported_nptypes_real.append(np.float32)
-IF HAVE_DOUBLE:
+if HAVE_DOUBLE:
     _supported_types.append('64')
     _supported_nptypes_complex.append(np.complex128)
     _supported_nptypes_real.append(np.float64)
-IF HAVE_LONG:
+if HAVE_LONG:
     _supported_types.append('ld')
     _supported_nptypes_complex.append(np.clongdouble)
     _supported_nptypes_real.append(np.longdouble)
 
-IF (HAVE_SINGLE_OMP or HAVE_DOUBLE_OMP or HAVE_LONG_OMP):
+if (HAVE_SINGLE_OMP or HAVE_DOUBLE_OMP or HAVE_LONG_OMP):
     _threading_type = 'OMP'
-ELIF (HAVE_SINGLE_THREADS or HAVE_DOUBLE_THREADS or HAVE_LONG_THREADS):
+elif (HAVE_SINGLE_THREADS or HAVE_DOUBLE_THREADS or HAVE_LONG_THREADS):
     _threading_type = 'PTHREADS'
-ELSE:
+else:
     _threading_type = None
 
 cdef object directions
@@ -674,7 +674,7 @@ scheme_directions = {
 # sufficiently trivial to use -1 in place of None, especially given
 # that scheme_functions is an internal cdef object.
 cdef object _scheme_functions = {}
-IF HAVE_DOUBLE:
+if HAVE_DOUBLE:
     _scheme_functions.update({
     ('c2c', '64'): {'planner': 0, 'executor':0, 'generic_precision':0,
         'validator': -1, 'fft_shape_lookup': -1},
@@ -686,7 +686,7 @@ IF HAVE_DOUBLE:
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
     ('r2r', '64'): {'planner': 9, 'executor':9, 'generic_precision':0,
         'validator': -1, 'fft_shape_lookup': -1}})
-IF HAVE_SINGLE:
+if HAVE_SINGLE:
     _scheme_functions.update({
     ('c2c', '32'): {'planner':1, 'executor':1, 'generic_precision':1,
         'validator': -1, 'fft_shape_lookup': -1},
@@ -698,7 +698,7 @@ IF HAVE_SINGLE:
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
     ('r2r', '32'): {'planner':10, 'executor':10, 'generic_precision':1,
         'validator': -1, 'fft_shape_lookup': -1}})
-IF HAVE_LONG:
+if HAVE_LONG:
     _scheme_functions.update({
     ('c2c', 'ld'): {'planner':2, 'executor':2, 'generic_precision':2,
         'validator': -1, 'fft_shape_lookup': -1},
