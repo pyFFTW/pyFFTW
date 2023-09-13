@@ -34,7 +34,7 @@
 #
 
 from pyfftw.interfaces import scipy_fftpack
-from distutils.version import LooseVersion
+from packaging.version import Version
 
 import pyfftw
 from pyfftw import _supported_types
@@ -202,7 +202,7 @@ class InterfacesScipyR2RFFTPackTestSimple(unittest.TestCase):
 transform_types = [1, 2, 3, 4]
 
 @unittest.skipIf(scipy_missing or
-                 (LooseVersion(scipy.__version__) <= LooseVersion('1.2.0')),
+                 (Version(scipy.__version__) <= Version('1.2.0')),
                 'SciPy >= 1.2.0 is not installed')
 class InterfacesScipyR2RFFTTest(unittest.TestCase):
     ''' Class template for building the scipy real to real tests.
@@ -273,7 +273,7 @@ class InterfacesScipyR2RFFTTest(unittest.TestCase):
                                            atol=self.atol, rtol=self.rtol))
 
 @unittest.skipIf(scipy_missing or
-                 (LooseVersion(scipy.__version__) <= LooseVersion('1.2.0')),
+                 (Version(scipy.__version__) <= Version('1.2.0')),
                  'SciPy >= 1.2.0 is not installed')
 class InterfacesScipyR2RFFTNTest(InterfacesScipyR2RFFTTest):
     ''' Class template for building the scipy real to real tests.
@@ -310,7 +310,7 @@ class InterfacesScipyR2RFFTNTest(InterfacesScipyR2RFFTTest):
             self.assertTrue(numpy.allclose(data_hat_p, data_hat_s,
                                            atol=self.atol, rtol=self.rtol))
 
-    @unittest.skipIf(LooseVersion(scipy.__version__) <= LooseVersion('1.2.0'),
+    @unittest.skipIf(Version(scipy.__version__) <= Version('1.2.0'),
                      'scipy version not new enough')
     def test_axes_scalar(self):
         '''Test transformation over a single, scalar axis.
