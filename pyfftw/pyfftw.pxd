@@ -144,21 +144,21 @@ cdef extern from 'fftw3.h':
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             double *_in, double *_out,
-            int *kind, unsigned flags)
+            int *kind, unsigned flags) nogil
 
     # Single precision real planner
     fftwf_plan fftwf_plan_guru_r2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             float *_in, float *_out,
-            int *kind, unsigned flags)
+            int *kind, unsigned flags) nogil
 
     # Long double precision real planner
     fftwl_plan fftwl_plan_guru_r2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             long double *_in, long double *_out,
-            int *kind, unsigned flags)
+            int *kind, unsigned flags) nogil
 
     # Double precision complex new array execute
     void fftw_execute_dft(fftw_plan,
@@ -240,12 +240,12 @@ cdef extern from 'fftw3.h':
     void fftwl_plan_with_nthreads(int n)
 
     # cleanup routines
-    void fftw_cleanup()
-    void fftwf_cleanup()
-    void fftwl_cleanup()
-    void fftw_cleanup_threads()
-    void fftwf_cleanup_threads()
-    void fftwl_cleanup_threads()
+    void fftw_cleanup() nogil
+    void fftwf_cleanup() nogil
+    void fftwl_cleanup() nogil
+    void fftw_cleanup_threads() nogil
+    void fftwf_cleanup_threads() nogil
+    void fftwl_cleanup_threads() nogil
 
     # wisdom functions
     void fftw_export_wisdom(void (*write_char)(char c, void *), void *data)

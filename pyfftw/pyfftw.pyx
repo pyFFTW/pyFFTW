@@ -146,7 +146,7 @@ cdef void* _fftw_plan_null(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, unsigned flags):
+            int *direction, unsigned flags) with gil:
 
     raise RuntimeError("Undefined planner. This is a bug")
 
@@ -192,7 +192,7 @@ IF HAVE_DOUBLE:
                 int rank, fftw_iodim *dims,
                 int howmany_rank, fftw_iodim *howmany_dims,
                 void *_in, void *_out,
-                int *direction, int flags):
+                int *direction, int flags) nogil:
 
         return <void *>fftw_plan_guru_r2r(rank, dims,
                 howmany_rank, howmany_dims,
@@ -241,7 +241,7 @@ IF HAVE_SINGLE:
                 int rank, fftw_iodim *dims,
                 int howmany_rank, fftw_iodim *howmany_dims,
                 void *_in, void *_out,
-                int *direction, int flags):
+                int *direction, int flags) nogil:
 
         return <void *>fftwf_plan_guru_r2r(rank, dims,
                 howmany_rank, howmany_dims,
@@ -290,7 +290,7 @@ IF HAVE_LONG:
                 int rank, fftw_iodim *dims,
                 int howmany_rank, fftw_iodim *howmany_dims,
                 void *_in, void *_out,
-                int *direction, int flags):
+                int *direction, int flags) nogil:
 
         return <void *>fftwl_plan_guru_r2r(rank, dims,
                 howmany_rank, howmany_dims,
@@ -301,7 +301,7 @@ IF HAVE_LONG:
 #    =========
 #
 
-cdef void _fftw_execute_null(void *_plan, void *_in, void *_out):
+cdef void _fftw_execute_null(void *_plan, void *_in, void *_out) with gil:
 
     raise RuntimeError("Undefined executor. This is a bug")
 
@@ -722,7 +722,7 @@ def scheme_functions(scheme):
         raise NotImplementedError(msg)
 
 # Set the cleanup routine
-cdef void _cleanup():
+cdef void _cleanup() noexcept nogil:
     IF HAVE_DOUBLE:
         fftw_cleanup()
     IF HAVE_SINGLE:
@@ -1988,14 +1988,14 @@ cdef class FFTW:
         with nogil:
             fftw_execute(plan, input_pointer, output_pointer)
 
-cdef void count_char(char c, void *counter_ptr):
+cdef void count_char(char c, void *counter_ptr) noexcept nogil:
     '''
     On every call, increment the derefenced counter_ptr.
     '''
     (<int *>counter_ptr)[0] += 1
 
 
-cdef void write_char_to_string(char c, void *string_location_ptr):
+cdef void write_char_to_string(char c, void *string_location_ptr) noexcept nogil:
     '''
     Write the passed character c to the memory location
     pointed to by the contents of string_location_ptr (i.e. a pointer
