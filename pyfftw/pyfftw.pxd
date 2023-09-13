@@ -63,6 +63,70 @@ cdef extern from 'pyfftw_complex.h':
     ctypedef long double clongdouble[2]
 
 cdef extern from 'fftw3.h':
+    """
+    #if !HAVE_DOUBLE
+    #define fftw_plan_guru_dft(...) (NULL)
+    #define fftw_plan_guru_dft_r2c(...) (NULL)
+    #define fftw_plan_guru_dft_c2r(...) (NULL)
+    #define fftw_plan_guru_r2r(...) (NULL)
+    #define fftw_execute_dft(...) ((void)0)
+    #define fftw_execute_dft_r2c(...) ((void)0)
+    #define fftw_execute_dft_c2r(...) ((void)0)
+    #define fftw_execute_r2r(...) ((void)0)
+    #define fftw_destroy_plan(plan) ((void)0)
+    #define fftw_cleanup() ((void)0)
+    #define fftw_export_wisdom(...) ((void)0)
+    #define fftw_import_wisdom_from_string(wisdom) (0)
+    #define fftw_forget_wisdom() ((void)0)
+    #endif
+
+    #if !HAVE_SINGLE
+    #define fftwf_plan_guru_dft(...) (NULL)
+    #define fftwf_plan_guru_dft_r2c(...) (NULL)
+    #define fftwf_plan_guru_dft_c2r(...) (NULL)
+    #define fftwf_plan_guru_r2r(...) (NULL)
+    #define fftwf_execute_dft(...) ((void)0)
+    #define fftwf_execute_dft_r2c(...) ((void)0)
+    #define fftwf_execute_dft_c2r(...) ((void)0)
+    #define fftwf_execute_r2r(...) ((void)0)
+    #define fftwf_destroy_plan(plan) ((void)0)
+    #define fftwf_cleanup() ((void)0)
+    #define fftwf_export_wisdom(...) ((void)0)
+    #define fftwf_import_wisdom_from_string(wisdom) (0)
+    #define fftwf_forget_wisdom() ((void)0)
+    #endif
+
+    #if !HAVE_LONG
+    #define fftwl_plan_guru_dft(...) (NULL)
+    #define fftwl_plan_guru_dft_r2c(...) (NULL)
+    #define fftwl_plan_guru_dft_c2r(...) (NULL)
+    #define fftwl_plan_guru_r2r(...) (NULL)
+    #define fftwl_execute_dft(...) ((void)0)
+    #define fftwl_execute_dft_r2c(...) ((void)0)
+    #define fftwl_execute_dft_c2r(...) ((void)0)
+    #define fftwl_execute_r2r(...) ((void)0)
+    #define fftwl_destroy_plan(plan) ((void)0)
+    #define fftwl_cleanup() ((void)0)
+    #define fftwl_export_wisdom(...) ((void)0)
+    #define fftwl_import_wisdom_from_string(wisdom) (0)
+    #define fftwl_forget_wisdom() ((void)0)
+    #endif
+
+    #if !HAVE_DOUBLE_MULTITHREADING
+    #define fftw_cleanup_threads() ((void)0)
+    #define fftw_init_threads() ((void)0)
+    #endif
+
+    #if !HAVE_SINGLE_MULTITHREADING
+    #define fftwf_cleanup_threads() ((void)0)
+    #define fftwf_init_threads() ((void)0)
+    #endif
+
+    #if !HAVE_LONG_MULTITHREADING
+    #define fftwl_cleanup_threads() ((void)0)
+    #define fftwl_init_threads() ((void)0)
+    #endif
+    """
 
     # Double precision plans
     ctypedef struct fftw_plan_struct:
