@@ -608,6 +608,10 @@ is on `github <https://github.com/pyFFTW/pyFFTW>`_.
 
 
 class custom_build_ext(build_ext):
+    def build_extension(self, ext, *args, **kwargs):
+        ext.define_macros = (ext.define_macros or []) + self._pyfftw_define_macros
+        return super().build_extension(ext, *args, **kwargs)
+
     def build_extensions(self):
         '''Check for availability of fftw libraries before building the wrapper.
 
@@ -617,7 +621,9 @@ class custom_build_ext(build_ext):
         # read out information and modify compiler
 
         # define macros, that is which part of wrapper is built
-        self.cython_compile_time_env = sniffer.compile_time_env
+        self._pyfftw_define_macros = [
+            (k, int(v)) for k, v in sniffer.compile_time_env.items()
+        ]
 
         # call `extend()` to keep argument set neither by sniffer nor by
         # user. On windows there are includes set automatically, we
@@ -648,7 +654,7 @@ class custom_build_ext(build_ext):
         self.compiler.set_link_objects(objects)
 
         # delegate actual work to standard implementation
-        build_ext.build_extensions(self)
+        return super().build_extensions()
 
 
 class CreateChangelogCommand(Command):
@@ -825,9 +831,8 @@ def setup_package():
         from Cython.Build import cythonize
 
         trial_distribution = setup(**setup_args)
-        cython_compile_time_env = trial_distribution.get_command_obj("build_ext")
 
-        setup_args["ext_modules"] = cythonize(get_extensions(), compile_time_env=cython_compile_time_env)
+        setup_args["ext_modules"] = cythonize(get_extensions())
 
     setup(**setup_args)
 

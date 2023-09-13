@@ -37,6 +37,20 @@
 cimport numpy as np
 from libc.stdint cimport int64_t
 
+cdef extern from *:
+    bint HAVE_SINGLE
+    bint HAVE_DOUBLE
+    bint HAVE_LONG
+    bint HAVE_SINGLE_OMP
+    bint HAVE_DOUBLE_OMP
+    bint HAVE_LONG_OMP
+    bint HAVE_SINGLE_THREADS
+    bint HAVE_DOUBLE_THREADS
+    bint HAVE_LONG_THREADS
+    bint HAVE_SINGLE_MULTITHREADING
+    bint HAVE_DOUBLE_MULTITHREADING
+    bint HAVE_LONG_MULTITHREADING
+
 ctypedef struct _fftw_iodim:
     int _n
     int _is
