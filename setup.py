@@ -43,7 +43,7 @@ except ImportError:
     # fallback to distutils for older setuptools releases
     from distutils.errors import CompileError, LinkError
     from distutils.extension import Extension
-from pkg_resources import get_platform
+from sysconfig import get_platform
 
 from contextlib import redirect_stderr, redirect_stdout
 import os
@@ -68,7 +68,6 @@ if os.environ.get("READTHEDOCS") == "True":
 
 def get_include_dirs():
     import numpy
-    from pkg_resources import get_build_platform
 
     include_dirs = [os.path.join(os.getcwd(), 'include'),
                     os.path.join(os.getcwd(), 'pyfftw'),
@@ -78,24 +77,22 @@ def get_include_dirs():
     if 'PYFFTW_INCLUDE' in os.environ:
         include_dirs.append(os.environ['PYFFTW_INCLUDE'])
 
-    if get_build_platform().startswith("linux"):
+    if get_platform().startswith("linux"):
         include_dirs.append('/usr/include')
 
-    if get_build_platform() in ('win32', 'win-amd64'):
+    if get_platform() in ('win32', 'win-amd64'):
         include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
 
-    if get_build_platform().startswith('freebsd'):
+    if get_platform().startswith('freebsd'):
         include_dirs.append('/usr/local/include')
 
     return include_dirs
 
 
 def get_package_data():
-    from pkg_resources import get_build_platform
-
     package_data = {}
 
-    if get_build_platform() in ('win32', 'win-amd64'):
+    if get_platform() in ('win32', 'win-amd64'):
         if 'PYFFTW_WIN_CONDAFORGE' in os.environ:
             # fftw3.dll, fftw3f.dll will already be on the path (via the
             # conda environment's \bin subfolder)
@@ -109,10 +106,8 @@ def get_package_data():
 
 
 def get_library_dirs():
-    from pkg_resources import get_build_platform
-
     library_dirs = []
-    if get_build_platform() in ('win32', 'win-amd64'):
+    if get_platform() in ('win32', 'win-amd64'):
         library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
         library_dirs.append(os.path.join(sys.prefix, 'bin'))
 
@@ -120,7 +115,7 @@ def get_library_dirs():
         library_dirs.append(os.environ['PYFFTW_LIB_DIR'])
 
     library_dirs.append(os.path.join(sys.prefix, 'lib'))
-    if get_build_platform().startswith('freebsd'):
+    if get_platform().startswith('freebsd'):
         library_dirs.append('/usr/local/lib')
 
     return library_dirs
@@ -532,8 +527,7 @@ class StaticSniffer(EnvironmentSniffer):
 
     def lib_full_name(self, root_lib):
         # TODO use self.compiler.library_filename
-        from pkg_resources import get_build_platform
-        if get_build_platform() in ('win32', 'win-amd64'):
+        if get_platform() in ('win32', 'win-amd64'):
             lib_pre = ''
             lib_ext = '.lib'
         else:
