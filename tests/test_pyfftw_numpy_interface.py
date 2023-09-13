@@ -652,7 +652,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                         input_array, s, **kwargs)
 
                 self.assertTrue(
-                        numpy.alltrue(input_array == orig_input_array))
+                        numpy.all(input_array == orig_input_array))
 
     def test_on_non_writeable_array_issue_92(self):
         '''Test to make sure that locked arrays work.
