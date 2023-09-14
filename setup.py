@@ -616,7 +616,7 @@ class custom_build_ext(build_ext):
 
         # define macros, that is which part of wrapper is built
         self._pyfftw_define_macros = [
-            (k, int(v)) for k, v in sniffer.compile_time_env.items()
+            (f"PYFFTW_{k}", int(v)) for k, v in sniffer.compile_time_env.items()
         ]
 
         # call `extend()` to keep argument set neither by sniffer nor by

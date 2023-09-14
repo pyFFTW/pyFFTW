@@ -38,18 +38,18 @@ cimport numpy as np
 from libc.stdint cimport int64_t
 
 cdef extern from *:
-    bint HAVE_SINGLE
-    bint HAVE_DOUBLE
-    bint HAVE_LONG
-    bint HAVE_SINGLE_OMP
-    bint HAVE_DOUBLE_OMP
-    bint HAVE_LONG_OMP
-    bint HAVE_SINGLE_THREADS
-    bint HAVE_DOUBLE_THREADS
-    bint HAVE_LONG_THREADS
-    bint HAVE_SINGLE_MULTITHREADING
-    bint HAVE_DOUBLE_MULTITHREADING
-    bint HAVE_LONG_MULTITHREADING
+    bint PYFFTW_HAVE_SINGLE
+    bint PYFFTW_HAVE_DOUBLE
+    bint PYFFTW_HAVE_LONG
+    bint PYFFTW_HAVE_SINGLE_OMP
+    bint PYFFTW_HAVE_DOUBLE_OMP
+    bint PYFFTW_HAVE_LONG_OMP
+    bint PYFFTW_HAVE_SINGLE_THREADS
+    bint PYFFTW_HAVE_DOUBLE_THREADS
+    bint PYFFTW_HAVE_LONG_THREADS
+    bint PYFFTW_HAVE_SINGLE_MULTITHREADING
+    bint PYFFTW_HAVE_DOUBLE_MULTITHREADING
+    bint PYFFTW_HAVE_LONG_MULTITHREADING
 
 ctypedef struct _fftw_iodim:
     int _n
@@ -64,7 +64,7 @@ cdef extern from 'pyfftw_complex.h':
 
 cdef extern from 'fftw3.h':
     """
-    #if !HAVE_DOUBLE
+    #if !PYFFTW_HAVE_DOUBLE
     #define fftw_plan_guru_dft(...) (NULL)
     #define fftw_plan_guru_dft_r2c(...) (NULL)
     #define fftw_plan_guru_dft_c2r(...) (NULL)
@@ -80,7 +80,7 @@ cdef extern from 'fftw3.h':
     #define fftw_forget_wisdom() ((void)0)
     #endif
 
-    #if !HAVE_SINGLE
+    #if !PYFFTW_HAVE_SINGLE
     #define fftwf_plan_guru_dft(...) (NULL)
     #define fftwf_plan_guru_dft_r2c(...) (NULL)
     #define fftwf_plan_guru_dft_c2r(...) (NULL)
@@ -96,7 +96,7 @@ cdef extern from 'fftw3.h':
     #define fftwf_forget_wisdom() ((void)0)
     #endif
 
-    #if !HAVE_LONG
+    #if !PYFFTW_HAVE_LONG
     #define fftwl_plan_guru_dft(...) (NULL)
     #define fftwl_plan_guru_dft_r2c(...) (NULL)
     #define fftwl_plan_guru_dft_c2r(...) (NULL)
@@ -112,17 +112,17 @@ cdef extern from 'fftw3.h':
     #define fftwl_forget_wisdom() ((void)0)
     #endif
 
-    #if !HAVE_DOUBLE_MULTITHREADING
+    #if !PYFFTW_HAVE_DOUBLE_MULTITHREADING
     #define fftw_cleanup_threads() ((void)0)
     #define fftw_init_threads() ((void)0)
     #endif
 
-    #if !HAVE_SINGLE_MULTITHREADING
+    #if !PYFFTW_HAVE_SINGLE_MULTITHREADING
     #define fftwf_cleanup_threads() ((void)0)
     #define fftwf_init_threads() ((void)0)
     #endif
 
-    #if !HAVE_LONG_MULTITHREADING
+    #if !PYFFTW_HAVE_LONG_MULTITHREADING
     #define fftwl_cleanup_threads() ((void)0)
     #define fftwl_init_threads() ((void)0)
     #endif

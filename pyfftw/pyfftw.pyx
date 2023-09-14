@@ -70,22 +70,22 @@ _supported_types = []
 _supported_nptypes_complex = []
 _supported_nptypes_real = []
 
-if HAVE_SINGLE:
+if PYFFTW_HAVE_SINGLE:
     _supported_types.append('32')
     _supported_nptypes_complex.append(np.complex64)
     _supported_nptypes_real.append(np.float32)
-if HAVE_DOUBLE:
+if PYFFTW_HAVE_DOUBLE:
     _supported_types.append('64')
     _supported_nptypes_complex.append(np.complex128)
     _supported_nptypes_real.append(np.float64)
-if HAVE_LONG:
+if PYFFTW_HAVE_LONG:
     _supported_types.append('ld')
     _supported_nptypes_complex.append(np.clongdouble)
     _supported_nptypes_real.append(np.longdouble)
 
-if (HAVE_SINGLE_OMP or HAVE_DOUBLE_OMP or HAVE_LONG_OMP):
+if (PYFFTW_HAVE_SINGLE_OMP or PYFFTW_HAVE_DOUBLE_OMP or PYFFTW_HAVE_LONG_OMP):
     _threading_type = 'OMP'
-elif (HAVE_SINGLE_THREADS or HAVE_DOUBLE_THREADS or HAVE_LONG_THREADS):
+elif (PYFFTW_HAVE_SINGLE_THREADS or PYFFTW_HAVE_DOUBLE_THREADS or PYFFTW_HAVE_LONG_THREADS):
     _threading_type = 'PTHREADS'
 else:
     _threading_type = None
@@ -404,17 +404,17 @@ cdef fftw_generic_plan_guru * _build_planner_list():
     for i in range(12):
         planners[i] = <fftw_generic_plan_guru>&_fftw_plan_null
 
-    if HAVE_DOUBLE:
+    if PYFFTW_HAVE_DOUBLE:
         planners[0] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft
         planners[3] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft_r2c
         planners[6] = <fftw_generic_plan_guru>&_fftw_plan_guru_dft_c2r
         planners[9] = <fftw_generic_plan_guru>&_fftw_plan_guru_r2r
-    if HAVE_SINGLE:
+    if PYFFTW_HAVE_SINGLE:
         planners[1] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft
         planners[4] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft_r2c
         planners[7] = <fftw_generic_plan_guru>&_fftwf_plan_guru_dft_c2r
         planners[10] = <fftw_generic_plan_guru>&_fftwf_plan_guru_r2r
-    if HAVE_LONG:
+    if PYFFTW_HAVE_LONG:
         planners[2] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft
         planners[5] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft_r2c
         planners[8] = <fftw_generic_plan_guru>&_fftwl_plan_guru_dft_c2r
@@ -427,17 +427,17 @@ cdef fftw_generic_execute * _build_executor_list():
     for i in range(12):
         executors[i] = <fftw_generic_execute>&_fftw_execute_null
 
-    if HAVE_DOUBLE:
+    if PYFFTW_HAVE_DOUBLE:
         executors[0] = <fftw_generic_execute>&_fftw_execute_dft
         executors[3] = <fftw_generic_execute>&_fftw_execute_dft_r2c
         executors[6] = <fftw_generic_execute>&_fftw_execute_dft_c2r
         executors[9] = <fftw_generic_execute>&_fftw_execute_r2r
-    if HAVE_SINGLE:
+    if PYFFTW_HAVE_SINGLE:
         executors[1] = <fftw_generic_execute>&_fftwf_execute_dft
         executors[4] = <fftw_generic_execute>&_fftwf_execute_dft_r2c
         executors[7] = <fftw_generic_execute>&_fftwf_execute_dft_c2r
         executors[10] = <fftw_generic_execute>&_fftwf_execute_r2r
-    if HAVE_LONG:
+    if PYFFTW_HAVE_LONG:
         executors[2] = <fftw_generic_execute>&_fftwl_execute_dft
         executors[5] = <fftw_generic_execute>&_fftwl_execute_dft_r2c
         executors[8] = <fftw_generic_execute>&_fftwl_execute_dft_c2r
@@ -450,11 +450,11 @@ cdef fftw_generic_destroy_plan * _build_destroyer_list():
     for i in range(3):
         destroyers[i] = <fftw_generic_destroy_plan>&_fftw_destroy_null
 
-    if HAVE_DOUBLE:
+    if PYFFTW_HAVE_DOUBLE:
         destroyers[0] = <fftw_generic_destroy_plan>&_fftw_destroy_plan
-    if HAVE_SINGLE:
+    if PYFFTW_HAVE_SINGLE:
         destroyers[1] = <fftw_generic_destroy_plan>&_fftwf_destroy_plan
-    if HAVE_LONG:
+    if PYFFTW_HAVE_LONG:
         destroyers[2] = <fftw_generic_destroy_plan>&_fftwl_destroy_plan
 
 # nthreads plan setters table
@@ -468,13 +468,13 @@ cdef fftw_generic_plan_with_nthreads * _build_nthreads_plan_setters_list():
     for i in range(3):
         nthreads_plan_setters[i] = (
             <fftw_generic_plan_with_nthreads>&_fftw_plan_with_nthreads_null)
-    if HAVE_DOUBLE_MULTITHREADING:
+    if PYFFTW_HAVE_DOUBLE_MULTITHREADING:
         nthreads_plan_setters[0] = (
             <fftw_generic_plan_with_nthreads>&fftw_plan_with_nthreads)
-    if HAVE_SINGLE_MULTITHREADING:
+    if PYFFTW_HAVE_SINGLE_MULTITHREADING:
         nthreads_plan_setters[1] = (
             <fftw_generic_plan_with_nthreads>&fftwf_plan_with_nthreads)
-    if HAVE_LONG_MULTITHREADING:
+    if PYFFTW_HAVE_LONG_MULTITHREADING:
         nthreads_plan_setters[2] = (
             <fftw_generic_plan_with_nthreads>&fftwl_plan_with_nthreads)
 
@@ -490,13 +490,13 @@ cdef fftw_generic_set_timelimit * _build_set_timelimit_funcs_list():
         set_timelimit_funcs[i] = (
             <fftw_generic_set_timelimit>&_fftw_generic_set_timelimit_null)
 
-    if HAVE_DOUBLE:
+    if PYFFTW_HAVE_DOUBLE:
         set_timelimit_funcs[0] = (
             <fftw_generic_set_timelimit>&fftw_set_timelimit)
-    if HAVE_SINGLE:
+    if PYFFTW_HAVE_SINGLE:
         set_timelimit_funcs[1] = (
             <fftw_generic_set_timelimit>&fftwf_set_timelimit)
-    if HAVE_LONG:
+    if PYFFTW_HAVE_LONG:
         set_timelimit_funcs[2] = (
             <fftw_generic_set_timelimit>&fftwl_set_timelimit)
 
@@ -665,7 +665,7 @@ scheme_directions = {
 # sufficiently trivial to use -1 in place of None, especially given
 # that scheme_functions is an internal cdef object.
 cdef object _scheme_functions = {}
-if HAVE_DOUBLE:
+if PYFFTW_HAVE_DOUBLE:
     _scheme_functions.update({
     ('c2c', '64'): {'planner': 0, 'executor':0, 'generic_precision':0,
         'validator': -1, 'fft_shape_lookup': -1},
@@ -677,7 +677,7 @@ if HAVE_DOUBLE:
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
     ('r2r', '64'): {'planner': 9, 'executor':9, 'generic_precision':0,
         'validator': -1, 'fft_shape_lookup': -1}})
-if HAVE_SINGLE:
+if PYFFTW_HAVE_SINGLE:
     _scheme_functions.update({
     ('c2c', '32'): {'planner':1, 'executor':1, 'generic_precision':1,
         'validator': -1, 'fft_shape_lookup': -1},
@@ -689,7 +689,7 @@ if HAVE_SINGLE:
         'fft_shape_lookup': _lookup_shape_c2r_arrays},
     ('r2r', '32'): {'planner':10, 'executor':10, 'generic_precision':1,
         'validator': -1, 'fft_shape_lookup': -1}})
-if HAVE_LONG:
+if PYFFTW_HAVE_LONG:
     _scheme_functions.update({
     ('c2c', 'ld'): {'planner':2, 'executor':2, 'generic_precision':2,
         'validator': -1, 'fft_shape_lookup': -1},
@@ -714,17 +714,17 @@ def scheme_functions(scheme):
 
 # Set the cleanup routine
 cdef void _cleanup() noexcept nogil:
-    if HAVE_DOUBLE:
+    if PYFFTW_HAVE_DOUBLE:
         fftw_cleanup()
-    if HAVE_SINGLE:
+    if PYFFTW_HAVE_SINGLE:
         fftwf_cleanup()
-    if HAVE_LONG:
+    if PYFFTW_HAVE_LONG:
         fftwl_cleanup()
-    if HAVE_DOUBLE_MULTITHREADING:
+    if PYFFTW_HAVE_DOUBLE_MULTITHREADING:
         fftw_cleanup_threads()
-    if HAVE_SINGLE_MULTITHREADING:
+    if PYFFTW_HAVE_SINGLE_MULTITHREADING:
         fftwf_cleanup_threads()
-    if HAVE_LONG_MULTITHREADING:
+    if PYFFTW_HAVE_LONG_MULTITHREADING:
         fftwl_cleanup_threads()
 
 # Initialize the module
@@ -737,11 +737,11 @@ _build_nthreads_plan_setters_list()
 _build_validators_list()
 _build_set_timelimit_funcs_list()
 
-if HAVE_DOUBLE_MULTITHREADING:
+if PYFFTW_HAVE_DOUBLE_MULTITHREADING:
     fftw_init_threads()
-if HAVE_SINGLE_MULTITHREADING:
+if PYFFTW_HAVE_SINGLE_MULTITHREADING:
     fftwf_init_threads()
-if HAVE_LONG_MULTITHREADING:
+if PYFFTW_HAVE_LONG_MULTITHREADING:
     fftwl_init_threads()
 
 Py_AtExit(_cleanup)
@@ -2044,7 +2044,7 @@ def export_wisdom():
     # count the length of the string and extract it manually rather than using
     # `fftw_export_wisdom_to_string` to avoid calling `free` on the string
     # potentially allocated by a different C library; see #3
-    if HAVE_DOUBLE:
+    if PYFFTW_HAVE_DOUBLE:
         fftw_export_wisdom(&count_char, <void *>&counter)
         c_wisdom = <char *>malloc(sizeof(char)*(counter + 1))
         if c_wisdom == NULL:
@@ -2058,7 +2058,7 @@ def export_wisdom():
             py_wisdom = c_wisdom
         finally:
             free(c_wisdom)
-    if HAVE_SINGLE:
+    if PYFFTW_HAVE_SINGLE:
         fftwf_export_wisdom(&count_char, <void *>&counterf)
         c_wisdomf = <char *>malloc(sizeof(char)*(counterf + 1))
         if c_wisdomf == NULL:
@@ -2070,7 +2070,7 @@ def export_wisdom():
             py_wisdomf = c_wisdomf
         finally:
             free(c_wisdomf)
-    if HAVE_LONG:
+    if PYFFTW_HAVE_LONG:
         fftwl_export_wisdom(&count_char, <void *>&counterl)
         c_wisdoml = <char *>malloc(sizeof(char)*(counterl + 1))
         if c_wisdoml == NULL:
@@ -2113,11 +2113,11 @@ def import_wisdom(wisdom):
         bint successf = False
         bint successl = False
 
-    if HAVE_DOUBLE:
+    if PYFFTW_HAVE_DOUBLE:
         success = fftw_import_wisdom_from_string(c_wisdom)
-    if HAVE_SINGLE:
+    if PYFFTW_HAVE_SINGLE:
         successf = fftwf_import_wisdom_from_string(c_wisdomf)
-    if HAVE_LONG:
+    if PYFFTW_HAVE_LONG:
         successl = fftwl_import_wisdom_from_string(c_wisdoml)
     return (success, successf, successl)
 
@@ -2213,9 +2213,9 @@ def forget_wisdom():
 
     Forget all the accumulated wisdom.
     '''
-    if HAVE_DOUBLE:
+    if PYFFTW_HAVE_DOUBLE:
         fftw_forget_wisdom()
-    if HAVE_SINGLE:
+    if PYFFTW_HAVE_SINGLE:
         fftwf_forget_wisdom()
-    if HAVE_LONG:
+    if PYFFTW_HAVE_LONG:
         fftwl_forget_wisdom()
