@@ -307,73 +307,73 @@ cdef void _fftw_execute_null(void *_plan, void *_in, void *_out):
 
 IF HAVE_DOUBLE:
     # Complex double precision
-    cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out) nogil:
+    cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out) noexcept nogil:
 
         fftw_execute_dft(<fftw_plan>_plan,
                 <cdouble *>_in, <cdouble *>_out)
 
     # real to complex double precision
-    cdef void _fftw_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
+    cdef void _fftw_execute_dft_r2c(void *_plan, void *_in, void *_out) noexcept nogil:
 
         fftw_execute_dft_r2c(<fftw_plan>_plan,
                 <double *>_in, <cdouble *>_out)
 
     # complex to real double precision
-    cdef void _fftw_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
+    cdef void _fftw_execute_dft_c2r(void *_plan, void *_in, void *_out) noexcept nogil:
 
         fftw_execute_dft_c2r(<fftw_plan>_plan,
                 <cdouble *>_in, <double *>_out)
 
 IF HAVE_SINGLE:
     # Complex single precision
-    cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out) nogil:
+    cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out) noexcept nogil:
 
         fftwf_execute_dft(<fftwf_plan>_plan,
                 <cfloat *>_in, <cfloat *>_out)
 
     # real to complex single precision
-    cdef void _fftwf_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
+    cdef void _fftwf_execute_dft_r2c(void *_plan, void *_in, void *_out) noexcept nogil:
 
         fftwf_execute_dft_r2c(<fftwf_plan>_plan,
                 <float *>_in, <cfloat *>_out)
 
     # complex to real single precision
-    cdef void _fftwf_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
+    cdef void _fftwf_execute_dft_c2r(void *_plan, void *_in, void *_out) noexcept nogil:
 
         fftwf_execute_dft_c2r(<fftwf_plan>_plan,
                 <cfloat *>_in, <float *>_out)
 
 IF HAVE_LONG:
     # Complex long double precision
-    cdef void _fftwl_execute_dft(void *_plan, void *_in, void *_out) nogil:
+    cdef void _fftwl_execute_dft(void *_plan, void *_in, void *_out) noexcept nogil:
 
         fftwl_execute_dft(<fftwl_plan>_plan,
                 <clongdouble *>_in, <clongdouble *>_out)
 
     # real to complex long double precision
-    cdef void _fftwl_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
+    cdef void _fftwl_execute_dft_r2c(void *_plan, void *_in, void *_out) noexcept nogil:
 
         fftwl_execute_dft_r2c(<fftwl_plan>_plan,
                 <long double *>_in, <clongdouble *>_out)
 
     # complex to real long double precision
-    cdef void _fftwl_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
+    cdef void _fftwl_execute_dft_c2r(void *_plan, void *_in, void *_out) noexcept nogil:
 
         fftwl_execute_dft_c2r(<fftwl_plan>_plan,
                 <clongdouble *>_in, <long double *>_out)
 
 # real to real double precision
-cdef void _fftw_execute_r2r(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftw_execute_r2r(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftw_execute_r2r(<fftw_plan>_plan, <double *>_in, <double *>_out)
 
 # real to real single precision
-cdef void _fftwf_execute_r2r(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftwf_execute_r2r(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftwf_execute_r2r(<fftwf_plan>_plan, <float *>_in, <float *>_out)
 
 # real to real long double precision
-cdef void _fftwl_execute_r2r(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftwl_execute_r2r(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftwl_execute_r2r(<fftwl_plan>_plan, <long double *>_in, <long double *>_out)
 
@@ -722,7 +722,7 @@ def scheme_functions(scheme):
         raise NotImplementedError(msg)
 
 # Set the cleanup routine
-cdef void _cleanup():
+cdef void _cleanup() noexcept:
     IF HAVE_DOUBLE:
         fftw_cleanup()
     IF HAVE_SINGLE:
@@ -1988,14 +1988,14 @@ cdef class FFTW:
         with nogil:
             fftw_execute(plan, input_pointer, output_pointer)
 
-cdef void count_char(char c, void *counter_ptr):
+cdef void count_char(char c, void *counter_ptr) noexcept:
     '''
     On every call, increment the derefenced counter_ptr.
     '''
     (<int *>counter_ptr)[0] += 1
 
 
-cdef void write_char_to_string(char c, void *string_location_ptr):
+cdef void write_char_to_string(char c, void *string_location_ptr) noexcept:
     '''
     Write the passed character c to the memory location
     pointed to by the contents of string_location_ptr (i.e. a pointer
