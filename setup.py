@@ -48,6 +48,7 @@ from pkg_resources import get_platform
 from contextlib import redirect_stderr, redirect_stdout
 import os
 import logging
+import platform
 import sys
 
 logging.basicConfig(level=logging.DEBUG)
@@ -64,6 +65,25 @@ if os.environ.get("READTHEDOCS") == "True":
     os.environ["CC"] = "x86_64-linux-gnu-gcc"
     os.environ["LD"] = "x86_64-linux-gnu-ld"
     os.environ["AR"] = "x86_64-linux-gnu-ar"
+
+
+def _get_mac_os_homebrew_prefix():
+    """macOS on Apple Silicon can run binaries as native arm64, or in x86_64 emulation.
+    Homebrew therefore supports both use cases, and sets up independent sysroots in /opt/homebrew (for arm64 packages)
+    and /usr/local/ (for x86_64 packages). We'll need to dynamically check the architecture of the running Python
+    version to infer the correct location to search for FFTW.
+    """
+    # Sanity check
+    if platform.system() != 'Darwin':
+        raise RuntimeError('We only expect this to be called on macOS hosts')
+
+    arch = platform.machine()
+    if arch == 'arm64':
+        return "/opt/homebrew"
+    elif arch == 'x86_64':
+        return "/usr/local"
+
+    raise ValueError(f'Unrecognized architecture {arch}')
 
 
 def get_include_dirs():
@@ -86,6 +106,9 @@ def get_include_dirs():
 
     if get_build_platform().startswith('freebsd'):
         include_dirs.append('/usr/local/include')
+
+    if get_build_platform().startswith("macosx"):
+        include_dirs.append(f'{_get_mac_os_homebrew_prefix()}/include')
 
     return include_dirs
 
@@ -122,6 +145,9 @@ def get_library_dirs():
     library_dirs.append(os.path.join(sys.prefix, 'lib'))
     if get_build_platform().startswith('freebsd'):
         library_dirs.append('/usr/local/lib')
+
+    if get_build_platform().startswith("macosx"):
+        library_dirs.append(f'{_get_mac_os_homebrew_prefix()}/lib')
 
     return library_dirs
 
