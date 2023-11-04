@@ -67,7 +67,7 @@ if os.environ.get("READTHEDOCS") == "True":
     os.environ["AR"] = "x86_64-linux-gnu-ar"
 
 
-def _get_mac_os_homebrew_prefix():
+def _get_mac_os_homebrew_prefix() -> str:
     """macOS on Apple Silicon can run binaries as native arm64, or in x86_64 emulation.
     Homebrew therefore supports both use cases, and sets up independent sysroots in /opt/homebrew (for arm64 packages)
     and /usr/local/ (for x86_64 packages). We'll need to dynamically check the architecture of the running Python
