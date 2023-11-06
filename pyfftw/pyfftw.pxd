@@ -78,6 +78,7 @@ cdef extern from 'fftw3.h':
     #define fftw_export_wisdom(...) ((void)0)
     #define fftw_import_wisdom_from_string(wisdom) (0)
     #define fftw_forget_wisdom() ((void)0)
+    #define fftw_set_timelimit(...) ((void)0)
     #endif
 
     #if !PYFFTW_HAVE_SINGLE
@@ -94,6 +95,7 @@ cdef extern from 'fftw3.h':
     #define fftwf_export_wisdom(...) ((void)0)
     #define fftwf_import_wisdom_from_string(wisdom) (0)
     #define fftwf_forget_wisdom() ((void)0)
+    #define fftwf_set_timelimit(...) ((void)0)
     #endif
 
     #if !PYFFTW_HAVE_LONG
@@ -110,21 +112,25 @@ cdef extern from 'fftw3.h':
     #define fftwl_export_wisdom(...) ((void)0)
     #define fftwl_import_wisdom_from_string(wisdom) (0)
     #define fftwl_forget_wisdom() ((void)0)
+    #define fftwl_set_timelimit(...) ((void)0)
     #endif
 
     #if !PYFFTW_HAVE_DOUBLE_MULTITHREADING
     #define fftw_cleanup_threads() ((void)0)
     #define fftw_init_threads() ((void)0)
+    #define fftw_plan_with_nthreads(...) ((void)0)
     #endif
 
     #if !PYFFTW_HAVE_SINGLE_MULTITHREADING
     #define fftwf_cleanup_threads() ((void)0)
     #define fftwf_init_threads() ((void)0)
+    #define fftwf_plan_with_nthreads(...) ((void)0)
     #endif
 
     #if !PYFFTW_HAVE_LONG_MULTITHREADING
     #define fftwl_cleanup_threads() ((void)0)
     #define fftwl_init_threads() ((void)0)
+    #define fftwl_plan_with_nthreads(...) ((void)0)
     #endif
     """
 

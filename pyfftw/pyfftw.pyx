@@ -464,26 +464,50 @@ cdef void _fftw_plan_with_nthreads_null(int n):
 
     raise RuntimeError("Undefined plan with nthreads. This is a bug")
 
+cdef void _fftw_plan_with_nthreads(int n) noexcept:
+
+    fftw_plan_with_nthreads(n)
+
+cdef void _fftwf_plan_with_nthreads(int n) noexcept:
+
+    fftwf_plan_with_nthreads(n)
+
+cdef void _fftwl_plan_with_nthreads(int n) noexcept:
+
+    fftwl_plan_with_nthreads(n)
+
 cdef fftw_generic_plan_with_nthreads * _build_nthreads_plan_setters_list():
     for i in range(3):
         nthreads_plan_setters[i] = (
             <fftw_generic_plan_with_nthreads>&_fftw_plan_with_nthreads_null)
     if PYFFTW_HAVE_DOUBLE_MULTITHREADING:
         nthreads_plan_setters[0] = (
-            <fftw_generic_plan_with_nthreads>&fftw_plan_with_nthreads)
+            <fftw_generic_plan_with_nthreads>&_fftw_plan_with_nthreads)
     if PYFFTW_HAVE_SINGLE_MULTITHREADING:
         nthreads_plan_setters[1] = (
-            <fftw_generic_plan_with_nthreads>&fftwf_plan_with_nthreads)
+            <fftw_generic_plan_with_nthreads>&_fftwf_plan_with_nthreads)
     if PYFFTW_HAVE_LONG_MULTITHREADING:
         nthreads_plan_setters[2] = (
-            <fftw_generic_plan_with_nthreads>&fftwl_plan_with_nthreads)
+            <fftw_generic_plan_with_nthreads>&_fftwl_plan_with_nthreads)
 
 # Set planner timelimits
 cdef fftw_generic_set_timelimit set_timelimit_funcs[3]
 
-cdef void _fftw_generic_set_timelimit_null(void *plan):
+cdef void _fftw_generic_set_timelimit_null(double seconds):
 
     raise RuntimeError("Undefined set timelimit. This is a bug")
+
+cdef void _fftw_set_timelimit(double seconds) noexcept:
+
+    fftw_set_timelimit(seconds)
+
+cdef void _fftwf_set_timelimit(double seconds) noexcept:
+
+    fftwf_set_timelimit(seconds)
+
+cdef void _fftwl_set_timelimit(double seconds) noexcept:
+
+    fftwl_set_timelimit(seconds)
 
 cdef fftw_generic_set_timelimit * _build_set_timelimit_funcs_list():
     for i in range(3):
@@ -492,13 +516,13 @@ cdef fftw_generic_set_timelimit * _build_set_timelimit_funcs_list():
 
     if PYFFTW_HAVE_DOUBLE:
         set_timelimit_funcs[0] = (
-            <fftw_generic_set_timelimit>&fftw_set_timelimit)
+            <fftw_generic_set_timelimit>&_fftw_set_timelimit)
     if PYFFTW_HAVE_SINGLE:
         set_timelimit_funcs[1] = (
-            <fftw_generic_set_timelimit>&fftwf_set_timelimit)
+            <fftw_generic_set_timelimit>&_fftwf_set_timelimit)
     if PYFFTW_HAVE_LONG:
         set_timelimit_funcs[2] = (
-            <fftw_generic_set_timelimit>&fftwl_set_timelimit)
+            <fftw_generic_set_timelimit>&_fftwl_set_timelimit)
 
 # Data validators table
 cdef validator validators[2]
