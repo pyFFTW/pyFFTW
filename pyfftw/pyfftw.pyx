@@ -155,7 +155,7 @@ cdef void* _fftw_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, unsigned flags) nogil:
+            int *direction, unsigned flags) noexcept nogil:
 
     return <void *>fftw_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
@@ -167,7 +167,7 @@ cdef void* _fftw_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, unsigned flags) nogil:
+            int *direction, unsigned flags) noexcept nogil:
 
     return <void *>fftw_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
@@ -179,7 +179,7 @@ cdef void* _fftw_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, unsigned flags) nogil:
+            int *direction, unsigned flags) noexcept nogil:
 
     return <void *>fftw_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -191,7 +191,7 @@ cdef void* _fftw_plan_guru_r2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, int flags) nogil:
+            int *direction, int flags) noexcept nogil:
 
     return <void *>fftw_plan_guru_r2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -203,7 +203,7 @@ cdef void* _fftwf_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, unsigned flags) nogil:
+            int *direction, unsigned flags) noexcept nogil:
 
     return <void *>fftwf_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
@@ -215,7 +215,7 @@ cdef void* _fftwf_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, unsigned flags) nogil:
+            int *direction, unsigned flags) noexcept nogil:
 
     return <void *>fftwf_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
@@ -227,7 +227,7 @@ cdef void* _fftwf_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, unsigned flags) nogil:
+            int *direction, unsigned flags) noexcept nogil:
 
     return <void *>fftwf_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -239,7 +239,7 @@ cdef void* _fftwf_plan_guru_r2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, int flags) nogil:
+            int *direction, int flags) noexcept nogil:
 
     return <void *>fftwf_plan_guru_r2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -251,7 +251,7 @@ cdef void* _fftwl_plan_guru_dft(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, unsigned flags) nogil:
+            int *direction, unsigned flags) noexcept nogil:
 
     return <void *>fftwl_plan_guru_dft(rank, dims,
             howmany_rank, howmany_dims,
@@ -263,7 +263,7 @@ cdef void* _fftwl_plan_guru_dft_r2c(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, unsigned flags) nogil:
+            int *direction, unsigned flags) noexcept nogil:
 
     return <void *>fftwl_plan_guru_dft_r2c(rank, dims,
             howmany_rank, howmany_dims,
@@ -275,7 +275,7 @@ cdef void* _fftwl_plan_guru_dft_c2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, unsigned flags) nogil:
+            int *direction, unsigned flags) noexcept nogil:
 
     return <void *>fftwl_plan_guru_dft_c2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -287,7 +287,7 @@ cdef void* _fftwl_plan_guru_r2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, int flags) nogil:
+            int *direction, int flags) noexcept nogil:
 
     return <void *>fftwl_plan_guru_r2r(rank, dims,
             howmany_rank, howmany_dims,
@@ -303,71 +303,71 @@ cdef void _fftw_execute_null(void *_plan, void *_in, void *_out) with gil:
     raise RuntimeError("Undefined executor. This is a bug")
 
 # Complex double precision
-cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftw_execute_dft(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftw_execute_dft(<fftw_plan>_plan,
             <cdouble *>_in, <cdouble *>_out)
 
 # real to complex double precision
-cdef void _fftw_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftw_execute_dft_r2c(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftw_execute_dft_r2c(<fftw_plan>_plan,
             <double *>_in, <cdouble *>_out)
 
 # complex to real double precision
-cdef void _fftw_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftw_execute_dft_c2r(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftw_execute_dft_c2r(<fftw_plan>_plan,
             <cdouble *>_in, <double *>_out)
 
 # Complex single precision
-cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftwf_execute_dft(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftwf_execute_dft(<fftwf_plan>_plan,
             <cfloat *>_in, <cfloat *>_out)
 
 # real to complex single precision
-cdef void _fftwf_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftwf_execute_dft_r2c(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftwf_execute_dft_r2c(<fftwf_plan>_plan,
             <float *>_in, <cfloat *>_out)
 
 # complex to real single precision
-cdef void _fftwf_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftwf_execute_dft_c2r(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftwf_execute_dft_c2r(<fftwf_plan>_plan,
             <cfloat *>_in, <float *>_out)
 
 # Complex long double precision
-cdef void _fftwl_execute_dft(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftwl_execute_dft(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftwl_execute_dft(<fftwl_plan>_plan,
             <clongdouble *>_in, <clongdouble *>_out)
 
 # real to complex long double precision
-cdef void _fftwl_execute_dft_r2c(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftwl_execute_dft_r2c(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftwl_execute_dft_r2c(<fftwl_plan>_plan,
             <long double *>_in, <clongdouble *>_out)
 
 # complex to real long double precision
-cdef void _fftwl_execute_dft_c2r(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftwl_execute_dft_c2r(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftwl_execute_dft_c2r(<fftwl_plan>_plan,
             <clongdouble *>_in, <long double *>_out)
 
 # real to real double precision
-cdef void _fftw_execute_r2r(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftw_execute_r2r(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftw_execute_r2r(<fftw_plan>_plan, <double *>_in, <double *>_out)
 
 # real to real single precision
-cdef void _fftwf_execute_r2r(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftwf_execute_r2r(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftwf_execute_r2r(<fftwf_plan>_plan, <float *>_in, <float *>_out)
 
 # real to real long double precision
-cdef void _fftwl_execute_r2r(void *_plan, void *_in, void *_out) nogil:
+cdef void _fftwl_execute_r2r(void *_plan, void *_in, void *_out) noexcept nogil:
 
     fftwl_execute_r2r(<fftwl_plan>_plan, <long double *>_in, <long double *>_out)
 
@@ -379,17 +379,17 @@ cdef void _fftw_destroy_null(void *plan):
     raise RuntimeError("Undefined destroy. This is a bug")
 
 # Double precision
-cdef void _fftw_destroy_plan(void *_plan):
+cdef void _fftw_destroy_plan(void *_plan) noexcept:
 
     fftw_destroy_plan(<fftw_plan>_plan)
 
 # Single precision
-cdef void _fftwf_destroy_plan(void *_plan):
+cdef void _fftwf_destroy_plan(void *_plan) noexcept:
 
     fftwf_destroy_plan(<fftwf_plan>_plan)
 
 # Long double precision
-cdef void _fftwl_destroy_plan(void *_plan):
+cdef void _fftwl_destroy_plan(void *_plan) noexcept:
 
     fftwl_destroy_plan(<fftwl_plan>_plan)
 
