@@ -50,7 +50,6 @@ from .test_pyfftw_base import run_test_suites
 from .test_pyfftw_numpy_interface import complex_dtypes, real_dtypes
 from ._get_default_args import get_default_args
 
-from distutils.version import LooseVersion
 import unittest
 import numpy
 
@@ -493,7 +492,7 @@ class InterfacesDaskFFTTestFFT(unittest.TestCase):
                         input_array, s, **kwargs)
 
                 self.assertTrue(
-                        numpy.alltrue(input_array == orig_input_array))
+                        numpy.all(input_array == orig_input_array))
 
 
 class InterfacesDaskFFTTestFFT2(InterfacesDaskFFTTestFFT):

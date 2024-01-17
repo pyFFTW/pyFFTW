@@ -3,7 +3,7 @@ build-verbosity = 2
 
 # Note: Tests are run within a docker container on Linux builds
 # This will have a different
-test-requires = "pytest scipy dask"
+test-requires = "pytest scipy dask packaging"
 # Import-mode=append to use installed (wheel) version of pyfftw
 # rather than the local module
 test-command = "pytest --import-mode=append {project}"
@@ -167,7 +167,7 @@ test-command = "pytest --import-mode=append {project}"
 requires = [
     "wheel",
     "setuptools<=59.4.0",
-    "Cython>=0.29.18",
+    "Cython>=3",
 
     # NumPy dependencies - to update these, sync from
     # https://github.com/scipy/oldest-supported-numpy/

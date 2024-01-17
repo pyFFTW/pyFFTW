@@ -43,7 +43,7 @@ except ImportError:
     # fallback to distutils for older setuptools releases
     from distutils.errors import CompileError, LinkError
     from distutils.extension import Extension
-from pkg_resources import get_platform
+from sysconfig import get_platform
 
 from contextlib import redirect_stderr, redirect_stdout
 import os
@@ -88,7 +88,6 @@ def _get_mac_os_homebrew_prefix() -> str:
 
 def get_include_dirs():
     import numpy
-    from pkg_resources import get_build_platform
 
     include_dirs = [os.path.join(os.getcwd(), 'include'),
                     os.path.join(os.getcwd(), 'pyfftw'),
@@ -98,13 +97,13 @@ def get_include_dirs():
     if 'PYFFTW_INCLUDE' in os.environ:
         include_dirs.append(os.environ['PYFFTW_INCLUDE'])
 
-    if get_build_platform().startswith("linux"):
+    if get_platform().startswith("linux"):
         include_dirs.append('/usr/include')
 
-    if get_build_platform() in ('win32', 'win-amd64'):
+    if get_platform() in ('win32', 'win-amd64'):
         include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
 
-    if get_build_platform().startswith('freebsd'):
+    if get_platform().startswith('freebsd'):
         include_dirs.append('/usr/local/include')
 
     if get_build_platform().startswith("macosx"):
@@ -114,11 +113,9 @@ def get_include_dirs():
 
 
 def get_package_data():
-    from pkg_resources import get_build_platform
-
     package_data = {}
 
-    if get_build_platform() in ('win32', 'win-amd64'):
+    if get_platform() in ('win32', 'win-amd64'):
         if 'PYFFTW_WIN_CONDAFORGE' in os.environ:
             # fftw3.dll, fftw3f.dll will already be on the path (via the
             # conda environment's \bin subfolder)
@@ -132,10 +129,8 @@ def get_package_data():
 
 
 def get_library_dirs():
-    from pkg_resources import get_build_platform
-
     library_dirs = []
-    if get_build_platform() in ('win32', 'win-amd64'):
+    if get_platform() in ('win32', 'win-amd64'):
         library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
         library_dirs.append(os.path.join(sys.prefix, 'bin'))
 
@@ -143,7 +138,7 @@ def get_library_dirs():
         library_dirs.append(os.environ['PYFFTW_LIB_DIR'])
 
     library_dirs.append(os.path.join(sys.prefix, 'lib'))
-    if get_build_platform().startswith('freebsd'):
+    if get_platform().startswith('freebsd'):
         library_dirs.append('/usr/local/lib')
 
     if get_build_platform().startswith("macosx"):
@@ -492,7 +487,7 @@ class EnvironmentSniffer(object):
                             "a.out",
                             output_dir=tmpdir,
                             libraries=libraries,
-                            # extra_preargs=linker_flags,
+                            extra_preargs=linker_flags,
                             library_dirs=library_dirs,
                         )
 
@@ -558,8 +553,7 @@ class StaticSniffer(EnvironmentSniffer):
 
     def lib_full_name(self, root_lib):
         # TODO use self.compiler.library_filename
-        from pkg_resources import get_build_platform
-        if get_build_platform() in ('win32', 'win-amd64'):
+        if get_platform() in ('win32', 'win-amd64'):
             lib_pre = ''
             lib_ext = '.lib'
         else:
@@ -634,6 +628,10 @@ is on `github <https://github.com/pyFFTW/pyFFTW>`_.
 
 
 class custom_build_ext(build_ext):
+    def build_extension(self, ext, *args, **kwargs):
+        ext.define_macros = (ext.define_macros or []) + self._pyfftw_define_macros
+        return super().build_extension(ext, *args, **kwargs)
+
     def build_extensions(self):
         '''Check for availability of fftw libraries before building the wrapper.
 
@@ -643,7 +641,9 @@ class custom_build_ext(build_ext):
         # read out information and modify compiler
 
         # define macros, that is which part of wrapper is built
-        self.cython_compile_time_env = sniffer.compile_time_env
+        self._pyfftw_define_macros = [
+            (f"PYFFTW_{k}", int(v)) for k, v in sniffer.compile_time_env.items()
+        ]
 
         # call `extend()` to keep argument set neither by sniffer nor by
         # user. On windows there are includes set automatically, we
@@ -674,7 +674,7 @@ class custom_build_ext(build_ext):
         self.compiler.set_link_objects(objects)
 
         # delegate actual work to standard implementation
-        build_ext.build_extensions(self)
+        return super().build_extensions()
 
 
 class CreateChangelogCommand(Command):
@@ -851,9 +851,8 @@ def setup_package():
         from Cython.Build import cythonize
 
         trial_distribution = setup(**setup_args)
-        cython_compile_time_env = trial_distribution.get_command_obj("build_ext")
 
-        setup_args["ext_modules"] = cythonize(get_extensions(), compile_time_env=cython_compile_time_env)
+        setup_args["ext_modules"] = cythonize(get_extensions())
 
     setup(**setup_args)
 

@@ -1,3 +1,5 @@
+# cython: language_level=3
+#
 # Copyright 2014 Knowledge Economy Developments Ltd
 #
 # Henry Gomersall
@@ -35,6 +37,20 @@
 cimport numpy as np
 from libc.stdint cimport int64_t
 
+cdef extern from *:
+    bint PYFFTW_HAVE_SINGLE
+    bint PYFFTW_HAVE_DOUBLE
+    bint PYFFTW_HAVE_LONG
+    bint PYFFTW_HAVE_SINGLE_OMP
+    bint PYFFTW_HAVE_DOUBLE_OMP
+    bint PYFFTW_HAVE_LONG_OMP
+    bint PYFFTW_HAVE_SINGLE_THREADS
+    bint PYFFTW_HAVE_DOUBLE_THREADS
+    bint PYFFTW_HAVE_LONG_THREADS
+    bint PYFFTW_HAVE_SINGLE_MULTITHREADING
+    bint PYFFTW_HAVE_DOUBLE_MULTITHREADING
+    bint PYFFTW_HAVE_LONG_MULTITHREADING
+
 ctypedef struct _fftw_iodim:
     int _n
     int _is
@@ -47,6 +63,76 @@ cdef extern from 'pyfftw_complex.h':
     ctypedef long double clongdouble[2]
 
 cdef extern from 'fftw3.h':
+    """
+    #if !PYFFTW_HAVE_DOUBLE
+    #define fftw_plan_guru_dft(...) (NULL)
+    #define fftw_plan_guru_dft_r2c(...) (NULL)
+    #define fftw_plan_guru_dft_c2r(...) (NULL)
+    #define fftw_plan_guru_r2r(...) (NULL)
+    #define fftw_execute_dft(...) ((void)0)
+    #define fftw_execute_dft_r2c(...) ((void)0)
+    #define fftw_execute_dft_c2r(...) ((void)0)
+    #define fftw_execute_r2r(...) ((void)0)
+    #define fftw_destroy_plan(plan) ((void)0)
+    #define fftw_cleanup() ((void)0)
+    #define fftw_export_wisdom(...) ((void)0)
+    #define fftw_import_wisdom_from_string(wisdom) (0)
+    #define fftw_forget_wisdom() ((void)0)
+    #define fftw_set_timelimit(...) ((void)0)
+    #endif
+
+    #if !PYFFTW_HAVE_SINGLE
+    #define fftwf_plan_guru_dft(...) (NULL)
+    #define fftwf_plan_guru_dft_r2c(...) (NULL)
+    #define fftwf_plan_guru_dft_c2r(...) (NULL)
+    #define fftwf_plan_guru_r2r(...) (NULL)
+    #define fftwf_execute_dft(...) ((void)0)
+    #define fftwf_execute_dft_r2c(...) ((void)0)
+    #define fftwf_execute_dft_c2r(...) ((void)0)
+    #define fftwf_execute_r2r(...) ((void)0)
+    #define fftwf_destroy_plan(plan) ((void)0)
+    #define fftwf_cleanup() ((void)0)
+    #define fftwf_export_wisdom(...) ((void)0)
+    #define fftwf_import_wisdom_from_string(wisdom) (0)
+    #define fftwf_forget_wisdom() ((void)0)
+    #define fftwf_set_timelimit(...) ((void)0)
+    #endif
+
+    #if !PYFFTW_HAVE_LONG
+    #define fftwl_plan_guru_dft(...) (NULL)
+    #define fftwl_plan_guru_dft_r2c(...) (NULL)
+    #define fftwl_plan_guru_dft_c2r(...) (NULL)
+    #define fftwl_plan_guru_r2r(...) (NULL)
+    #define fftwl_execute_dft(...) ((void)0)
+    #define fftwl_execute_dft_r2c(...) ((void)0)
+    #define fftwl_execute_dft_c2r(...) ((void)0)
+    #define fftwl_execute_r2r(...) ((void)0)
+    #define fftwl_destroy_plan(plan) ((void)0)
+    #define fftwl_cleanup() ((void)0)
+    #define fftwl_export_wisdom(...) ((void)0)
+    #define fftwl_import_wisdom_from_string(wisdom) (0)
+    #define fftwl_forget_wisdom() ((void)0)
+    #define fftwl_set_timelimit(...) ((void)0)
+    #endif
+
+    #if !PYFFTW_HAVE_DOUBLE_MULTITHREADING
+    #define fftw_cleanup_threads() ((void)0)
+    #define fftw_init_threads() ((void)0)
+    #define fftw_plan_with_nthreads(...) ((void)0)
+    #endif
+
+    #if !PYFFTW_HAVE_SINGLE_MULTITHREADING
+    #define fftwf_cleanup_threads() ((void)0)
+    #define fftwf_init_threads() ((void)0)
+    #define fftwf_plan_with_nthreads(...) ((void)0)
+    #endif
+
+    #if !PYFFTW_HAVE_LONG_MULTITHREADING
+    #define fftwl_cleanup_threads() ((void)0)
+    #define fftwl_init_threads() ((void)0)
+    #define fftwl_plan_with_nthreads(...) ((void)0)
+    #endif
+    """
 
     # Double precision plans
     ctypedef struct fftw_plan_struct:
@@ -142,21 +228,21 @@ cdef extern from 'fftw3.h':
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             double *_in, double *_out,
-            int *kind, unsigned flags)
+            int *kind, unsigned flags) nogil
 
     # Single precision real planner
     fftwf_plan fftwf_plan_guru_r2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             float *_in, float *_out,
-            int *kind, unsigned flags)
+            int *kind, unsigned flags) nogil
 
     # Long double precision real planner
     fftwl_plan fftwl_plan_guru_r2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             long double *_in, long double *_out,
-            int *kind, unsigned flags)
+            int *kind, unsigned flags) nogil
 
     # Double precision complex new array execute
     void fftw_execute_dft(fftw_plan,
@@ -238,12 +324,12 @@ cdef extern from 'fftw3.h':
     void fftwl_plan_with_nthreads(int n)
 
     # cleanup routines
-    void fftw_cleanup()
-    void fftwf_cleanup()
-    void fftwl_cleanup()
-    void fftw_cleanup_threads()
-    void fftwf_cleanup_threads()
-    void fftwl_cleanup_threads()
+    void fftw_cleanup() nogil
+    void fftwf_cleanup() nogil
+    void fftwl_cleanup() nogil
+    void fftw_cleanup_threads() nogil
+    void fftwf_cleanup_threads() nogil
+    void fftwl_cleanup_threads() nogil
 
     # wisdom functions
     void fftw_export_wisdom(void (*write_char)(char c, void *), void *data)

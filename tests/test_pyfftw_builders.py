@@ -675,7 +675,7 @@ class BuildersTestFFT(unittest.TestCase):
                 final_input_array = FFTW_object.input_array
 
                 self.assertTrue(
-                        numpy.alltrue(input_array == final_input_array))
+                        numpy.all(input_array == final_input_array))
 
     def test_avoid_copy(self):
         '''Test the avoid_copy flag
@@ -887,7 +887,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
 
         output_array = self.fft()
 
-        self.assertTrue(numpy.alltrue(output_array == self.output_array))
+        self.assertTrue(numpy.all(output_array == self.output_array))
 
 
     def test_call_with_positional_input_update(self):
@@ -904,7 +904,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         self.update_arrays(input_array, self.output_array)
         self.fft.execute()
 
-        self.assertTrue(numpy.alltrue(output_array == self.output_array))
+        self.assertTrue(numpy.all(output_array == self.output_array))
 
 
     def test_call_with_keyword_input_update(self):
@@ -920,7 +920,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         self.update_arrays(input_array, self.output_array)
         self.fft.execute()
 
-        self.assertTrue(numpy.alltrue(output_array == self.output_array))
+        self.assertTrue(numpy.all(output_array == self.output_array))
 
 
     def test_call_with_keyword_output_update(self):
@@ -938,7 +938,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         self.fft.execute()
 
         self.assertTrue(
-                numpy.alltrue(returned_output_array == output_array))
+                numpy.all(returned_output_array == output_array))
 
     def test_call_with_positional_updates(self):
         '''Test the class call with a positional array updates.
@@ -957,7 +957,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         self.update_arrays(input_array, output_array)
         self.fft.execute()
 
-        self.assertTrue(numpy.alltrue(returned_output_array == output_array))
+        self.assertTrue(numpy.all(returned_output_array == output_array))
 
     def test_call_with_keyword_updates(self):
         '''Test the class call with a positional output update.
@@ -978,7 +978,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         self.update_arrays(input_array, output_array)
         self.fft.execute()
 
-        self.assertTrue(numpy.alltrue(returned_output_array == output_array))
+        self.assertTrue(numpy.all(returned_output_array == output_array))
 
     def test_call_with_different_input_dtype(self):
         '''Test the class call with an array with a different input dtype
@@ -995,7 +995,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         self.update_arrays(_input_array, self.output_array)
         self.fft.execute()
 
-        self.assertTrue(numpy.alltrue(output_array == self.output_array))
+        self.assertTrue(numpy.all(output_array == self.output_array))
 
     def test_call_with_list_input(self):
         '''Test the class call with a list rather than an array
@@ -1005,7 +1005,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
 
         test_output_array = self.fft(self.input_array.tolist()).copy()
 
-        self.assertTrue(numpy.alltrue(output_array == test_output_array))
+        self.assertTrue(numpy.all(output_array == test_output_array))
 
 
     def test_call_with_invalid_update(self):
@@ -1065,7 +1065,7 @@ class BuildersTestFFTWWrapper(unittest.TestCase):
         self.assertTrue(
                 new_input_array[:,:,0].strides != internal_array.strides)
 
-        self.assertTrue(numpy.alltrue(test_output_array == new_output))
+        self.assertTrue(numpy.all(test_output_array == new_output))
 
     def test_call_with_copy_with_missized_array_error(self):
         '''Force an input copy with a missized array.

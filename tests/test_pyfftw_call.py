@@ -70,7 +70,7 @@ class FFTWCallTest(unittest.TestCase):
 
         output_array = self.fft()
 
-        self.assertTrue(numpy.alltrue(output_array == self.output_array))
+        self.assertTrue(numpy.all(output_array == self.output_array))
 
 
     def test_call_with_positional_input_update(self):
@@ -86,7 +86,7 @@ class FFTWCallTest(unittest.TestCase):
         self.fft.update_arrays(input_array, self.output_array)
         self.fft.execute()
 
-        self.assertTrue(numpy.alltrue(output_array == self.output_array))
+        self.assertTrue(numpy.all(output_array == self.output_array))
 
     def test_call_with_keyword_input_update(self):
         '''Test the class call with a keyword input update.
@@ -101,7 +101,7 @@ class FFTWCallTest(unittest.TestCase):
         self.fft.update_arrays(input_array, self.output_array)
         self.fft.execute()
 
-        self.assertTrue(numpy.alltrue(output_array == self.output_array))
+        self.assertTrue(numpy.all(output_array == self.output_array))
 
 
     def test_call_with_keyword_output_update(self):
@@ -118,7 +118,7 @@ class FFTWCallTest(unittest.TestCase):
         self.fft.execute()
 
         self.assertTrue(
-                numpy.alltrue(returned_output_array == output_array))
+                numpy.all(returned_output_array == output_array))
 
     def test_call_with_positional_updates(self):
         '''Test the class call with a positional array updates.
@@ -137,7 +137,7 @@ class FFTWCallTest(unittest.TestCase):
         self.fft.update_arrays(input_array, output_array)
         self.fft.execute()
 
-        self.assertTrue(numpy.alltrue(returned_output_array == output_array))
+        self.assertTrue(numpy.all(returned_output_array == output_array))
 
     def test_call_with_keyword_updates(self):
         '''Test the class call with a positional output update.
@@ -158,7 +158,7 @@ class FFTWCallTest(unittest.TestCase):
         self.fft.update_arrays(input_array, output_array)
         self.fft.execute()
 
-        self.assertTrue(numpy.alltrue(returned_output_array == output_array))
+        self.assertTrue(numpy.all(returned_output_array == output_array))
 
     def test_call_with_different_input_dtype(self):
         '''Test the class call with an array with a different input dtype
@@ -177,7 +177,7 @@ class FFTWCallTest(unittest.TestCase):
         self.fft.update_arrays(_input_array, self.output_array)
         self.fft.execute()
 
-        self.assertTrue(numpy.alltrue(output_array == self.output_array))
+        self.assertTrue(numpy.all(output_array == self.output_array))
 
     def test_call_with_list_input(self):
         '''Test the class call with a list rather than an array
@@ -187,7 +187,7 @@ class FFTWCallTest(unittest.TestCase):
 
         test_output_array = self.fft(self.input_array.tolist()).copy()
 
-        self.assertTrue(numpy.alltrue(output_array == test_output_array))
+        self.assertTrue(numpy.all(output_array == test_output_array))
 
 
     def test_call_with_invalid_update(self):
@@ -232,7 +232,7 @@ class FFTWCallTest(unittest.TestCase):
 
         self.fft(a_, self.output_array)
 
-        self.assertTrue(numpy.alltrue(output_array == self.output_array))
+        self.assertTrue(numpy.all(output_array == self.output_array))
 
         # now try with a single byte offset and SIMD off
         ar, ai = numpy.float32(numpy.random.randn(2, 257))
@@ -285,7 +285,7 @@ class FFTWCallTest(unittest.TestCase):
         # Test the test!
         self.assertTrue(new_input_array.strides != input_array[:,:,0].strides)
 
-        self.assertTrue(numpy.alltrue(test_output_array == new_output))
+        self.assertTrue(numpy.all(test_output_array == new_output))
 
     def test_call_with_copy_with_missized_array_error(self):
         '''Force an input copy with a missized array.
@@ -406,7 +406,7 @@ class FFTWCallTest(unittest.TestCase):
         ref_output = ifft(normalise_idft=False).copy()/numpy.float64(ifft.N)
         test_output = ifft(normalise_idft=True).copy()
 
-        self.assertTrue(numpy.alltrue(ref_output == test_output))
+        self.assertTrue(numpy.all(ref_output == test_output))
 
         # ... and single inputs.
         _input_array = empty_aligned((256, 512), dtype='complex64', n=16)
@@ -418,7 +418,7 @@ class FFTWCallTest(unittest.TestCase):
         ref_output = ifft(normalise_idft=False).copy()/numpy.float64(ifft.N)
         test_output = ifft(normalise_idft=True).copy()
 
-        self.assertTrue(numpy.alltrue(ref_output == test_output))
+        self.assertTrue(numpy.all(ref_output == test_output))
 
     def test_call_with_ortho_on(self):
         _input_array = empty_aligned((256, 512), dtype='complex128', n=16)

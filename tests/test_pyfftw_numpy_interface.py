@@ -37,14 +37,14 @@ from pyfftw import interfaces, _supported_types, _all_types_np
 from .test_pyfftw_base import run_test_suites, np_fft
 from ._get_default_args import get_default_args
 
-from distutils.version import LooseVersion
+from packaging.version import Version
 import unittest
 import numpy
 import warnings
 import copy
 warnings.filterwarnings('always')
 
-if LooseVersion(numpy.version.version) <= LooseVersion('1.6.2'):
+if Version(numpy.version.version) <= Version('1.6.2'):
     # We overwrite the broken _cook_nd_args with a fixed version.
     from ._cook_nd_args import _cook_nd_args
     numpy.fft.fftpack._cook_nd_args = _cook_nd_args
@@ -131,7 +131,7 @@ functions = {
 
 acquired_names = ('fftfreq', 'fftshift', 'ifftshift')
 
-if LooseVersion(numpy.version.version) >= LooseVersion('1.8'):
+if Version(numpy.version.version) >= Version('1.8'):
     acquired_names += ('rfftfreq', )
 
 
@@ -652,7 +652,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                         input_array, s, **kwargs)
 
                 self.assertTrue(
-                        numpy.alltrue(input_array == orig_input_array))
+                        numpy.all(input_array == orig_input_array))
 
     def test_on_non_writeable_array_issue_92(self):
         '''Test to make sure that locked arrays work.

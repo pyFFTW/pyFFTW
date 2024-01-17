@@ -38,8 +38,8 @@ try:
 except ImportError:
     scipy_version = '0.0.0'
 
-from distutils.version import LooseVersion
-has_scipy_fft = LooseVersion(scipy_version) >= '1.4.0'
+from packaging.version import Version
+has_scipy_fft = Version(scipy_version) >= Version('1.4.0')
 
 if has_scipy_fft:
     import scipy.fft
@@ -128,7 +128,7 @@ atol_dict = dict(f=1e-5, d=1e-7, g=1e-7)
 rtol_dict = dict(f=1e-4, d=1e-5, g=1e-5)
 transform_types = [1, 2, 3, 4]
 
-if LooseVersion(scipy_version) >= '1.6.0':
+if Version(scipy_version) >= Version('1.6.0'):
     # all norm options aside from None
     scipy_norms = [None, 'ortho', 'forward', 'backward']
 else:
