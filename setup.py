@@ -106,7 +106,7 @@ def get_include_dirs():
     if get_platform().startswith('freebsd'):
         include_dirs.append('/usr/local/include')
 
-    if get_build_platform().startswith("macosx"):
+    if get_platform().startswith("macosx"):
         include_dirs.append(f'{_get_mac_os_homebrew_prefix()}/include')
 
     return include_dirs
@@ -141,7 +141,7 @@ def get_library_dirs():
     if get_platform().startswith('freebsd'):
         library_dirs.append('/usr/local/lib')
 
-    if get_build_platform().startswith("macosx"):
+    if get_platform().startswith("macosx"):
         library_dirs.append(f'{_get_mac_os_homebrew_prefix()}/lib')
 
     return library_dirs
