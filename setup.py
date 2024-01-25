@@ -811,6 +811,7 @@ def setup_package():
             'Programming Language :: Python :: 3.9',
             'Programming Language :: Python :: 3.10',
             'Programming Language :: Python :: 3.11',
+            'Programming Language :: Python :: 3.12',
             'Development Status :: 4 - Beta',
             'License :: OSI Approved :: BSD License',
             'Operating System :: OS Independent',
@@ -824,6 +825,7 @@ def setup_package():
         ],
         'cmdclass': cmdclass,
         'python_requires': ">=3.8",
+        'py_modules': ['pyfftw'],
     }
 
     setup_args['setup_requires'] = build_requires
