@@ -36,7 +36,6 @@ from .pyfftw import (
         _all_types_human_readable,
         _all_types_np,
         _threading_type,
-        execute_in_nogil,
 )
 
 from . import config
