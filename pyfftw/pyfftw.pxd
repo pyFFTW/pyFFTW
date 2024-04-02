@@ -56,7 +56,26 @@ ctypedef struct _fftw_iodim:
     int _is
     int _os
 
-cdef extern from 'pyfftw_complex.h':
+cdef extern from *:
+    '''
+    /* Defines complex types that are bit compatible with C99's complex.h
+    * and (crucially) the same type as expected by fftw3.h.
+    * Note, don't use this with complex.h. fftw3.h checks to see whether
+    * complex.h is included and then uses that to set the interface.
+    * Since MSVC doesn't support C99, by using the following types we
+    * have a cross platform/compiler solution.
+    *
+    * */
+    
+    #ifndef PYFFTW_COMPLEX_H
+    #define PYFFTW_COMPLEX_H
+    
+    typedef float cfloat[2];
+    typedef double cdouble[2];
+    typedef long double clongdouble[2];
+    
+    #endif /* Header guard */
+    '''
 
     ctypedef float cfloat[2]
     ctypedef double cdouble[2]
@@ -366,6 +385,13 @@ ctypedef void * (*fftw_generic_plan_guru)(
 
 ctypedef void (*fftw_generic_execute)(void *_plan, void *_in, void *_out) noexcept nogil
 
+ctypedef struct fftw_exe:
+
+    fftw_generic_execute _fftw_execute
+    void* _plan
+    void* _input_pointer
+    void* _output_pointer
+
 ctypedef void (*fftw_generic_destroy_plan)(void *_plan)
 
 ctypedef void (*fftw_generic_init_threads)()
@@ -463,5 +489,7 @@ cdef class FFTW:
             np.ndarray new_input_array, np.ndarray new_output_array)
 
     cpdef execute(self)
+
+    cdef fftw_exe get_fftw_exe(self)
 
     cdef void execute_nogil(self) noexcept nogil

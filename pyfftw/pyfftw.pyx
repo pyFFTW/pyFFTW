@@ -2018,6 +2018,24 @@ cdef class FFTW:
             self._input_pointer,
             self._output_pointer)
 
+    cdef fftw_exe get_fftw_exe(self):
+
+        cdef fftw_exe exe
+
+        exe._fftw_execute = self._fftw_execute
+        exe._plan = self._plan
+        exe._input_pointer = self._input_pointer
+        exe._output_pointer = self._output_pointer
+
+        return exe
+
+cdef void execute_in_nogil(fftw_exe exe) noexcept nogil:
+
+    exe._fftw_execute(
+        exe._plan           ,
+        exe._input_pointer  ,
+        exe._output_pointer ,    
+    )
 
 cdef void count_char(char c, void *counter_ptr) noexcept nogil:
     '''
