@@ -2018,13 +2018,6 @@ cdef class FFTW:
             self._input_pointer,
             self._output_pointer)
 
-cpdef void execute_in_nogil(FFTW FFTW_object):
-    '''
-    Making sure that a cython cdef class nogil cdef method can indeed be executed in a nogil block outside of the class.
-    '''
-
-    with nogil:
-        FFTW_object.execute_nogil()
 
 cdef void count_char(char c, void *counter_ptr) noexcept nogil:
     '''
