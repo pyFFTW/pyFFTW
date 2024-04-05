@@ -871,55 +871,6 @@ cdef class FFTW:
     See the documentation on the :meth:`~pyfftw.FFTW.__call__` method
     for more information.
     '''
-#     # Each of these function pointers simply
-#     # points to a chosen fftw wrapper function
-#     cdef fftw_generic_plan_guru _fftw_planner
-#     cdef fftw_generic_execute _fftw_execute
-#     cdef fftw_generic_destroy_plan _fftw_destroy
-#     cdef fftw_generic_plan_with_nthreads _nthreads_plan_setter
-# 
-#     # The plan is typecast when it is created or used
-#     # within the wrapper functions
-#     cdef void *_plan
-# 
-#     cdef np.ndarray _input_array
-#     cdef void* _input_pointer
-#     cdef np.ndarray _output_array
-#     cdef void* _output_pointer
-# 
-#     cdef int *_direction
-#     cdef unsigned _flags
-# 
-#     cdef bint _simd_allowed
-#     cdef int _input_array_alignment
-#     cdef int _output_array_alignment
-#     cdef bint _use_threads
-# 
-#     cdef object _input_item_strides
-#     cdef object _input_strides
-#     cdef object _output_item_strides
-#     cdef object _output_strides
-#     cdef object _input_shape
-#     cdef object _output_shape
-#     cdef object _input_dtype
-#     cdef object _output_dtype
-#     cdef object _flags_used
-# 
-#     cdef double _normalisation_scaling
-#     cdef double _sqrt_normalisation_scaling
-# 
-#     cdef int _rank
-#     cdef _fftw_iodim *_dims
-#     cdef int _howmany_rank
-#     cdef _fftw_iodim *_howmany_dims
-# 
-#     cdef int64_t *_axes
-#     cdef int64_t *_not_axes
-# 
-#     cdef int64_t _total_size
-# 
-#     cdef bint _normalise_idft
-#     cdef bint _ortho
 
     def _get_N(self):
         '''
@@ -1167,7 +1118,7 @@ cdef class FFTW:
                 set_timelimit_funcs[functions['generic_precision']])
 
         # We're interested in the natural alignment on the real type, not
-        # necessarily on the complex type At least one bug was found where
+        # necessarily on the complex type. At least one bug was found where
         # numpy reported an alignment on a complex dtype that was different
         # to that on the real type.
         cdef int natural_input_alignment = input_array.real.dtype.alignment
@@ -2029,7 +1980,9 @@ cdef class FFTW:
 
         return exe
 
-cdef void execute_in_nogil(fftw_exe exe) noexcept nogil:
+cdef void execute_in_nogil(fftw_exe* exe_ptr) noexcept nogil:
+
+    cdef fftw_exe exe = exe_ptr[0]
 
     exe._fftw_execute(
         exe._plan           ,

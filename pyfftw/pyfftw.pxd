@@ -493,3 +493,5 @@ cdef class FFTW:
     cdef fftw_exe get_fftw_exe(self)
 
     cdef void execute_nogil(self) noexcept nogil
+    
+cdef void execute_in_nogil(fftw_exe* exe_ptr) noexcept nogil
