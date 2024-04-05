@@ -1963,13 +1963,27 @@ cdef class FFTW:
             self.execute_nogil()
 
     cdef void execute_nogil(self) noexcept nogil:
+        '''execute_nogil()
 
+        Same as execute(), but can be called from Cython directly within a
+        nogil block.
+        '''
         self._fftw_execute(
             self._plan,
             self._input_pointer,
             self._output_pointer)
 
     cdef fftw_exe get_fftw_exe(self):
+        '''get_fftw_exe()
+
+        Returns a C struct fftw_exe that is associated with the FFTW
+        instance.
+
+        For Cython use only. This is really only useful if you want to 
+        bundle a few of those in a C array, and then call them all from
+        within a nogil block.
+        
+        '''
 
         cdef fftw_exe exe
 
@@ -1981,14 +1995,22 @@ cdef class FFTW:
         return exe
 
 cdef void execute_in_nogil(fftw_exe* exe_ptr) noexcept nogil:
+    '''execute_in_nogil(fftw_exe* exe_ptr)
+
+        Runs the FFT as defind by the pointed fftw_exe.
+
+        Warning: This method is NOT thread-safe. Concurrent calls
+        to execute_in_nogil with and aliased fftw_exe will lead 
+        to wrong FFT results.
+
+    '''
 
     cdef fftw_exe exe = exe_ptr[0]
 
     exe._fftw_execute(
-        exe._plan           ,
-        exe._input_pointer  ,
-        exe._output_pointer ,    
-    )
+        exe._plan,
+        exe._input_pointer,
+        exe._output_pointer)
 
 cdef void count_char(char c, void *counter_ptr) noexcept nogil:
     '''
