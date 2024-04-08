@@ -1967,6 +1967,11 @@ cdef class FFTW:
 
         Same as execute(), but can be called from Cython directly within a
         nogil block.
+
+        Warning: This method is NOT thread-safe. Concurrent calls
+        to execute_nogil will lead to race conditions and ultimately
+        wrong FFT results.
+
         '''
         self._fftw_execute(
             self._plan,
