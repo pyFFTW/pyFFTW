@@ -113,7 +113,8 @@ def get_include_dirs():
 
 
 def get_package_data():
-    package_data = {}
+    
+    package_data = {'pyfftw' : ['*.h', '*.pxd']}
 
     if get_platform() in ('win32', 'win-amd64'):
         if 'PYFFTW_WIN_CONDAFORGE' in os.environ:
@@ -122,8 +123,8 @@ def get_package_data():
             pass
         else:
             # as download from http://www.fftw.org/install/windows.html
-            package_data['pyfftw'] = [
-                'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll']
+            package_data['pyfftw'].append([
+                'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll'])
 
     return package_data
 
