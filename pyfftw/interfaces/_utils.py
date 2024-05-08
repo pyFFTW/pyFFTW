@@ -45,6 +45,7 @@ Utility functions for the interfaces routines
 import pyfftw.builders as builders
 import pyfftw
 import numpy
+import threading
 from . import cache
 
 
@@ -108,7 +109,7 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         alignment = a.ctypes.data % pyfftw.simd_alignment
 
         key = (calling_func, a.shape, a.strides, a.dtype, s.__hash__(),
-               axes.__hash__(), alignment, args)
+               axes.__hash__(), alignment, args, threading.get_ident())
 
         try:
             if key in cache._fftw_cache:
