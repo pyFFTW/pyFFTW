@@ -1718,7 +1718,8 @@ cdef class FFTW:
             free(self._not_axes)
 
         if not self._plan == NULL:
-            self._fftw_destroy(self._plan)
+            with plan_lock:
+                self._fftw_destroy(self._plan)
 
         if not self._dims == NULL:
             free(self._dims)
