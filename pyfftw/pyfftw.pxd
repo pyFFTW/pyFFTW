@@ -247,21 +247,21 @@ cdef extern from 'fftw3.h':
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             double *_in, double *_out,
-            int *kind, unsigned flags) nogil
+            fftw_r2r_kind *kind, unsigned flags) nogil
 
     # Single precision real planner
     fftwf_plan fftwf_plan_guru_r2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             float *_in, float *_out,
-            int *kind, unsigned flags) nogil
+            fftwf_r2r_kind *kind, unsigned flags) nogil
 
     # Long double precision real planner
     fftwl_plan fftwl_plan_guru_r2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             long double *_in, long double *_out,
-            int *kind, unsigned flags) nogil
+            fftwl_r2r_kind *kind, unsigned flags) nogil
 
     # Double precision complex new array execute
     void fftw_execute_dft(fftw_plan,
@@ -373,6 +373,48 @@ cdef extern from 'fftw3.h':
 
     double FFTW_NO_TIMELIMIT
 
+    ctypedef enum fftw_r2r_kind:
+        FFTW_R2HC = 0
+        FFTW_HC2R = 1
+        FFTW_DHT = 2
+        # from fftw3.f 3.3.3; may not be valid for different versions of FFTW.
+        FFTW_REDFT00  = 3
+        FFTW_REDFT01  = 4
+        FFTW_REDFT10  = 5
+        FFTW_REDFT11  = 6
+        FFTW_RODFT00  = 7
+        FFTW_RODFT01  = 8
+        FFTW_RODFT10  = 9
+        FFTW_RODFT11  = 10
+
+    ctypedef enum fftwf_r2r_kind:
+        FFTW_R2HC = 0
+        FFTW_HC2R = 1
+        FFTW_DHT = 2
+        # from fftw3.f 3.3.3; may not be valid for different versions of FFTW.
+        FFTW_REDFT00  = 3
+        FFTW_REDFT01  = 4
+        FFTW_REDFT10  = 5
+        FFTW_REDFT11  = 6
+        FFTW_RODFT00  = 7
+        FFTW_RODFT01  = 8
+        FFTW_RODFT10  = 9
+        FFTW_RODFT11  = 10
+
+    ctypedef enum fftwl_r2r_kind:
+        FFTW_R2HC = 0
+        FFTW_HC2R = 1
+        FFTW_DHT = 2
+        # from fftw3.f 3.3.3; may not be valid for different versions of FFTW.
+        FFTW_REDFT00  = 3
+        FFTW_REDFT01  = 4
+        FFTW_REDFT10  = 5
+        FFTW_REDFT11  = 6
+        FFTW_RODFT00  = 7
+        FFTW_RODFT01  = 8
+        FFTW_RODFT10  = 9
+        FFTW_RODFT11  = 10
+
 # Define function pointers that can act as a placeholder
 # for whichever dtype is used (the problem being that fftw
 # has different function names and signatures for all the
@@ -408,15 +450,6 @@ ctypedef bint (*validator)(np.ndarray input_array,
 cdef enum:
     FFTW_FORWARD = -1
     FFTW_BACKWARD = 1
-    # from fftw3.f 3.3.3; may not be valid for different versions of FFTW.
-    FFTW_REDFT00  = 3
-    FFTW_REDFT01  = 4
-    FFTW_REDFT10  = 5
-    FFTW_REDFT11  = 6
-    FFTW_RODFT00  = 7
-    FFTW_RODFT01  = 8
-    FFTW_RODFT10  = 9
-    FFTW_RODFT11  = 10
 
 # Documented flags
 cdef enum:

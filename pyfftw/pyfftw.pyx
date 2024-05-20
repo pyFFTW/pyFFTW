@@ -191,12 +191,12 @@ cdef void* _fftw_plan_guru_r2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, int flags) noexcept nogil:
+            fftw_r2r_kind *direction, int flags) noexcept nogil:
 
     return <void *>fftw_plan_guru_r2r(rank, dims,
             howmany_rank, howmany_dims,
             <double *>_in, <double *>_out,
-            direction, flags)
+            <fftw_r2r_kind *>direction, flags)
 
 # Complex single precision
 cdef void* _fftwf_plan_guru_dft(
@@ -239,12 +239,12 @@ cdef void* _fftwf_plan_guru_r2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, int flags) noexcept nogil:
+            fftwf_r2r_kind *direction, int flags) noexcept nogil:
 
     return <void *>fftwf_plan_guru_r2r(rank, dims,
             howmany_rank, howmany_dims,
             <float *>_in, <float *>_out,
-            direction, flags)
+            <fftwf_r2r_kind *>direction, flags)
 
 # Complex long double precision
 cdef void* _fftwl_plan_guru_dft(
@@ -287,12 +287,12 @@ cdef void* _fftwl_plan_guru_r2r(
             int rank, fftw_iodim *dims,
             int howmany_rank, fftw_iodim *howmany_dims,
             void *_in, void *_out,
-            int *direction, int flags) noexcept nogil:
+            fftwl_r2r_kind *direction, int flags) noexcept nogil:
 
     return <void *>fftwl_plan_guru_r2r(rank, dims,
             howmany_rank, howmany_dims,
             <long double *>_in, <long double *>_out,
-            direction, flags)
+            <fftwl_r2r_kind *>direction, flags)
 
 #    Executors
 #    =========
