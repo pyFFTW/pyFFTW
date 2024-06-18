@@ -191,6 +191,13 @@ class InterfacesScipyR2RFFTTest(unittest.TestCase):
                 data_hat_s = self.scipy_func(self.data, type=transform_type,
                                              norm=norm,
                                              overwrite_x=False, **self.kwargs)
+
+                if not numpy.allclose(data_hat_p, data_hat_s, atol=self.atol, rtol=self.rtol):
+                    print("func name: ", self.func_name)
+                    print("pyfftw:", data_hat_p)
+                    print("scipy: ", data_hat_s)
+                    print("diff:  ", data_hat_p - data_hat_s)
+
                 self.assertTrue(numpy.allclose(data_hat_p, data_hat_s,
                                                atol=self.atol, rtol=self.rtol))
 
