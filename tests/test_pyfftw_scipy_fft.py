@@ -193,13 +193,11 @@ class InterfacesScipyR2RFFTTest(unittest.TestCase):
                                              overwrite_x=False, **self.kwargs)
 
                 if not numpy.allclose(data_hat_p, data_hat_s, atol=self.atol, rtol=self.rtol):
-                    print("func name: ", self.func_name)
-                    print("pyfftw:", data_hat_p)
+                    info = f"{self.func_name=}, {norm=}, {transform_type=}"
+                    print(info)
                     print("scipy: ", data_hat_s)
-                    print("diff:  ", data_hat_p - data_hat_s)
-
-                self.assertTrue(numpy.allclose(data_hat_p, data_hat_s,
-                                               atol=self.atol, rtol=self.rtol))
+                    print("ratio:  ", data_hat_p / data_hat_s)
+                    raise ValueError(info)
 
     def test_normalization_inverses(self):
         '''Test normalization in all of the pyfftw scipy wrappers.
@@ -212,8 +210,11 @@ class InterfacesScipyR2RFFTTest(unittest.TestCase):
             result = self.pyfftw_func(forward, type=inverse_type,
                                       norm='ortho',
                                       overwrite_x=False, **self.kwargs)
-            self.assertTrue(numpy.allclose(self.data, result,
-                                           atol=self.atol, rtol=self.rtol))
+            if not numpy.allclose(self.data, result, atol=self.atol, rtol=self.rtol):
+                info = f"{self.func_name=}, norm='ortho', {transform_type=}"
+                print(info)
+                print("ratio: ", result / self.data)
+                raise ValueError(info)
 
 
 @unittest.skipIf(not has_scipy_fft, 'scipy.fft is unavailable')
