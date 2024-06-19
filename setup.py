@@ -807,7 +807,6 @@ def setup_package():
         'classifiers': [
             'Programming Language :: Python',
             'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9',
             'Programming Language :: Python :: 3.10',
             'Programming Language :: Python :: 3.11',
@@ -823,7 +822,7 @@ def setup_package():
             'Topic :: Multimedia :: Sound/Audio :: Analysis'
         ],
         'cmdclass': cmdclass,
-        'python_requires': ">=3.8",
+        'python_requires': ">=3.9",
     }
 
     setup_args['setup_requires'] = build_requires
