@@ -151,7 +151,7 @@ test-command = "pytest --import-mode=append {project}"
 [build-system]
 requires = [
     "wheel",
-    "setuptools<=59.4.0",
+    "setuptools",
     "Cython>=3",
 
     # NumPy dependencies - to update these, sync from
