@@ -15,15 +15,11 @@ test-command = "pytest --import-mode=append {project}"
     archs = [
         "AMD64",
         "x86",
-        "ARM64",
     ]
 
     test-skip = [
         # Until SciPy does not support win32
         "*win32",
-
-        # We can't run tests when cross-compiling for ARM64 on AMD64
-        "*win_arm64",
 
         # Until SciPy gives us PyPy wheels
         "pp*",

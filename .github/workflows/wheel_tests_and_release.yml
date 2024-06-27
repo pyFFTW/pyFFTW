@@ -140,17 +140,15 @@ jobs:
         os: [windows-2022]
 
         cibw_python: ["cp39", "cp310", "cp311", "cp312", "pp39"]
-        # # Add arm64 when we support it
-        # # We don't support Windows 32-bit
-        cibw_arch: ["_amd64", "32", "_arm64"]
+        # Add arm64 when we support it
+        # We don't support Windows 32-bit
+        cibw_arch: ["_amd64", "32"]
 
         exclude:
 
           # cibuildwheel only supports pypy39 AMD64 on Windows
           - cibw_python: "pp39"
             cibw_arch: "32"
-          - cibw_python: "pp39"
-            cibw_arch: "_arm64"
 
     steps:
       - uses: actions/checkout@v3
