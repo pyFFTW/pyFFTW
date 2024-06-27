@@ -45,7 +45,7 @@ The documentation can be found on
 
 ## Requirements (i.e. what it was designed for)
 
-- [Python](https://python.org) >= 3.8 (lower versions *may* work)
+- [Python](https://python.org) >= 3.9 (lower versions *may* work)
 - [Numpy](https://www.numpy.org) >= 1.20 (lower versions *may* work)
 - [FFTW](https://www.fftw.org) >= 3.3 (lower versions *may* work) libraries for
   single, double, and long double precision in serial and multithreading
@@ -57,7 +57,7 @@ The documentation can be found on
 In practice, pyFFTW *may* work with older versions of these dependencies, but
 it is not tested against them.
 
-We build wheels for PyPy 3.8, but this platform has not been tested.
+We build wheels for PyPy 3.9, but this platform has not been tested.
 
 ## Optional Dependencies
 
@@ -100,8 +100,7 @@ Prebuilt wheels are available for the following configurations:
 
 |          Python version          | Windows (32 bit) | Windows (64 bit) | Windows ARM (64 bit) | MacOS | MacOS ARM | Linux (32 bit) | Linux (64 bit) | Linux ARM (64 bit) |
 | :------------------------------: | :--------------: | :--------------: | :------------------: | :---: | :-------- | :------------: | :------------: | :----------------: |
-|   CPython < 3.8 (unsupported)    |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
-|           CPython 3.8            |        ✔        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
+|   CPython < 3.9 (unsupported)    |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
 |           CPython 3.9            |        ✔        |        ✔        |          ✔          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
 |           CPython 3.10           |        ✔        |        ✔        |          ✔          |  ✔   | ❌        |       ❌       |       ✔       |         ✔         |
 |           CPython 3.11           |        ✔        |        ✔        |          ✔          |  ✔   | ❌        |       ❌       |       ✔       |         ✔         |

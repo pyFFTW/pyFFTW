@@ -21,7 +21,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04]
 
-        cibw_python: ["cp38", "cp39", "cp310", "cp311", "pp38"]
+        cibw_python: ["cp39", "cp310", "cp311", "pp39"]
         # SciPy and NumPy don't support musllinux
         cibw_libc: ["manylinux"]
         cibw_arch: ["x86_64", "i686", "aarch64"]
@@ -33,10 +33,10 @@ jobs:
           - cibw_python: "cp311"
             cibw_arch: "i686"
 
-          # Numpy only supports pypy38 x86_64 on Linux
-          - cibw_python: "pp38"
+          # Numpy only supports pypy39 x86_64 on Linux
+          - cibw_python: "pp39"
             cibw_arch: "i686"
-          - cibw_python: "pp38"
+          - cibw_python: "pp39"
             cibw_arch: "aarch64"
 
     steps:
@@ -79,7 +79,7 @@ jobs:
       matrix:
         os: [macos-12]
 
-        cibw_python: ["cp38", "cp39", "cp310", "cp311", "pp38"]
+        cibw_python: ["cp39", "cp310", "cp311", "pp39"]
         # See issue [#352](https://github.com/pyFFTW/pyFFTW/issues/352)
         # TODO: Add arm64 when we support it
         # Current problem seems to be that installed libfftw3 does not provide arm64
@@ -87,14 +87,14 @@ jobs:
         cibw_arch: ["x86_64"]
 
         exclude:
-          # cibuildwheel only supports pypy38 x86_64 on MacOS
-          - cibw_python: "pp38"
+          # cibuildwheel only supports pypy39 x86_64 on MacOS
+          - cibw_python: "pp39"
             cibw_arch: "arm64"
-          - cibw_python: "pp38"
+          - cibw_python: "pp39"
             cibw_arch: "universal2"
 
     env:
-      MACOSX_DEPLOYMENT_TARGET: "10.13"
+      MACOSX_DEPLOYMENT_TARGET: "12.0"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -137,20 +137,17 @@ jobs:
       matrix:
         os: [windows-2022]
 
-        cibw_python: ["cp38", "cp39", "cp310", "cp311", "pp38"]
+        cibw_python: ["cp39", "cp310", "cp311", "pp39"]
         # # Add arm64 when we support it
         # # We don't support Windows 32-bit
         cibw_arch: ["_amd64", "32", "_arm64"]
 
         exclude:
-          # windows arm64 support is 3.9+
-          - cibw_python: "cp38"
-            cibw_arch: "_arm64"
 
-          # cibuildwheel only supports pypy38 AMD64 on Windows
-          - cibw_python: "pp38"
+          # cibuildwheel only supports pypy39 AMD64 on Windows
+          - cibw_python: "pp39"
             cibw_arch: "32"
-          - cibw_python: "pp38"
+          - cibw_python: "pp39"
             cibw_arch: "_arm64"
 
     steps:

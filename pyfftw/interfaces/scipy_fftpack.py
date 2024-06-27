@@ -581,11 +581,10 @@ def _dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
 
     if type == 3 and norm == 'ortho':
         x = numpy.copy(x)
+        x /= math.sqrt(2*x.shape[axis])
         sp = list(it.repeat(Ellipsis, len(x.shape)))
-        sp[axis] = 0
-        x[tuple(sp)] /= math.sqrt(x.shape[axis])
-        sp[axis] = slice(1, None, None)
-        x[tuple(sp)] /= math.sqrt(2*x.shape[axis])
+        sp[axis] = -1
+        x[tuple(sp)] *= math.sqrt(2)
 
     type_flag_lookup = {
         1: 'FFTW_RODFT00',
@@ -614,10 +613,10 @@ def _dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
         if type == 1:
             result *= 1 / math.sqrt(2 * (x.shape[axis] + 1))
         elif type == 2:
-            sp = list(it.repeat(Ellipsis, len(x.shape)))
-            sp[axis] = 0
-            result[tuple(sp)] *= 1 / math.sqrt(2)
             result *= 1 / math.sqrt(2 * x.shape[axis])
+            sp = list(it.repeat(Ellipsis, len(x.shape)))
+            sp[axis] = -1
+            result[tuple(sp)] *= 1 / math.sqrt(2)
         elif type == 4:
             result *= 1 / math.sqrt(2 * x.shape[axis])
     elif norm == 'forward':
