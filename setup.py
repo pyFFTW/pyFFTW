@@ -772,7 +772,7 @@ def setup_package():
 
     # Figure out whether to add ``*_requires = ['numpy']``.
     build_requires = []
-    numpy_requirement = 'numpy>=1.20, <2.0'
+    numpy_requirement = 'numpy>=1.20'
     try:
         import numpy
     except ImportError:
