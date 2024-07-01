@@ -653,7 +653,8 @@ class custom_build_ext(build_ext):
         include_dirs = sniffer.include_dirs or []
         if self.include_dirs is not None:
             include_dirs += self.include_dirs
-        self.compiler.include_dirs.extend(include_dirs)
+        include_dirs.extend(self.compiler.include_dirs)
+        self.compiler.include_dirs = include_dirs
 
         libraries = sniffer.libraries or None
         if self.libraries is not None:
