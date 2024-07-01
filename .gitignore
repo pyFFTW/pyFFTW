@@ -32,3 +32,5 @@ pyfftw/fftw3.h
 
 # Editors
 .vscode
+
+.pdm-python

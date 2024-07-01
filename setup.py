@@ -770,66 +770,12 @@ cmdclass.update(versioneer.get_cmdclass())
 
 def setup_package():
 
-    # Figure out whether to add ``*_requires = ['numpy']``.
-    build_requires = []
-    numpy_requirement = 'numpy>=1.20'
-    try:
-        import numpy
-    except ImportError:
-        build_requires = [numpy_requirement]
-
-    # we require cython because we need to know which part of the wrapper
-    # to build to avoid missing symbols at runtime. But if this script is
-    # called without building pyfftw, for example to install the
-    # dependencies, then we have to hide the cython dependency.
-    try:
-        import cython
-    except ImportError:
-        build_requires.append('cython>=0.29.18, <1.0')
-
-    install_requires = [numpy_requirement]
-
-    opt_requires = {
-        'dask': ['numpy>=1.20, <2.0', 'dask[array]>=1.0'],
-        'scipy': ['scipy>=1.8.0']
-    }
-
     setup_args = {
-        'name': 'pyFFTW',
         'version': versioneer.get_version(),
-        'author': 'Henry Gomersall',
-        'author_email': 'heng@kedevelopments.co.uk',
-        'description': (
-            'A pythonic wrapper around FFTW, the FFT library, presenting a '
-            'unified interface for all the supported transforms.'),
-        'url': 'https://github.com/pyFFTW/pyFFTW',
         'long_description': long_description,
-        'classifiers': [
-            'Programming Language :: Python',
-            'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.9',
-            'Programming Language :: Python :: 3.10',
-            'Programming Language :: Python :: 3.11',
-            'Programming Language :: Python :: 3.12',
-            'Development Status :: 4 - Beta',
-            'License :: OSI Approved :: BSD License',
-            'Operating System :: OS Independent',
-            'Intended Audience :: Developers',
-            'Intended Audience :: Science/Research',
-            'Topic :: Scientific/Engineering',
-            'Topic :: Scientific/Engineering :: Mathematics',
-            'Topic :: Scientific/Engineering :: Image Processing',
-            'Topic :: Scientific/Engineering :: Physics',
-            'Topic :: Multimedia :: Sound/Audio :: Analysis'
-        ],
         'cmdclass': cmdclass,
-        'python_requires': ">=3.9",
         'py_modules': ['pyfftw'],
     }
-
-    setup_args['setup_requires'] = build_requires
-    setup_args['install_requires'] = install_requires
-    setup_args['extras_require'] = opt_requires
 
     if len(sys.argv) >= 2 and (
         '--help' in sys.argv[1:] or

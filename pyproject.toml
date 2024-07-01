@@ -1,3 +1,65 @@
+[build-system]
+requires = [
+    "wheel",
+    "setuptools",
+    "Cython>=3",
+    # taken from scipy (2024/06/28)
+    # numpy requirement for wheel builds for distribution on PyPI - building
+    # against 2.x yields wheels that are also compatible with numpy 1.x at
+    # runtime.
+    # Note that building against numpy 1.x works fine too - users and
+    # redistributors can do this by installing the numpy version they like and
+    # disabling build isolation.
+    "numpy>=2.0.0rc1",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyFFTW"
+description = "A pythonic wrapper around FFTW, the FFT library, presenting a unified interface for all the supported transforms."
+authors = [
+    {name = "Henry Gomersall", email = "heng@kedevelopments.co.uk"},
+]
+requires-python = ">=3.9"
+dynamic = ["version"]
+dependencies = [
+    "numpy>=1.20",
+    "setuptools>=70.1.1",
+]
+readme = "README.md"
+license = {text = "BSD"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+[project.urls]
+Homepage = "https://github.com/pyFFTW/pyFFTW"
+
+[project.optional-dependencies]
+dask = [
+    "dask[array]>=1.0",
+    "numpy>=1.20",
+]
+scipy = [
+    "scipy>=1.8.0",
+]
+
+
 [tool.cibuildwheel]
 build-verbosity = 2
 
@@ -97,19 +159,12 @@ test-command = "pytest --import-mode=append {project}"
     # before-all = "apk add fftw-dev"
 
 
-[build-system]
-requires = [
-    "wheel",
-    "setuptools",
-    "Cython>=3",
+[tool.pdm]
+distribution = true
 
-    # taken from scipy (2024/06/28)
-    # numpy requirement for wheel builds for distribution on PyPI - building
-    # against 2.x yields wheels that are also compatible with numpy 1.x at
-    # runtime.
-    # Note that building against numpy 1.x works fine too - users and
-    # redistributors can do this by installing the numpy version they like and
-    # disabling build isolation.
-    "numpy>=2.0.0rc1",
+[tool.pdm.dev-dependencies]
+test = [
+    "pytest>=8.2.2",
+    "packaging>=24.1",
 ]
-build-backend = "setuptools.build_meta"
+dev = ["pip"]
