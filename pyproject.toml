@@ -161,10 +161,17 @@ test-command = "pytest --import-mode=append {project}"
 
 [tool.pdm]
 distribution = true
+ignore_package_warnings = ["ipython"]
 
 [tool.pdm.dev-dependencies]
 test = [
     "pytest>=8.2.2",
     "packaging>=24.1",
 ]
-dev = ["pip"]
+dev = ["pip", "ipython"]
+
+[tool.pdm.options]
+lock = ["-G", ":all"]
+
+[tool.pytest.ini_options]
+addopts = "--pdbcls=IPython.terminal.debugger:TerminalPdb"

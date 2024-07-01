@@ -555,7 +555,10 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 self.validate(dtype_tuple[1],
                         test_shape, dtype, s, kwargs)
 
-
+    @unittest.skipIf(
+        Version(numpy.version.version) >= Version("2.0"),
+        reason="Unsupported for Numpy >=2.0"
+    )
     def test_dtype_coercian(self):
         # Make sure we input a dtype that needs to be coerced
         if functions[self.func] == 'r2c':
