@@ -644,6 +644,7 @@ class custom_build_ext(build_ext):
         self._pyfftw_define_macros = [
             (f"PYFFTW_{k}", int(v)) for k, v in sniffer.compile_time_env.items()
         ]
+        self._pyfftw_define_macros.append(("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"))
 
         # call `extend()` to keep argument set neither by sniffer nor by
         # user. On windows there are includes set automatically, we
