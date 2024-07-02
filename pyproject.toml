@@ -115,9 +115,6 @@ test-command = "pytest --import-mode=append {project}"
     [tool.cibuildwheel.linux]
 
     test-skip = [
-        # See: https://github.com/pyFFTW/pyFFTW/issues/325
-        "*i686",
-
         # See: https://github.com/pyFFTW/pyFFTW/issues/326
         "*aarch64",
 
@@ -130,17 +127,14 @@ test-command = "pytest --import-mode=append {project}"
     before-all = "yum install -y fftw-devel"
 
     manylinux-x86_64-image = "manylinux_2_28"
-    manylinux-i686-image = "manylinux_2_28"
     manylinux-aarch64-image = "manylinux_2_28"
     manylinux-ppc64le-image = "manylinux_2_28"
     manylinux-s390x-image = "manylinux_2_28"
     manylinux-pypy_x86_64-image = "manylinux_2_28"
-    manylinux-pypy_i686-image = "manylinux_2_28"
     manylinux-pypy_aarch64-image = "manylinux_2_28"
 
     archs = [
         "x86_64",
-        "i686",
         "aarch64",
     ]
 
