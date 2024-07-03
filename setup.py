@@ -645,6 +645,8 @@ class custom_build_ext(build_ext):
             (f"PYFFTW_{k}", int(v)) for k, v in sniffer.compile_time_env.items()
         ]
         self._pyfftw_define_macros.append(("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"))
+        # because Numpy 2.0 includes complex.h
+        self._pyfftw_define_macros.append(("FFTW_NO_Complex", "1"))
 
         # call `extend()` to keep argument set neither by sniffer nor by
         # user. On windows there are includes set automatically, we
