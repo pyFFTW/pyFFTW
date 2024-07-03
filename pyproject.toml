@@ -91,9 +91,7 @@ test-command = "pytest --import-mode=append {project}"
 
     archs = [
         "x86_64",
-
         # See issue [#352](https://github.com/pyFFTW/pyFFTW/issues/352)
-        # TODO: Add arm64 when we support it
         # Current problem seems to be that installed libfftw3 does not provide arm64
         # symbols
         # "universal2",
@@ -103,6 +101,8 @@ test-command = "pytest --import-mode=append {project}"
     test-skip = [
         # Until SciPy gives us PyPy wheels
         "pp*",
+        # See: https://github.com/pyFFTW/pyFFTW/issues/326
+        "*arm64",
     ]
 
         [tool.cibuildwheel.macos.environment]
