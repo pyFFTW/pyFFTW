@@ -97,7 +97,7 @@ test-command = "pytest --import-mode=append {project}"
         # Current problem seems to be that installed libfftw3 does not provide arm64
         # symbols
         # "universal2",
-        # "arm64",
+        "arm64",
     ]
 
     test-skip = [
