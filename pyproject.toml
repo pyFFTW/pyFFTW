@@ -10,7 +10,7 @@ requires = [
     # Note that building against numpy 1.x works fine too - users and
     # redistributors can do this by installing the numpy version they like and
     # disabling build isolation.
-    "numpy>=2.0.0rc1",
+    "numpy>=2.0.0",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -29,7 +29,7 @@ dependencies = [
 readme = "README.md"
 license = {text = "BSD"}
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
@@ -161,6 +161,8 @@ ignore_package_warnings = ["ipython"]
 test = [
     "pytest>=8.2.2",
     "packaging>=24.1",
+    "scipy",
+    "dask",
 ]
 dev = ["pip", "ipython"]
 

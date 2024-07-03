@@ -5,7 +5,7 @@
 groups = ["default", "dask", "dev", "scipy", "test"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.2"
-content_hash = "sha256:eea3528cb7516e1134ab6d0d3d908b5a30ef165b8e5a87e130f45d774e80b3a1"
+content_hash = "sha256:ba7f9d5153bda0eb684166573a9521bf468124cd563dd433198e0e3a8d5ff7e4"
 
 [[package]]
 name = "asttokens"
@@ -25,7 +25,7 @@ name = "click"
 version = "8.1.7"
 requires_python = ">=3.7"
 summary = "Composable command line interface toolkit"
-groups = ["dask"]
+groups = ["dask", "test"]
 dependencies = [
     "colorama; platform_system == \"Windows\"",
 ]
@@ -39,7 +39,7 @@ name = "cloudpickle"
 version = "3.0.0"
 requires_python = ">=3.8"
 summary = "Pickler class to extend the standard pickle.Pickler functionality"
-groups = ["dask"]
+groups = ["dask", "test"]
 files = [
     {file = "cloudpickle-3.0.0-py3-none-any.whl", hash = "sha256:246ee7d0c295602a036e86369c77fecda4ab17b506496730f2f576d9016fd9c7"},
     {file = "cloudpickle-3.0.0.tar.gz", hash = "sha256:996d9a482c6fb4f33c1a35335cf8afd065d2a56e973270364840712d9131a882"},
@@ -62,7 +62,7 @@ name = "dask"
 version = "2024.6.2"
 requires_python = ">=3.9"
 summary = "Parallel PyData with Task Scheduling"
-groups = ["dask"]
+groups = ["dask", "test"]
 dependencies = [
     "click>=8.1",
     "cloudpickle>=1.5.0",
@@ -133,7 +133,7 @@ name = "fsspec"
 version = "2024.6.1"
 requires_python = ">=3.8"
 summary = "File-system specification"
-groups = ["dask"]
+groups = ["dask", "test"]
 files = [
     {file = "fsspec-2024.6.1-py3-none-any.whl", hash = "sha256:3cb443f8bcd2efb31295a5b9fdb02aee81d8452c80d28f97a6d0959e6cee101e"},
     {file = "fsspec-2024.6.1.tar.gz", hash = "sha256:fad7d7e209dd4c1208e3bbfda706620e0da5142bebbd9c384afb95b07e798e49"},
@@ -144,7 +144,7 @@ name = "importlib-metadata"
 version = "8.0.0"
 requires_python = ">=3.8"
 summary = "Read metadata from Python packages"
-groups = ["dask"]
+groups = ["dask", "test"]
 marker = "python_version < \"3.12\""
 dependencies = [
     "zipp>=0.5",
@@ -208,7 +208,7 @@ name = "locket"
 version = "1.0.0"
 requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 summary = "File-based locks for Python on Linux and Windows"
-groups = ["dask"]
+groups = ["dask", "test"]
 files = [
     {file = "locket-1.0.0-py2.py3-none-any.whl", hash = "sha256:b6c819a722f7b6bd955b80781788e4a66a55628b858d347536b7e81325a3a5e3"},
     {file = "locket-1.0.0.tar.gz", hash = "sha256:5c0d4c052a8bbbf750e056a8e65ccd309086f4f0f18a2eac306a8dfa4112a632"},
@@ -233,7 +233,7 @@ name = "numpy"
 version = "2.0.0"
 requires_python = ">=3.9"
 summary = "Fundamental package for array computing in Python"
-groups = ["dask", "default", "scipy"]
+groups = ["dask", "default", "scipy", "test"]
 files = [
     {file = "numpy-2.0.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:04494f6ec467ccb5369d1808570ae55f6ed9b5809d7f035059000a37b8d7e86f"},
     {file = "numpy-2.0.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:2635dbd200c2d6faf2ef9a0d04f0ecc6b13b3cad54f7c67c61155138835515d2"},
@@ -309,7 +309,7 @@ name = "partd"
 version = "1.4.2"
 requires_python = ">=3.9"
 summary = "Appendable key-value storage"
-groups = ["dask"]
+groups = ["dask", "test"]
 dependencies = [
     "locket",
     "toolz",
@@ -425,7 +425,7 @@ name = "pyyaml"
 version = "6.0.1"
 requires_python = ">=3.6"
 summary = "YAML parser and emitter for Python"
-groups = ["dask"]
+groups = ["dask", "test"]
 files = [
     {file = "PyYAML-6.0.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:d858aa552c999bc8a8d57426ed01e40bef403cd8ccdd0fc5f6f04a00414cac2a"},
     {file = "PyYAML-6.0.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:fd66fc5d0da6d9815ba2cebeb4205f95818ff4b79c3ebe268e75d961704af52f"},
@@ -466,7 +466,7 @@ name = "scipy"
 version = "1.13.1"
 requires_python = ">=3.9"
 summary = "Fundamental algorithms for scientific computing in Python"
-groups = ["scipy"]
+groups = ["scipy", "test"]
 dependencies = [
     "numpy<2.3,>=1.22.4",
 ]
@@ -500,13 +500,13 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "70.1.1"
+version = "70.2.0"
 requires_python = ">=3.8"
 summary = "Easily download, build, install, upgrade, and uninstall Python packages"
 groups = ["default"]
 files = [
-    {file = "setuptools-70.1.1-py3-none-any.whl", hash = "sha256:a58a8fde0541dab0419750bcc521fbdf8585f6e5cb41909df3a472ef7b81ca95"},
-    {file = "setuptools-70.1.1.tar.gz", hash = "sha256:937a48c7cdb7a21eb53cd7f9b59e525503aa8abaf3584c730dc5f7a5bec3a650"},
+    {file = "setuptools-70.2.0-py3-none-any.whl", hash = "sha256:b8b8060bb426838fbe942479c90296ce976249451118ef566a5a0b7d8b78fb05"},
+    {file = "setuptools-70.2.0.tar.gz", hash = "sha256:bd63e505105011b25c3c11f753f7e3b8465ea739efddaccef8f0efac2137bac1"},
 ]
 
 [[package]]
@@ -552,7 +552,7 @@ name = "toolz"
 version = "0.12.1"
 requires_python = ">=3.7"
 summary = "List processing tools and functional utilities"
-groups = ["dask"]
+groups = ["dask", "test"]
 files = [
     {file = "toolz-0.12.1-py3-none-any.whl", hash = "sha256:d22731364c07d72eea0a0ad45bafb2c2937ab6fd38a3507bf55eae8744aa7d85"},
     {file = "toolz-0.12.1.tar.gz", hash = "sha256:ecca342664893f177a13dac0e6b41cbd8ac25a358e5f215316d43e2100224f4d"},
@@ -596,7 +596,7 @@ name = "zipp"
 version = "3.19.2"
 requires_python = ">=3.8"
 summary = "Backport of pathlib-compatible object wrapper for zip files"
-groups = ["dask"]
+groups = ["dask", "test"]
 marker = "python_version < \"3.12\""
 files = [
     {file = "zipp-3.19.2-py3-none-any.whl", hash = "sha256:f091755f667055f2d02b32c53771a7a6c8b47e1fdbc4b72a8b9072b3eef8015c"},
