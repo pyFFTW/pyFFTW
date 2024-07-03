@@ -101,12 +101,12 @@ Prebuilt wheels are available for the following configurations:
 |          Python version          | Windows (32 bit) | Windows (64 bit) | Windows ARM (64 bit) | MacOS | MacOS ARM | Linux (64 bit) | Linux ARM (64 bit) |
 | :------------------------------: | :--------------: | :--------------: | :------------------: | :---: | :-------- | :------------: | :----------------: |
 |   CPython < 3.9 (unsupported)    |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |         ❌         |
-|           CPython 3.9            |        ✔        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |         ✔         |
-|           CPython 3.10           |        ✔        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |         ✔         |
-|           CPython 3.11           |        ✔        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |         ✔         |
-|           CPython 3.12           |        ✔        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |         ✔         |
+|           CPython 3.9            |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
+|           CPython 3.10           |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
+|           CPython 3.11           |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
+|           CPython 3.12           |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
 |     PyPy < 3.9 (unsupported)     |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |      ❌       |         ❌         |
-|             PyPy 3.9             |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |         ❌         |
+|             PyPy 3.9             |        ❌        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ❌         |
 | PyPy > 3.9 (unsupported for now) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |        ❌       |         ❌         |
 
 Note that Linux 32-bit wheels are available only for pyFFTW <= 0.13.1.
