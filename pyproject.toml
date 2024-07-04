@@ -138,13 +138,6 @@ test-command = "pytest --import-mode=append {project}"
         "aarch64",
     ]
 
-    # Select based on manylinux availability
-    # See: https://github.com/pypa/manylinux
-    # See: https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip
-    # See: https://github.com/pypa/manylinux/issues/994#issuecomment-987835591
-    # From 3.10+ we can stop doing the madness below and just PEP 600 manylinux_x_y images
-    # Currently the selection of images is conservative and aims for maximal compatibility
-
     # Currently not supported
     # Even numpy does not support this
     # This is ignored in the wheel_tests_and_release.yml file

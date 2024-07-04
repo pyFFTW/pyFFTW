@@ -20,7 +20,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04]
-
         cibw_python: ["cp39", "cp310", "cp311", "cp312", "pp39"]
         # SciPy and NumPy don't support musllinux
         cibw_libc: ["manylinux"]
@@ -70,12 +69,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-12]
-
         cibw_python: ["cp39", "cp310", "cp311", "cp312", "pp39"]
-        # See issue [#352](https://github.com/pyFFTW/pyFFTW/issues/352)
-        # TODO: Add arm64 when we support it
-        # Current problem seems to be that installed libfftw3 does not provide arm64
-        # symbols
         cibw_arch: ["x86_64"]
 
         exclude:
@@ -126,18 +120,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14]
-
         cibw_python: ["cp39", "cp310", "cp311", "cp312", "pp39"]
-        # See issue [#352](https://github.com/pyFFTW/pyFFTW/issues/352)
-        # TODO: Add arm64 when we support it
-        # Current problem seems to be that installed libfftw3 does not provide arm64
-        # symbols
         cibw_arch: ["arm64"]
-
-        # exclude:
-        #   # cibuildwheel only supports pypy39 x86_64 on MacOS
-        #   - cibw_python: "pp39"
-        #     cibw_arch: "arm64"
 
     env:
       MACOSX_DEPLOYMENT_TARGET: "14.0"
@@ -173,19 +157,14 @@ jobs:
           path: ./dist/*.whl
 
   build_windows_wheels:
-    # Only works for 64-bit.
-    # 32-bit is likely possible, but probably not worth the time investment to get
-    # working given low usage
     name: Build ${{ matrix.cibw_python }}-win${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [windows-2022]
-
         cibw_python: ["cp39", "cp310", "cp311", "cp312", "pp39"]
         # Add arm64 when we support it
-        # We don't support Windows 32-bit
         cibw_arch: ["_amd64", "32"]
 
         exclude:
