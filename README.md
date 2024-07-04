@@ -98,15 +98,18 @@ Read on if you do want to build from source...
 
 Prebuilt wheels are available for the following configurations:
 
-|          Python version          | Windows (32 bit) | Windows (64 bit) | Windows ARM (64 bit) | MacOS | MacOS ARM | Linux (32 bit) | Linux (64 bit) | Linux ARM (64 bit) |
-| :------------------------------: | :--------------: | :--------------: | :------------------: | :---: | :-------- | :------------: | :------------: | :----------------: |
-|   CPython < 3.9 (unsupported)    |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
-|           CPython 3.9            |        ✔        |        ✔        |          ✔          |  ✔   | ❌        |       ✔       |       ✔       |         ✔         |
-|           CPython 3.10           |        ✔        |        ✔        |          ✔          |  ✔   | ❌        |       ❌       |       ✔       |         ✔         |
-|           CPython 3.11           |        ✔        |        ✔        |          ✔          |  ✔   | ❌        |       ❌       |       ✔       |         ✔         |
-|     PyPy < 3.8 (unsupported)     |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
-|             PyPy 3.8             |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ❌       |       ✔       |         ❌         |
-| PyPy > 3.8 (unsupported for now) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |       ❌       |         ❌         |
+|          Python version          | Windows (32 bit) | Windows (64 bit) | Windows ARM (64 bit) | MacOS | MacOS ARM | Linux (64 bit) | Linux ARM (64 bit) |
+| :------------------------------: | :--------------: | :--------------: | :------------------: | :---: | :-------- | :------------: | :----------------: |
+|   CPython < 3.9 (unsupported)    |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |         ❌         |
+|           CPython 3.9            |        ✔        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |         ✔         |
+|           CPython 3.10           |        ✔        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |         ✔         |
+|           CPython 3.11           |        ✔        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |         ✔         |
+|           CPython 3.12           |        ✔        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |         ✔         |
+|     PyPy < 3.9 (unsupported)     |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |      ❌       |         ❌         |
+|             PyPy 3.9             |        ❌        |        ✔        |          ❌          |  ✔   | ❌        |       ✔       |         ❌         |
+| PyPy > 3.9 (unsupported for now) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |        ❌       |         ❌         |
+
+Note that Linux 32-bit wheels are available only for pyFFTW <= 0.13.1.
 
 If your configuration does not match one of these you will have to build `pyfft` from source yourself.
 See instructions below.
@@ -245,3 +248,23 @@ where I can with any conceptual issues.
 
 I suggest reading the issues already open in order that you know where things
 might be heading, or what others are working on.
+
+### Use PDM to setup a virtual environment for the development of pyFFTW
+
+[PDM], which can be for example installed with [Pipx], can be used to setup a virtual
+environment `.venv` for the development of pyFFTW and install pyFFTW in editable mode.
+
+```sh
+pdm sync --clean -v
+```
+
+This environment is described in the file `pyproject.toml` and the exact versions of
+the packages are listed in a lock file `pdm.lock`. Maintainers can update the lockfile
+by running (typically in a PR before each release)
+
+```sh
+pdm lock
+```
+
+[pdm]: https://pdm-project.org
+[pipx]: https://github.com/pypa/pipx

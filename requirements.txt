@@ -1,4 +1,0 @@
-cython>=0.29.18
-numpy>=1.16
-scipy>=1.2.0
-dask[array]>=1.0.0

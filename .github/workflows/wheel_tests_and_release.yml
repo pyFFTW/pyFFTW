@@ -24,20 +24,10 @@ jobs:
         cibw_python: ["cp39", "cp310", "cp311", "cp312", "pp39"]
         # SciPy and NumPy don't support musllinux
         cibw_libc: ["manylinux"]
-        cibw_arch: ["x86_64", "i686", "aarch64"]
+        cibw_arch: ["x86_64", "aarch64"]
 
         exclude:
-          # SciPy and NumPy don't support 32-bit Linux from Python 3.10 and onwards
-          - cibw_python: "cp310"
-            cibw_arch: "i686"
-          - cibw_python: "cp311"
-            cibw_arch: "i686"
-          - cibw_python: "cp312"
-            cibw_arch: "i686"
-
           # Numpy only supports pypy39 x86_64 on Linux
-          - cibw_python: "pp39"
-            cibw_arch: "i686"
           - cibw_python: "pp39"
             cibw_arch: "aarch64"
 

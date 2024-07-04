@@ -47,6 +47,8 @@ import copy
 import warnings
 warnings.filterwarnings('always')
 
+from packaging.version import Version
+
 complex_dtypes = _supported_nptypes_complex
 real_dtypes = _supported_nptypes_real
 
@@ -522,6 +524,10 @@ class BuildersTestFFT(unittest.TestCase):
 
                 self.assertTrue('FFTW_UNALIGNED' not in FFTW_object.flags)
 
+    @unittest.skipIf(
+        Version(numpy.version.version) >= Version("2.0"), 
+        reason="Unsupported for Numpy >=2.0"
+    )
     def test_dtype_coercian(self):
         # Make sure we input a dtype that needs to be coerced
         if functions[self.func] == 'r2c':
