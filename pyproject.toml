@@ -91,18 +91,18 @@ test-command = "pytest --import-mode=append {project}"
 
     archs = [
         "x86_64",
-
         # See issue [#352](https://github.com/pyFFTW/pyFFTW/issues/352)
-        # TODO: Add arm64 when we support it
         # Current problem seems to be that installed libfftw3 does not provide arm64
         # symbols
         # "universal2",
-        # "arm64",
+        "arm64",
     ]
 
     test-skip = [
         # Until SciPy gives us PyPy wheels
         "pp*",
+        # See: https://github.com/pyFFTW/pyFFTW/issues/326
+        "*arm64",
     ]
 
         [tool.cibuildwheel.macos.environment]
@@ -137,13 +137,6 @@ test-command = "pytest --import-mode=append {project}"
         "x86_64",
         "aarch64",
     ]
-
-    # Select based on manylinux availability
-    # See: https://github.com/pypa/manylinux
-    # See: https://cibuildwheel.readthedocs.io/en/stable/options/#build-skip
-    # See: https://github.com/pypa/manylinux/issues/994#issuecomment-987835591
-    # From 3.10+ we can stop doing the madness below and just PEP 600 manylinux_x_y images
-    # Currently the selection of images is conservative and aims for maximal compatibility
 
     # Currently not supported
     # Even numpy does not support this
