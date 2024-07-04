@@ -48,6 +48,7 @@ Contents
    /source/tutorial
    /source/license
    /source/api
+   /release/releases
 
 Indices and tables
 ==================

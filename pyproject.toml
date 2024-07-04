@@ -158,6 +158,11 @@ test = [
     "dask",
 ]
 dev = ["pip", "ipython"]
+doc = [
+    "sphinx>=7.3.7",
+    "scipy>=1.13.1",
+    "dask>=2024.6.2",
+]
 
 [tool.pdm.options]
 lock = ["-G", ":all"]

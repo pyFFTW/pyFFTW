@@ -1513,7 +1513,8 @@ cdef class FFTW:
           Unlike the plain discrete Fourier transform, one may specify a
           different real to real transformation over each axis: for example,
 
-          .. code-block:: none
+          .. code-block:: python
+
              a = pyfftw.empty_aligned((128,128,128))
              b = pyfftw.empty_aligned((128,128,128))
              directions = ['FFTW_REDFT00', 'FFTW_RODFT11']
