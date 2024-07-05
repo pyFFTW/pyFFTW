@@ -1,0 +1,27 @@
+name: Documentation
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: apt install
+      run: |
+        sudo apt-get update
+        sudo apt install -y libfftw3-dev
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install PDM and Nox
+      run: |
+        pip install pdm nox
+
+    - name: Build doc
+      run: |
+        nox -s doc

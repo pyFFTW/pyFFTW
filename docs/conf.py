@@ -221,9 +221,11 @@ man_pages = [
 ]
 
 # Intersphinx mappings
-intersphinx_mapping = {'http://docs.python.org/': None,
-        'http://docs.scipy.org/doc/numpy': None,
-        'http://docs.scipy.org/doc/scipy/reference': None}
+intersphinx_mapping = {
+    "python": ('http://docs.python.org/', None),
+    "numpy": ('http://docs.scipy.org/doc/numpy', None),
+    "scipy": ('http://docs.scipy.org/doc/scipy/reference', None),
+}
 
 dependencies = {'pyfftw/pyfftw': ['pyfftw/pyfftw.so'],
         'pyfftw/builders/builders': ['pyfftw/builders/builders.py'],
