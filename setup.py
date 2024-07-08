@@ -123,7 +123,7 @@ def get_package_data():
             pass
         else:
             # as download from http://www.fftw.org/install/windows.html
-            package_data['pyfftw'].append([
+            package_data['pyfftw'].extend([
                 'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll'])
 
     return package_data

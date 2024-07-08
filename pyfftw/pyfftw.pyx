@@ -2002,7 +2002,7 @@ cdef class FFTW:
 cdef void execute_in_nogil(fftw_exe* exe_ptr) noexcept nogil:
     '''execute_in_nogil(fftw_exe* exe_ptr)
 
-        Runs the FFT as defind by the pointed fftw_exe.
+        Runs the FFT as defined by the pointed fftw_exe.
 
         Warning: This method is NOT thread-safe. Concurrent calls
         to execute_in_nogil with and aliased fftw_exe will lead 
