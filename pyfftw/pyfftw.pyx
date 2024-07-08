@@ -871,52 +871,6 @@ cdef class FFTW:
     See the documentation on the :meth:`~pyfftw.FFTW.__call__` method
     for more information.
     '''
-    # Each of these function pointers simply
-    # points to a chosen fftw wrapper function
-    cdef fftw_generic_plan_guru _fftw_planner
-    cdef fftw_generic_execute _fftw_execute
-    cdef fftw_generic_destroy_plan _fftw_destroy
-    cdef fftw_generic_plan_with_nthreads _nthreads_plan_setter
-
-    # The plan is typecast when it is created or used
-    # within the wrapper functions
-    cdef void *_plan
-
-    cdef np.ndarray _input_array
-    cdef np.ndarray _output_array
-    cdef int *_direction
-    cdef unsigned _flags
-
-    cdef bint _simd_allowed
-    cdef int _input_array_alignment
-    cdef int _output_array_alignment
-    cdef bint _use_threads
-
-    cdef object _input_item_strides
-    cdef object _input_strides
-    cdef object _output_item_strides
-    cdef object _output_strides
-    cdef object _input_shape
-    cdef object _output_shape
-    cdef object _input_dtype
-    cdef object _output_dtype
-    cdef object _flags_used
-
-    cdef double _normalisation_scaling
-    cdef double _sqrt_normalisation_scaling
-
-    cdef int _rank
-    cdef _fftw_iodim *_dims
-    cdef int _howmany_rank
-    cdef _fftw_iodim *_howmany_dims
-
-    cdef int64_t *_axes
-    cdef int64_t *_not_axes
-
-    cdef int64_t _total_size
-
-    cdef bint _normalise_idft
-    cdef bint _ortho
 
     def _get_N(self):
         '''
@@ -1164,7 +1118,7 @@ cdef class FFTW:
                 set_timelimit_funcs[functions['generic_precision']])
 
         # We're interested in the natural alignment on the real type, not
-        # necessarily on the complex type At least one bug was found where
+        # necessarily on the complex type. At least one bug was found where
         # numpy reported an alignment on a complex dtype that was different
         # to that on the real type.
         cdef int natural_input_alignment = input_array.real.dtype.alignment
@@ -1250,6 +1204,11 @@ cdef class FFTW:
 
         self._input_array = input_array
         self._output_array = output_array
+
+        self._input_pointer =  (
+                <void *>np.PyArray_DATA(self._input_array))
+        self._output_pointer = (
+                <void *>np.PyArray_DATA(self._output_array))
 
         self._axes = <int64_t *>malloc(len(axes)*sizeof(int64_t))
         for n in range(len(axes)):
@@ -1957,6 +1916,11 @@ cdef class FFTW:
         self._input_array = new_input_array
         self._output_array = new_output_array
 
+        self._input_pointer =  (
+                <void *>np.PyArray_DATA(self._input_array))
+        self._output_pointer = (
+                <void *>np.PyArray_DATA(self._output_array))
+
     def get_input_array(self):
         '''get_input_array()
 
@@ -1995,15 +1959,63 @@ cdef class FFTW:
         and putting the result in the output array (i.e.
         :attr:`FFTW.output_array`).
         '''
-        cdef void *input_pointer = (
-                <void *>np.PyArray_DATA(self._input_array))
-        cdef void *output_pointer = (
-                <void *>np.PyArray_DATA(self._output_array))
-
-        cdef void *plan = self._plan
-        cdef fftw_generic_execute fftw_execute = self._fftw_execute
         with nogil:
-            fftw_execute(plan, input_pointer, output_pointer)
+            self.execute_nogil()
+
+    cdef void execute_nogil(self) noexcept nogil:
+        '''execute_nogil()
+
+        Same as execute(), but can be called from Cython directly within a
+        nogil block.
+
+        Warning: This method is NOT thread-safe. Concurrent calls
+        to execute_nogil will lead to race conditions and ultimately
+        wrong FFT results.
+
+        '''
+        self._fftw_execute(
+            self._plan,
+            self._input_pointer,
+            self._output_pointer)
+
+    cdef fftw_exe get_fftw_exe(self):
+        '''get_fftw_exe()
+
+        Returns a C struct fftw_exe that is associated with the FFTW
+        instance.
+
+        For Cython use only. This is really only useful if you want to 
+        bundle a few of those in a C array, and then call them all from
+        within a nogil block.
+        
+        '''
+
+        cdef fftw_exe exe
+
+        exe._fftw_execute = self._fftw_execute
+        exe._plan = self._plan
+        exe._input_pointer = self._input_pointer
+        exe._output_pointer = self._output_pointer
+
+        return exe
+
+cdef void execute_in_nogil(fftw_exe* exe_ptr) noexcept nogil:
+    '''execute_in_nogil(fftw_exe* exe_ptr)
+
+        Runs the FFT as defined by the pointed fftw_exe.
+
+        Warning: This method is NOT thread-safe. Concurrent calls
+        to execute_in_nogil with and aliased fftw_exe will lead 
+        to wrong FFT results.
+
+    '''
+
+    cdef fftw_exe exe = exe_ptr[0]
+
+    exe._fftw_execute(
+        exe._plan,
+        exe._input_pointer,
+        exe._output_pointer)
 
 cdef void count_char(char c, void *counter_ptr) noexcept nogil:
     '''
@@ -2030,7 +2042,6 @@ cdef void write_char_to_string(char c, void *string_location_ptr) noexcept nogil
     write_location[0] = c
 
     (<intptr_t *>string_location_ptr)[0] += 1
-
 
 def export_wisdom():
     '''export_wisdom()

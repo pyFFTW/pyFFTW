@@ -56,7 +56,26 @@ ctypedef struct _fftw_iodim:
     int _is
     int _os
 
-cdef extern from 'pyfftw_complex.h':
+cdef extern from *:
+    '''
+    /* Defines complex types that are bit compatible with C99's complex.h
+    * and (crucially) the same type as expected by fftw3.h.
+    * Note, don't use this with complex.h. fftw3.h checks to see whether
+    * complex.h is included and then uses that to set the interface.
+    * Since MSVC doesn't support C99, by using the following types we
+    * have a cross platform/compiler solution.
+    *
+    * */
+    
+    #ifndef PYFFTW_COMPLEX_H
+    #define PYFFTW_COMPLEX_H
+    
+    typedef float cfloat[2];
+    typedef double cdouble[2];
+    typedef long double clongdouble[2];
+    
+    #endif /* Header guard */
+    '''
 
     ctypedef float cfloat[2]
     ctypedef double cdouble[2]
@@ -364,7 +383,14 @@ ctypedef void * (*fftw_generic_plan_guru)(
         void *_in, void *_out,
         int *directions, unsigned flags) nogil
 
-ctypedef void (*fftw_generic_execute)(void *_plan, void *_in, void *_out) nogil
+ctypedef void (*fftw_generic_execute)(void *_plan, void *_in, void *_out) noexcept nogil
+
+ctypedef struct fftw_exe:
+
+    fftw_generic_execute _fftw_execute
+    void* _plan
+    void* _input_pointer
+    void* _output_pointer
 
 ctypedef void (*fftw_generic_destroy_plan)(void *_plan)
 
@@ -403,3 +429,69 @@ cdef enum:
     FFTW_PATIENT = 32
     FFTW_ESTIMATE = 64
     FFTW_WISDOM_ONLY = 2097152
+
+
+cdef class FFTW:
+   # Each of these function pointers simply
+    # points to a chosen fftw wrapper function
+    cdef fftw_generic_plan_guru _fftw_planner
+    cdef fftw_generic_execute _fftw_execute
+    cdef fftw_generic_destroy_plan _fftw_destroy
+    cdef fftw_generic_plan_with_nthreads _nthreads_plan_setter
+
+    # The plan is typecast when it is created or used
+    # within the wrapper functions
+    cdef void *_plan
+
+    cdef np.ndarray _input_array
+    cdef void* _input_pointer
+    cdef np.ndarray _output_array
+    cdef void* _output_pointer
+
+    cdef int *_direction
+    cdef unsigned _flags
+
+    cdef bint _simd_allowed
+    cdef int _input_array_alignment
+    cdef int _output_array_alignment
+    cdef bint _use_threads
+
+    cdef object _input_item_strides
+    cdef object _input_strides
+    cdef object _output_item_strides
+    cdef object _output_strides
+    cdef object _input_shape
+    cdef object _output_shape
+    cdef object _input_dtype
+    cdef object _output_dtype
+    cdef object _flags_used
+
+    cdef double _normalisation_scaling
+    cdef double _sqrt_normalisation_scaling
+
+    cdef int _rank
+    cdef _fftw_iodim *_dims
+    cdef int _howmany_rank
+    cdef _fftw_iodim *_howmany_dims
+
+    cdef int64_t *_axes
+    cdef int64_t *_not_axes
+
+    cdef int64_t _total_size
+
+    cdef bint _normalise_idft
+    cdef bint _ortho
+
+    cpdef update_arrays(self,
+            new_input_array, new_output_array)
+
+    cdef _update_arrays(self,
+            np.ndarray new_input_array, np.ndarray new_output_array)
+
+    cpdef execute(self)
+
+    cdef fftw_exe get_fftw_exe(self)
+
+    cdef void execute_nogil(self) noexcept nogil
+    
+cdef void execute_in_nogil(fftw_exe* exe_ptr) noexcept nogil
