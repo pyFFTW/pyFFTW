@@ -2011,7 +2011,7 @@ cdef void execute_in_nogil(fftw_exe* exe_ptr) noexcept nogil:
     **For Cython use only.**
 
     Warning: This method is **NOT** thread-safe. Concurrent calls
-    to :func:`pyfftw.execute_in_nogil` with and aliased :data:`pyfftw.fftw_exe` will lead 
+    to :func:`pyfftw.execute_in_nogil` with an aliased :data:`pyfftw.fftw_exe` will lead 
     to wrong FFT results.
 
     '''

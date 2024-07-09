@@ -134,7 +134,7 @@ Utility Functions
    **For Cython use only.**
 
    Warning: This method is **NOT** thread-safe. Concurrent calls
-   to :func:`pyfftw.execute_in_nogil` with and aliased :data:`pyfftw.fftw_exe` will lead 
+   to :func:`pyfftw.execute_in_nogil` with an aliased :data:`pyfftw.fftw_exe` will lead 
    to wrong FFT results.
 
 .. _configuration_variables:
