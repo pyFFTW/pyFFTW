@@ -1965,11 +1965,13 @@ cdef class FFTW:
     cdef void execute_nogil(self) noexcept nogil:
         '''execute_nogil()
 
-        Same as execute(), but can be called from Cython directly within a
+        Same as :func:`pyfftw.FFTW.execute`, but should be called from Cython directly within a
         nogil block.
 
-        Warning: This method is NOT thread-safe. Concurrent calls
-        to execute_nogil will lead to race conditions and ultimately
+        **For Cython use only.**
+
+        Warning: This method is **NOT** thread-safe. Concurrent calls
+        to :func:`pyfftw.FFTW.execute_nogil` will lead to race conditions and ultimately
         wrong FFT results.
 
         '''
@@ -1981,11 +1983,13 @@ cdef class FFTW:
     cdef fftw_exe get_fftw_exe(self):
         '''get_fftw_exe()
 
-        Returns a C struct fftw_exe that is associated with the FFTW
+        Returns a C struct :data:`pyfftw.fftw_exe` that is associated with the FFTW
         instance.
 
-        For Cython use only. This is really only useful if you want to 
-        bundle a few of those in a C array, and then call them all from
+        **For Cython use only.**
+
+        This is really only useful if you want to 
+        bundle a few :data:`pyfftw.fftw_exe` in a C array, and then call them all from
         within a nogil block.
         
         '''
@@ -2002,11 +2006,13 @@ cdef class FFTW:
 cdef void execute_in_nogil(fftw_exe* exe_ptr) noexcept nogil:
     '''execute_in_nogil(fftw_exe* exe_ptr)
 
-        Runs the FFT as defined by the pointed fftw_exe.
+    Runs the FFT as defined by the pointed :data:`pyfftw.fftw_exe`.
 
-        Warning: This method is NOT thread-safe. Concurrent calls
-        to execute_in_nogil with and aliased fftw_exe will lead 
-        to wrong FFT results.
+    **For Cython use only.**
+
+    Warning: This method is **NOT** thread-safe. Concurrent calls
+    to :func:`pyfftw.execute_in_nogil` with and aliased :data:`pyfftw.fftw_exe` will lead 
+    to wrong FFT results.
 
     '''
 
