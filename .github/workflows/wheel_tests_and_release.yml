@@ -31,17 +31,17 @@ jobs:
             cibw_arch: "aarch64"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: '3.12'
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
 
@@ -55,12 +55,13 @@ jobs:
         env:
           CIBW_BUILD: ${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         name: Upload wheels as artifacts
         if: ${{ github.event_name != 'pull_request' }}
         with:
-          name: wheels
+          name: wheels-${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}
           path: ./dist/*.whl
+
 
   build_macos_wheels:
     name: Build ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
@@ -82,7 +83,7 @@ jobs:
     env:
       MACOSX_DEPLOYMENT_TARGET: "12.0"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -90,7 +91,7 @@ jobs:
         run: |
           brew install fftw
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: '3.12'
@@ -105,11 +106,11 @@ jobs:
         env:
           CIBW_BUILD: ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         name: Upload wheels as artifacts
         if: ${{ github.event_name != 'pull_request' }}
         with:
-          name: wheels
+          name: wheels-${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
           path: ./dist/*.whl
 
 
@@ -126,7 +127,7 @@ jobs:
     env:
       MACOSX_DEPLOYMENT_TARGET: "14.0"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -134,7 +135,7 @@ jobs:
         run: |
           brew install fftw
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: '3.12'
@@ -149,12 +150,13 @@ jobs:
         env:
           CIBW_BUILD: ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         name: Upload wheels as artifacts
         if: ${{ github.event_name != 'pull_request' }}
         with:
-          name: wheels
+          name: wheels-${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
           path: ./dist/*.whl
+
 
   build_windows_wheels:
     name: Build ${{ matrix.cibw_python }}-win${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
@@ -174,11 +176,11 @@ jobs:
             cibw_arch: "32"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: '3.12'
@@ -237,12 +239,13 @@ jobs:
         run: |
           python -m cibuildwheel --output-dir dist
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         name: Upload wheels as artifacts
         if: ${{ github.event_name != 'pull_request' }}
         with:
-          name: wheels
+          name: wheels-${{ matrix.cibw_python }}-win${{ matrix.cibw_arch }}
           path: ./dist/*.whl
+
 
   deploy:
     name: Release
@@ -250,34 +253,34 @@ jobs:
     if: github.repository_owner == 'pyFFTW' && startsWith(github.ref, 'refs/tags/v') && always()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: '3.12'
 
-      - name: Install Twine
+      - name: Install Twine and Build
         run: |
           python -m pip install --upgrade pip
-          pip install twine
+          pip install twine build
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         id: download
         with:
-          name: wheels
           path: ./dist
+          merge-multiple: true
 
       - name: Publish the source distribution on PyPI
         run: |
           PYFFTW_VERSION=$(git describe --tags)
-          python setup.py sdist
+          python -m build --sdist
           ls -la ${{ github.workspace }}/dist
           # We prefer to release wheels before source because otherwise there is a
           # small window during which users who pip install pyfftw will require compilation.
           twine upload ${{ github.workspace }}/dist/*.whl
-          twine upload ${{ github.workspace }}/dist/pyFFTW-${PYFFTW_VERSION:1}.tar.gz
+          twine upload ${{ github.workspace }}/dist/pyfftw-${PYFFTW_VERSION:1}.tar.gz
         env:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}

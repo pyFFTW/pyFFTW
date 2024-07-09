@@ -16,7 +16,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt install -y libfftw3-dev
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
