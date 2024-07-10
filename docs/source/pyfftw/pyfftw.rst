@@ -52,6 +52,28 @@ FFTW Class
 
    .. automethod:: pyfftw.FFTW.get_output_array
 
+   .. method:: execute_nogil
+
+      Same as :func:`pyfftw.FFTW.execute`, but should be called from Cython directly within a
+      nogil block.
+
+      **For Cython use only.**
+
+      Warning: This method is **NOT** thread-safe. Concurrent calls
+      to :func:`pyfftw.FFTW.execute_nogil` will lead to race conditions and ultimately
+      wrong FFT results.
+
+   .. method:: get_fftw_exe
+
+      Returns a C struct :data:`pyfftw.fftw_exe` that is associated with the FFTW
+      instance.
+
+      **For Cython use only.**
+
+      This is really only useful if you want to 
+      bundle a few :data:`pyfftw.fftw_exe` in a C array, and then call them all from
+      within a nogil block.
+
 .. _wisdom_functions:
 
 Wisdom Functions
@@ -98,6 +120,22 @@ Utility Functions
 .. autofunction:: pyfftw.is_n_byte_aligned
 
 .. autofunction:: pyfftw.next_fast_len
+
+.. data:: pyfftw.fftw_exe
+
+   C struct for executing configured plans in a nogil block.
+
+   **For Cython use only.**
+
+.. function:: pyfftw.execute_in_nogil(fftw_exe* exe_ptr)
+
+   Runs the FFT as defined by the pointed :data:`pyfftw.fftw_exe`.
+
+   **For Cython use only.**
+
+   Warning: This method is **NOT** thread-safe. Concurrent calls
+   to :func:`pyfftw.execute_in_nogil` with an aliased :data:`pyfftw.fftw_exe` will lead 
+   to wrong FFT results.
 
 .. _configuration_variables:
 
