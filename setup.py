@@ -647,9 +647,7 @@ class custom_build_ext(build_ext):
         ]
         # to avoid a meaningless warning
         self._pyfftw_define_macros.append(("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"))
-        if get_platform() in ('win32', 'win-amd64'):
-            # because Numpy 2.0 includes complex.h
-            self._pyfftw_define_macros.append(("FFTW_NO_Complex", "1"))
+        self._pyfftw_define_macros.append(("FFTW_NO_Complex", 1))
 
         # call `extend()` to keep argument set neither by sniffer nor by
         # user. On windows there are includes set automatically, we
