@@ -375,6 +375,10 @@ cdef extern from 'fftw3.h':
     const char fftwf_version[]
     const char fftwl_version[]
 
+    const char fftw_cc[]
+    const char fftwf_cc[]
+    const char fftwl_cc[]
+
     double FFTW_NO_TIMELIMIT
 
 # Define function pointers that can act as a placeholder
