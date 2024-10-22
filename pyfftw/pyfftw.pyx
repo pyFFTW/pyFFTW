@@ -1988,10 +1988,10 @@ cdef class FFTW:
 
         **For Cython use only.**
 
-        This is really only useful if you want to 
+        This is really only useful if you want to
         bundle a few :data:`pyfftw.fftw_exe` in a C array, and then call them all from
         within a nogil block.
-        
+
         '''
 
         cdef fftw_exe exe
@@ -2011,7 +2011,7 @@ cdef void execute_in_nogil(fftw_exe* exe_ptr) noexcept nogil:
     **For Cython use only.**
 
     Warning: This method is **NOT** thread-safe. Concurrent calls
-    to :func:`pyfftw.execute_in_nogil` with an aliased :data:`pyfftw.fftw_exe` will lead 
+    to :func:`pyfftw.execute_in_nogil` with an aliased :data:`pyfftw.fftw_exe` will lead
     to wrong FFT results.
 
     '''

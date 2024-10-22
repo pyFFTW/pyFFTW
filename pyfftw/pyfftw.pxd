@@ -66,14 +66,14 @@ cdef extern from *:
     * have a cross platform/compiler solution.
     *
     * */
-    
+
     #ifndef PYFFTW_COMPLEX_H
     #define PYFFTW_COMPLEX_H
-    
+
     typedef float cfloat[2];
     typedef double cdouble[2];
     typedef long double clongdouble[2];
-    
+
     #endif /* Header guard */
     '''
 
@@ -493,5 +493,5 @@ cdef class FFTW:
     cdef fftw_exe get_fftw_exe(self)
 
     cdef void execute_nogil(self) noexcept nogil
-    
+
 cdef void execute_in_nogil(fftw_exe* exe_ptr) noexcept nogil
