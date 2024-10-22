@@ -69,19 +69,23 @@ if np.dtype(np.longdouble) != np.dtype(np.float64):
 _supported_types = []
 _supported_nptypes_complex = []
 _supported_nptypes_real = []
+_fftw_version_dict = {}
 
 if PYFFTW_HAVE_SINGLE:
     _supported_types.append('32')
     _supported_nptypes_complex.append(np.complex64)
     _supported_nptypes_real.append(np.float32)
+    _fftw_version_dict['32'] = fftwf_version.decode()
 if PYFFTW_HAVE_DOUBLE:
     _supported_types.append('64')
     _supported_nptypes_complex.append(np.complex128)
     _supported_nptypes_real.append(np.float64)
+    _fftw_version_dict['64'] = fftw_version.decode()
 if PYFFTW_HAVE_LONG:
     _supported_types.append('ld')
     _supported_nptypes_complex.append(np.clongdouble)
     _supported_nptypes_real.append(np.longdouble)
+    _fftw_version_dict['ld'] = fftwl_version.decode()
 
 if (PYFFTW_HAVE_SINGLE_OMP or PYFFTW_HAVE_DOUBLE_OMP or PYFFTW_HAVE_LONG_OMP):
     _threading_type = 'OMP'
