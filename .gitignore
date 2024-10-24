@@ -10,7 +10,7 @@ docs/_build
 MANIFEST
 CHANGELOG.md
 pyFFTW.egg-info
-pyfftw/version.py
+pyfftw/_version.py
 github_changelog_generator_token
 .eggs/
 .pyodide*
