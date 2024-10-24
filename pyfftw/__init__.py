@@ -14,6 +14,7 @@ used by the helper routines can be controlled as via
 '''
 
 import os
+import re
 
 from .pyfftw import (
         FFTW,
@@ -33,6 +34,8 @@ from .pyfftw import (
         _supported_types,
         _supported_nptypes_complex,
         _supported_nptypes_real,
+        _fftw_version_dict,
+        _fftw_cc_dict,
         _all_types_human_readable,
         _all_types_np,
         _threading_type,
@@ -49,3 +52,16 @@ del builders.builders
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
+
+# retrieve fftw library version (only numbers) from the 'double' API
+fv_match = re.search(r'(\d+).(\d+).(\d+)', _fftw_version_dict.get('64', ''))
+if fv_match is not None:
+    fftw_version = fv_match.group()
+    fftw_version_tuple = tuple(int(n) for n in fv_match.groups())
+else:
+    fftw_version = ''
+    fftw_version_tuple = ()
+del fv_match
+
+# retrieve compiler flags from the 'double' API
+fftw_cc = _fftw_cc_dict.get('64', '')

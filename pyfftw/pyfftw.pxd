@@ -66,14 +66,14 @@ cdef extern from *:
     * have a cross platform/compiler solution.
     *
     * */
-    
+
     #ifndef PYFFTW_COMPLEX_H
     #define PYFFTW_COMPLEX_H
-    
+
     typedef float cfloat[2];
     typedef double cdouble[2];
     typedef long double clongdouble[2];
-    
+
     #endif /* Header guard */
     '''
 
@@ -371,6 +371,18 @@ cdef extern from 'fftw3.h':
     void fftwf_forget_wisdom()
     void fftwl_forget_wisdom()
 
+    const char fftw_version[]
+    const char fftwf_version[]
+    const char fftwl_version[]
+
+    const char fftw_cc[]
+    const char fftwf_cc[]
+    const char fftwl_cc[]
+
+    const char fftw_codelet_optim[]
+    const char fftwf_codelet_optim[]
+    const char fftwl_codelet_optim[]
+
     double FFTW_NO_TIMELIMIT
 
 # Define function pointers that can act as a placeholder
@@ -493,5 +505,5 @@ cdef class FFTW:
     cdef fftw_exe get_fftw_exe(self)
 
     cdef void execute_nogil(self) noexcept nogil
-    
+
 cdef void execute_in_nogil(fftw_exe* exe_ptr) noexcept nogil
