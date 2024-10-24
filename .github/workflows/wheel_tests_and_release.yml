@@ -20,14 +20,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04]
-        cibw_python: ["cp39", "cp310", "cp311", "cp312", "pp39"]
+        cibw_python: ["cp310", "cp311", "cp312", "cp313", "pp310"]
         # SciPy and NumPy don't support musllinux
         cibw_libc: ["manylinux"]
         cibw_arch: ["x86_64", "aarch64"]
 
         exclude:
           # Numpy only supports pypy39 x86_64 on Linux
-          - cibw_python: "pp39"
+          - cibw_python: "pp310"
             cibw_arch: "aarch64"
 
     steps:
@@ -38,7 +38,7 @@ jobs:
       - uses: actions/setup-python@v5
         name: Install Python
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -70,15 +70,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-12]
-        cibw_python: ["cp39", "cp310", "cp311", "cp312", "pp39"]
+        cibw_python: ["cp310", "cp311", "cp312", "cp313", "pp310"]
         cibw_arch: ["x86_64"]
-
-        exclude:
-          # cibuildwheel only supports pypy39 x86_64 on MacOS
-          - cibw_python: "pp39"
-            cibw_arch: "arm64"
-          - cibw_python: "pp39"
-            cibw_arch: "universal2"
 
     env:
       MACOSX_DEPLOYMENT_TARGET: "12.0"
@@ -94,7 +87,7 @@ jobs:
       - uses: actions/setup-python@v5
         name: Install Python
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Install cibuildwheel
         run: |
@@ -121,7 +114,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14]
-        cibw_python: ["cp39", "cp310", "cp311", "cp312", "pp39"]
+        cibw_python: ["cp310", "cp311", "cp312", "cp313"]
         cibw_arch: ["arm64"]
 
     env:
@@ -138,7 +131,7 @@ jobs:
       - uses: actions/setup-python@v5
         name: Install Python
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Install cibuildwheel
         run: |
@@ -165,14 +158,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-2022]
-        cibw_python: ["cp39", "cp310", "cp311", "cp312", "pp39"]
+        cibw_python: ["cp310", "cp311", "cp312", "cp313", "pp310"]
         # Add arm64 when we support it
         cibw_arch: ["_amd64", "32"]
 
         exclude:
-
-          # cibuildwheel only supports pypy39 AMD64 on Windows
-          - cibw_python: "pp39"
+          # cibuildwheel only supports pypy310 AMD64 on Windows
+          - cibw_python: "pp310"
             cibw_arch: "32"
 
     steps:
@@ -183,7 +175,7 @@ jobs:
       - uses: actions/setup-python@v5
         name: Install Python
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Install cibuildwheel
         run: |
@@ -259,7 +251,7 @@ jobs:
       - uses: actions/setup-python@v5
         name: Install Python
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Install Twine and Build
         run: |
