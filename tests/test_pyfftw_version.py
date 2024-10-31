@@ -17,7 +17,7 @@ def test_fftw_version_tuple():
     fvt = pyfftw.fftw_version_tuple
     if fvt:
         # major, minor, release
-        assert len(fvt) == 3
+        assert fvt >= (3, 0, 0)
     else:
         # cannot get version from fftw
         assert True
