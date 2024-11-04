@@ -5,7 +5,7 @@
 groups = ["default", "dask", "dev", "doc", "scipy", "test"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:2b79edbbf8b8de350f9dd61a05413b8718c3d79849c79536253ac1a5b924dc20"
+content_hash = "sha256:e3b554ec66779f6745646873a6a4f2f258b68e9a76d0ff9cd5bacae3bbbae918"
 
 [[metadata.targets]]
 requires_python = ">=3.10"
@@ -515,7 +515,7 @@ name = "packaging"
 version = "24.1"
 requires_python = ">=3.8"
 summary = "Core utilities for Python packages"
-groups = ["dask", "doc", "test"]
+groups = ["dask", "dev", "doc", "test"]
 files = [
     {file = "packaging-24.1-py3-none-any.whl", hash = "sha256:5b8f2217dbdbd2f7f384c41c628544e6d52f2d0f53c6d0c3ea61aa5d1d7ff124"},
     {file = "packaging-24.1.tar.gz", hash = "sha256:026ed72c8ed3fcce5bf8950572258698927fd1dbda10a5e981cdf0ac37f4f002"},
@@ -761,10 +761,27 @@ name = "setuptools"
 version = "75.2.0"
 requires_python = ">=3.8"
 summary = "Easily download, build, install, upgrade, and uninstall Python packages"
-groups = ["default"]
+groups = ["default", "dev"]
 files = [
     {file = "setuptools-75.2.0-py3-none-any.whl", hash = "sha256:a7fcb66f68b4d9e8e66b42f9876150a3371558f98fa32222ffaa5bced76406f8"},
     {file = "setuptools-75.2.0.tar.gz", hash = "sha256:753bb6ebf1f465a1912e19ed1d41f403a79173a9acf66a42e7e6aec45c3c16ec"},
+]
+
+[[package]]
+name = "setuptools-scm"
+version = "8.1.0"
+requires_python = ">=3.8"
+summary = "the blessed package to manage your versions by scm tags"
+groups = ["dev"]
+dependencies = [
+    "packaging>=20",
+    "setuptools",
+    "tomli>=1; python_version < \"3.11\"",
+    "typing-extensions; python_version < \"3.10\"",
+]
+files = [
+    {file = "setuptools_scm-8.1.0-py3-none-any.whl", hash = "sha256:897a3226a6fd4a6eb2f068745e49733261a21f70b1bb28fce0339feb978d9af3"},
+    {file = "setuptools_scm-8.1.0.tar.gz", hash = "sha256:42dea1b65771cba93b7a515d65a65d8246e560768a66b9106a592c8e7f26c8a7"},
 ]
 
 [[package]]
@@ -904,7 +921,7 @@ name = "tomli"
 version = "2.0.2"
 requires_python = ">=3.8"
 summary = "A lil' TOML parser"
-groups = ["doc", "test"]
+groups = ["dev", "doc", "test"]
 marker = "python_version < \"3.11\""
 files = [
     {file = "tomli-2.0.2-py3-none-any.whl", hash = "sha256:2ebe24485c53d303f690b0ec092806a085f07af5a5aa1464f3931eec36caaa38"},
