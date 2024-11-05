@@ -45,11 +45,7 @@ import platform
 import warnings
 import threading
 
-# the fftw .dll (3.3.5) does not export fftw*version, fftw*_cc and
-# fftw*_codelet_optim etc., so for Windows the version is hard-coded to
-# 3.3.5 and others as 'NOT_AVAILABLE'
 _ON_WINDOWS = platform.system() == 'Windows'
-_WINDOWS_FFTW_VERSION = '3.3.5'
 
 include 'utils.pxi'
 
@@ -80,12 +76,15 @@ _fftw_version_dict = {}
 _fftw_cc_dict = {}
 _fftw_codelet_optim_dict = {}
 
+# the fftw .dll (as of 3.3.5) does not export fftw*version, fftw*_cc and
+# fftw*_codelet_optim etc., so for Windows those information are simply
+# stated as 'NOT_AVAILABLE'
 if PYFFTW_HAVE_SINGLE:
     _supported_types.append('32')
     _supported_nptypes_complex.append(np.complex64)
     _supported_nptypes_real.append(np.float32)
     if _ON_WINDOWS:
-        _fftw_version_dict['32'] = _WINDOWS_FFTW_VERSION
+        _fftw_version_dict['32'] = 'NOT AVAILABLE'
         _fftw_cc_dict['32'] = 'NOT AVAILABLE'
         _fftw_codelet_optim_dict['32'] = 'NOT AVAILABLE'
     else:
@@ -97,7 +96,7 @@ if PYFFTW_HAVE_DOUBLE:
     _supported_nptypes_complex.append(np.complex128)
     _supported_nptypes_real.append(np.float64)
     if _ON_WINDOWS:
-        _fftw_version_dict['64'] = _WINDOWS_FFTW_VERSION
+        _fftw_version_dict['64'] = 'NOT AVAILABLE'
         _fftw_cc_dict['64'] = 'NOT AVAILABLE'
         _fftw_codelet_optim_dict['64'] = 'NOT AVAILABLE'
     else:
@@ -109,7 +108,7 @@ if PYFFTW_HAVE_LONG:
     _supported_nptypes_complex.append(np.clongdouble)
     _supported_nptypes_real.append(np.longdouble)
     if _ON_WINDOWS:
-        _fftw_version_dict['ld'] = _WINDOWS_FFTW_VERSION
+        _fftw_version_dict['ld'] = 'NOT AVAILABLE'
         _fftw_cc_dict['ld'] = 'NOT AVAILABLE'
         _fftw_codelet_optim_dict['ld'] = 'NOT AVAILABLE'
     else:
