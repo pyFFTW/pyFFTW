@@ -41,8 +41,11 @@ from libc.stdlib cimport calloc, malloc, free
 from libc.stdint cimport intptr_t, int64_t
 from libc cimport limits
 
+import platform
 import warnings
 import threading
+
+_ON_WINDOWS = platform.system() == 'Windows'
 
 include 'utils.pxi'
 
@@ -69,19 +72,49 @@ if np.dtype(np.longdouble) != np.dtype(np.float64):
 _supported_types = []
 _supported_nptypes_complex = []
 _supported_nptypes_real = []
+_fftw_version_dict = {}
+_fftw_cc_dict = {}
+_fftw_codelet_optim_dict = {}
 
+# the fftw .dll (as of 3.3.5) does not export fftw*version, fftw*_cc and
+# fftw*_codelet_optim etc., so for Windows those information are simply
+# stated as 'NOT_AVAILABLE'
 if PYFFTW_HAVE_SINGLE:
     _supported_types.append('32')
     _supported_nptypes_complex.append(np.complex64)
     _supported_nptypes_real.append(np.float32)
+    if _ON_WINDOWS:
+        _fftw_version_dict['32'] = 'NOT AVAILABLE'
+        _fftw_cc_dict['32'] = 'NOT AVAILABLE'
+        _fftw_codelet_optim_dict['32'] = 'NOT AVAILABLE'
+    else:
+        _fftw_version_dict['32'] = fftwf_version.decode()
+        _fftw_cc_dict['32'] = fftwf_cc.decode()
+        _fftw_codelet_optim_dict['32'] = fftwf_codelet_optim.decode()
 if PYFFTW_HAVE_DOUBLE:
     _supported_types.append('64')
     _supported_nptypes_complex.append(np.complex128)
     _supported_nptypes_real.append(np.float64)
+    if _ON_WINDOWS:
+        _fftw_version_dict['64'] = 'NOT AVAILABLE'
+        _fftw_cc_dict['64'] = 'NOT AVAILABLE'
+        _fftw_codelet_optim_dict['64'] = 'NOT AVAILABLE'
+    else:
+        _fftw_version_dict['64'] = fftw_version.decode()
+        _fftw_cc_dict['64'] = fftw_cc.decode()
+        _fftw_codelet_optim_dict['64'] = fftw_codelet_optim.decode()
 if PYFFTW_HAVE_LONG:
     _supported_types.append('ld')
     _supported_nptypes_complex.append(np.clongdouble)
     _supported_nptypes_real.append(np.longdouble)
+    if _ON_WINDOWS:
+        _fftw_version_dict['ld'] = 'NOT AVAILABLE'
+        _fftw_cc_dict['ld'] = 'NOT AVAILABLE'
+        _fftw_codelet_optim_dict['ld'] = 'NOT AVAILABLE'
+    else:
+        _fftw_version_dict['ld'] = fftwl_version.decode()
+        _fftw_cc_dict['ld'] = fftwl_cc.decode()
+        _fftw_codelet_optim_dict['ld'] = fftwl_codelet_optim.decode()
 
 if (PYFFTW_HAVE_SINGLE_OMP or PYFFTW_HAVE_DOUBLE_OMP or PYFFTW_HAVE_LONG_OMP):
     _threading_type = 'OMP'
@@ -1988,10 +2021,10 @@ cdef class FFTW:
 
         **For Cython use only.**
 
-        This is really only useful if you want to 
+        This is really only useful if you want to
         bundle a few :data:`pyfftw.fftw_exe` in a C array, and then call them all from
         within a nogil block.
-        
+
         '''
 
         cdef fftw_exe exe
@@ -2011,7 +2044,7 @@ cdef void execute_in_nogil(fftw_exe* exe_ptr) noexcept nogil:
     **For Cython use only.**
 
     Warning: This method is **NOT** thread-safe. Concurrent calls
-    to :func:`pyfftw.execute_in_nogil` with an aliased :data:`pyfftw.fftw_exe` will lead 
+    to :func:`pyfftw.execute_in_nogil` with an aliased :data:`pyfftw.fftw_exe` will lead
     to wrong FFT results.
 
     '''
