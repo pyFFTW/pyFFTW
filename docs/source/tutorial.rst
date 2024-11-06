@@ -502,6 +502,7 @@ functions from :mod:`scipy.signal`.
 
 Configuring FFTW planning effort and number of threads
 ------------------------------------------------------
+
 The user may set the default number of threads used by the interfaces and
 builders at run time by assigning to ``pyfftw.config.NUM_THREADS``. Similarly
 the default
@@ -526,6 +527,33 @@ and planning effort.
 The initial values in pyfftw.config at import time can be controlled via the
 environment variables as detailed in the
 :ref:`configuration <configuration_variables>` documentation.
+
+.. _Query the version and compiler flags of FFTW:
+
+Query the version and compiler flags of FFTW
+--------------------------------------------
+
+pyFFTW (>=0.15.0) exposes ``fftw*_version``, ``fftw*_cc`` and
+``fftw*_codelet_optim`` of the FFTW library.
+
+If users are interested in the version of FFTW library, this can be queried with
+
+.. testcode::
+
+   print(pyfftw.fftw_version)
+
+For easier comparison, the FFTW version is also available as a 3-member tuple as (major, minor, release), e.g.
+
+.. testcode::
+
+   if pyfftw.fftw_version_tuple > (3, 0, 0):
+      pass
+
+How the FFTW library was compiled can be inspected by
+
+.. testcode::
+
+   print(pyfftw.fftw_cc)
 
 .. rubric:: Footnotes
 
