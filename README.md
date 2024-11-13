@@ -179,15 +179,14 @@ Install FFTW from [homebrew](http://brew.sh):
 
     brew install fftw
 
-Set temporary environmental variables, such that pyfftw finds fftw:
+The environment variables `PYFFTW_INCLUDE` and `PYFFTW_LIB_DIR` may be used to indicate the location
+of the header and library files respectively.
 
-    export DYLD_LIBRARY_PATH=/usr/local/lib
-    export LDFLAGS="-L/usr/local/lib"
-    export CFLAGS="-I/usr/local/include"
+Now install `pyfftw` from `pip` by setting environment variables `PYFFTW_INCLUDE` and `PYFFTW_LIB_DIR`:
 
-Now install pyfftw from pip:
-
-    pip install pyfftw
+    PYFFTW_INCLUDE=$(brew --prefix fftw)/include \
+    PYFFTW_LIB_DIR=$(brew --prefix fftw)/lib \
+        pip install pyfftw
 
 It has been suggested that [macports](https://www.macports.org) might also work
 fine. You should then replace the LD environmental variables above with the
