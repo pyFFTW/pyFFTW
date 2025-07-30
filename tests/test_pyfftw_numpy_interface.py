@@ -178,6 +178,22 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             ((32, 32, 2), {'axis': 1, 'norm': 'forward'}),
             ((64, 128, 16), {}),
             )
+    elif numpy.__version__ >= '2.0':
+        test_shapes = (
+            ((100,), {}),
+            ((128, 64), {'axis': 0}),
+            ((128, 32), {'axis': -1}),
+            ((59, 100), {}),
+            ((59, 99), {'axis': -1}),
+            ((59, 99), {'axis': 0}),
+            ((32, 32, 4), {'axis': 1}),
+            ((32, 32, 2), {'axis': 1, 'norm': 'ortho'}),
+            ((32, 32, 2), {'axis': 1, 'norm': None}),
+            ((32, 32, 2), {'axis': 1, 'norm': 'backward'}),
+            ((32, 32, 2), {'axis': 1, 'norm': 'forward'}),
+            ((64, 128, 16), {}),
+            ((64, 128, 16), {"out" : True}),
+            )
     else:
         test_shapes = (
             ((100,), {}),
@@ -295,6 +311,9 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                         'Testing for: ' + repr(e))
                 return
             try:
+                if 'out' in kwargs:
+                    kwargs['out'] = copy_func(test_out_array)
+
                 output_array = getattr(self.test_interface, self.func)(
                                     copy_func(np_input_array), s, **kwargs)
             except NotImplementedError as e:
@@ -311,6 +330,9 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                         # Make sure a warning is raised
                         self.assertIs(
                                 w[-1].category, numpy.ComplexWarning)
+
+        if 'out' in kwargs:
+            self.assertTrue(kwargs['out'] is test_out_array)
 
         self.assertTrue(
                 numpy.allclose(output_array, test_out_array,

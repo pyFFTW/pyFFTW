@@ -95,7 +95,7 @@ def _swap_direction(norm):
 
 def fft(a, n=None, axis=-1, norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+        auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform a 1D FFT.
 
     The first four arguments are as per :func:`numpy.fft.fft`;
@@ -109,11 +109,11 @@ def fft(a, n=None, axis=-1, norm=None, overwrite_input=False,
 
     return _Xfftn(a, n, axis, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,
-            calling_func, **_norm_args(norm))
+            calling_func, **_norm_args(norm), output_array=out)
 
 def ifft(a, n=None, axis=-1, norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+        auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform a 1D inverse FFT.
 
     The first four arguments are as per :func:`numpy.fft.ifft`;
@@ -126,12 +126,12 @@ def ifft(a, n=None, axis=-1, norm=None, overwrite_input=False,
 
     return _Xfftn(a, n, axis, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,
-            calling_func, **_norm_args(norm))
+            calling_func, **_norm_args(norm), output_array=out)
 
 
 def fft2(a, s=None, axes=(-2,-1), norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+        auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform a 2D FFT.
 
     The first four arguments are as per :func:`numpy.fft.fft2`;
@@ -144,11 +144,11 @@ def fft2(a, s=None, axes=(-2,-1), norm=None, overwrite_input=False,
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,
-            calling_func, **_norm_args(norm))
+            calling_func, **_norm_args(norm), output_array=out)
 
 def ifft2(a, s=None, axes=(-2,-1), norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+        auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform a 2D inverse FFT.
 
     The first four arguments are as per :func:`numpy.fft.ifft2`;
@@ -161,12 +161,12 @@ def ifft2(a, s=None, axes=(-2,-1), norm=None, overwrite_input=False,
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,
-            calling_func, **_norm_args(norm))
+            calling_func, **_norm_args(norm), output_array=out)
 
 
 def fftn(a, s=None, axes=None, norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+        auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform an n-D FFT.
 
     The first four arguments are as per :func:`numpy.fft.fftn`;
@@ -179,12 +179,12 @@ def fftn(a, s=None, axes=None, norm=None, overwrite_input=False,
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,
-            calling_func, **_norm_args(norm))
+            calling_func, **_norm_args(norm), output_array=out)
 
 
 def ifftn(a, s=None, axes=None, norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+        auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform an n-D inverse FFT.
 
     The first four arguments are as per :func:`numpy.fft.ifftn`;
@@ -197,12 +197,12 @@ def ifftn(a, s=None, axes=None, norm=None, overwrite_input=False,
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,
-            calling_func, **_norm_args(norm))
+            calling_func, **_norm_args(norm), output_array=out)
 
 
 def rfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+        auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform a 1D real FFT.
 
     The first four arguments are as per :func:`numpy.fft.rfft`;
@@ -215,12 +215,12 @@ def rfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
 
     return _Xfftn(a, n, axis, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,
-            calling_func, **_norm_args(norm))
+            calling_func, **_norm_args(norm), output_array=out)
 
 
 def irfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+        auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform a 1D real inverse FFT.
 
     The first four arguments are as per :func:`numpy.fft.irfft`;
@@ -233,12 +233,12 @@ def irfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
 
     return _Xfftn(a, n, axis, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,
-            calling_func, **_norm_args(norm))
+            calling_func, **_norm_args(norm), output_array=out)
 
 
 def rfft2(a, s=None, axes=(-2,-1), norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+        auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform a 2D real FFT.
 
     The first four arguments are as per :func:`numpy.fft.rfft2`;
@@ -251,12 +251,12 @@ def rfft2(a, s=None, axes=(-2,-1), norm=None, overwrite_input=False,
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,
-            calling_func, **_norm_args(norm))
+            calling_func, **_norm_args(norm), output_array=out)
 
 
 def irfft2(a, s=None, axes=(-2,-1), norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+        auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform a 2D real inverse FFT.
 
     The first four arguments are as per :func:`numpy.fft.irfft2`;
@@ -269,12 +269,12 @@ def irfft2(a, s=None, axes=(-2,-1), norm=None, overwrite_input=False,
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,
-            calling_func, **_norm_args(norm))
+            calling_func, **_norm_args(norm), output_array=out)
 
 
 def rfftn(a, s=None, axes=None, norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+        auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform an n-D real FFT.
 
     The first four arguments are as per :func:`numpy.fft.rfftn`;
@@ -287,12 +287,12 @@ def rfftn(a, s=None, axes=None, norm=None, overwrite_input=False,
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,
-            calling_func, **_norm_args(norm))
+            calling_func, **_norm_args(norm), output_array=out)
 
 
 def irfftn(a, s=None, axes=None, norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+        auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform an n-D real inverse FFT.
 
     The first four arguments are as per :func:`numpy.fft.rfftn`;
@@ -305,12 +305,12 @@ def irfftn(a, s=None, axes=None, norm=None, overwrite_input=False,
 
     return _Xfftn(a, s, axes, overwrite_input, planner_effort,
             threads, auto_align_input, auto_contiguous,
-            calling_func, **_norm_args(norm))
+            calling_func, **_norm_args(norm), output_array=out)
 
 
 def hfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
          planner_effort=None, threads=None,
-         auto_align_input=True, auto_contiguous=True):
+         auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform a 1D FFT of a signal with hermitian symmetry.
     This yields a real output spectrum. See :func:`numpy.fft.hfft`
     for more information.
@@ -338,12 +338,12 @@ def hfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
 
     return _Xfftn(np.conjugate(a), n, axis, overwrite_input, planner_effort,
                   threads, auto_align_input, auto_contiguous,
-                  calling_func, **_norm_args(new_norm))
+                  calling_func, **_norm_args(new_norm), output_array=out)
 
 
 def ihfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
         planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+        auto_align_input=True, auto_contiguous=True, out=None):
     '''Perform a 1D inverse FFT of a real-spectrum, yielding
     a signal with hermitian symmetry. See :func:`numpy.fft.ihfft`
     for more information.
@@ -366,4 +366,4 @@ def ihfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
 
     return np.conjugate(_Xfftn(a, n, axis, overwrite_input, planner_effort,
                                threads, auto_align_input, auto_contiguous,
-                               calling_func, **_norm_args(new_norm)))
+                               calling_func, **_norm_args(new_norm), output_array=out))
