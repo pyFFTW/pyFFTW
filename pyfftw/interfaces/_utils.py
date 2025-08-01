@@ -38,16 +38,15 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-'''
+"""
 Utility functions for the interfaces routines
-'''
+"""
 
 import pyfftw.builders as builders
 import pyfftw
 import numpy
 import threading
 from . import cache
-
 
 
 def _Xfftn(
@@ -178,7 +177,9 @@ def _Xfftn(
         if cache.is_enabled():
             cache._fftw_cache.insert(FFTW_object, key)
 
-        output_array = FFTW_object(normalise_idft=normalise_idft, ortho=ortho)
+        output_array = FFTW_object(
+            output_array=output_array, normalise_idft=normalise_idft, ortho=ortho
+        )
 
     else:
         orig_output_array = FFTW_object.output_array
