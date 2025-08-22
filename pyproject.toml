@@ -68,6 +68,7 @@ test-requires = "pytest scipy dask packaging"
 # Import-mode=append to use installed (wheel) version of pyfftw
 # rather than the local module
 test-command = "pytest --import-mode=append {project}"
+enable = ["pypy"]
 
     [tool.cibuildwheel.environment]
     PIP_PREFER_BINARY = true
@@ -103,12 +104,6 @@ test-command = "pytest --import-mode=append {project}"
         # See: https://github.com/pyFFTW/pyFFTW/issues/326
         "*arm64",
     ]
-
-        [tool.cibuildwheel.macos.environment]
-        CC = "/usr/bin/clang"
-        CXX = "/usr/bin/clang++"
-        CFLAGS = "-Wno-implicit-function-declaration -I/usr/local/opt/fftw/include"
-        LDFLAGS = "-Wl,-S,-rpath,/usr/local/opt/fftw/lib -L/usr/local/opt/fftw/lib"
 
     # On Linux we need to use different package managers depending on image used
     [tool.cibuildwheel.linux]

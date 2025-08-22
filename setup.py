@@ -113,7 +113,7 @@ def get_include_dirs():
 
 
 def get_package_data():
-    
+
     package_data = {'pyfftw' : ['*.h', '*.pxd']}
 
     if get_platform() in ('win32', 'win-amd64'):
@@ -173,6 +173,12 @@ class EnvironmentSniffer(object):
         self.libraries = []
         self.library_dirs = get_library_dirs()
         self.linker_flags = []
+        for var_name in ("LDFLAGS", "CPPFLAGS"):
+            if var_name in os.environ:
+                self.linker_flags.extend(
+                    flag for flag in os.getenv(var_name).split(" ") if flag
+                )
+
         self.compile_time_env = {}
 
         if self.compiler.compiler_type == 'msvc':
@@ -255,7 +261,9 @@ class EnvironmentSniffer(object):
             # openmp by defining the environment variable PYFFTW_USE_PTHREADS
             if 'PYFFTW_USE_PTHREADS' not in os.environ:
                 # openmp requires special linker treatment
-                self.linker_flags.append(self.openmp_linker_flag())
+                flag_omp = self.openmp_linker_flag()
+                if flag_omp not in self.linker_flags:
+                    self.linker_flags.append(flag_omp)
                 lib_omp = self.check('OMP', 'init_threads', d, s,
                                      basic_lib and not hasattr(self, 'static_fftw_dir'))
                 if lib_omp:
