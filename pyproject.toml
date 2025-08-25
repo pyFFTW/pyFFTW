@@ -103,6 +103,9 @@ enable = ["pypy"]
         "pp*",
         # See: https://github.com/pyFFTW/pyFFTW/issues/326
         "*arm64",
+        # see https://github.com/pyFFTW/pyFFTW/pull/411
+        "cp311*x86_64",
+        "cp312*x86_64",
     ]
 
     # On Linux we need to use different package managers depending on image used
