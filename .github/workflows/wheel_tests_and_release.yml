@@ -82,9 +82,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install FFTW3 libraries
+      - name: Install libraries with Brew (fftw3, omp)
         run: |
-          brew install fftw
+          brew install fftw libomp
 
       - uses: actions/setup-python@v5
         name: Install Python
@@ -96,14 +96,14 @@ jobs:
           python -m pip install cibuildwheel
 
       # Needed to install a specific libomp version later
-      - name: Setup Conda
-        uses: conda-incubator/setup-miniconda@d2e6a045a86077fb6cad6f5adf368e9076ddaa8d # v3.1.0
-        with:
-          python-version: "3.13"
-          channels: conda-forge
-          channel-priority: true
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
+      # - name: Setup Conda
+      #   uses: conda-incubator/setup-miniconda@d2e6a045a86077fb6cad6f5adf368e9076ddaa8d # v3.1.0
+      #   with:
+      #     python-version: "3.13"
+      #     channels: conda-forge
+      #     channel-priority: true
+      #     miniforge-variant: Miniforge3
+      #     miniforge-version: latest
 
       - name: Build wheels for CPython (MacOS)
         run: |
@@ -111,20 +111,22 @@ jobs:
           # supported version of the macos SDK as libomp will be vendored into
           # the pyfftw wheels for macos. The list of binaries are in
           # https://packages.macports.org/libomp/
-          OPENMP_URL="https://anaconda.org/conda-forge/llvm-openmp/19.1.7/download/osx-64/llvm-openmp-19.1.7-ha54dae1_0.conda"
+          # OPENMP_URL="https://anaconda.org/conda-forge/llvm-openmp/19.1.7/download/osx-64/llvm-openmp-19.1.7-ha54dae1_0.conda"
 
           # use conda to install llvm-openmp
           # Note that we do NOT activate the conda environment, we just add the
           # library install path to CFLAGS/CXXFLAGS/LDFLAGS below.
-          conda create -n env-openmp $OPENMP_URL
-          PREFIX="/Users/runner/miniconda3/envs/env-openmp"
+          # conda create -n env-openmp $OPENMP_URL
+          # PREFIX_OMP="/Users/runner/miniconda3/envs/env-openmp"
+          PREFIX_OMP="/usr/local/opt/libomp"
+          PREFIX_FFTW="/usr/local/opt/fftw"
           export CC=/usr/bin/clang
           export CXX=/usr/bin/clang++
           # see https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html#Implicit-Variables
           # "CPP" means "C preprocessor" (not C++)
-          export CPPFLAGS="$CPPFLAGS -Xpreprocessor -fopenmp"
-          export CFLAGS="$CFLAGS -Wno-implicit-function-declaration -I/usr/local/opt/fftw/include -I$PREFIX/include"
-          export LDFLAGS="$LDFLAGS -Wl,-S,-rpath,$PREFIX/lib,-rpath,/usr/local/opt/fftw/lib -L$PREFIX/lib -L/usr/local/opt/fftw/lib"
+          export CPPFLAGS="$CPPFLAGS -Xpreprocessor -fopenmp -I$PREFIX_FFTW/include -I$PREFIX_OMP/include"
+          export CFLAGS="$CFLAGS -Wno-implicit-function-declaration"
+          export LDFLAGS="$LDFLAGS -Wl,-S,-rpath,$PREFIX_OMP/lib,-rpath,$PREFIX_FFTW/lib -L$PREFIX_OMP/lib -L$PREFIX_FFTW/lib"
           export LDLIBS="$LDLIBS -lomp"
 
           python -m cibuildwheel --output-dir dist
@@ -174,12 +176,12 @@ jobs:
         run: |
           export CC=/usr/bin/clang
           export CXX=/usr/bin/clang++
-          PREFIX="/opt/homebrew/opt/libomp"
+          PREFIX_OMP="/opt/homebrew/opt/libomp"
           # see https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html#Implicit-Variables
           # "CPP" means "C preprocessor" (not C++)
-          export CPPFLAGS="$CPPFLAGS -Xpreprocessor -fopenmp -I$PREFIX/include"
-          export CFLAGS="$CFLAGS -Wno-implicit-function-declaration -I/usr/local/opt/fftw/include -I$PREFIX/include"
-          export LDFLAGS="$LDFLAGS -Wl,-S,-rpath,$PREFIX/lib -L$PREFIX/lib"
+          export CPPFLAGS="$CPPFLAGS -Xpreprocessor -fopenmp -I$PREFIX_OMP/include"
+          export CFLAGS="$CFLAGS -Wno-implicit-function-declaration -I$PREFIX_OMP/include"
+          export LDFLAGS="$LDFLAGS -Wl,-S,-rpath,$PREFIX_OMP/lib -L$PREFIX_OMP/lib"
           export LDLIBS="$LDLIBS -lomp"
 
           python -m cibuildwheel --output-dir dist
