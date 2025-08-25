@@ -171,6 +171,10 @@ class EnvironmentSniffer(object):
         self.include_dirs = get_include_dirs()
         self.objects = []
         self.libraries = []
+        if "LDLIBS" in os.environ:
+            for flag in os.getenv("LDLIBS").split():
+                if flag.startswith("-l"):
+                    self.libraries.append(flag[2:])
         self.library_dirs = get_library_dirs()
         self.linker_flags = []
         for var_name in ("LDFLAGS", "CPPFLAGS"):
