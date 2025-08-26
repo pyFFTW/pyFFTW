@@ -20,7 +20,7 @@ description = "A pythonic wrapper around FFTW, the FFT library, presenting a uni
 authors = [
     {name = "Henry Gomersall", email = "heng@kedevelopments.co.uk"},
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dynamic = ["version"]
 dependencies = [
     "numpy>=1.20",
@@ -35,7 +35,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -82,7 +81,6 @@ enable = ["pypy"]
     test-skip = [
         # Until SciPy does not support win32
         "*win32",
-
         # Until SciPy gives us PyPy wheels
         "pp*",
     ]
@@ -104,6 +102,7 @@ enable = ["pypy"]
         # See: https://github.com/pyFFTW/pyFFTW/issues/326
         "*arm64",
         # see https://github.com/pyFFTW/pyFFTW/pull/411
+        # mysterious segmentation faults
         "cp311*x86_64",
         "cp312*x86_64",
     ]
@@ -114,7 +113,6 @@ enable = ["pypy"]
     test-skip = [
         # See: https://github.com/pyFFTW/pyFFTW/issues/326
         "*aarch64",
-
         # Until SciPy gives us PyPy wheels
         "pp*",
     ]
