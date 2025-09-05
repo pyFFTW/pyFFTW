@@ -20,14 +20,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04]
-        cibw_python: ["cp310", "cp311", "cp312", "cp313", "pp310"]
+        cibw_python: ["cp311", "cp312", "cp313", "pp311"]
         # SciPy and NumPy don't support musllinux
         cibw_libc: ["manylinux"]
         cibw_arch: ["x86_64", "aarch64"]
 
         exclude:
-          # Numpy only supports pypy39 x86_64 on Linux
-          - cibw_python: "pp310"
+          # Numpy only supports pypy x86_64 on Linux
+          - cibw_python: "pp311"
             cibw_arch: "aarch64"
 
     steps:
@@ -69,20 +69,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-12]
-        cibw_python: ["cp310", "cp311", "cp312", "cp313", "pp310"]
+        os: [macos-13]
+        cibw_python: ["cp311", "cp312", "cp313", "pp311"]
         cibw_arch: ["x86_64"]
 
     env:
-      MACOSX_DEPLOYMENT_TARGET: "12.0"
+      # libfftw3_threads.3.dylib has a minimum target of 13.0
+      MACOSX_DEPLOYMENT_TARGET: "13.0"
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install FFTW3 libraries
+      - name: Install libraries with Brew (fftw3, omp)
         run: |
-          brew install fftw
+          brew install fftw libomp
 
       - uses: actions/setup-python@v5
         name: Install Python
@@ -93,11 +94,23 @@ jobs:
         run: |
           python -m pip install cibuildwheel
 
-      - name: Build wheels for CPython (MacOS)
+      - name: Build wheels
         run: |
+          PREFIX_OMP="/usr/local/opt/libomp"
+          PREFIX_FFTW="/usr/local/opt/fftw"
+          export CC=/usr/bin/clang
+          export CXX=/usr/bin/clang++
+          # see https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html#Implicit-Variables
+          # "CPP" means "C preprocessor" (not C++)
+          export CPPFLAGS="$CPPFLAGS -Xpreprocessor -fopenmp -I$PREFIX_FFTW/include -I$PREFIX_OMP/include"
+          export CFLAGS="$CFLAGS -Wno-implicit-function-declaration"
+          export LDFLAGS="$LDFLAGS -Wl,-S,-rpath,$PREFIX_OMP/lib,-rpath,$PREFIX_FFTW/lib -L$PREFIX_OMP/lib -L$PREFIX_FFTW/lib"
+          export LDLIBS="$LDLIBS -lomp"
+
           python -m cibuildwheel --output-dir dist
         env:
           CIBW_BUILD: ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
+          CIBW_ARCHS_MACOS: ${{ matrix.cibw_arch }}
 
       - uses: actions/upload-artifact@v4
         name: Upload wheels as artifacts
@@ -114,7 +127,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14]
-        cibw_python: ["cp310", "cp311", "cp312", "cp313"]
+        cibw_python: ["cp311", "cp312", "cp313"]
         cibw_arch: ["arm64"]
 
     env:
@@ -124,9 +137,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install FFTW3 libraries
+      - name: Install libraries with Brew (fftw3, omp)
         run: |
-          brew install fftw
+          brew install fftw libomp
 
       - uses: actions/setup-python@v5
         name: Install Python
@@ -137,8 +150,18 @@ jobs:
         run: |
           python -m pip install cibuildwheel
 
-      - name: Build wheels for CPython (MacOS)
+      - name: Build wheels
         run: |
+          export CC=/usr/bin/clang
+          export CXX=/usr/bin/clang++
+          PREFIX_OMP="/opt/homebrew/opt/libomp"
+          # see https://www.gnu.org/software/make/manual/html_node/Implicit-Variables.html#Implicit-Variables
+          # "CPP" means "C preprocessor" (not C++)
+          export CPPFLAGS="$CPPFLAGS -Xpreprocessor -fopenmp -I$PREFIX_OMP/include"
+          export CFLAGS="$CFLAGS -Wno-implicit-function-declaration"
+          export LDFLAGS="$LDFLAGS -Wl,-S,-rpath,$PREFIX_OMP/lib -L$PREFIX_OMP/lib"
+          export LDLIBS="$LDLIBS -lomp"
+
           python -m cibuildwheel --output-dir dist
         env:
           CIBW_BUILD: ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
@@ -158,13 +181,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-2022]
-        cibw_python: ["cp310", "cp311", "cp312", "cp313", "pp310"]
+        cibw_python: ["cp311", "cp312", "cp313", "pp311"]
         # Add arm64 when we support it
         cibw_arch: ["_amd64", "32"]
 
         exclude:
-          # cibuildwheel only supports pypy310 AMD64 on Windows
-          - cibw_python: "pp310"
+          # cibuildwheel only supports pypy AMD64 on Windows
+          - cibw_python: "pp311"
             cibw_arch: "32"
 
     steps:
