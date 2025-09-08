@@ -97,9 +97,6 @@ def get_include_dirs():
     if 'PYFFTW_INCLUDE' in os.environ:
         include_dirs.append(os.environ['PYFFTW_INCLUDE'])
 
-    if get_platform().startswith("linux"):
-        include_dirs.append('/usr/include')
-
     if get_platform() in ('win32', 'win-amd64'):
         include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
 
