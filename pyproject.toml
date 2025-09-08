@@ -72,7 +72,7 @@ test-requires = "pytest scipy dask packaging"
 # Import-mode=append to use installed (wheel) version of pyfftw
 # rather than the local module
 test-command = "pytest --import-mode=append {project}"
-enable = ["pypy"]
+enable = ["pypy", "cpython-prerelease"]
 
     [tool.cibuildwheel.environment]
     PIP_PREFER_BINARY = true
