@@ -54,13 +54,6 @@ import sys
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
-# ensure the current directory is on sys.path so versioneer can be imported
-# when pip uses PEP 517/518 build rules.
-# https://github.com/python-versioneer/python-versioneer/issues/193
-sys.path.append(os.path.dirname(__file__))
-
-import versioneer
-
 if os.environ.get("READTHEDOCS") == "True":
     os.environ["CC"] = "x86_64-linux-gnu-gcc"
     os.environ["LD"] = "x86_64-linux-gnu-ld"
@@ -779,13 +772,11 @@ cmdclass = {'test': TestCommand,
             'quick_test': QuickTestCommand,
             'build_ext': custom_build_ext,
             'create_changelog': CreateChangelogCommand}
-cmdclass.update(versioneer.get_cmdclass())
 
 
 def setup_package():
 
     setup_args = {
-        'version': versioneer.get_version(),
         'long_description': long_description,
         'cmdclass': cmdclass,
         'py_modules': ['pyfftw'],

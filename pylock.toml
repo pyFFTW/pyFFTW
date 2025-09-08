@@ -193,18 +193,18 @@ sdist = {name = "packaging-25.0.tar.gz", url = "https://files.pythonhosted.org/p
 wheels = [
     {name = "packaging-25.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/20/12/38679034af332785aac8774540895e234f4d07f7545804097de4b666afd8/packaging-25.0-py3-none-any.whl",hashes = {sha256 = "29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484"}},
 ]
-marker = "\"dask\" in extras or \"doc\" in dependency_groups or \"test\" in dependency_groups"
+marker = "\"dask\" in extras or \"dev\" in dependency_groups or \"doc\" in dependency_groups or \"test\" in dependency_groups"
 
 [packages.tool.pdm]
 dependencies = []
 
 [[packages]]
 name = "pytest"
-version = "8.4.1"
+version = "8.4.2"
 requires-python = ">=3.9"
-sdist = {name = "pytest-8.4.1.tar.gz", url = "https://files.pythonhosted.org/packages/08/ba/45911d754e8eba3d5a841a5ce61a65a685ff1798421ac054f85aa8747dfb/pytest-8.4.1.tar.gz", hashes = {sha256 = "7c67fd69174877359ed9371ec3af8a3d2b04741818c51e5e99cc1742251fa93c"}}
+sdist = {name = "pytest-8.4.2.tar.gz", url = "https://files.pythonhosted.org/packages/a3/5c/00a0e072241553e1a7496d638deababa67c5058571567b92a7eaa258397c/pytest-8.4.2.tar.gz", hashes = {sha256 = "86c0d0b93306b961d58d62a4db4879f27fe25513d4b969df351abdddb3c30e01"}}
 wheels = [
-    {name = "pytest-8.4.1-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/29/16/c8a903f4c4dffe7a12843191437d7cd8e32751d5de349d45d3fe69544e87/pytest-8.4.1-py3-none-any.whl",hashes = {sha256 = "539c70ba6fcead8e78eebbf1115e8b589e7565830d7d006a8723f19ac8a0afb7"}},
+    {name = "pytest-8.4.2-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/a8/a4/20da314d277121d6534b3a980b29035dcd51e6744bd79075a6ce8fa4eb8d/pytest-8.4.2-py3-none-any.whl",hashes = {sha256 = "872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79"}},
 ]
 marker = "\"test\" in dependency_groups"
 
@@ -217,6 +217,24 @@ dependencies = [
     "pluggy<2,>=1.5",
     "pygments>=2.7.2",
     "tomli>=1; python_version < \"3.11\"",
+]
+
+[[packages]]
+name = "setuptools-scm"
+version = "9.2.0"
+requires-python = ">=3.8"
+sdist = {name = "setuptools_scm-9.2.0.tar.gz", url = "https://files.pythonhosted.org/packages/8f/8d/ffdcace33d0480d591057a30285b7c33f8dc431fed3fff7dbadf5f9f128f/setuptools_scm-9.2.0.tar.gz", hashes = {sha256 = "6662c9b9497b6c9bf13bead9d7a9084756f68238302c5ed089fb4dbd29d102d7"}}
+wheels = [
+    {name = "setuptools_scm-9.2.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/f7/14/dd3a6053325e882fe191fb4b42289bbdfabf5f44307c302903a8a3236a0a/setuptools_scm-9.2.0-py3-none-any.whl",hashes = {sha256 = "c551ef54e2270727ee17067881c9687ca2aedf179fa5b8f3fab9e8d73bdc421f"}},
+]
+marker = "\"dev\" in dependency_groups"
+
+[packages.tool.pdm]
+dependencies = [
+    "packaging>=20",
+    "setuptools",
+    "tomli>=1; python_version < \"3.11\"",
+    "typing-extensions; python_version < \"3.10\"",
 ]
 
 [[packages]]
@@ -252,11 +270,11 @@ dependencies = [
 
 [[packages]]
 name = "ipython"
-version = "9.4.0"
+version = "9.5.0"
 requires-python = ">=3.11"
-sdist = {name = "ipython-9.4.0.tar.gz", url = "https://files.pythonhosted.org/packages/54/80/406f9e3bde1c1fd9bf5a0be9d090f8ae623e401b7670d8f6fdf2ab679891/ipython-9.4.0.tar.gz", hashes = {sha256 = "c033c6d4e7914c3d9768aabe76bbe87ba1dc66a92a05db6bfa1125d81f2ee270"}}
+sdist = {name = "ipython-9.5.0.tar.gz", url = "https://files.pythonhosted.org/packages/6e/71/a86262bf5a68bf211bcc71fe302af7e05f18a2852fdc610a854d20d085e6/ipython-9.5.0.tar.gz", hashes = {sha256 = "129c44b941fe6d9b82d36fc7a7c18127ddb1d6f02f78f867f402e2e3adde3113"}}
 wheels = [
-    {name = "ipython-9.4.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/63/f8/0031ee2b906a15a33d6bfc12dd09c3dfa966b3cb5b284ecfb7549e6ac3c4/ipython-9.4.0-py3-none-any.whl",hashes = {sha256 = "25850f025a446d9b359e8d296ba175a36aedd32e83ca9b5060430fe16801f066"}},
+    {name = "ipython-9.5.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/08/2a/5628a99d04acb2d2f2e749cdf4ea571d2575e898df0528a090948018b726/ipython-9.5.0-py3-none-any.whl",hashes = {sha256 = "88369ffa1d5817d609120daa523a6da06d02518e582347c29f8451732a9c5e72"}},
 ]
 marker = "\"dev\" in dependency_groups"
 
@@ -342,11 +360,11 @@ dependencies = []
 
 [[packages]]
 name = "prompt-toolkit"
-version = "3.0.51"
+version = "3.0.52"
 requires-python = ">=3.8"
-sdist = {name = "prompt_toolkit-3.0.51.tar.gz", url = "https://files.pythonhosted.org/packages/bb/6e/9d084c929dfe9e3bfe0c6a47e31f78a25c54627d64a66e884a8bf5474f1c/prompt_toolkit-3.0.51.tar.gz", hashes = {sha256 = "931a162e3b27fc90c86f1b48bb1fb2c528c2761475e57c9c06de13311c7b54ed"}}
+sdist = {name = "prompt_toolkit-3.0.52.tar.gz", url = "https://files.pythonhosted.org/packages/a1/96/06e01a7b38dce6fe1db213e061a4602dd6032a8a97ef6c1a862537732421/prompt_toolkit-3.0.52.tar.gz", hashes = {sha256 = "28cde192929c8e7321de85de1ddbe736f1375148b02f2e17edd840042b1be855"}}
 wheels = [
-    {name = "prompt_toolkit-3.0.51-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/ce/4f/5249960887b1fbe561d9ff265496d170b55a735b76724f10ef19f9e40716/prompt_toolkit-3.0.51-py3-none-any.whl",hashes = {sha256 = "52742911fde84e2d423e2f9a4cf1de7d7ac4e51958f648d9540e0fb8db077b07"}},
+    {name = "prompt_toolkit-3.0.52-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/84/03/0d3ce49e2505ae70cf43bc5bb3033955d2fc9f932163e84dc0779cc47f48/prompt_toolkit-3.0.52-py3-none-any.whl",hashes = {sha256 = "9aac639a3bbd33284347de5ad8d68ecc044b91a762dc39b7c21095fcd6a19955"}},
 ]
 marker = "\"dev\" in dependency_groups"
 
@@ -413,11 +431,11 @@ dependencies = []
 
 [[packages]]
 name = "fsspec"
-version = "2025.7.0"
+version = "2025.9.0"
 requires-python = ">=3.9"
-sdist = {name = "fsspec-2025.7.0.tar.gz", url = "https://files.pythonhosted.org/packages/8b/02/0835e6ab9cfc03916fe3f78c0956cfcdb6ff2669ffa6651065d5ebf7fc98/fsspec-2025.7.0.tar.gz", hashes = {sha256 = "786120687ffa54b8283d942929540d8bc5ccfa820deb555a2b5d0ed2b737bf58"}}
+sdist = {name = "fsspec-2025.9.0.tar.gz", url = "https://files.pythonhosted.org/packages/de/e0/bab50af11c2d75c9c4a2a26a5254573c0bd97cea152254401510950486fa/fsspec-2025.9.0.tar.gz", hashes = {sha256 = "19fd429483d25d28b65ec68f9f4adc16c17ea2c7c7bf54ec61360d478fb19c19"}}
 wheels = [
-    {name = "fsspec-2025.7.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/2f/e0/014d5d9d7a4564cf1c40b5039bc882db69fd881111e03ab3657ac0b218e2/fsspec-2025.7.0-py3-none-any.whl",hashes = {sha256 = "8b012e39f63c7d5f10474de957f3ab793b47b45ae7d39f2fb735f8bbe25c0e21"}},
+    {name = "fsspec-2025.9.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/47/71/70db47e4f6ce3e5c37a607355f80da8860a33226be640226ac52cb05ef2e/fsspec-2025.9.0-py3-none-any.whl",hashes = {sha256 = "530dc2a2af60a414a832059574df4a6e10cce927f6f4a78209390fe38955cfb7"}},
 ]
 marker = "\"dask\" in extras or \"doc\" in dependency_groups or \"test\" in dependency_groups"
 
@@ -969,6 +987,19 @@ dependencies = [
 ]
 
 [[packages]]
+name = "setuptools"
+version = "80.9.0"
+requires-python = ">=3.9"
+sdist = {name = "setuptools-80.9.0.tar.gz", url = "https://files.pythonhosted.org/packages/18/5d/3bf57dcd21979b887f014ea83c24ae194cfcd12b9e0fda66b957c69d1fca/setuptools-80.9.0.tar.gz", hashes = {sha256 = "f36b47402ecde768dbfafc46e8e4207b4360c654f1f3bb84475f0a28628fb19c"}}
+wheels = [
+    {name = "setuptools-80.9.0-py3-none-any.whl",url = "https://files.pythonhosted.org/packages/a3/dc/17031897dae0efacfea57dfd3a82fdd2a2aeb58e0ff71b77b87e44edc772/setuptools-80.9.0-py3-none-any.whl",hashes = {sha256 = "062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922"}},
+]
+marker = "\"dev\" in dependency_groups"
+
+[packages.tool.pdm]
+dependencies = []
+
+[[packages]]
 name = "stack-data"
 version = "0.6.3"
 sdist = {name = "stack_data-0.6.3.tar.gz", url = "https://files.pythonhosted.org/packages/28/e3/55dcc2cfbc3ca9c29519eb6884dd1415ecb53b0e934862d3559ddcb7e20b/stack_data-0.6.3.tar.gz", hashes = {sha256 = "836a778de4fec4dcd1dcd89ed8abff8a221f58308462e1c4aa2a3cf30148f0b9"}}
@@ -999,11 +1030,11 @@ dependencies = []
 
 [[packages]]
 name = "executing"
-version = "2.2.0"
+version = "2.2.1"
 requires-python = ">=3.8"
-sdist = {name = "executing-2.2.0.tar.gz", url = "https://files.pythonhosted.org/packages/91/50/a9d80c47ff289c611ff12e63f7c5d13942c65d68125160cefd768c73e6e4/executing-2.2.0.tar.gz", hashes = {sha256 = "5d108c028108fe2551d1a7b2e8b713341e2cb4fc0aa7dcf966fa4327a5226755"}}
+sdist = {name = "executing-2.2.1.tar.gz", url = "https://files.pythonhosted.org/packages/cc/28/c14e053b6762b1044f34a13aab6859bbf40456d37d23aa286ac24cfd9a5d/executing-2.2.1.tar.gz", hashes = {sha256 = "3632cc370565f6648cc328b32435bd120a1e4ebb20c77e3fdde9a13cd1e533c4"}}
 wheels = [
-    {name = "executing-2.2.0-py2.py3-none-any.whl",url = "https://files.pythonhosted.org/packages/7b/8f/c4d9bafc34ad7ad5d8dc16dd1347ee0e507a52c3adb6bfa8887e1c6a26ba/executing-2.2.0-py2.py3-none-any.whl",hashes = {sha256 = "11387150cad388d62750327a53d3339fad4888b39a6fe233c3afbb54ecffd3aa"}},
+    {name = "executing-2.2.1-py2.py3-none-any.whl",url = "https://files.pythonhosted.org/packages/c1/ea/53f2148663b321f21b5a606bd5f191517cf40b7072c0497d3c92c4a13b1e/executing-2.2.1-py2.py3-none-any.whl",hashes = {sha256 = "760643d3452b4d777d295bb167ccc74c64a81df23fb5e08eff250c425a4b2017"}},
 ]
 marker = "\"dev\" in dependency_groups"
 
@@ -1037,7 +1068,7 @@ dependencies = [
 ]
 
 [tool.pdm]
-hashes = {sha256 = "9e160aa64f9c18368e2112526f29e64fe7f8ecd8c1d6f303d7c5114eb361b147"}
+hashes = {sha256 = "41819912ccda6938878f0ffe4268e5545064b5b35e5fa8ccf33853d90fa918bd"}
 strategy = ["inherit_metadata", "static_urls"]
 
 [[tool.pdm.targets]]

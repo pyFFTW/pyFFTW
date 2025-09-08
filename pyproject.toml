@@ -1,7 +1,8 @@
 [build-system]
 requires = [
     "wheel",
-    "setuptools",
+    "setuptools>=64",
+    "setuptools-scm",
     "Cython>=3",
     # taken from scipy (2024/06/28)
     # numpy requirement for wheel builds for distribution on PyPI - building
@@ -56,6 +57,10 @@ dask = [
 scipy = [
     "scipy>=1.8.0",
 ]
+
+
+[tool.setuptools_scm]
+version_file = "pyfftw/_version.py"
 
 
 [tool.cibuildwheel]
@@ -152,7 +157,7 @@ test = [
     "scipy",
     "dask",
 ]
-dev = ["pip", "ipython"]
+dev = ["pip", "ipython", "setuptools-scm>=8"]
 doc = [
     "sphinx>=7.3.7",
     "scipy>=1.13.1",
