@@ -35,47 +35,55 @@
 #
 
 from pyfftw import (
-    FFTW, empty_aligned,
+    FFTW,
+    empty_aligned,
     interfaces,
-    _all_types_np, _all_types_human_readable, _supported_types
-    )
+    _all_types_np,
+    _all_types_human_readable,
+    _supported_types,
+)
 from pyfftw.builders._utils import _rc_dtype_pairs
 import numpy as np
 import unittest
 import warnings
 
-@unittest.skipIf(len(_all_types_human_readable) == len(_supported_types), "All data types available")
+
+@unittest.skipIf(
+    len(_all_types_human_readable) == len(_supported_types), "All data types available"
+)
 class FFTWPartialTest(unittest.TestCase):
-
     def __init__(self, *args, **kwargs):
-
         super(FFTWPartialTest, self).__init__(*args, **kwargs)
 
-        if not hasattr(self, 'assertRaisesRegex'):
+        if not hasattr(self, "assertRaisesRegex"):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
     def test_failure(self):
-        for dtype, npdtype in zip(['32', '64', 'ld'], [np.complex64, np.complex128, np.clongdouble]):
-            if dtype == 'ld' and np.dtype(np.clongdouble) == np.dtype(np.complex128):
+        for dtype, npdtype in zip(
+            ["32", "64", "ld"], [np.complex64, np.complex128, np.clongdouble]
+        ):
+            if dtype == "ld" and np.dtype(np.clongdouble) == np.dtype(np.complex128):
                 # skip this test on systems where clongdouble is complex128
                 continue
             if dtype not in _supported_types:
-                a = empty_aligned((1,1024), npdtype, n=16)
+                a = empty_aligned((1, 1024), npdtype, n=16)
                 b = empty_aligned(a.shape, dtype=a.dtype, n=16)
-                msg = "Rebuild pyFFTW with support for %s precision!" % _all_types_human_readable[dtype]
+                msg = (
+                    "Rebuild pyFFTW with support for %s precision!"
+                    % _all_types_human_readable[dtype]
+                )
                 with self.assertRaisesRegex(NotImplementedError, msg):
-                    FFTW(a,b)
-
+                    FFTW(a, b)
 
     def conversion(self, missing, alt1, alt2):
-        '''If the ``missing`` precision is not available, the builder should convert to
-           ``alt1`` precision. If that isn't available either, it should fall back to
-           ``alt2``. If input precision is lost, a warning should be emitted.
+        """If the ``missing`` precision is not available, the builder should convert to
+        ``alt1`` precision. If that isn't available either, it should fall back to
+        ``alt2``. If input precision is lost, a warning should be emitted.
 
-        '''
+        """
 
         missing, alt1, alt2 = [np.dtype(x) for x in (missing, alt1, alt2)]
-        if _all_types_np[missing]  in _supported_types:
+        if _all_types_np[missing] in _supported_types:
             return
 
         with warnings.catch_warnings(record=True) as w:
@@ -95,21 +103,22 @@ class FFTWPartialTest(unittest.TestCase):
                 print(itemsize, missing.itemsize)
                 assert len(w) == 1
                 assert "Narrowing conversion" in str(w[-1].message)
-                print("Found narrowing conversion from %d to %d bytes" % (missing.itemsize, itemsize))
+                print(
+                    "Found narrowing conversion from %d to %d bytes"
+                    % (missing.itemsize, itemsize)
+                )
             else:
                 assert len(w) == 0
 
-
     def test_conversion(self):
-        self.conversion('float32', 'float64', 'longdouble')
-        self.conversion('float64', 'longdouble', 'single')
-        self.conversion('longdouble', 'float64', 'float32')
+        self.conversion("float32", "float64", "longdouble")
+        self.conversion("float64", "longdouble", "single")
+        self.conversion("longdouble", "float64", "float32")
 
-test_cases = (
-        FFTWPartialTest,)
+
+test_cases = (FFTWPartialTest,)
 
 test_set = None
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     run_test_suites(test_cases, test_set)

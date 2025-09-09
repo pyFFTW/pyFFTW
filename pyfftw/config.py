@@ -2,6 +2,7 @@
 
 The approach taken here was adapated from Numba's config.py.
 """
+
 from __future__ import print_function, division, absolute_import
 
 import os
@@ -12,7 +13,6 @@ from .pyfftw import _threading_type
 
 
 class _EnvReloader(object):
-
     def __init__(self):
         self.reset()
 
@@ -25,7 +25,7 @@ class _EnvReloader(object):
 
         # read local env var OMP_NUM_THREADS and any starting with PYFFTW_
         for name, value in os.environ.items():
-            if name.startswith('PYFFTW_') or name == 'OMP_NUM_THREADS':
+            if name.startswith("PYFFTW_") or name == "OMP_NUM_THREADS":
                 new_environ[name] = value
         # We update the config variables if at least one PYFFTW environment
         # variable was modified.  This lets the user modify values
@@ -44,8 +44,10 @@ class _EnvReloader(object):
             try:
                 return ctor(value)
             except Exception:
-                warnings.warn("environ %s defined but failed to parse '%s'" %
-                              (name, value), RuntimeWarning)
+                warnings.warn(
+                    "environ %s defined but failed to parse '%s'" % (name, value),
+                    RuntimeWarning,
+                )
                 return default
 
         def optional_str(x):
@@ -54,8 +56,7 @@ class _EnvReloader(object):
         if _threading_type is None:
             NUM_THREADS = 1
         else:
-            if (_threading_type == "OMP" and
-                    "PYFFTW_NUM_THREADS" not in environ):
+            if _threading_type == "OMP" and "PYFFTW_NUM_THREADS" not in environ:
                 # fallback to OMP_NUM_THREADS if PYFFTW_NUM_THREADS undefined
                 NUM_THREADS = _readenv("OMP_NUM_THREADS", int, 1)
             else:
@@ -64,13 +65,13 @@ class _EnvReloader(object):
             if NUM_THREADS <= 0:
                 NUM_THREADS = multiprocessing.cpu_count()
 
-        PLANNER_EFFORT = _readenv(
-            "PYFFTW_PLANNER_EFFORT", str, "FFTW_ESTIMATE")
+        PLANNER_EFFORT = _readenv("PYFFTW_PLANNER_EFFORT", str, "FFTW_ESTIMATE")
 
         # Inject the configuration values into the module globals
         for name, value in locals().copy().items():
             if name.isupper():
                 globals()[name] = value
+
 
 _env_reloader = _EnvReloader()
 

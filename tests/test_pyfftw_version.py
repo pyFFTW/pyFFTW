@@ -5,8 +5,8 @@ import pyfftw
 
 def test_fftw_version_pattern():
     fv = pyfftw.fftw_version
-    if fv != '':
-        match = re.search(r'(\d+).(\d+).(\d+)', fv)
+    if fv != "":
+        match = re.search(r"(\d+).(\d+).(\d+)", fv)
         assert match is not None
     else:
         # cannot get version from fftw

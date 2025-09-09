@@ -35,7 +35,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-'''
+"""
 This module implements those functions that replace aspects of the
 :mod:`scipy.fftpack` module. This module *provides* the entire documented
 namespace of :mod:`scipy.fftpack`, but those functions that are not included
@@ -49,7 +49,7 @@ Some corner (mis)usages of :mod:`scipy.fftpack` may not transfer neatly.
 For example, using :func:`scipy.fftpack.fft2` with a non 1D array and
 a 2D `shape` argument will return without exception whereas
 :func:`pyfftw.interfaces.scipy_fftpack.fft2` will raise a `ValueError`.
-'''
+"""
 
 import itertools as it
 import math
@@ -63,10 +63,23 @@ from ._utils import _Xfftn
 import numpy
 
 # Complete the namespace (these are not actually used in this module)
-from scipy.fftpack import (diff, tilbert, itilbert,
-        hilbert, ihilbert, cs_diff, sc_diff, ss_diff, cc_diff,
-        shift, fftshift, ifftshift, fftfreq, rfftfreq,
-        convolve)
+from scipy.fftpack import (
+    diff,
+    tilbert,
+    itilbert,
+    hilbert,
+    ihilbert,
+    cs_diff,
+    sc_diff,
+    ss_diff,
+    cc_diff,
+    shift,
+    fftshift,
+    ifftshift,
+    fftfreq,
+    rfftfreq,
+    convolve,
+)
 
 # a next_fast_len specific to pyFFTW is used in place of the scipy.fftpack one
 from ..pyfftw import next_fast_len
@@ -102,8 +115,9 @@ def _iterable_of_int(x, name=None):
         x = [operator.index(a) for a in x]
     except TypeError as e:
         name = name or "value"
-        raise ValueError("{} must be a scalar or iterable of integers"
-                         .format(name)) from e
+        raise ValueError(
+            "{} must be a scalar or iterable of integers".format(name)
+        ) from e
 
     return x
 
@@ -114,10 +128,11 @@ def _good_shape(x, shape, axes):
     scipy.fftpack does not support len(shape) < x.ndim when axes is not given.
     """
     if shape is not None and axes is None:
-        shape = _iterable_of_int(shape, 'shape')
+        shape = _iterable_of_int(shape, "shape")
         if len(shape) != numpy.ndim(x):
-            raise ValueError("when given, axes and shape arguments"
-                             " have to be of the same length")
+            raise ValueError(
+                "when given, axes and shape arguments have to be of the same length"
+            )
     return shape
 
 
@@ -130,25 +145,27 @@ def _init_nd_shape_and_axes(x, shape, axes):
     noaxes = axes is None
 
     if not noaxes:
-        axes = _iterable_of_int(axes, 'axes')
+        axes = _iterable_of_int(axes, "axes")
         axes = [a + x.ndim if a < 0 else a for a in axes]
 
         if any(a >= x.ndim or a < 0 for a in axes):
-            raise ValueError("Shape error: axes exceeds dimensionality of "
-                             "input")
+            raise ValueError("Shape error: axes exceeds dimensionality of input")
         if len(set(axes)) != len(axes):
             raise ValueError("Shape error: all axes must be unique")
 
     if not noshape:
-        shape = _iterable_of_int(shape, 'shape')
+        shape = _iterable_of_int(shape, "shape")
 
         if axes and len(axes) != len(shape):
-            raise ValueError("Shape error: when given, axes and shape "
-                             " arguments have to be of the same length")
+            raise ValueError(
+                "Shape error: when given, axes and shape "
+                " arguments have to be of the same length"
+            )
         if noaxes:
             if len(shape) > x.ndim:
-                raise ValueError("Shape error: shape requires more axes than "
-                                  "are present")
+                raise ValueError(
+                    "Shape error: shape requires more axes than are present"
+                )
             axes = range(x.ndim - len(shape), x.ndim)
 
         shape = [x.shape[a] if s == -1 else s for s, a in zip(shape, axes)]
@@ -159,15 +176,21 @@ def _init_nd_shape_and_axes(x, shape, axes):
         shape = [x.shape[a] for a in axes]
 
     if any(s < 1 for s in shape):
-        raise ValueError(
-            "invalid number of data points ({0}) specified".format(shape))
+        raise ValueError("invalid number of data points ({0}) specified".format(shape))
 
     return shape, axes
 
 
-def fft(x, n=None, axis=-1, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def fft(
+    x,
+    n=None,
+    axis=-1,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an 1D FFT.
 
@@ -181,12 +204,29 @@ def fft(x, n=None, axis=-1, overwrite_x=False,
     """
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
-    return numpy_fft.fft(x, n, axis, None, overwrite_x, planner_effort,
-                         threads, auto_align_input, auto_contiguous)
+    return numpy_fft.fft(
+        x,
+        n,
+        axis,
+        None,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
 
-def ifft(x, n=None, axis=-1, overwrite_x=False,
-         planner_effort=None, threads=None,
-         auto_align_input=True, auto_contiguous=True):
+
+def ifft(
+    x,
+    n=None,
+    axis=-1,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an 1D inverse FFT.
 
@@ -200,14 +240,29 @@ def ifft(x, n=None, axis=-1, overwrite_x=False,
     """
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
-    return numpy_fft.ifft(x, n, axis, None, overwrite_x,
-                          planner_effort, threads, auto_align_input,
-                          auto_contiguous)
+    return numpy_fft.ifft(
+        x,
+        n,
+        axis,
+        None,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
 
 
-def fft2(x, shape=None, axes=(-2, -1), overwrite_x=False,
-         planner_effort=None, threads=None,
-         auto_align_input=True, auto_contiguous=True):
+def fft2(
+    x,
+    shape=None,
+    axes=(-2, -1),
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform a 2D FFT.
 
@@ -222,14 +277,29 @@ def fft2(x, shape=None, axes=(-2, -1), overwrite_x=False,
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
     shape = _good_shape(x, shape, axes)
-    return numpy_fft.fft2(x, shape, axes, None, overwrite_x,
-                          planner_effort, threads, auto_align_input,
-                          auto_contiguous)
+    return numpy_fft.fft2(
+        x,
+        shape,
+        axes,
+        None,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
 
 
-def ifft2(x, shape=None, axes=(-2, -1), overwrite_x=False,
-          planner_effort=None, threads=None,
-          auto_align_input=True, auto_contiguous=True):
+def ifft2(
+    x,
+    shape=None,
+    axes=(-2, -1),
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform a 2D inverse FFT.
 
@@ -244,14 +314,29 @@ def ifft2(x, shape=None, axes=(-2, -1), overwrite_x=False,
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
     shape = _good_shape(x, shape, axes)
-    return numpy_fft.ifft2(x, shape, axes, None, overwrite_x,
-                           planner_effort, threads, auto_align_input,
-                           auto_contiguous)
+    return numpy_fft.ifft2(
+        x,
+        shape,
+        axes,
+        None,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
 
 
-def fftn(x, shape=None, axes=None, overwrite_x=False,
-         planner_effort=None, threads=None,
-         auto_align_input=True, auto_contiguous=True):
+def fftn(
+    x,
+    shape=None,
+    axes=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an nD FFT.
 
@@ -266,14 +351,29 @@ def fftn(x, shape=None, axes=None, overwrite_x=False,
     shape = _good_shape(x, shape, axes)
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
-    return numpy_fft.fftn(x, shape, axes, None, overwrite_x,
-                          planner_effort, threads, auto_align_input,
-                          auto_contiguous)
+    return numpy_fft.fftn(
+        x,
+        shape,
+        axes,
+        None,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
 
 
-def ifftn(x, shape=None, axes=None, overwrite_x=False,
-          planner_effort=None, threads=None,
-          auto_align_input=True, auto_contiguous=True):
+def ifftn(
+    x,
+    shape=None,
+    axes=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an nD inverse FFT.
 
@@ -288,14 +388,23 @@ def ifftn(x, shape=None, axes=None, overwrite_x=False,
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
     shape = _good_shape(x, shape, axes)
-    return numpy_fft.ifftn(x, shape, axes, None, overwrite_x,
-                           planner_effort, threads, auto_align_input,
-                           auto_contiguous)
+    return numpy_fft.ifftn(
+        x,
+        shape,
+        axes,
+        None,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
+
 
 def _complex_to_rfft_output(complex_output, output_shape, axis):
-    '''Convert the complex output from pyfftw to the real output expected
+    """Convert the complex output from pyfftw to the real output expected
     from :func:`scipy.fftpack.rfft`.
-    '''
+    """
 
     rfft_output = numpy.empty(output_shape, dtype=complex_output.real.dtype)
     source_slicer = [slice(None)] * complex_output.ndim
@@ -325,13 +434,13 @@ def _complex_to_rfft_output(complex_output, output_shape, axis):
 
 
 def _irfft_input_to_complex(irfft_input, axis):
-    '''Convert the expected real input to :func:`scipy.fftpack.irfft` to
+    """Convert the expected real input to :func:`scipy.fftpack.irfft` to
     the complex input needed by pyfftw.
-    '''
+    """
     complex_dtype = numpy.result_type(irfft_input, 1j)
 
     input_shape = list(irfft_input.shape)
-    input_shape[axis] = input_shape[axis]//2 + 1
+    input_shape[axis] = input_shape[axis] // 2 + 1
 
     complex_input = numpy.empty(input_shape, dtype=complex_dtype)
     source_slicer = [slice(None)] * len(input_shape)
@@ -362,9 +471,16 @@ def _irfft_input_to_complex(irfft_input, axis):
     return complex_input
 
 
-def rfft(x, n=None, axis=-1, overwrite_x=False,
-         planner_effort=None, threads=None,
-         auto_align_input=True, auto_contiguous=True):
+def rfft(
+    x,
+    n=None,
+    axis=-1,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an 1D real FFT.
 
@@ -377,25 +493,43 @@ def rfft(x, n=None, axis=-1, overwrite_x=False,
 
     """
     if not numpy.isrealobj(x):
-        raise TypeError('Input array must be real to maintain '
-                        'compatibility with scipy.fftpack.rfft.')
+        raise TypeError(
+            "Input array must be real to maintain "
+            "compatibility with scipy.fftpack.rfft."
+        )
 
     x = numpy.asanyarray(x)
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
 
-    complex_output = numpy_fft.rfft(x, n, axis, None, overwrite_x,
-                                    planner_effort, threads,
-                                    auto_align_input, auto_contiguous)
+    complex_output = numpy_fft.rfft(
+        x,
+        n,
+        axis,
+        None,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
     output_shape = list(x.shape)
     if n is not None:
         output_shape[axis] = n
 
     return _complex_to_rfft_output(complex_output, output_shape, axis)
 
-def irfft(x, n=None, axis=-1, overwrite_x=False,
-          planner_effort=None, threads=None,
-          auto_align_input=True, auto_contiguous=True):
+
+def irfft(
+    x,
+    n=None,
+    axis=-1,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an 1D inverse real FFT.
 
@@ -408,8 +542,10 @@ def irfft(x, n=None, axis=-1, overwrite_x=False,
 
     """
     if not numpy.isrealobj(x):
-        raise TypeError('Input array must be real to maintain '
-                        'compatibility with scipy.fftpack.irfft.')
+        raise TypeError(
+            "Input array must be real to maintain "
+            "compatibility with scipy.fftpack.irfft."
+        )
 
     x = numpy.asanyarray(x)
     planner_effort = _default_effort(planner_effort)
@@ -420,17 +556,29 @@ def irfft(x, n=None, axis=-1, overwrite_x=False,
 
     complex_input = _irfft_input_to_complex(x, axis)
 
-    return numpy_fft.irfft(complex_input, n, axis, None, overwrite_x,
-                           planner_effort, threads, auto_align_input,
-                           auto_contiguous)
+    return numpy_fft.irfft(
+        complex_input,
+        n,
+        axis,
+        None,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
 
 
 # why map None:None, and not None:"forward"?
 # if I change it to map None:"forward" some `scipy_interface` tests fail.
 # see also the if-clauses in the sine/cosine transforms in `scipy_fft.py`;
 # there's some mishandling of norm=None somewhere.
-_swap_norm_dictionary = {"backward": "forward", None: None,
-                         "ortho": "ortho", "forward": "backward"}
+_swap_norm_dictionary = {
+    "backward": "forward",
+    None: None,
+    "ortho": "ortho",
+    "forward": "backward",
+}
 
 _swap_type_dictionary = {1: 1, 2: 3, 3: 2, 4: 4}
 
@@ -439,20 +587,30 @@ def _swap_norm_direction(norm):
     try:
         return _swap_norm_dictionary[norm]
     except KeyError:
-        raise ValueError(f'Invalid norm value {norm}; should be "backward", '
-                         '"ortho" or "forward".')
+        raise ValueError(
+            f'Invalid norm value {norm}; should be "backward", "ortho" or "forward".'
+        )
 
 
 def _swap_type_direction(type):
     try:
         return _swap_type_dictionary[type]
     except KeyError:
-        raise ValueError(f'Invalid type value {type}')
+        raise ValueError(f"Invalid type value {type}")
 
 
-def _dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
-         planner_effort=None, threads=None, auto_align_input=True,
-         auto_contiguous=True):
+def _dct(
+    x,
+    type=2,
+    n=None,
+    axis=-1,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Private function used for the 1D discrete cosine transforms.
 
@@ -469,11 +627,12 @@ def _dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     elif n != x.shape[axis]:
         raise NotImplementedError("Padding/truncating not yet implemented")
 
-    if norm not in [None, 'forward', 'backward', 'ortho']:
-        raise ValueError(f'Invalid norm value {norm}; should be "backward", '
-                         '"ortho" or "forward".')
+    if norm not in [None, "forward", "backward", "ortho"]:
+        raise ValueError(
+            f'Invalid norm value {norm}; should be "backward", "ortho" or "forward".'
+        )
 
-    if norm == 'ortho':
+    if norm == "ortho":
         if type == 1:
             x = numpy.copy(x)
             sp = list(it.repeat(slice(None), len(x.shape)))
@@ -487,32 +646,41 @@ def _dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
             sp[axis] = 0
             x[tuple(sp)] /= math.sqrt(x.shape[axis])
             sp[axis] = slice(1, None, None)
-            x[tuple(sp)] /= math.sqrt(2*x.shape[axis])
+            x[tuple(sp)] /= math.sqrt(2 * x.shape[axis])
 
     type_flag_lookup = {
-        1: 'FFTW_REDFT00',
-        2: 'FFTW_REDFT10',
-        3: 'FFTW_REDFT01',
-        4: 'FFTW_REDFT11',
+        1: "FFTW_REDFT00",
+        2: "FFTW_REDFT10",
+        3: "FFTW_REDFT01",
+        4: "FFTW_REDFT11",
     }
     try:
         type_flag = type_flag_lookup[type]
     except KeyError:
         raise ValueError(f"Invalid type value {type}")
 
-    calling_func = 'dct'
+    calling_func = "dct"
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
 
-    result_unnormalized = _Xfftn(x, n, axis, overwrite_x, planner_effort,
-                                 threads, auto_align_input, auto_contiguous,
-                                 calling_func, real_direction_flag=type_flag)
+    result_unnormalized = _Xfftn(
+        x,
+        n,
+        axis,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+        calling_func,
+        real_direction_flag=type_flag,
+    )
 
-    if norm is None or norm == 'backward':
+    if norm is None or norm == "backward":
         return result_unnormalized
 
     result = result_unnormalized
-    if norm == 'ortho':
+    if norm == "ortho":
         if type == 1:
             sp = list(it.repeat(slice(None), len(x.shape)))
             sf_ends = 1 / math.sqrt(2)
@@ -528,7 +696,7 @@ def _dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
             result *= 1 / math.sqrt(2 * x.shape[axis])
         elif type == 4:
             result *= 1 / math.sqrt(2 * x.shape[axis])
-    elif norm == 'forward':
+    elif norm == "forward":
         if type == 1:
             result *= 1 / (2 * (x.shape[axis] - 1))
         else:
@@ -536,9 +704,18 @@ def _dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     return result
 
 
-def _idct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
-          planner_effort=None, threads=None, auto_align_input=True,
-          auto_contiguous=True):
+def _idct(
+    x,
+    type=2,
+    n=None,
+    axis=-1,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Private function used for the 1D inverse discrete cosine transforms.
 
@@ -552,15 +729,32 @@ def _idct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
 
-    return _dct(x, n=n, axis=axis, norm=new_norm, overwrite_x=overwrite_x,
-                type=inverse_type, planner_effort=planner_effort,
-                threads=threads, auto_align_input=auto_align_input,
-                auto_contiguous=auto_contiguous)
+    return _dct(
+        x,
+        n=n,
+        axis=axis,
+        norm=new_norm,
+        overwrite_x=overwrite_x,
+        type=inverse_type,
+        planner_effort=planner_effort,
+        threads=threads,
+        auto_align_input=auto_align_input,
+        auto_contiguous=auto_contiguous,
+    )
 
 
-def _dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
-         planner_effort=None, threads=None,
-         auto_align_input=True, auto_contiguous=True):
+def _dst(
+    x,
+    type=2,
+    n=None,
+    axis=-1,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Private function used for the 1D discrete sine transforms.
 
@@ -577,41 +771,51 @@ def _dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     elif n != x.shape[axis]:
         raise NotImplementedError("Padding/truncating not yet implemented")
 
-    if norm not in [None, 'forward', 'backward', 'ortho']:
-        raise ValueError(f'Invalid norm value {norm}; should be "backward", '
-                         '"ortho" or "forward".')
+    if norm not in [None, "forward", "backward", "ortho"]:
+        raise ValueError(
+            f'Invalid norm value {norm}; should be "backward", "ortho" or "forward".'
+        )
 
-    if type == 3 and norm == 'ortho':
+    if type == 3 and norm == "ortho":
         x = numpy.copy(x)
-        x /= math.sqrt(2*x.shape[axis])
+        x /= math.sqrt(2 * x.shape[axis])
         sp = list(it.repeat(Ellipsis, len(x.shape)))
         sp[axis] = -1
         x[tuple(sp)] *= math.sqrt(2)
 
     type_flag_lookup = {
-        1: 'FFTW_RODFT00',
-        2: 'FFTW_RODFT10',
-        3: 'FFTW_RODFT01',
-        4: 'FFTW_RODFT11',
+        1: "FFTW_RODFT00",
+        2: "FFTW_RODFT10",
+        3: "FFTW_RODFT01",
+        4: "FFTW_RODFT11",
     }
     try:
         type_flag = type_flag_lookup[type]
     except KeyError:
         raise ValueError(f"Invalid type value {type}")
 
-    calling_func = 'dst'
+    calling_func = "dst"
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
 
-    result_unnormalized = _Xfftn(x, n, axis, overwrite_x, planner_effort,
-                                 threads, auto_align_input, auto_contiguous,
-                                 calling_func, real_direction_flag=type_flag)
+    result_unnormalized = _Xfftn(
+        x,
+        n,
+        axis,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+        calling_func,
+        real_direction_flag=type_flag,
+    )
 
-    if norm is None or norm == 'backward':
+    if norm is None or norm == "backward":
         return result_unnormalized
 
     result = result_unnormalized
-    if norm == 'ortho':
+    if norm == "ortho":
         if type == 1:
             result *= 1 / math.sqrt(2 * (x.shape[axis] + 1))
         elif type == 2:
@@ -621,7 +825,7 @@ def _dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
             result[tuple(sp)] *= 1 / math.sqrt(2)
         elif type == 4:
             result *= 1 / math.sqrt(2 * x.shape[axis])
-    elif norm == 'forward':
+    elif norm == "forward":
         if type == 1:
             result *= 1 / (2 * (x.shape[axis] + 1))
         else:
@@ -629,9 +833,18 @@ def _dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     return result
 
 
-def _idst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
-          planner_effort=None, threads=None,
-          auto_align_input=True, auto_contiguous=True):
+def _idst(
+    x,
+    type=2,
+    n=None,
+    axis=-1,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Private function used for the 1D inverse discrete cosine transforms.
 
@@ -645,15 +858,32 @@ def _idst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     planner_effort = _default_effort(planner_effort)
     threads = _default_threads(threads)
 
-    return _dst(x, n=n, axis=axis, norm=new_norm, overwrite_x=overwrite_x,
-                type=inverse_type, planner_effort=planner_effort,
-                threads=threads, auto_align_input=auto_align_input,
-                auto_contiguous=auto_contiguous)
+    return _dst(
+        x,
+        n=n,
+        axis=axis,
+        norm=new_norm,
+        overwrite_x=overwrite_x,
+        type=inverse_type,
+        planner_effort=planner_effort,
+        threads=threads,
+        auto_align_input=auto_align_input,
+        auto_contiguous=auto_contiguous,
+    )
 
 
-def _dctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
-          planner_effort=None, threads=None,
-          auto_align_input=True, auto_contiguous=True):
+def _dctn(
+    x,
+    type=2,
+    shape=None,
+    axes=None,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Private function used for the nD discrete cosine transforms.
 
@@ -664,16 +894,33 @@ def _dctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     x = numpy.asanyarray(x)
     shape, axes = _init_nd_shape_and_axes(x, shape, axes)
     for n, ax in zip(shape, axes):
-        x = _dct(x, type=type, n=n, axis=ax, norm=norm,
-                 overwrite_x=overwrite_x, planner_effort=planner_effort,
-                 threads=threads, auto_align_input=auto_align_input,
-                 auto_contiguous=auto_contiguous)
+        x = _dct(
+            x,
+            type=type,
+            n=n,
+            axis=ax,
+            norm=norm,
+            overwrite_x=overwrite_x,
+            planner_effort=planner_effort,
+            threads=threads,
+            auto_align_input=auto_align_input,
+            auto_contiguous=auto_contiguous,
+        )
     return x
 
 
-def _idctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
-           planner_effort=None, threads=None,
-           auto_align_input=True, auto_contiguous=True):
+def _idctn(
+    x,
+    type=2,
+    shape=None,
+    axes=None,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Private function used for the nD inverse discrete cosine transforms.
 
@@ -684,16 +931,33 @@ def _idctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     x = numpy.asanyarray(x)
     shape, axes = _init_nd_shape_and_axes(x, shape, axes)
     for n, ax in zip(shape, axes):
-        x = _idct(x, type=type, n=n, axis=ax, norm=norm,
-                  overwrite_x=overwrite_x, planner_effort=planner_effort,
-                  threads=threads, auto_align_input=auto_align_input,
-                  auto_contiguous=auto_contiguous)
+        x = _idct(
+            x,
+            type=type,
+            n=n,
+            axis=ax,
+            norm=norm,
+            overwrite_x=overwrite_x,
+            planner_effort=planner_effort,
+            threads=threads,
+            auto_align_input=auto_align_input,
+            auto_contiguous=auto_contiguous,
+        )
     return x
 
 
-def _dstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
-          planner_effort=None, threads=None,
-          auto_align_input=True, auto_contiguous=True):
+def _dstn(
+    x,
+    type=2,
+    shape=None,
+    axes=None,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Private function used for the nD discrete sine transforms.
 
@@ -705,16 +969,33 @@ def _dstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     # if _init_nd_shape_and_axes is not None:
     shape, axes = _init_nd_shape_and_axes(x, shape, axes)
     for n, ax in zip(shape, axes):
-        x = _dst(x, type=type, n=n, axis=ax, norm=norm,
-                 overwrite_x=overwrite_x, planner_effort=planner_effort,
-                 threads=threads, auto_align_input=auto_align_input,
-                 auto_contiguous=auto_contiguous)
+        x = _dst(
+            x,
+            type=type,
+            n=n,
+            axis=ax,
+            norm=norm,
+            overwrite_x=overwrite_x,
+            planner_effort=planner_effort,
+            threads=threads,
+            auto_align_input=auto_align_input,
+            auto_contiguous=auto_contiguous,
+        )
     return x
 
 
-def _idstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
-           planner_effort=None, threads=None,
-           auto_align_input=True, auto_contiguous=True):
+def _idstn(
+    x,
+    type=2,
+    shape=None,
+    axes=None,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Private function used for the nD inverse discrete sine transforms.
 
@@ -726,16 +1007,33 @@ def _idstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
     # if _init_nd_shape_and_axes is not None:
     shape, axes = _init_nd_shape_and_axes(x, shape, axes)
     for n, ax in zip(shape, axes):
-        x = _idst(x, type=type, n=n, axis=ax, norm=norm,
-                  overwrite_x=overwrite_x, planner_effort=planner_effort,
-                  threads=threads, auto_align_input=auto_align_input,
-                  auto_contiguous=auto_contiguous)
+        x = _idst(
+            x,
+            type=type,
+            n=n,
+            axis=ax,
+            norm=norm,
+            overwrite_x=overwrite_x,
+            planner_effort=planner_effort,
+            threads=threads,
+            auto_align_input=auto_align_input,
+            auto_contiguous=auto_contiguous,
+        )
     return x
 
 
-def dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def dct(
+    x,
+    type=2,
+    n=None,
+    axis=-1,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an 1D discrete cosine transform.
 
@@ -747,16 +1045,34 @@ def dct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     use `scipy.fft` instead.
 
     """
-    if norm not in [None, 'ortho']:
-        raise ValueError(f'Invalid norm value {norm}; should be None '
-                         'or "ortho"')
-    return _dct(x, type, n, axis, norm, overwrite_x, planner_effort,
-                threads, auto_align_input, auto_contiguous)
+    if norm not in [None, "ortho"]:
+        raise ValueError(f'Invalid norm value {norm}; should be None or "ortho"')
+    return _dct(
+        x,
+        type,
+        n,
+        axis,
+        norm,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
 
 
-def idct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
-         planner_effort=None, threads=None,
-         auto_align_input=True, auto_contiguous=True):
+def idct(
+    x,
+    type=2,
+    n=None,
+    axis=-1,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an 1D inverse discrete cosine transform.
 
@@ -768,16 +1084,34 @@ def idct(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     use `scipy.fft` instead.
 
     """
-    if norm not in [None, 'ortho']:
-        raise ValueError(f'Invalid norm value {norm}; should be None '
-                         'or "ortho"')
-    return _idct(x, type, n, axis, norm, overwrite_x, planner_effort,
-                 threads, auto_align_input, auto_contiguous)
+    if norm not in [None, "ortho"]:
+        raise ValueError(f'Invalid norm value {norm}; should be None or "ortho"')
+    return _idct(
+        x,
+        type,
+        n,
+        axis,
+        norm,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
 
 
-def dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
-        planner_effort=None, threads=None,
-        auto_align_input=True, auto_contiguous=True):
+def dst(
+    x,
+    type=2,
+    n=None,
+    axis=-1,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an 1D discrete sine transform.
 
@@ -789,16 +1123,34 @@ def dst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     use `scipy.fft` instead.
 
     """
-    if norm not in [None, 'ortho']:
-        raise ValueError(f'Invalid norm value {norm}; should be None '
-                         'or "ortho"')
-    return _dst(x, type, n, axis, norm, overwrite_x, planner_effort,
-                threads, auto_align_input, auto_contiguous)
+    if norm not in [None, "ortho"]:
+        raise ValueError(f'Invalid norm value {norm}; should be None or "ortho"')
+    return _dst(
+        x,
+        type,
+        n,
+        axis,
+        norm,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
 
 
-def idst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
-         planner_effort=None, threads=None,
-         auto_align_input=True, auto_contiguous=True):
+def idst(
+    x,
+    type=2,
+    n=None,
+    axis=-1,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an 1D inverse discrete sine transform.
 
@@ -810,16 +1162,34 @@ def idst(x, type=2, n=None, axis=-1, norm=None, overwrite_x=False,
     use `scipy.fft` instead.
 
     """
-    if norm not in [None, 'ortho']:
-        raise ValueError(f'Invalid norm value {norm}; should be None '
-                         'or "ortho"')
-    return _idst(x, type, n, axis, norm, overwrite_x, planner_effort,
-                 threads, auto_align_input, auto_contiguous)
+    if norm not in [None, "ortho"]:
+        raise ValueError(f'Invalid norm value {norm}; should be None or "ortho"')
+    return _idst(
+        x,
+        type,
+        n,
+        axis,
+        norm,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
 
 
-def dctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
-         planner_effort=None, threads=None, auto_align_input=True,
-         auto_contiguous=True):
+def dctn(
+    x,
+    type=2,
+    shape=None,
+    axes=None,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an nD discrete cosine transform.
 
@@ -832,16 +1202,34 @@ def dctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
 
     """
     shape = _good_shape(x, shape, axes)
-    if norm not in [None, 'ortho']:
-        raise ValueError(f'Invalid norm value {norm}; should be None '
-                         'or "ortho"')
-    return _dctn(x, type, shape, axes, norm, overwrite_x, planner_effort,
-                 threads, auto_align_input, auto_contiguous)
+    if norm not in [None, "ortho"]:
+        raise ValueError(f'Invalid norm value {norm}; should be None or "ortho"')
+    return _dctn(
+        x,
+        type,
+        shape,
+        axes,
+        norm,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
 
 
-def idctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
-          planner_effort=None, threads=None, auto_align_input=True,
-          auto_contiguous=True):
+def idctn(
+    x,
+    type=2,
+    shape=None,
+    axes=None,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an nD inverse discrete cosine transform.
 
@@ -854,16 +1242,34 @@ def idctn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
 
     """
     shape = _good_shape(x, shape, axes)
-    if norm not in [None, 'ortho']:
-        raise ValueError(f'Invalid norm value {norm}; should be None '
-                         'or "ortho"')
-    return _idctn(x, type, shape, axes, norm, overwrite_x, planner_effort,
-                  threads, auto_align_input, auto_contiguous)
+    if norm not in [None, "ortho"]:
+        raise ValueError(f'Invalid norm value {norm}; should be None or "ortho"')
+    return _idctn(
+        x,
+        type,
+        shape,
+        axes,
+        norm,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
 
 
-def dstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
-         planner_effort=None, threads=None, auto_align_input=True,
-         auto_contiguous=True):
+def dstn(
+    x,
+    type=2,
+    shape=None,
+    axes=None,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an nD discrete sine transform.
 
@@ -876,16 +1282,34 @@ def dstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
 
     """
     shape = _good_shape(x, shape, axes)
-    if norm not in [None, 'ortho']:
-        raise ValueError(f'Invalid norm value {norm}; should be None '
-                         'or "ortho"')
-    return _dstn(x, type, shape, axes, norm, overwrite_x, planner_effort,
-                 threads, auto_align_input, auto_contiguous)
+    if norm not in [None, "ortho"]:
+        raise ValueError(f'Invalid norm value {norm}; should be None or "ortho"')
+    return _dstn(
+        x,
+        type,
+        shape,
+        axes,
+        norm,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )
 
 
-def idstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
-          planner_effort=None, threads=None, auto_align_input=True,
-          auto_contiguous=True):
+def idstn(
+    x,
+    type=2,
+    shape=None,
+    axes=None,
+    norm=None,
+    overwrite_x=False,
+    planner_effort=None,
+    threads=None,
+    auto_align_input=True,
+    auto_contiguous=True,
+):
     """
     Perform an nD inverse discrete sine transform.
 
@@ -898,8 +1322,17 @@ def idstn(x, type=2, shape=None, axes=None, norm=None, overwrite_x=False,
 
     """
     shape = _good_shape(x, shape, axes)
-    if norm not in [None, 'ortho']:
-        raise ValueError(f'Invalid norm value {norm}; should be None '
-                         'or "ortho"')
-    return _idstn(x, type, shape, axes, norm, overwrite_x, planner_effort,
-                  threads, auto_align_input, auto_contiguous)
+    if norm not in [None, "ortho"]:
+        raise ValueError(f'Invalid norm value {norm}; should be None or "ortho"')
+    return _idstn(
+        x,
+        type,
+        shape,
+        axes,
+        norm,
+        overwrite_x,
+        planner_effort,
+        threads,
+        auto_align_input,
+        auto_contiguous,
+    )

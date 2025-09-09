@@ -33,9 +33,14 @@
 #
 
 from pyfftw import (
-        FFTW, empty_aligned,
-        export_wisdom, import_wisdom, forget_wisdom,
-        _supported_types, _supported_nptypes_complex)
+    FFTW,
+    empty_aligned,
+    export_wisdom,
+    import_wisdom,
+    forget_wisdom,
+    _supported_types,
+    _supported_nptypes_complex,
+)
 
 from .test_pyfftw_base import run_test_suites
 
@@ -45,37 +50,33 @@ import sys
 
 import unittest
 
-class FFTWWisdomTest(unittest.TestCase):
 
+class FFTWWisdomTest(unittest.TestCase):
     def generate_wisdom(self):
         for each_dtype in _supported_nptypes_complex:
             n = 16
-            a = empty_aligned((1,1024), each_dtype, n=n)
+            a = empty_aligned((1, 1024), each_dtype, n=n)
             b = empty_aligned(a.shape, dtype=a.dtype, n=n)
-            fft = FFTW(a,b)
-
+            fft = FFTW(a, b)
 
     def compare_single(self, prec, before, after):
         # skip over unsupported data types where wisdom is the empty string
-        if  prec in _supported_types:
+        if prec in _supported_types:
             # wisdom not updated for ld, at least on appveyor; e.g.
             # https://ci.appveyor.com/project/hgomersall/pyfftw/build/job/vweyed25jx8oxxcb
-            if prec == 'ld' and sys.platform.startswith("win"):
+            if prec == "ld" and sys.platform.startswith("win"):
                 pass
             else:
                 self.assertNotEqual(before, after)
         else:
-            self.assertEqual(before, b'')
+            self.assertEqual(before, b"")
             self.assertEqual(before, after)
 
-
     def compare(self, before, after):
-        for prec, ind in zip(['64', '32', 'ld'], [0,1,2]):
+        for prec, ind in zip(["64", "32", "ld"], [0, 1, 2]):
             self.compare_single(prec, before[ind], after[ind])
 
-
     def test_export(self):
-
         forget_wisdom()
 
         before_wisdom = export_wisdom()
@@ -87,7 +88,6 @@ class FFTWWisdomTest(unittest.TestCase):
         self.compare(before_wisdom, after_wisdom)
 
     def test_import(self):
-
         forget_wisdom()
 
         self.generate_wisdom()
@@ -101,14 +101,14 @@ class FFTWWisdomTest(unittest.TestCase):
 
         self.compare(before_wisdom, after_wisdom)
 
-        self.assertEqual(success, tuple([x in _supported_types for x in ['64', '32', 'ld']]))
+        self.assertEqual(
+            success, tuple([x in _supported_types for x in ["64", "32", "ld"]])
+        )
 
 
-test_cases = (
-        FFTWWisdomTest,)
+test_cases = (FFTWWisdomTest,)
 
 test_set = None
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     run_test_suites(test_cases, test_set)
