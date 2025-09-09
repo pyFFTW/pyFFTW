@@ -67,79 +67,81 @@ def _get_mac_os_homebrew_prefix() -> str:
     version to infer the correct location to search for FFTW.
     """
     # Sanity check
-    if platform.system() != 'Darwin':
-        raise RuntimeError('We only expect this to be called on macOS hosts')
+    if platform.system() != "Darwin":
+        raise RuntimeError("We only expect this to be called on macOS hosts")
 
     arch = platform.machine()
-    if arch == 'arm64':
+    if arch == "arm64":
         return "/opt/homebrew"
-    elif arch == 'x86_64':
+    elif arch == "x86_64":
         return "/usr/local"
 
-    raise ValueError(f'Unrecognized architecture {arch}')
+    raise ValueError(f"Unrecognized architecture {arch}")
 
 
 def get_include_dirs():
     import numpy
 
-    include_dirs = [os.path.join(os.getcwd(), 'include'),
-                    os.path.join(os.getcwd(), 'pyfftw'),
-                    numpy.get_include(),
-                    os.path.join(sys.prefix, 'include')]
+    include_dirs = [
+        os.path.join(os.getcwd(), "include"),
+        os.path.join(os.getcwd(), "pyfftw"),
+        numpy.get_include(),
+        os.path.join(sys.prefix, "include"),
+    ]
 
-    if 'PYFFTW_INCLUDE' in os.environ:
-        include_dirs.append(os.environ['PYFFTW_INCLUDE'])
+    if "PYFFTW_INCLUDE" in os.environ:
+        include_dirs.append(os.environ["PYFFTW_INCLUDE"])
 
-    if get_platform() in ('win32', 'win-amd64'):
-        include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
+    if get_platform() in ("win32", "win-amd64"):
+        include_dirs.append(os.path.join(os.getcwd(), "include", "win"))
 
-    if get_platform().startswith('freebsd'):
-        include_dirs.append('/usr/local/include')
+    if get_platform().startswith("freebsd"):
+        include_dirs.append("/usr/local/include")
 
     if get_platform().startswith("macosx"):
-        include_dirs.append(f'{_get_mac_os_homebrew_prefix()}/include')
+        include_dirs.append(f"{_get_mac_os_homebrew_prefix()}/include")
 
     return include_dirs
 
 
 def get_package_data():
+    package_data = {"pyfftw": ["*.h", "*.pxd"]}
 
-    package_data = {'pyfftw' : ['*.h', '*.pxd']}
-
-    if get_platform() in ('win32', 'win-amd64'):
-        if 'PYFFTW_WIN_CONDAFORGE' in os.environ:
+    if get_platform() in ("win32", "win-amd64"):
+        if "PYFFTW_WIN_CONDAFORGE" in os.environ:
             # fftw3.dll, fftw3f.dll will already be on the path (via the
             # conda environment's \bin subfolder)
             pass
         else:
             # as download from http://www.fftw.org/install/windows.html
-            package_data['pyfftw'].extend([
-                'libfftw3-3.dll', 'libfftw3l-3.dll', 'libfftw3f-3.dll'])
+            package_data["pyfftw"].extend(
+                ["libfftw3-3.dll", "libfftw3l-3.dll", "libfftw3f-3.dll"]
+            )
 
     return package_data
 
 
 def get_library_dirs():
     library_dirs = []
-    if get_platform() in ('win32', 'win-amd64'):
-        library_dirs.append(os.path.join(os.getcwd(), 'pyfftw'))
-        library_dirs.append(os.path.join(sys.prefix, 'bin'))
+    if get_platform() in ("win32", "win-amd64"):
+        library_dirs.append(os.path.join(os.getcwd(), "pyfftw"))
+        library_dirs.append(os.path.join(sys.prefix, "bin"))
 
-    if 'PYFFTW_LIB_DIR' in os.environ:
-        library_dirs.append(os.environ['PYFFTW_LIB_DIR'])
+    if "PYFFTW_LIB_DIR" in os.environ:
+        library_dirs.append(os.environ["PYFFTW_LIB_DIR"])
 
-    library_dirs.append(os.path.join(sys.prefix, 'lib'))
-    if get_platform().startswith('freebsd'):
-        library_dirs.append('/usr/local/lib')
+    library_dirs.append(os.path.join(sys.prefix, "lib"))
+    if get_platform().startswith("freebsd"):
+        library_dirs.append("/usr/local/lib")
 
     if get_platform().startswith("macosx"):
-        library_dirs.append(f'{_get_mac_os_homebrew_prefix()}/lib')
+        library_dirs.append(f"{_get_mac_os_homebrew_prefix()}/lib")
 
     return library_dirs
 
 
 class EnvironmentSniffer(object):
-    '''Check for availability of headers and libraries of FFTW and MPI.
+    """Check for availability of headers and libraries of FFTW and MPI.
 
     :param compiler:
 
@@ -147,15 +149,18 @@ class EnvironmentSniffer(object):
         is used for actual compilation to ensure that include
         directories, linker flags etc. are identical.
 
-    '''
+    """
+
     def __init__(self, compiler):
         log.debug(f"Compiler include_dirs: {compiler.include_dirs}")
         if hasattr(compiler, "initialize"):
-            compiler.initialize() # to set all variables
-            log.debug(f"Compiler include_dirs after initialize: {compiler.include_dirs}")
+            compiler.initialize()  # to set all variables
+            log.debug(
+                f"Compiler include_dirs after initialize: {compiler.include_dirs}"
+            )
         self.compiler = compiler
 
-        log.debug(sys.version) # contains the compiler used to build this python
+        log.debug(sys.version)  # contains the compiler used to build this python
 
         # members with the info for the outside world
         self.include_dirs = get_include_dirs()
@@ -175,21 +180,21 @@ class EnvironmentSniffer(object):
 
         self.compile_time_env = {}
 
-        if self.compiler.compiler_type == 'msvc':
+        if self.compiler.compiler_type == "msvc":
             if (sys.version_info.major, sys.version_info.minor) < (3, 3):
                 # The check above is a nasty hack. We're using the python
                 # version as a proxy for the MSVC version. 2008 doesn't
                 # have stdint.h, so is needed. 2010 does.
                 #
                 # We need to add the path to msvc includes
-                msvc_2008_path = (os.path.join(os.getcwd(), 'include', 'msvc_2008'))
+                msvc_2008_path = os.path.join(os.getcwd(), "include", "msvc_2008")
                 self.include_dirs.append(msvc_2008_path)
             elif (sys.version_info.major, sys.version_info.minor) < (3, 5):
                 # Actually, it seems that appveyor doesn't have a stdint that
                 # works, so even for 2010 we use our own (hacked) version
                 # of stdint.
                 # This should be pretty safe in whatever case.
-                msvc_2010_path = (os.path.join(os.getcwd(), 'include', 'msvc_2010'))
+                msvc_2010_path = os.path.join(os.getcwd(), "include", "msvc_2010")
                 self.include_dirs.append(msvc_2010_path)
 
                 # To avoid http://bugs.python.org/issue4431
@@ -202,16 +207,16 @@ class EnvironmentSniffer(object):
                 # : general error c1010070: Failed to load and parse
                 # the manifest. The system cannot find the file
                 # specified.
-                self.compiler.ldflags_shared.append('/MANIFEST')
+                self.compiler.ldflags_shared.append("/MANIFEST")
 
-        if get_platform().startswith('linux'):
+        if get_platform().startswith("linux"):
             # needed at least libm for linker checks to succeed
-            self.libraries.append('m')
+            self.libraries.append("m")
 
         log.debug(f"Sniffer include_dirs: {self.include_dirs}")
 
         # main fftw3 header is required
-        if not self.has_header(['fftw3.h'], include_dirs=self.include_dirs):
+        if not self.has_header(["fftw3.h"], include_dirs=self.include_dirs):
             raise CompileError("Could not find the FFTW header 'fftw3.h'")
 
         # mpi is optional
@@ -222,6 +227,7 @@ class EnvironmentSniffer(object):
         if self.support_mpi:
             try:
                 import mpi4py
+
                 self.include_dirs.append(mpi4py.get_include())
             except ImportError:
                 log.error("Could not import mpi4py. Skipping support for FFTW MPI.")
@@ -230,22 +236,22 @@ class EnvironmentSniffer(object):
         self.search_dependencies()
 
     def search_dependencies(self):
-
         # lib_checks = {}
-        data_types = ['DOUBLE', 'SINGLE', 'LONG']
-        data_types_short = ['', 'f', 'l']
-        lib_types = ['', 'THREADS', 'OMP']
-        functions = ['plan_dft', 'init_threads', 'init_threads']
+        data_types = ["DOUBLE", "SINGLE", "LONG"]
+        data_types_short = ["", "f", "l"]
+        lib_types = ["", "THREADS", "OMP"]
+        functions = ["plan_dft", "init_threads", "init_threads"]
         if self.support_mpi:
-            lib_types.append('MPI')
-            functions.append('mpi_init')
+            lib_types.append("MPI")
+            functions.append("mpi_init")
 
         for d, s in zip(data_types, data_types_short):
             # first check for serial library...
             # We just populate with nonsense arguments that satisfy the compiler.
             # It's never actually run, so this is ok.
             basic_lib = self.check(
-                '', 'plan_dft', d, s, True, function_args='1, NULL, NULL, NULL, 1, 0')
+                "", "plan_dft", d, s, True, function_args="1, NULL, NULL, NULL, 1, 0"
+            )
             self.add_library(basic_lib)
 
             # ...then multithreading: link check with threads requires
@@ -253,31 +259,35 @@ class EnvironmentSniffer(object):
             # function names. Prefer openmp if linking dynamically,
             # else fall back to pthreads.  pthreads can be prioritized over
             # openmp by defining the environment variable PYFFTW_USE_PTHREADS
-            if 'PYFFTW_USE_PTHREADS' not in os.environ:
+            if "PYFFTW_USE_PTHREADS" not in os.environ:
                 # openmp requires special linker treatment
                 flag_omp = self.openmp_linker_flag()
                 if flag_omp not in self.linker_flags:
                     self.linker_flags.append(flag_omp)
-                lib_omp = self.check('OMP', 'init_threads', d, s,
-                                     basic_lib and not hasattr(self, 'static_fftw_dir'))
+                lib_omp = self.check(
+                    "OMP",
+                    "init_threads",
+                    d,
+                    s,
+                    basic_lib and not hasattr(self, "static_fftw_dir"),
+                )
                 if lib_omp:
                     self.add_library(lib_omp)
                     # manually set flag because it won't be checked below
-                    self.compile_time_env[self.HAVE(d, 'THREADS')] = False
+                    self.compile_time_env[self.HAVE(d, "THREADS")] = False
                 else:
                     self.linker_flags.pop()
             else:
                 lib_omp = False
-                self.compile_time_env[self.HAVE(d, 'OMP')] = False
+                self.compile_time_env[self.HAVE(d, "OMP")] = False
 
             if lib_omp:
-                self.compile_time_env[self.HAVE(d, 'THREADS')] = False
+                self.compile_time_env[self.HAVE(d, "THREADS")] = False
 
             if not lib_omp:
                 # -pthread added for gcc/clang when checking for threads
                 self.linker_flags.append(self.pthread_linker_flag())
-                lib_pthread = self.check('THREADS', 'init_threads', d, s,
-                                         basic_lib)
+                lib_pthread = self.check("THREADS", "init_threads", d, s, basic_lib)
                 if lib_pthread:
                     self.add_library(lib_pthread)
                 else:
@@ -286,81 +296,94 @@ class EnvironmentSniffer(object):
             # On windows, the serial and posix threading functions are
             # build into one library as released on fftw.org. openMP
             # and MPI are not supported in the releases
-            if get_platform() in ('win32', 'win-amd64'):
+            if get_platform() in ("win32", "win-amd64"):
                 if basic_lib:
-                    self.compile_time_env[self.HAVE(d, 'THREADS')] = True
+                    self.compile_time_env[self.HAVE(d, "THREADS")] = True
 
             # check whatever multithreading is available
-            self.compile_time_env[self.HAVE(d, 'MULTITHREADING')] = self.compile_time_env[self.HAVE(d, 'OMP')] or self.compile_time_env[self.HAVE(d, 'THREADS')]
+            self.compile_time_env[self.HAVE(d, "MULTITHREADING")] = (
+                self.compile_time_env[self.HAVE(d, "OMP")]
+                or self.compile_time_env[self.HAVE(d, "THREADS")]
+            )
 
             # check MPI only if headers were found
-            self.add_library(self.check('MPI', 'mpi_init', d, s, basic_lib and self.support_mpi))
+            self.add_library(
+                self.check("MPI", "mpi_init", d, s, basic_lib and self.support_mpi)
+            )
 
         # compile only if mpi.h *and* one of the fftw mpi libraries are found
         if self.support_mpi:
             found_mpi_types = []
             for d in data_types:
-                if self.compile_time_env['HAVE_' + d + '_MPI']:
+                if self.compile_time_env["HAVE_" + d + "_MPI"]:
                     found_mpi_types.append(d)
         else:
-            self.compile_time_env['HAVE_MPI'] = False
+            self.compile_time_env["HAVE_MPI"] = False
 
         # Pretend FFTW precision not available, regardless if it was found or
         # not. Useful for testing that pyfftw still works without requiring all
         # precisions
-        if 'PYFFTW_IGNORE_SINGLE' in os.environ:
-            self.compile_time_env['HAVE_SINGLE'] = False
-        if 'PYFFTW_IGNORE_DOUBLE' in os.environ:
-            self.compile_time_env['HAVE_DOUBLE'] = False
-        if 'PYFFTW_IGNORE_LONG' in os.environ:
-            self.compile_time_env['HAVE_LONG'] = False
+        if "PYFFTW_IGNORE_SINGLE" in os.environ:
+            self.compile_time_env["HAVE_SINGLE"] = False
+        if "PYFFTW_IGNORE_DOUBLE" in os.environ:
+            self.compile_time_env["HAVE_DOUBLE"] = False
+        if "PYFFTW_IGNORE_LONG" in os.environ:
+            self.compile_time_env["HAVE_LONG"] = False
 
         log.debug(repr(self.compile_time_env))
 
         # required package: FFTW itself
         have_fftw = False
         for d in data_types:
-            have_fftw |= self.compile_time_env['HAVE_' + d]
+            have_fftw |= self.compile_time_env["HAVE_" + d]
 
         if not have_fftw:
             raise LinkError("Could not find any of the FFTW libraries")
 
-        log.info('Build pyFFTW with support for FFTW with')
+        log.info("Build pyFFTW with support for FFTW with")
         for d in data_types:
             if not self.compile_time_env[self.HAVE(d)]:
                 continue
-            s = d.lower() + ' precision'
-            if self.compile_time_env[self.HAVE(d, 'OMP')]:
-                s += ' + openMP'
-            elif self.compile_time_env[self.HAVE(d, 'THREADS')]:
-                s += ' + pthreads'
-            if self.compile_time_env[self.HAVE(d, 'MPI')]:
-                s += ' + MPI'
+            s = d.lower() + " precision"
+            if self.compile_time_env[self.HAVE(d, "OMP")]:
+                s += " + openMP"
+            elif self.compile_time_env[self.HAVE(d, "THREADS")]:
+                s += " + pthreads"
+            if self.compile_time_env[self.HAVE(d, "MPI")]:
+                s += " + MPI"
             log.info(s)
 
-    def check(self, lib_type, function, data_type, data_type_short, do_check, function_args=None):
+    def check(
+        self,
+        lib_type,
+        function,
+        data_type,
+        data_type_short,
+        do_check,
+        function_args=None,
+    ):
         m = self.HAVE(data_type, lib_type)
         exists = False
-        lib = ''
+        lib = ""
         if do_check:
             lib = self.lib_root_name(
-                'fftw3' + data_type_short +
-                ('_' + lib_type.lower() if lib_type else ''))
-            function = 'fftw' + data_type_short + '_' + function
+                "fftw3" + data_type_short + ("_" + lib_type.lower() if lib_type else "")
+            )
+            function = "fftw" + data_type_short + "_" + function
             exists = self.has_library(lib, function, function_args)
 
         self.compile_time_env[m] = exists
-        return lib if exists else ''
+        return lib if exists else ""
 
-    def HAVE(self, data_type, lib_type=''):
-        s = 'HAVE_' + data_type
+    def HAVE(self, data_type, lib_type=""):
+        s = "HAVE_" + data_type
         if lib_type:
-            return s + '_' + lib_type
+            return s + "_" + lib_type
         else:
             return s
 
     def lib_root_name(self, lib):
-        '''Build the name of the lib to pass to the python compiler
+        """Build the name of the lib to pass to the python compiler
         interface.
 
         Examples:
@@ -371,13 +394,13 @@ class EnvironmentSniffer(object):
         On windows, `fftw3l` -> `libfftw3l-3` and the interfaces
         passes `libfftw3l-3.libf` to the linker.
 
-        '''
-        if get_platform() in ('win32', 'win-amd64'):
-            if 'PYFFTW_WIN_CONDAFORGE' in os.environ:
-                return f'{lib}'
+        """
+        if get_platform() in ("win32", "win-amd64"):
+            if "PYFFTW_WIN_CONDAFORGE" in os.environ:
+                return f"{lib}"
             else:
                 # for download from http://www.fftw.org/install/windows.html
-                return f'lib{lib}-3'
+                return f"lib{lib}-3"
 
         else:
             return lib
@@ -392,13 +415,21 @@ class EnvironmentSniffer(object):
             if contents:
                 log.log(level=level, msg=contents)
 
-    def has_function(self, function, includes=None, objects=None, libraries=None,
-                     include_dirs=None, library_dirs=None, linker_flags=None,
-                     function_args=None):
-        '''
+    def has_function(
+        self,
+        function,
+        includes=None,
+        objects=None,
+        libraries=None,
+        include_dirs=None,
+        library_dirs=None,
+        linker_flags=None,
+        function_args=None,
+    ):
+        """
         Alternative implementation of distutils.ccompiler.has_function that
         deletes the output and hides calls to the compiler and linker.
-        '''
+        """
         if includes is None:
             includes = []
         if objects is None:
@@ -412,7 +443,7 @@ class EnvironmentSniffer(object):
         if linker_flags is None:
             linker_flags = self.linker_flags
         if function_args is None:
-            function_args = ''
+            function_args = ""
 
         msg = "Checking"
         if function:
@@ -428,18 +459,18 @@ class EnvironmentSniffer(object):
 
         import tempfile, shutil
 
-        tmpdir = tempfile.mkdtemp(prefix='pyfftw-')
+        tmpdir = tempfile.mkdtemp(prefix="pyfftw-")
         try:
             try:
-                fname = os.path.join(tmpdir, f'{function}.c')
-                f = open(fname, 'w')
+                fname = os.path.join(tmpdir, f"{function}.c")
+                f = open(fname, "w")
                 for inc in includes:
-                    f.write(f'#include <{inc}>\n')
+                    f.write(f"#include <{inc}>\n")
                 f.write("""\
                 int main() {
                 """)
                 if function:
-                    f.write(f'{function}({function_args});\n')
+                    f.write(f"{function}({function_args});\n")
                 f.write("""\
                 return 0;
                 }""")
@@ -515,7 +546,7 @@ class EnvironmentSniffer(object):
             log.debug(msg + status)
 
     def has_header(self, headers, include_dirs=None):
-        '''Check for existence and usability of header files by compiling a test file.'''
+        """Check for existence and usability of header files by compiling a test file."""
         return self.has_function(None, includes=headers, include_dirs=include_dirs)
 
     def has_library(function, lib, function_args):
@@ -523,45 +554,49 @@ class EnvironmentSniffer(object):
 
     def openmp_linker_flag(self):
         # gcc and newer clang support openmp
-        if self.compiler.compiler_type == 'unix':
-            return '-fopenmp'
+        if self.compiler.compiler_type == "unix":
+            return "-fopenmp"
         # TODO support other compilers
         else:
-            return ''
+            return ""
 
     def pthread_linker_flag(self):
         # gcc and clang
-        if self.compiler.compiler_type == 'unix':
-            return '-pthread'
+        if self.compiler.compiler_type == "unix":
+            return "-pthread"
         else:
             # TODO support other compilers
-            return ''
+            return ""
+
 
 class StaticSniffer(EnvironmentSniffer):
     def __init__(self, compiler):
-        self.static_fftw_dir = os.environ.get('STATIC_FFTW_DIR', None)
+        self.static_fftw_dir = os.environ.get("STATIC_FFTW_DIR", None)
         if not os.path.exists(self.static_fftw_dir):
-            raise LinkError(f'STATIC_FFTW_DIR="{self.static_fftw_dir}" was specified but does not exist')
+            raise LinkError(
+                f'STATIC_FFTW_DIR="{self.static_fftw_dir}" was specified but does not exist'
+            )
 
         # call parent init
         super(self.__class__, self).__init__(compiler)
 
     def has_library(self, root_name, function, function_args):
-        '''Expect library in root form'''
+        """Expect library in root form"""
         # get full name of lib
         objects = [os.path.join(self.static_fftw_dir, self.lib_full_name(root_name))]
         objects.extend(self.objects)
         return self.has_function(
-            function, includes=['fftw3.h'], objects=objects, function_args=function_args)
+            function, includes=["fftw3.h"], objects=objects, function_args=function_args
+        )
 
     def lib_full_name(self, root_lib):
         # TODO use self.compiler.library_filename
-        if get_platform() in ('win32', 'win-amd64'):
-            lib_pre = ''
-            lib_ext = '.lib'
+        if get_platform() in ("win32", "win-amd64"):
+            lib_pre = ""
+            lib_ext = ".lib"
         else:
-            lib_pre = 'lib'
-            lib_ext = '.a'
+            lib_pre = "lib"
+            lib_ext = ".a"
         return os.path.join(self.static_fftw_dir, lib_pre + root_lib + lib_ext)
 
     def add_library(self, lib):
@@ -569,36 +604,44 @@ class StaticSniffer(EnvironmentSniffer):
         if lib:
             self.objects.insert(0, full_name)
 
+
 class DynamicSniffer(EnvironmentSniffer):
     def __init__(self, compiler):
         super(self.__class__, self).__init__(compiler)
 
     def has_library(self, lib, function, function_args):
-        '''Expect lib in root name so it can be passed to compiler'''
+        """Expect lib in root name so it can be passed to compiler"""
         libraries = [lib]
         libraries.extend(self.libraries)
         return self.has_function(
-            function, includes=['fftw3.h'], libraries=libraries, function_args=function_args)
+            function,
+            includes=["fftw3.h"],
+            libraries=libraries,
+            function_args=function_args,
+        )
 
     def add_library(self, lib):
         if lib:
             self.libraries.insert(0, lib)
 
+
 def make_sniffer(compiler):
-    if os.environ.get('STATIC_FFTW_DIR', None) is None:
+    if os.environ.get("STATIC_FFTW_DIR", None) is None:
         log.debug("Link FFTW dynamically")
         return DynamicSniffer(compiler)
     else:
         log.debug("Link FFTW statically")
         return StaticSniffer(compiler)
 
+
 def get_extensions():
-    ext_modules = [Extension('pyfftw.pyfftw',
-                             sources=[os.path.join('pyfftw', 'pyfftw.pyx')])]
+    ext_modules = [
+        Extension("pyfftw.pyfftw", sources=[os.path.join("pyfftw", "pyfftw.pyx")])
+    ]
     return ext_modules
 
 
-long_description = '''
+long_description = """
 pyFFTW is a pythonic wrapper around `FFTW <http://www.fftw.org/>`_, the
 speedy FFT library. The ultimate aim is to present a unified interface for all
 the possible transforms that FFTW can perform.
@@ -627,7 +670,7 @@ Numpy is a dependency for both.
 The documentation can be found
 `here <http://pyfftw.readthedocs.io>`_, and the source
 is on `github <https://github.com/pyFFTW/pyFFTW>`_.
-'''
+"""
 
 
 class custom_build_ext(build_ext):
@@ -636,9 +679,9 @@ class custom_build_ext(build_ext):
         return super().build_extension(ext, *args, **kwargs)
 
     def build_extensions(self):
-        '''Check for availability of fftw libraries before building the wrapper.
+        """Check for availability of fftw libraries before building the wrapper.
 
-        Do it here to make sure we use the exact same compiler for checking includes/linking as for building the libraries.'''
+        Do it here to make sure we use the exact same compiler for checking includes/linking as for building the libraries."""
         sniffer = make_sniffer(self.compiler)
 
         # read out information and modify compiler
@@ -648,7 +691,9 @@ class custom_build_ext(build_ext):
             (f"PYFFTW_{k}", int(v)) for k, v in sniffer.compile_time_env.items()
         ]
         # to avoid a meaningless warning
-        self._pyfftw_define_macros.append(("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"))
+        self._pyfftw_define_macros.append(
+            ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")
+        )
         self._pyfftw_define_macros.append(("FFTW_NO_Complex", 1))
 
         # call `extend()` to keep argument set neither by sniffer nor by
@@ -685,9 +730,10 @@ class custom_build_ext(build_ext):
 
 
 class CreateChangelogCommand(Command):
-    '''Depends on the ruby program github_changelog_generator. Install with
+    """Depends on the ruby program github_changelog_generator. Install with
     gem install github_changelog_generator.
-    '''
+    """
+
     user_options = []
 
     def initialize_options(self):
@@ -698,12 +744,13 @@ class CreateChangelogCommand(Command):
 
     def run(self):
         import subprocess
-        github_token_file = 'github_changelog_generator_token'
+
+        github_token_file = "github_changelog_generator_token"
 
         with open(github_token_file) as f:
             github_token = f.readline().strip()
 
-        subprocess.call(['github_changelog_generator', '-t', github_token])
+        subprocess.call(["github_changelog_generator", "-t", github_token])
 
 
 class TestCommand(Command):
@@ -717,17 +764,18 @@ class TestCommand(Command):
 
     def run(self):
         import subprocess
-        errno = subprocess.call([sys.executable, '-m',
-                                 'unittest', 'discover'])
+
+        errno = subprocess.call([sys.executable, "-m", "unittest", "discover"])
         raise SystemExit(errno)
 
 
 class QuickTestCommand(Command):
-    '''Runs a set of test cases that covers a limited set of the
+    """Runs a set of test cases that covers a limited set of the
     functionality. It is intended that this class be used as a sanity check
     that everything is loaded and basically working as expected. It is not
     meant to replace the comprehensive test suite.
-    '''
+    """
+
     user_options = []
 
     def initialize_options(self):
@@ -737,62 +785,61 @@ class QuickTestCommand(Command):
         pass
 
     def run(self):
-
         quick_test_cases = [
-            'test.test_pyfftw_complex.Complex64FFTWTest',
-            'test.test_pyfftw_complex.Complex128FFTWTest.test_2d',
-            'test.test_pyfftw_complex.ComplexLongDoubleFFTWTest.test_2d',
-            'test.test_pyfftw_real_forward.RealForwardSingleFFTWTest',
-            'test.test_pyfftw_real_forward.RealForwardDoubleFFTWTest.test_2d',
-            'test.test_pyfftw_real_forward.RealForwardLongDoubleFFTWTest.test_2d',
-            'test.test_pyfftw_real_backward.RealBackwardSingleFFTWTest',
-            'test.test_pyfftw_real_backward.RealBackwardDoubleFFTWTest.test_2d',
-            'test.test_pyfftw_real_backward.RealBackwardLongDoubleFFTWTest.test_2d',
-            'test.test_pyfftw_wisdom',
-            'test.test_pyfftw_utils',
-            'test.test_pyfftw_call',
-            'test.test_pyfftw_class_misc',
-            'test.test_pyfftw_nbyte_align',
-            'test.test_pyfftw_interfaces_cache',
-            'test.test_pyfftw_multithreaded',
-            'test.test_pyfftw_numpy_interface.InterfacesNumpyFFTTestModule',
-            'test.test_pyfftw_numpy_interface.InterfacesNumpyFFTTestFFT2',
-            'test.test_pyfftw_numpy_interface.InterfacesNumpyFFTTestIFFT2',
-            'test.test_pyfftw_builders.BuildersTestFFTWWrapper',
-            'test.test_pyfftw_builders.BuildersTestFFT2',
-            'test.test_pyfftw_builders.BuildersTestIRFFT2',
+            "test.test_pyfftw_complex.Complex64FFTWTest",
+            "test.test_pyfftw_complex.Complex128FFTWTest.test_2d",
+            "test.test_pyfftw_complex.ComplexLongDoubleFFTWTest.test_2d",
+            "test.test_pyfftw_real_forward.RealForwardSingleFFTWTest",
+            "test.test_pyfftw_real_forward.RealForwardDoubleFFTWTest.test_2d",
+            "test.test_pyfftw_real_forward.RealForwardLongDoubleFFTWTest.test_2d",
+            "test.test_pyfftw_real_backward.RealBackwardSingleFFTWTest",
+            "test.test_pyfftw_real_backward.RealBackwardDoubleFFTWTest.test_2d",
+            "test.test_pyfftw_real_backward.RealBackwardLongDoubleFFTWTest.test_2d",
+            "test.test_pyfftw_wisdom",
+            "test.test_pyfftw_utils",
+            "test.test_pyfftw_call",
+            "test.test_pyfftw_class_misc",
+            "test.test_pyfftw_nbyte_align",
+            "test.test_pyfftw_interfaces_cache",
+            "test.test_pyfftw_multithreaded",
+            "test.test_pyfftw_numpy_interface.InterfacesNumpyFFTTestModule",
+            "test.test_pyfftw_numpy_interface.InterfacesNumpyFFTTestFFT2",
+            "test.test_pyfftw_numpy_interface.InterfacesNumpyFFTTestIFFT2",
+            "test.test_pyfftw_builders.BuildersTestFFTWWrapper",
+            "test.test_pyfftw_builders.BuildersTestFFT2",
+            "test.test_pyfftw_builders.BuildersTestIRFFT2",
         ]
 
         import subprocess
-        subprocess.check_call([sys.executable, '-m',
-                                 'unittest'] + quick_test_cases)
+
+        subprocess.check_call([sys.executable, "-m", "unittest"] + quick_test_cases)
 
 
-cmdclass = {'test': TestCommand,
-            'quick_test': QuickTestCommand,
-            'build_ext': custom_build_ext,
-            'create_changelog': CreateChangelogCommand}
+cmdclass = {
+    "test": TestCommand,
+    "quick_test": QuickTestCommand,
+    "build_ext": custom_build_ext,
+    "create_changelog": CreateChangelogCommand,
+}
 
 
 def setup_package():
-
     setup_args = {
-        'long_description': long_description,
-        'cmdclass': cmdclass,
-        'py_modules': ['pyfftw'],
+        "long_description": long_description,
+        "cmdclass": cmdclass,
+        "py_modules": ["pyfftw"],
     }
 
     if len(sys.argv) >= 2 and (
-        '--help' in sys.argv[1:] or
-        sys.argv[1] in ('--help-commands', 'egg_info', '--version',
-                        'clean')):
+        "--help" in sys.argv[1:]
+        or sys.argv[1] in ("--help-commands", "egg_info", "--version", "clean")
+    ):
         # For these actions, NumPy is not required.
         pass
     else:
-        setup_args['packages'] = [
-            'pyfftw', 'pyfftw.builders', 'pyfftw.interfaces']
-        setup_args['ext_modules'] = get_extensions()
-        setup_args['package_data'] = get_package_data()
+        setup_args["packages"] = ["pyfftw", "pyfftw.builders", "pyfftw.interfaces"]
+        setup_args["ext_modules"] = get_extensions()
+        setup_args["package_data"] = get_package_data()
 
     # Do a trial run to determine dependencies
     # Not ideal, but distutils, setuptools and cython are hard to work with
@@ -808,5 +855,6 @@ def setup_package():
 
     setup(**setup_args)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     setup_package()

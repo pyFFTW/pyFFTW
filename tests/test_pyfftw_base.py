@@ -41,6 +41,7 @@ import unittest
 
 try:
     import mkl_fft
+
     # mkl_fft monkeypatches numpy.fft
     # explicitly import from fftpack or pocketfft instead
     try:
@@ -51,46 +52,45 @@ try:
 except ImportError:
     from numpy import fft as np_fft
 
+
 def miss(*xs):
-    '''Skip test if the precisions in the iterable `xs` are not available.'''
-    msg = 'Requires %s' % _all_types_human_readable[xs[0]]
+    """Skip test if the precisions in the iterable `xs` are not available."""
+    msg = "Requires %s" % _all_types_human_readable[xs[0]]
     for x in xs[1:]:
-        msg += ' and %s' % _all_types_human_readable[x]
-    msg += ' precision.'
+        msg += " and %s" % _all_types_human_readable[x]
+    msg += " precision."
     skip = not all(x in _supported_types for x in xs)
     return (skip, msg)
+
 
 def require(self, *xs):
     skip, msg = miss(*xs)
     if skip:
         self.skipTest(msg)
 
-class FFTWBaseTest(unittest.TestCase):
 
+class FFTWBaseTest(unittest.TestCase):
     def reference_fftn(self, a, axes):
         return np_fft.fftn(a, axes=axes)
 
     def __init__(self, *args, **kwargs):
-
         super(FFTWBaseTest, self).__init__(*args, **kwargs)
         self.make_shapes()
 
-        if not hasattr(self, 'assertRaisesRegex'):
+        if not hasattr(self, "assertRaisesRegex"):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
     def setUp(self):
-
-        require(self, '32')
+        require(self, "32")
 
         self.input_dtype = numpy.complex64
         self.output_dtype = numpy.complex64
         self.np_fft_comparison = np_fft.fft
 
-        self.direction = 'FFTW_FORWARD'
+        self.direction = "FFTW_FORWARD"
         return
 
     def tearDown(self):
-
         return
 
     def get_input_dtype_alignment(self):
@@ -101,46 +101,64 @@ class FFTWBaseTest(unittest.TestCase):
 
     def make_shapes(self):
         self.input_shapes = {
-                'small_1d': (16,),
-                '1d': (2048,),
-                '2d': (256, 2048),
-                '3d': (5, 256, 2048)}
+            "small_1d": (16,),
+            "1d": (2048,),
+            "2d": (256, 2048),
+            "3d": (5, 256, 2048),
+        }
 
         self.output_shapes = {
-                'small_1d': (16,),
-                '1d': (2048,),
-                '2d': (256, 2048),
-                '3d': (5, 256, 2048)}
+            "small_1d": (16,),
+            "1d": (2048,),
+            "2d": (256, 2048),
+            "3d": (5, 256, 2048),
+        }
 
     def create_test_arrays(self, input_shape, output_shape, axes=None):
-        a = self.input_dtype(numpy.random.randn(*input_shape)
-                +1j*numpy.random.randn(*input_shape))
+        a = self.input_dtype(
+            numpy.random.randn(*input_shape) + 1j * numpy.random.randn(*input_shape)
+        )
 
-        b = self.output_dtype(numpy.random.randn(*output_shape)
-                +1j*numpy.random.randn(*output_shape))
+        b = self.output_dtype(
+            numpy.random.randn(*output_shape) + 1j * numpy.random.randn(*output_shape)
+        )
 
         return a, b
 
-    def timer_routine(self, pyfftw_callable, numpy_fft_callable,
-            comparison_string='numpy.fft'):
-
+    def timer_routine(
+        self, pyfftw_callable, numpy_fft_callable, comparison_string="numpy.fft"
+    ):
         N = 100
 
         t = Timer(stmt=pyfftw_callable)
         t_numpy_fft = Timer(stmt=numpy_fft_callable)
 
-        t_str = ("%.2f" % (1000.0/N*t.timeit(N)))+' ms'
-        t_numpy_str = ("%.2f" % (1000.0/N*t_numpy_fft.timeit(N)))+' ms'
+        t_str = ("%.2f" % (1000.0 / N * t.timeit(N))) + " ms"
+        t_numpy_str = ("%.2f" % (1000.0 / N * t_numpy_fft.timeit(N))) + " ms"
 
-        print('One run: '+ t_str + \
-                ' (versus ' + t_numpy_str + ' for ' + comparison_string + \
-                ')')
+        print(
+            "One run: "
+            + t_str
+            + " (versus "
+            + t_numpy_str
+            + " for "
+            + comparison_string
+            + ")"
+        )
 
-
-    def run_validate_fft(self, a, b, axes, fft=None, ifft=None,
-            force_unaligned_data=False, create_array_copies=True,
-            threads=1, flags=('FFTW_ESTIMATE',)):
-        ''' Run a validation of the FFTW routines for the passed pair
+    def run_validate_fft(
+        self,
+        a,
+        b,
+        axes,
+        fft=None,
+        ifft=None,
+        force_unaligned_data=False,
+        create_array_copies=True,
+        threads=1,
+        flags=("FFTW_ESTIMATE",),
+    ):
+        """Run a validation of the FFTW routines for the passed pair
         of arrays, a and b, and the axes argument.
 
         a and b are assumed to be the same shape (but not necessarily
@@ -154,7 +172,7 @@ class FFTWBaseTest(unittest.TestCase):
         The threads argument runs the validation with multiple threads.
 
         flags is passed to the creation of the FFTW object.
-        '''
+        """
 
         if create_array_copies:
             # Don't corrupt the original mutable arrays
@@ -166,20 +184,21 @@ class FFTWBaseTest(unittest.TestCase):
         flags = list(flags)
 
         if force_unaligned_data:
-            flags.append('FFTW_UNALIGNED')
+            flags.append("FFTW_UNALIGNED")
 
         if fft == None:
-            fft = FFTW(a,b,axes=axes, direction='FFTW_FORWARD',
-                    flags=flags, threads=threads)
+            fft = FFTW(
+                a, b, axes=axes, direction="FFTW_FORWARD", flags=flags, threads=threads
+            )
         else:
-            fft.update_arrays(a,b)
+            fft.update_arrays(a, b)
 
         if ifft == None:
-            ifft = FFTW(b, a, axes=axes, direction='FFTW_BACKWARD',
-                    flags=flags, threads=threads)
+            ifft = FFTW(
+                b, a, axes=axes, direction="FFTW_BACKWARD", flags=flags, threads=threads
+            )
         else:
-            ifft.update_arrays(b,a)
-
+            ifft.update_arrays(b, a)
 
         a[:] = a_orig
 
@@ -202,12 +221,12 @@ class FFTWBaseTest(unittest.TestCase):
         self.assertEqual(ifft.N, scaling)
         self.assertEqual(fft.N, scaling)
 
-        self.assertTrue(numpy.allclose(a/scaling, a_orig, rtol=1e-2, atol=1e-3))
+        self.assertTrue(numpy.allclose(a / scaling, a_orig, rtol=1e-2, atol=1e-3))
         return fft, ifft
 
 
 def run_test_suites(test_suites, run_tests=None):
-    '''From each test case (derived from TestCase) in test_suites,
+    """From each test case (derived from TestCase) in test_suites,
     load and run all the test cases within.
 
     If run_tests is not None, then it should be a dictionary with
@@ -215,7 +234,7 @@ def run_test_suites(test_suites, run_tests=None):
     a list of test methods to run. Alternatively, the key can
     be 'all' in which case all the test suites will be run with
     the provided list of test suites.
-    '''
+    """
     suite = unittest.TestSuite()
 
     for test_class in test_suites:
@@ -227,17 +246,16 @@ def run_test_suites(test_suites, run_tests=None):
             else:
                 this_suite_run = set()
 
-            if 'all' in run_tests:
-                this_suite_run = this_suite_run.union(run_tests['all'])
+            if "all" in run_tests:
+                this_suite_run = this_suite_run.union(run_tests["all"])
 
             _tests = []
             for each_test in tests:
-                if (each_test.id().split('.')[-1] in this_suite_run):
+                if each_test.id().split(".")[-1] in this_suite_run:
                     _tests.append(each_test)
 
             tests = _tests
 
         suite.addTests(tests)
-
 
     unittest.TextTestRunner(verbosity=2).run(suite)

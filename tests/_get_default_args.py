@@ -35,13 +35,14 @@
 import sys
 import inspect
 
-def get_default_args(function):
 
+def get_default_args(function):
     if sys.version_info < (3, 0):
         # The slightly hacky Python 2.7 way
         argspec = inspect.getargspec(function)
-        default_args = dict(list(zip(
-            argspec.args[-len(argspec.defaults):], argspec.defaults)))
+        default_args = dict(
+            list(zip(argspec.args[-len(argspec.defaults) :], argspec.defaults))
+        )
 
     else:
         # The better Python 3 way
@@ -49,7 +50,6 @@ def get_default_args(function):
 
         default_args = {}
         for parameter in sig.parameters:
-
             default_val = sig.parameters[parameter].default
             if default_val is not inspect.Parameter.empty:
                 # Add it to the parameter list

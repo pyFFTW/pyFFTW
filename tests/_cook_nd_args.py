@@ -38,6 +38,7 @@
 
 from numpy.core import take
 
+
 def _cook_nd_args(a, s=None, axes=None, invreal=0):
     if s is None:
         shapeless = 1
@@ -55,6 +56,6 @@ def _cook_nd_args(a, s=None, axes=None, invreal=0):
     if invreal and shapeless:
         # Here is the fix. The following line is replaced
         # (see numpy commit 88a02920daf0b408086106439c53bd488e73af29):
-        #s[axes[-1]] = (s[axes[-1]] - 1) * 2
+        # s[axes[-1]] = (s[axes[-1]] - 1) * 2
         s[-1] = (a.shape[axes[-1]] - 1) * 2
     return s, axes

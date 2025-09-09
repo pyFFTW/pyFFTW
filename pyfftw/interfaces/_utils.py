@@ -38,9 +38,9 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-'''
+"""
 Utility functions for the interfaces routines
-'''
+"""
 
 import pyfftw.builders as builders
 import pyfftw
@@ -49,11 +49,20 @@ import threading
 from . import cache
 
 
-def _Xfftn(a, s, axes, overwrite_input, planner_effort,
-        threads, auto_align_input, auto_contiguous,
-        calling_func, normalise_idft=True, ortho=False,
-        real_direction_flag=None):
-
+def _Xfftn(
+    a,
+    s,
+    axes,
+    overwrite_input,
+    planner_effort,
+    threads,
+    auto_align_input,
+    auto_contiguous,
+    calling_func,
+    normalise_idft=True,
+    ortho=False,
+    real_direction_flag=None,
+):
     work_with_copy = False
 
     a = numpy.asanyarray(a)
@@ -68,13 +77,19 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
     except TypeError:
         pass
 
-    if calling_func in ('dct', 'dst'):
+    if calling_func in ("dct", "dst"):
         # real-to-real transforms require passing an additional flag argument
         avoid_copy = False
-        args = (overwrite_input, planner_effort, threads,
-                auto_align_input, auto_contiguous, avoid_copy,
-                real_direction_flag)
-    elif calling_func in ('irfft2', 'irfftn'):
+        args = (
+            overwrite_input,
+            planner_effort,
+            threads,
+            auto_align_input,
+            auto_contiguous,
+            avoid_copy,
+            real_direction_flag,
+        )
+    elif calling_func in ("irfft2", "irfftn"):
         # overwrite_input is not an argument to irfft2 or irfftn
         args = (planner_effort, threads, auto_align_input, auto_contiguous)
 
@@ -84,8 +99,13 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
             # be reloaded).
             work_with_copy = True
     else:
-        args = (overwrite_input, planner_effort, threads,
-                auto_align_input, auto_contiguous)
+        args = (
+            overwrite_input,
+            planner_effort,
+            threads,
+            auto_align_input,
+            auto_contiguous,
+        )
 
         if not a.flags.writeable:
             # Special case of a locked array - always work with a
@@ -93,8 +113,10 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
             work_with_copy = True
 
             if overwrite_input:
-                raise ValueError('overwrite_input cannot be True when the ' +
-                                 'input array flags.writeable is False')
+                raise ValueError(
+                    "overwrite_input cannot be True when the "
+                    + "input array flags.writeable is False"
+                )
 
     if work_with_copy:
         # We make the copy before registering the key so that the
@@ -108,8 +130,17 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
     if cache.is_enabled():
         alignment = a.ctypes.data % pyfftw.simd_alignment
 
-        key = (calling_func, a.shape, a.strides, a.dtype, s.__hash__(),
-               axes.__hash__(), alignment, args, threading.get_ident())
+        key = (
+            calling_func,
+            a.shape,
+            a.strides,
+            a.dtype,
+            s.__hash__(),
+            axes.__hash__(),
+            alignment,
+            args,
+            threading.get_ident(),
+        )
 
         try:
             if key in cache._fftw_cache:
@@ -123,7 +154,6 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
             FFTW_object = None
 
     if not cache.is_enabled() or FFTW_object is None:
-
         # If we're going to create a new FFTW object and are not
         # working with a copy, then we need to copy the input array to
         # preserve it, otherwise we can't actually  take the transform
@@ -153,9 +183,14 @@ def _Xfftn(a, s, axes, overwrite_input, planner_effort,
         output_alignment = FFTW_object.output_alignment
 
         output_array = pyfftw.empty_aligned(
-            output_shape, output_dtype, n=output_alignment)
+            output_shape, output_dtype, n=output_alignment
+        )
 
-        FFTW_object(input_array=a, output_array=output_array,
-                normalise_idft=normalise_idft, ortho=ortho)
+        FFTW_object(
+            input_array=a,
+            output_array=output_array,
+            normalise_idft=normalise_idft,
+            ortho=ortho,
+        )
 
     return output_array

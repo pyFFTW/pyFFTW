@@ -42,23 +42,23 @@ import unittest
 
 from .test_pyfftw_base import FFTWBaseTest
 
+
 class Complex64MultiThreadedTest(FFTWBaseTest):
-
     def run_multithreaded_test(self, threads):
-        in_shape = self.input_shapes['2d'];
-        out_shape = self.output_shapes['2d']
+        in_shape = self.input_shapes["2d"]
+        out_shape = self.output_shapes["2d"]
 
-        axes=(-1,)
+        axes = (-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         fft, ifft = self.run_validate_fft(a, b, axes, threads=threads)
 
         fft_, ifft_ = self.run_validate_fft(a, b, axes, threads=1)
 
-        self.timer_routine(fft.execute, fft_.execute,
-                comparison_string='singled threaded')
+        self.timer_routine(
+            fft.execute, fft_.execute, comparison_string="singled threaded"
+        )
         self.assertTrue(True)
-
 
     def test_2_threads(self):
         self.run_multithreaded_test(2)
@@ -72,40 +72,38 @@ class Complex64MultiThreadedTest(FFTWBaseTest):
     def test_25_threads(self):
         self.run_multithreaded_test(25)
 
-@unittest.skipIf(*miss('64'))
+
+@unittest.skipIf(*miss("64"))
 class Complex128MultiThreadedTest(Complex64MultiThreadedTest):
-
     def setUp(self):
-
         self.input_dtype = numpy.complex128
         self.output_dtype = numpy.complex128
         self.np_fft_comparison = np_fft.fft
         return
 
-@unittest.skipIf(*miss('ld'))
+
+@unittest.skipIf(*miss("ld"))
 class ComplexLongDoubleMultiThreadedTest(Complex64MultiThreadedTest):
-
     def setUp(self):
-
         self.input_dtype = numpy.clongdouble
         self.output_dtype = numpy.clongdouble
         self.np_fft_comparison = self.reference_fftn
         return
 
     def reference_fftn(self, a, axes):
-
         # numpy.fft.fftn doesn't support complex256 type,
         # so we need to compare to a lower precision type.
         a = numpy.complex128(a)
         return np_fft.fftn(a, axes=axes)
 
+
 test_cases = (
-        Complex64MultiThreadedTest,
-        Complex128MultiThreadedTest,
-        ComplexLongDoubleMultiThreadedTest,)
+    Complex64MultiThreadedTest,
+    Complex128MultiThreadedTest,
+    ComplexLongDoubleMultiThreadedTest,
+)
 
 test_set = None
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     run_test_suites(test_cases, test_set)

@@ -255,8 +255,9 @@ exceptions and with different defaults.
 '''
 
 from . import (
-        numpy_fft,
-        cache,)
+    numpy_fft,
+    cache,
+)
 
 try:
     import scipy.fftpack
@@ -265,11 +266,12 @@ except ImportError:
 else:
     from numpy.lib import NumpyVersion
 
-    has_scipy_fft = NumpyVersion(scipy.__version__) >= NumpyVersion('1.4.0')
+    has_scipy_fft = NumpyVersion(scipy.__version__) >= NumpyVersion("1.4.0")
     del NumpyVersion
     del scipy
 
     from . import scipy_fftpack
+
     if has_scipy_fft:
         from . import scipy_fft
 

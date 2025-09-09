@@ -41,20 +41,19 @@ import platform
 import os
 from numpy.testing import assert_, assert_equal
 
+
 def get_cpus_info():
-
-    if 'Linux' in platform.system():
+    if "Linux" in platform.system():
         # A simple /proc/cpuinfo parser
-        with open(os.path.join('/', 'proc','cpuinfo'), 'r') as f:
-
+        with open(os.path.join("/", "proc", "cpuinfo"), "r") as f:
             cpus_info = []
             idx = 0
             for line in f.readlines():
-                if line.find(':') < 0:
+                if line.find(":") < 0:
                     idx += 1
                     continue
 
-                key, values = [each.strip() for each in line.split(':')]
+                key, values = [each.strip() for each in line.split(":")]
 
                 try:
                     cpus_info[idx][key] = values
@@ -66,41 +65,38 @@ def get_cpus_info():
 
     return cpus_info
 
+
 class UtilsTest(unittest.TestCase):
-
     def setUp(self):
-
         return
 
     def tearDown(self):
-
         return
 
-    @unittest.skipIf('Linux' not in platform.system(),
-            'Skipping as we only have it set up for Linux at present.')
+    @unittest.skipIf(
+        "Linux" not in platform.system(),
+        "Skipping as we only have it set up for Linux at present.",
+    )
     def test_get_alignment(self):
         cpus_info = get_cpus_info()
 
         for each_cpu in cpus_info:
-            if 'avx' in each_cpu['flags']:
+            if "avx" in each_cpu["flags"]:
                 self.assertTrue(pyfftw.simd_alignment == 32)
-            elif 'sse' in each_cpu['flags']:
+            elif "sse" in each_cpu["flags"]:
                 self.assertTrue(pyfftw.simd_alignment == 16)
             else:
                 self.assertTrue(pyfftw.simd_alignment == 1)
 
 
 class NextFastLenTest(unittest.TestCase):
-
     def __init__(self, *args, **kwargs):
-
         super(NextFastLenTest, self).__init__(*args, **kwargs)
 
-        if not hasattr(self, 'assertRaisesRegex'):
+        if not hasattr(self, "assertRaisesRegex"):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
     def test_next_fast_len(self):
-
         def nums():
             for j in range(1, 1000):
                 yield j
@@ -136,9 +132,21 @@ class NextFastLenTest(unittest.TestCase):
 
     def test_next_fast_len_strict(self):
         strict_test_cases = {
-            1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 11: 11, 13: 13,
-            14: 14, 15: 15, 16: 16, 17: 18, 1021: 1024,
-
+            1: 1,
+            2: 2,
+            3: 3,
+            4: 4,
+            5: 5,
+            6: 6,
+            7: 7,
+            8: 8,
+            11: 11,
+            13: 13,
+            14: 14,
+            15: 15,
+            16: 16,
+            17: 18,
+            1021: 1024,
             # 2 * 3 * 5 * 7 * 11
             2310: 2310,
             2310 - 1: 2310,
@@ -147,11 +155,10 @@ class NextFastLenTest(unittest.TestCase):
             2730 - 1: 2730,
             # 2**2 * 3**2 * 5**2 * 7**2 * 11
             485100: 485100,
-            485100-1: 485100,
+            485100 - 1: 485100,
             # 2**2 * 3**2 * 5**2 * 7**2 * 13
             573300: 573300,
-            573300-1: 573300,
-
+            573300 - 1: 573300,
             # more than one multiple of 11 or 13 is not accepted
             # 2 * 3 * 5 * 7 * 11**2
             25410: 25872,
@@ -159,17 +166,14 @@ class NextFastLenTest(unittest.TestCase):
             35490: 35672,
             # 2 * 3 * 5 * 7 * 11 * 13
             30030: 30576,
-
         }
         for x, y in strict_test_cases.items():
             assert_equal(pyfftw.next_fast_len(x), y)
 
-test_cases = (
-        UtilsTest,
-        NextFastLenTest)
+
+test_cases = (UtilsTest, NextFastLenTest)
 
 test_set = None
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     run_test_suites(test_cases, test_set)

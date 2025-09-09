@@ -157,7 +157,7 @@ test = [
     "scipy",
     "dask",
 ]
-dev = ["pip", "ipython", "setuptools-scm>=8"]
+dev = ["pip", "ipython", "setuptools-scm>=8", "ruff"]
 doc = [
     "sphinx>=7.3.7",
     "scipy>=1.13.1",

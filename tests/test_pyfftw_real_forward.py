@@ -42,57 +42,59 @@ import unittest
 
 from .test_pyfftw_complex import Complex64FFTWTest
 
-class RealForwardDoubleFFTWTest(Complex64FFTWTest):
 
+class RealForwardDoubleFFTWTest(Complex64FFTWTest):
     def setUp(self):
-        require(self, '64')
+        require(self, "64")
 
         self.input_dtype = numpy.float64
         self.output_dtype = numpy.complex128
         self.np_fft_comparison = np_fft.rfft
 
-        self.direction = 'FFTW_FORWARD'
+        self.direction = "FFTW_FORWARD"
 
     def make_shapes(self):
         self.input_shapes = {
-                'small_1d': (16,),
-                '1d': (2048,),
-                '2d': (256, 2048),
-                '3d': (5, 256, 2048)}
+            "small_1d": (16,),
+            "1d": (2048,),
+            "2d": (256, 2048),
+            "3d": (5, 256, 2048),
+        }
 
         self.output_shapes = {
-                'small_1d': (9,),
-                '1d': (1025,),
-                '2d': (256, 1025),
-                '3d': (5, 256, 1025)}
+            "small_1d": (9,),
+            "1d": (1025,),
+            "2d": (256, 1025),
+            "3d": (5, 256, 1025),
+        }
 
     def create_test_arrays(self, input_shape, output_shape, axes=None):
         a = self.input_dtype(numpy.random.randn(*input_shape))
 
-        b = self.output_dtype(numpy.random.randn(*output_shape)
-                +1j*numpy.random.randn(*output_shape))
+        b = self.output_dtype(
+            numpy.random.randn(*output_shape) + 1j * numpy.random.randn(*output_shape)
+        )
 
         return a, b
 
     def reference_fftn(self, a, axes):
-
         return np_fft.rfftn(a, axes=axes)
 
     def test_wrong_direction_fail(self):
-        in_shape = self.input_shapes['2d']
-        out_shape = self.output_shapes['2d']
+        in_shape = self.input_shapes["2d"]
+        out_shape = self.output_shapes["2d"]
 
-        axes=(-1,)
+        axes = (-1,)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
-        with self.assertRaisesRegex(ValueError, 'Invalid direction'):
-            FFTW(a, b, direction='FFTW_BACKWARD')
+        with self.assertRaisesRegex(ValueError, "Invalid direction"):
+            FFTW(a, b, direction="FFTW_BACKWARD")
 
     def test_non_contiguous_2d(self):
-        in_shape = self.input_shapes['2d']
-        out_shape = self.output_shapes['2d']
+        in_shape = self.input_shapes["2d"]
+        out_shape = self.output_shapes["2d"]
 
-        axes=(-2,-1)
+        axes = (-2, -1)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Some arbitrary and crazy slicing
@@ -105,7 +107,7 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
     def test_non_contiguous_2d_in_3d(self):
         in_shape = (256, 4, 2048)
         out_shape = in_shape
-        axes=(0,2)
+        axes = (0, 2)
         a, b = self.create_test_arrays(in_shape, out_shape)
 
         # Some arbitrary and crazy slicing
@@ -115,50 +117,48 @@ class RealForwardDoubleFFTWTest(Complex64FFTWTest):
 
         self.run_validate_fft(a_sliced, b_sliced, axes, create_array_copies=False)
 
-@unittest.skipIf(*miss('32'))
+
+@unittest.skipIf(*miss("32"))
 class RealForwardSingleFFTWTest(RealForwardDoubleFFTWTest):
-
     def setUp(self):
-
         self.input_dtype = numpy.float32
         self.output_dtype = numpy.complex64
         self.np_fft_comparison = np_fft.rfft
 
-        self.direction = 'FFTW_FORWARD'
+        self.direction = "FFTW_FORWARD"
 
-@unittest.skipIf(*miss('ld'))
+
+@unittest.skipIf(*miss("ld"))
 class RealForwardLongDoubleFFTWTest(RealForwardDoubleFFTWTest):
-
     def setUp(self):
-
         self.input_dtype = numpy.longdouble
         self.output_dtype = numpy.clongdouble
         self.np_fft_comparison = np_fft.rfft
 
-        self.direction = 'FFTW_FORWARD'
+        self.direction = "FFTW_FORWARD"
 
-    @unittest.skip('numpy.fft has issues with this dtype.')
+    @unittest.skip("numpy.fft has issues with this dtype.")
     def test_time(self):
         pass
 
-    @unittest.skip('numpy.fft has issues with this dtype.')
+    @unittest.skip("numpy.fft has issues with this dtype.")
     def test_time_with_array_update(self):
         pass
 
     def reference_fftn(self, a, axes):
-
         a = numpy.float64(a)
         return np_fft.rfftn(a, axes=axes)
 
+
 test_cases = (
-        RealForwardDoubleFFTWTest,
-        RealForwardSingleFFTWTest,
-        RealForwardLongDoubleFFTWTest,)
+    RealForwardDoubleFFTWTest,
+    RealForwardSingleFFTWTest,
+    RealForwardLongDoubleFFTWTest,
+)
 
 test_set = None
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     run_test_suites(test_cases, test_set)
 
 del Complex64FFTWTest
