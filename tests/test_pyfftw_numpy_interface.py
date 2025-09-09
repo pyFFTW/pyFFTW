@@ -183,6 +183,23 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             ((32, 32, 2), {"axis": 1, "norm": "backward"}),
             ((32, 32, 2), {"axis": 1, "norm": "forward"}),
             ((64, 128, 16), {}),
+            ((64, 128, 16), {"out": None}),
+        )
+    elif numpy.__version__ >= "2.0":
+        test_shapes = (
+            ((100,), {}),
+            ((128, 64), {"axis": 0}),
+            ((128, 32), {"axis": -1}),
+            ((59, 100), {}),
+            ((59, 99), {"axis": -1}),
+            ((59, 99), {"axis": 0}),
+            ((32, 32, 4), {"axis": 1}),
+            ((32, 32, 2), {"axis": 1, "norm": "ortho"}),
+            ((32, 32, 2), {"axis": 1, "norm": None}),
+            ((32, 32, 2), {"axis": 1, "norm": "backward"}),
+            ((32, 32, 2), {"axis": 1, "norm": "forward"}),
+            ((64, 128, 16), {}),
+            ((64, 128, 16), {"out": None}),
         )
     else:
         test_shapes = (
@@ -196,6 +213,7 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             ((32, 32, 2), {"axis": 1, "norm": "ortho"}),
             ((32, 32, 2), {"axis": 1, "norm": None}),
             ((64, 128, 16), {}),
+            ((64, 128, 16), {"out": None}),
         )
 
     # invalid_s_shapes is:
@@ -210,6 +228,10 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
     realinv = False
     has_norm_kwarg = _numpy_fft_has_norm_kwarg()
 
+    # out became available in version 2.0, but since the docstrings refer to it
+    # perhaps it makes more sense to include it in other numpy versions as well
+    has_out_kwarg = True
+
     @property
     def test_data(self):
         for test_shape, kwargs in self.test_shapes:
@@ -218,6 +240,9 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
 
             if not self.has_norm_kwarg and "norm" in kwargs:
                 kwargs.pop("norm")
+
+            if not self.has_out_kwarg and "out" in kwargs:
+                kwargs.pop("out")
 
             if self.realinv:
                 test_shape = list(test_shape)
@@ -299,6 +324,16 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                 )
                 return
             try:
+                if "out" in kwargs:
+                    output_array = getattr(self.test_interface, self.func)(
+                        copy_func(np_input_array), s, **kwargs
+                    )
+
+                    # There seems to be a mismatch between type promotion schemes. This
+                    # avoid retrieving the correct dtype from fftw_schemes but at cost
+                    # of repeating the computation
+                    kwargs["out"] = copy_func(output_array)
+
                 output_array = getattr(self.test_interface, self.func)(
                     copy_func(np_input_array), s, **kwargs
                 )
@@ -315,6 +350,11 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
                     if len(w) > 0:
                         # Make sure a warning is raised
                         self.assertIs(w[-1].category, numpy.ComplexWarning)
+
+        if "out" in kwargs:
+            self.assertTrue(kwargs["out"] is output_array)
+            # Cleanup the test case dictionary
+            kwargs["out"] = None
 
         self.assertTrue(
             numpy.allclose(output_array, test_out_array, rtol=1e-2, atol=1e-4)
