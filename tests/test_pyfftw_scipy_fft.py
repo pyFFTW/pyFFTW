@@ -333,6 +333,10 @@ for each_func in funcs:
     cls = unittest.skipIf(not has_scipy_fft, "scipy.fft is not available")(cls)
 
     globals()[class_name] = cls
+
+    # none of the scipy functions support the out kwarg
+    globals()[class_name].has_out_kwarg = False
+
     test_cases.append(cls)
 
 test_cases.append(InterfacesScipyFFTTestSimple)
