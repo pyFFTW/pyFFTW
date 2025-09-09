@@ -252,6 +252,14 @@ exceptions and with different defaults.
 
   The default is ``True``.
 
+* ``out``: A location into which the result of the requested operation
+  is stored. This argument is only supported by :mod:`~pyfftw.interfaces.numpy_fft`
+  for compatibility with NumPy 2.0+. If provided, the output array must have the
+  correct shape, dtype, and memory alignment that matches what the FFT plan expects,
+  otherwise an error is raised.
+
+  The default is ``None``, which causes a new array to be allocated and returned.
+
 '''
 
 from . import (

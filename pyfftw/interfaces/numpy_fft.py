@@ -364,6 +364,7 @@ def ihfft(a, n=None, axis=-1, norm=None, overwrite_input=False,
 
     new_norm = _swap_direction(norm)
 
-    return np.conjugate(_Xfftn(a, n, axis, overwrite_input, planner_effort,
+    ret = _Xfftn(a, n, axis, overwrite_input, planner_effort,
                                threads, auto_align_input, auto_contiguous,
-                               calling_func, **_norm_args(new_norm), output_array=out))
+                               calling_func, **_norm_args(new_norm), output_array=out)
+    return np.conjugate(ret, out=ret)

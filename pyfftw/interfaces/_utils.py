@@ -155,7 +155,8 @@ def _Xfftn(
             # the check and the lookup
             FFTW_object = None
 
-    if not cache.is_enabled() or FFTW_object is None:
+    new_object = not cache.is_enabled() or FFTW_object is None
+    if new_object:
 
         # If we're going to create a new FFTW object and are not
         # working with a copy, then we need to copy the input array to
@@ -177,26 +178,32 @@ def _Xfftn(
         if cache.is_enabled():
             cache._fftw_cache.insert(FFTW_object, key)
 
-        output_array = FFTW_object(
-            output_array=output_array, normalise_idft=normalise_idft, ortho=ortho
-        )
-
-    else:
-        orig_output_array = FFTW_object.output_array
-        output_shape = orig_output_array.shape
-        output_dtype = orig_output_array.dtype
-        output_alignment = FFTW_object.output_alignment
-
-        if output_array is None:
-            output_array = pyfftw.empty_aligned(
-                output_shape, output_dtype, n=output_alignment
-            )
-
-        FFTW_object(
-            input_array=a,
+    # If output_array is provided FFTW._output_array will be overwritten and the
+    # output of the requested operation on FFTW._output_array is returned. We do
+    # under no circumstances modify this external reference however, as subsequent
+    # operations either trigger the creation of a new FFTW object, or of a new output
+    # array if the output_array argument is None.
+    if new_object:
+        return FFTW_object(
             output_array=output_array,
             normalise_idft=normalise_idft,
             ortho=ortho,
         )
 
-    return output_array
+    # This can be moved above new_object for readability, but comes at a cost of one
+    # additional array instantiation that is not required.
+    orig_output_array = FFTW_object.output_array
+    if output_array is None:
+        output_shape = orig_output_array.shape
+        output_dtype = orig_output_array.dtype
+
+        output_array = pyfftw.empty_aligned(
+            output_shape, output_dtype, n=FFTW_object.output_alignment
+        )
+
+    return FFTW_object(
+        input_array=a,
+        output_array=output_array,
+        normalise_idft=normalise_idft,
+        ortho=ortho,
+    )
