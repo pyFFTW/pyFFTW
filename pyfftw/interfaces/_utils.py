@@ -38,9 +38,9 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-"""
+'''
 Utility functions for the interfaces routines
-"""
+'''
 
 import pyfftw.builders as builders
 import pyfftw
@@ -79,7 +79,7 @@ def _Xfftn(
     except TypeError:
         pass
 
-    if calling_func in ("dct", "dst"):
+    if calling_func in ('dct', 'dst'):
         # real-to-real transforms require passing an additional flag argument
         avoid_copy = False
         args = (
@@ -91,7 +91,7 @@ def _Xfftn(
             avoid_copy,
             real_direction_flag,
         )
-    elif calling_func in ("irfft2", "irfftn"):
+    elif calling_func in ('irfft2', 'irfftn'):
         # overwrite_input is not an argument to irfft2 or irfftn
         args = (planner_effort, threads, auto_align_input, auto_contiguous)
 
@@ -116,8 +116,8 @@ def _Xfftn(
 
             if overwrite_input:
                 raise ValueError(
-                    "overwrite_input cannot be True when the "
-                    + "input array flags.writeable is False"
+                    'overwrite_input cannot be True when the '
+                    + 'input array flags.writeable is False'
                 )
 
     if work_with_copy:
