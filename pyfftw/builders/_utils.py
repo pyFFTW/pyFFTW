@@ -55,9 +55,11 @@ import warnings
 from .. import _threading_type
 from .. import config
 
+# fmt: off
 __all__ = ['_FFTWWrapper', '_rc_dtype_pairs', '_default_dtype', '_Xfftn',
         '_setup_input_slicers', '_compute_array_shapes', '_precook_1d_args',
         '_cook_nd_args']
+# fmt: on
 
 _valid_efforts = ('FFTW_ESTIMATE', 'FFTW_MEASURE',
         'FFTW_PATIENT', 'FFTW_EXHAUSTIVE')

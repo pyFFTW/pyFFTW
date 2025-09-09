@@ -71,11 +71,13 @@ from scipy.fftpack import (diff, tilbert, itilbert,
 # a next_fast_len specific to pyFFTW is used in place of the scipy.fftpack one
 from ..pyfftw import next_fast_len
 
+# fmt: off
 __all__ = ['fft', 'ifft', 'fftn', 'ifftn', 'rfft', 'irfft', 'fft2', 'ifft2',
            'dct', 'idct', 'dst', 'idst', 'diff', 'tilbert', 'itilbert',
            'hilbert', 'ihilbert', 'cs_diff', 'sc_diff', 'ss_diff', 'cc_diff',
            'shift', 'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'convolve',
            'next_fast_len', 'dctn', 'idctn', 'dstn', 'idstn']
+# fmt: on
 
 
 def _iterable_of_int(x, name=None):

@@ -82,7 +82,9 @@ except ImportError as e:
 import time
 import weakref
 
+# fmt: off
 __all__ = ['enable', 'disable', 'set_keepalive_time']
+# fmt: on
 
 _fftw_cache = None
 

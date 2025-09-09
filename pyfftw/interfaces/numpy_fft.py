@@ -69,9 +69,11 @@ from numpy.fft import fftfreq, fftshift, ifftshift
 
 import numpy as np
 
+# fmt: off
 __all__ = ['fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
            'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn', 'irfftn',
            'hfft', 'ihfft', 'fftfreq', 'fftshift', 'ifftshift']
+# fmt: on
 
 try:
     # rfftfreq was added to the namespace in numpy 1.8

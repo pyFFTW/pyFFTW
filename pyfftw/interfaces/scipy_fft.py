@@ -65,13 +65,14 @@ import scipy.fft as _fft
 import numpy as np
 
 
+# fmt: off
 __all__ = ['fft', 'ifft', 'fft2', 'ifft2', 'fftn', 'ifftn',
            'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn', 'irfftn',
            'hfft', 'ihfft', 'hfft2', 'ihfft2', 'hfftn', 'ihfftn',
            'dct', 'idct', 'dst', 'idst', 'dctn', 'idctn', 'dstn', 'idstn',
            'fftshift', 'ifftshift', 'fftfreq', 'rfftfreq', 'get_workers',
            'set_workers', 'next_fast_len']
-
+# fmt: on
 
 # Backend support for scipy.fft
 

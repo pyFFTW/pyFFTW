@@ -278,9 +278,11 @@ equivalents in :mod:`numpy.fft`, or as documented above.
 from ._utils import (_precook_1d_args, _Xfftn, _norm_args, _default_effort,
                      _default_threads)
 
+# fmt: off
 __all__ = ['fft','ifft', 'fft2', 'ifft2', 'fftn',
            'ifftn', 'rfft', 'irfft', 'rfft2', 'irfft2', 'rfftn',
            'irfftn', 'dct', 'dst']
+# fmt: on
 
 def fft(a, n=None, axis=-1, overwrite_input=False,
         planner_effort=None, threads=None,
