@@ -54,13 +54,6 @@ import sys
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
-# ensure the current directory is on sys.path so versioneer can be imported
-# when pip uses PEP 517/518 build rules.
-# https://github.com/python-versioneer/python-versioneer/issues/193
-sys.path.append(os.path.dirname(__file__))
-
-import versioneer
-
 if os.environ.get("READTHEDOCS") == "True":
     os.environ["CC"] = "x86_64-linux-gnu-gcc"
     os.environ["LD"] = "x86_64-linux-gnu-ld"
@@ -97,9 +90,6 @@ def get_include_dirs():
     if 'PYFFTW_INCLUDE' in os.environ:
         include_dirs.append(os.environ['PYFFTW_INCLUDE'])
 
-    if get_platform().startswith("linux"):
-        include_dirs.append('/usr/include')
-
     if get_platform() in ('win32', 'win-amd64'):
         include_dirs.append(os.path.join(os.getcwd(), 'include', 'win'))
 
@@ -113,7 +103,7 @@ def get_include_dirs():
 
 
 def get_package_data():
-    
+
     package_data = {'pyfftw' : ['*.h', '*.pxd']}
 
     if get_platform() in ('win32', 'win-amd64'):
@@ -171,8 +161,18 @@ class EnvironmentSniffer(object):
         self.include_dirs = get_include_dirs()
         self.objects = []
         self.libraries = []
+        if "LDLIBS" in os.environ:
+            for flag in os.getenv("LDLIBS").split():
+                if flag.startswith("-l"):
+                    self.libraries.append(flag[2:])
         self.library_dirs = get_library_dirs()
         self.linker_flags = []
+        for var_name in ("LDFLAGS", "CPPFLAGS"):
+            if var_name in os.environ:
+                self.linker_flags.extend(
+                    flag for flag in os.getenv(var_name).split(" ") if flag
+                )
+
         self.compile_time_env = {}
 
         if self.compiler.compiler_type == 'msvc':
@@ -255,7 +255,9 @@ class EnvironmentSniffer(object):
             # openmp by defining the environment variable PYFFTW_USE_PTHREADS
             if 'PYFFTW_USE_PTHREADS' not in os.environ:
                 # openmp requires special linker treatment
-                self.linker_flags.append(self.openmp_linker_flag())
+                flag_omp = self.openmp_linker_flag()
+                if flag_omp not in self.linker_flags:
+                    self.linker_flags.append(flag_omp)
                 lib_omp = self.check('OMP', 'init_threads', d, s,
                                      basic_lib and not hasattr(self, 'static_fftw_dir'))
                 if lib_omp:
@@ -770,13 +772,11 @@ cmdclass = {'test': TestCommand,
             'quick_test': QuickTestCommand,
             'build_ext': custom_build_ext,
             'create_changelog': CreateChangelogCommand}
-cmdclass.update(versioneer.get_cmdclass())
 
 
 def setup_package():
 
     setup_args = {
-        'version': versioneer.get_version(),
         'long_description': long_description,
         'cmdclass': cmdclass,
         'py_modules': ['pyfftw'],

@@ -45,19 +45,19 @@ The documentation can be found on
 
 ## Requirements (i.e. what it was designed for)
 
-- [Python](https://python.org) >= 3.9 (lower versions *may* work)
+- [Python](https://python.org) >= 3.11 (lower versions *may* work)
 - [Numpy](https://www.numpy.org) >= 1.20 (lower versions *may* work)
 - [FFTW](https://www.fftw.org) >= 3.3 (lower versions *may* work) libraries for
   single, double, and long double precision in serial and multithreading
   (pthreads or openMP) versions.
-- [Cython](https://cython.org) >= 0.29
+- [Cython](https://cython.org) >= 3
 
 (install these as much as possible with your preferred package manager).
 
 In practice, pyFFTW *may* work with older versions of these dependencies, but
 it is not tested against them.
 
-We build wheels for PyPy 3.9, but this platform has not been tested.
+We build wheels for PyPy 3.11, but this platform has not been tested.
 
 ## Optional Dependencies
 
@@ -98,20 +98,19 @@ Read on if you do want to build from source...
 
 Prebuilt wheels are available for the following configurations:
 
-|          Python version          | Windows (32 bit) | Windows (64 bit) | Windows ARM (64 bit) | MacOS | MacOS ARM | Linux (64 bit) | Linux ARM (64 bit) |
-| :------------------------------: | :--------------: | :--------------: | :------------------: | :---: | :-------- | :------------: | :----------------: |
-|   CPython < 3.9 (unsupported)    |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |         ❌         |
-|           CPython 3.9            |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
-|           CPython 3.10           |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
-|           CPython 3.11           |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
-|           CPython 3.12           |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
-|     PyPy < 3.9 (unsupported)     |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |      ❌       |         ❌         |
-|             PyPy 3.9             |        ❌        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ❌         |
-| PyPy > 3.9 (unsupported for now) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |        ❌       |         ❌         |
+|          Python version           | Windows (32 bit) | Windows (64 bit) | Windows ARM (64 bit) | MacOS | MacOS ARM | Linux (64 bit) | Linux ARM (64 bit) |
+| :-------------------------------: | :--------------: | :--------------: | :------------------: | :---: | :-------- | :------------: | :----------------: |
+|   CPython < 3.11 (unsupported)    |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |         ❌         |
+|           CPython 3.11            |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
+|           CPython 3.12            |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
+|           CPython 3.13            |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
+|     PyPy < 3.11 (unsupported)     |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |      ❌       |         ❌         |
+|             PyPy 3.11             |        ❌        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ❌         |
+| PyPy > 3.11 (unsupported for now) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |        ❌       |         ❌         |
 
 Note that Linux 32-bit wheels are available only for pyFFTW <= 0.13.1.
 
-If your configuration does not match one of these you will have to build `pyfft` from source yourself.
+If your configuration does not match one of these you will have to build `pyfftw` from source yourself.
 See instructions below.
 
 ## Building
@@ -183,7 +182,7 @@ Set temporary environmental variables, such that pyfftw finds fftw:
 
     export DYLD_LIBRARY_PATH=/usr/local/lib
     export LDFLAGS="-L/usr/local/lib"
-    export CFLAGS="-I/usr/local/include"
+    export CPPFLAGS="-I/usr/local/include"
 
 Now install pyfftw from pip:
 
@@ -193,7 +192,7 @@ It has been suggested that [macports](https://www.macports.org) might also work
 fine. You should then replace the LD environmental variables above with the
 right ones.
 
-- DYLD - path for libfftw3.dylib etc - ``find /usr -name libfftw3.dylib``
+- DYLD_LIBRARY_PATH - path for libfftw3.dylib etc - ``find /usr -name libfftw3.dylib``
 - LDFLAGS - path for fftw3.h - ``find /usr -name fftw3.h``
 
 #### FreeBSD

@@ -1,7 +1,8 @@
 [build-system]
 requires = [
     "wheel",
-    "setuptools",
+    "setuptools>=64",
+    "setuptools-scm",
     "Cython>=3",
     # taken from scipy (2024/06/28)
     # numpy requirement for wheel builds for distribution on PyPI - building
@@ -20,22 +21,21 @@ description = "A pythonic wrapper around FFTW, the FFT library, presenting a uni
 authors = [
     {name = "Henry Gomersall", email = "heng@kedevelopments.co.uk"},
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dynamic = ["version"]
 dependencies = [
     "numpy>=1.20",
 ]
 readme = "README.md"
-license = {text = "BSD"}
+license = "BSD-3-Clause"
+license-files = ["LICENSE.txt"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -59,6 +59,10 @@ scipy = [
 ]
 
 
+[tool.setuptools_scm]
+version_file = "pyfftw/_version.py"
+
+
 [tool.cibuildwheel]
 build-verbosity = 2
 
@@ -68,6 +72,7 @@ test-requires = "pytest scipy dask packaging"
 # Import-mode=append to use installed (wheel) version of pyfftw
 # rather than the local module
 test-command = "pytest --import-mode=append {project}"
+enable = ["pypy"]
 
     [tool.cibuildwheel.environment]
     PIP_PREFER_BINARY = true
@@ -81,7 +86,6 @@ test-command = "pytest --import-mode=append {project}"
     test-skip = [
         # Until SciPy does not support win32
         "*win32",
-
         # Until SciPy gives us PyPy wheels
         "pp*",
     ]
@@ -102,13 +106,11 @@ test-command = "pytest --import-mode=append {project}"
         "pp*",
         # See: https://github.com/pyFFTW/pyFFTW/issues/326
         "*arm64",
+        # see https://github.com/pyFFTW/pyFFTW/pull/411
+        # mysterious segmentation faults
+        "cp311*x86_64",
+        "cp312*x86_64",
     ]
-
-        [tool.cibuildwheel.macos.environment]
-        CC = "/usr/bin/clang"
-        CXX = "/usr/bin/clang++"
-        CFLAGS = "-Wno-implicit-function-declaration -I/usr/local/opt/fftw/include"
-        LDFLAGS = "-Wl,-S,-rpath,/usr/local/opt/fftw/lib -L/usr/local/opt/fftw/lib"
 
     # On Linux we need to use different package managers depending on image used
     [tool.cibuildwheel.linux]
@@ -116,7 +118,6 @@ test-command = "pytest --import-mode=append {project}"
     test-skip = [
         # See: https://github.com/pyFFTW/pyFFTW/issues/326
         "*aarch64",
-
         # Until SciPy gives us PyPy wheels
         "pp*",
     ]
@@ -156,7 +157,7 @@ test = [
     "scipy",
     "dask",
 ]
-dev = ["pip", "ipython"]
+dev = ["pip", "ipython", "setuptools-scm>=8"]
 doc = [
     "sphinx>=7.3.7",
     "scipy>=1.13.1",

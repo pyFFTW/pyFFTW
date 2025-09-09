@@ -49,9 +49,7 @@ from . import interfaces
 # clean up the namespace
 del builders.builders
 
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
+from ._version import __version__
 
 # retrieve fftw library version (only numbers) from the 'double' API
 fv_match = re.search(r'(\d+).(\d+).(\d+)', _fftw_version_dict.get('64', ''))
