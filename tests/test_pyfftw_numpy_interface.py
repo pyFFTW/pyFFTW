@@ -185,22 +185,6 @@ class InterfacesNumpyFFTTestFFT(unittest.TestCase):
             ((64, 128, 16), {}),
             ((64, 128, 16), {"out": None}),
         )
-    elif numpy.__version__ >= "2.0":
-        test_shapes = (
-            ((100,), {}),
-            ((128, 64), {"axis": 0}),
-            ((128, 32), {"axis": -1}),
-            ((59, 100), {}),
-            ((59, 99), {"axis": -1}),
-            ((59, 99), {"axis": 0}),
-            ((32, 32, 4), {"axis": 1}),
-            ((32, 32, 2), {"axis": 1, "norm": "ortho"}),
-            ((32, 32, 2), {"axis": 1, "norm": None}),
-            ((32, 32, 2), {"axis": 1, "norm": "backward"}),
-            ((32, 32, 2), {"axis": 1, "norm": "forward"}),
-            ((64, 128, 16), {}),
-            ((64, 128, 16), {"out": None}),
-        )
     else:
         test_shapes = (
             ((100,), {}),
