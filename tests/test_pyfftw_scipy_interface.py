@@ -468,6 +468,9 @@ for each_func in funcs:
     # unlike numpy, none of the scipy functions support the norm kwarg
     globals()[class_name].has_norm_kwarg = False
 
+    # none of the scipy functions support the out kwarg
+    globals()[class_name].has_out_kwarg = False
+
     built_classes.append(globals()[class_name])
 
 built_classes = tuple(built_classes)
