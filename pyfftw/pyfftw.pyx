@@ -1,4 +1,5 @@
 # cython: language_level=3
+# cython: freethreading_compatible=True
 #
 # Copyright 2015 Knowledge Economy Developments Ltd
 # Copyright 2014 David Wells
@@ -159,8 +160,10 @@ flag_dict = {'FFTW_MEASURE': FFTW_MEASURE,
 _flag_dict = flag_dict.copy()
 
 # Need a global lock to protect FFTW planning so that multiple Python threads
-# do not attempt to plan simultaneously.
-cdef object plan_lock = threading.Lock()
+# do not attempt to plan simultaneously. Must be reentrant because GC can
+# trigger __dealloc__ (which acquires this lock) while another operation
+# already holds it on the same thread.
+cdef object plan_lock = threading.RLock()
 
 # Function wrappers
 # =================
@@ -1400,16 +1403,6 @@ cdef class FFTW:
         ## Point at which FFTW calls are made
         ## (and none should be made before this)
 
-        # noop if threads library not available
-        self._nthreads_plan_setter(threads)
-
-        # Set the timelimit
-        set_timelimit_func(_planning_timelimit)
-
-        # Finally, construct the plan, after acquiring the global planner lock
-        # (so that only one python thread can plan at a time, as the FFTW
-        # planning functions are not thread-safe)
-
         # no self-lookups allowed in nogil block, so must grab all these first
         cdef void *plan
         cdef fftw_generic_plan_guru fftw_planner = self._fftw_planner
@@ -1421,9 +1414,17 @@ cdef class FFTW:
         cdef void *_out = <void *>np.PyArray_DATA(self._output_array)
         cdef unsigned c_flags = self._flags
 
-        with plan_lock, nogil:
-            plan = fftw_planner(rank, dims, howmany_rank, howmany_dims,
-                                _in, _out, self._direction, c_flags)
+        # Acquire the global planner lock so that only one thread can plan
+        # at a time (FFTW planning functions are not thread-safe).
+        # nthreads and timelimit set FFTW global state, so they must be
+        # inside the lock to avoid races with other threads planning
+        # concurrently.
+        with plan_lock:
+            self._nthreads_plan_setter(threads)
+            set_timelimit_func(_planning_timelimit)
+            with nogil:
+                plan = fftw_planner(rank, dims, howmany_rank, howmany_dims,
+                                    _in, _out, self._direction, c_flags)
         self._plan = plan
 
         if self._plan == NULL:
@@ -2117,47 +2118,50 @@ def export_wisdom():
         intptr_t c_wisdomf_ptr = 0
         intptr_t c_wisdoml_ptr = 0
 
-    # count the length of the string and extract it manually rather than using
-    # `fftw_export_wisdom_to_string` to avoid calling `free` on the string
-    # potentially allocated by a different C library; see #3
-    if PYFFTW_HAVE_DOUBLE:
-        fftw_export_wisdom(&count_char, <void *>&counter)
-        c_wisdom = <char *>malloc(sizeof(char)*(counter + 1))
-        if c_wisdom == NULL:
-            raise MemoryError
-        # Set the pointers to the string pointers
-        c_wisdom_ptr = <intptr_t>c_wisdom
-        fftw_export_wisdom(&write_char_to_string, <void *>&c_wisdom_ptr)
-        # Write the last byte as the null byte
-        c_wisdom[counter] = 0
-        try:
-            py_wisdom = c_wisdom
-        finally:
-            free(c_wisdom)
-    if PYFFTW_HAVE_SINGLE:
-        fftwf_export_wisdom(&count_char, <void *>&counterf)
-        c_wisdomf = <char *>malloc(sizeof(char)*(counterf + 1))
-        if c_wisdomf == NULL:
-            raise MemoryError
-        c_wisdomf_ptr = <intptr_t>c_wisdomf
-        fftwf_export_wisdom(&write_char_to_string, <void *>&c_wisdomf_ptr)
-        c_wisdomf[counterf] = 0
-        try:
-            py_wisdomf = c_wisdomf
-        finally:
-            free(c_wisdomf)
-    if PYFFTW_HAVE_LONG:
-        fftwl_export_wisdom(&count_char, <void *>&counterl)
-        c_wisdoml = <char *>malloc(sizeof(char)*(counterl + 1))
-        if c_wisdoml == NULL:
-            raise MemoryError
-        c_wisdoml_ptr = <intptr_t>c_wisdoml
-        fftwl_export_wisdom(&write_char_to_string, <void *>&c_wisdoml_ptr)
-        c_wisdoml[counterl] = 0
-        try:
-            py_wisdoml = c_wisdoml
-        finally:
-            free(c_wisdoml)
+    # FFTW wisdom functions share global state with the planner and are not
+    # thread-safe, so we hold plan_lock for the entire operation.
+    with plan_lock:
+        # count the length of the string and extract it manually rather than
+        # using `fftw_export_wisdom_to_string` to avoid calling `free` on the
+        # string potentially allocated by a different C library; see #3
+        if PYFFTW_HAVE_DOUBLE:
+            fftw_export_wisdom(&count_char, <void *>&counter)
+            c_wisdom = <char *>malloc(sizeof(char)*(counter + 1))
+            if c_wisdom == NULL:
+                raise MemoryError
+            # Set the pointers to the string pointers
+            c_wisdom_ptr = <intptr_t>c_wisdom
+            fftw_export_wisdom(&write_char_to_string, <void *>&c_wisdom_ptr)
+            # Write the last byte as the null byte
+            c_wisdom[counter] = 0
+            try:
+                py_wisdom = c_wisdom
+            finally:
+                free(c_wisdom)
+        if PYFFTW_HAVE_SINGLE:
+            fftwf_export_wisdom(&count_char, <void *>&counterf)
+            c_wisdomf = <char *>malloc(sizeof(char)*(counterf + 1))
+            if c_wisdomf == NULL:
+                raise MemoryError
+            c_wisdomf_ptr = <intptr_t>c_wisdomf
+            fftwf_export_wisdom(&write_char_to_string, <void *>&c_wisdomf_ptr)
+            c_wisdomf[counterf] = 0
+            try:
+                py_wisdomf = c_wisdomf
+            finally:
+                free(c_wisdomf)
+        if PYFFTW_HAVE_LONG:
+            fftwl_export_wisdom(&count_char, <void *>&counterl)
+            c_wisdoml = <char *>malloc(sizeof(char)*(counterl + 1))
+            if c_wisdoml == NULL:
+                raise MemoryError
+            c_wisdoml_ptr = <intptr_t>c_wisdoml
+            fftwl_export_wisdom(&write_char_to_string, <void *>&c_wisdoml_ptr)
+            c_wisdoml[counterl] = 0
+            try:
+                py_wisdoml = c_wisdoml
+            finally:
+                free(c_wisdoml)
 
     return (py_wisdom, py_wisdomf, py_wisdoml)
 
@@ -2189,12 +2193,13 @@ def import_wisdom(wisdom):
         bint successf = False
         bint successl = False
 
-    if PYFFTW_HAVE_DOUBLE:
-        success = fftw_import_wisdom_from_string(c_wisdom)
-    if PYFFTW_HAVE_SINGLE:
-        successf = fftwf_import_wisdom_from_string(c_wisdomf)
-    if PYFFTW_HAVE_LONG:
-        successl = fftwl_import_wisdom_from_string(c_wisdoml)
+    with plan_lock:
+        if PYFFTW_HAVE_DOUBLE:
+            success = fftw_import_wisdom_from_string(c_wisdom)
+        if PYFFTW_HAVE_SINGLE:
+            successf = fftwf_import_wisdom_from_string(c_wisdomf)
+        if PYFFTW_HAVE_LONG:
+            successl = fftwl_import_wisdom_from_string(c_wisdoml)
     return (success, successf, successl)
 
 #def export_wisdom_to_files(
@@ -2289,9 +2294,10 @@ def forget_wisdom():
 
     Forget all the accumulated wisdom.
     '''
-    if PYFFTW_HAVE_DOUBLE:
-        fftw_forget_wisdom()
-    if PYFFTW_HAVE_SINGLE:
-        fftwf_forget_wisdom()
-    if PYFFTW_HAVE_LONG:
-        fftwl_forget_wisdom()
+    with plan_lock:
+        if PYFFTW_HAVE_DOUBLE:
+            fftw_forget_wisdom()
+        if PYFFTW_HAVE_SINGLE:
+            fftwf_forget_wisdom()
+        if PYFFTW_HAVE_LONG:
+            fftwl_forget_wisdom()

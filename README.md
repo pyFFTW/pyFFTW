@@ -105,6 +105,7 @@ Prebuilt wheels are available for the following configurations:
 |           CPython 3.12            |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
 |           CPython 3.13            |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
 |           CPython 3.14            |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
+|    CPython 3.14 (free-threaded)   |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
 |     PyPy < 3.11 (unsupported)     |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |      ❌       |         ❌         |
 |             PyPy 3.11             |        ❌        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ❌         |
 | PyPy > 3.11 (unsupported for now) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |        ❌       |         ❌         |

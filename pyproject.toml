@@ -3,7 +3,7 @@ requires = [
     "wheel",
     "setuptools>=64",
     "setuptools-scm",
-    "Cython>=3",
+    "Cython>=3.1",
     # taken from scipy (2024/06/28)
     # numpy requirement for wheel builds for distribution on PyPI - building
     # against 2.x yields wheels that are also compatible with numpy 1.x at
