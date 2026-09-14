@@ -1,7 +1,7 @@
 from pyfftw import config, _threading_type
 
 
-from .test_pyfftw_base import run_test_suites
+from test_pyfftw_base import run_test_suites
 
 import unittest
 import os

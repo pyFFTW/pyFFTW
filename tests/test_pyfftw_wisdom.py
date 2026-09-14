@@ -42,7 +42,7 @@ from pyfftw import (
     _supported_nptypes_complex,
 )
 
-from .test_pyfftw_base import run_test_suites
+from test_pyfftw_base import run_test_suites
 
 import numpy
 import pickle

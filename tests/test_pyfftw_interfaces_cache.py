@@ -42,8 +42,8 @@ import numpy
 import numpy as np
 
 import unittest
-from .test_pyfftw_base import run_test_suites, miss
-from .test_pyfftw_numpy_interface import InterfacesNumpyFFTTestFFT
+from test_pyfftw_base import run_test_suites, miss
+from test_pyfftw_numpy_interface import InterfacesNumpyFFTTestFFT
 
 import threading
 import time

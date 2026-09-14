@@ -35,7 +35,7 @@
 from pyfftw import FFTW, empty_aligned, is_byte_aligned, simd_alignment
 import pyfftw
 
-from .test_pyfftw_base import run_test_suites, miss, require
+from test_pyfftw_base import run_test_suites, miss, require
 
 import unittest
 import numpy

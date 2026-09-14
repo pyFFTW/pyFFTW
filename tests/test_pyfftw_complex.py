@@ -41,7 +41,7 @@ import time
 
 import unittest
 
-from .test_pyfftw_base import FFTWBaseTest, run_test_suites, miss, np_fft
+from test_pyfftw_base import FFTWBaseTest, run_test_suites, miss, np_fft
 
 
 # We make this 1D case not inherit from FFTWBaseTest.

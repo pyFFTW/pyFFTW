@@ -52,8 +52,8 @@ else:
     scipy_missing = False
 
 import unittest
-from .test_pyfftw_base import run_test_suites, miss
-from . import test_pyfftw_numpy_interface
+from test_pyfftw_base import run_test_suites, miss
+import test_pyfftw_numpy_interface
 
 """pyfftw.interfaces.scipy_fftpack wraps pyfftw.interfaces.numpy_fft and
 implements the dct and dst functions.

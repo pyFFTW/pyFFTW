@@ -35,15 +35,15 @@
 from pyfftw import builders, empty_aligned, byte_align, FFTW
 from pyfftw import _supported_nptypes_complex, _supported_nptypes_real
 from pyfftw.builders import _utils as utils
-from .test_pyfftw_base import run_test_suites, require
-from ._get_default_args import get_default_args
+from test_pyfftw_base import run_test_suites, require
+from _get_default_args import get_default_args
 
 import unittest
 import numpy
 import numpy as np
 
 # import the numpy fft routines having the rfft normalization bug fix
-from .test_pyfftw_numpy_interface import np_fft, _numpy_fft_has_norm_kwarg
+from test_pyfftw_numpy_interface import np_fft, _numpy_fft_has_norm_kwarg
 import copy
 import warnings
 

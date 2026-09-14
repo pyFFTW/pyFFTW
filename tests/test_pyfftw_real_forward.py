@@ -36,11 +36,11 @@ from pyfftw import FFTW
 import numpy
 from timeit import Timer
 
-from .test_pyfftw_base import run_test_suites, miss, require, np_fft
+from test_pyfftw_base import run_test_suites, miss, require, np_fft
 
 import unittest
 
-from .test_pyfftw_complex import Complex64FFTWTest
+from test_pyfftw_complex import Complex64FFTWTest
 
 
 class RealForwardDoubleFFTWTest(Complex64FFTWTest):

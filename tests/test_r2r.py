@@ -43,7 +43,7 @@ import numpy
 
 import pyfftw
 from pyfftw import _supported_types
-from .test_pyfftw_base import run_test_suites
+from test_pyfftw_base import run_test_suites
 
 discrete_sine_directions = [
     "FFTW_RODFT00",

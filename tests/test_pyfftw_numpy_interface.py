@@ -34,8 +34,8 @@
 
 from pyfftw import interfaces, _supported_types, _all_types_np
 
-from .test_pyfftw_base import run_test_suites, np_fft
-from ._get_default_args import get_default_args
+from test_pyfftw_base import run_test_suites, np_fft
+from _get_default_args import get_default_args
 
 from packaging.version import Version
 import unittest
