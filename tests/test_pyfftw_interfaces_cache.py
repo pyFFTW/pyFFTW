@@ -97,6 +97,23 @@ class InterfacesNumpyFFTCacheTestFFT(InterfacesNumpyFFTTestFFT):
 
 @unittest.skipIf(*miss("64"))
 class CacheSpecificInterfacesUtils(unittest.TestCase):
+    def test_distinct_negative_axes(self):
+        data = numpy.arange(24, dtype=float).reshape(3, 8)
+        for name in ("fft", "ifft", "rfft", "irfft", "fftn", "ifftn", "rfftn", "irfftn"):
+            for order in ((-1, -2), (-2, -1)):
+                with self.subTest(transform=name, order=order):
+                    interfaces.cache.disable()
+                    interfaces.cache.enable()
+                    interfaces.cache.set_keepalive_time(10)
+                    try:
+                        for axis in order + order:
+                            kwargs = {"axes": (axis,)} if name.endswith("n") else {"axis": axis}
+                            expected = getattr(numpy.fft, name)(data, **kwargs)
+                            actual = getattr(interfaces.numpy_fft, name)(data, **kwargs)
+                            numpy.testing.assert_allclose(actual, expected, rtol=1e-12, atol=1e-12)
+                    finally:
+                        interfaces.cache.disable()
+
     def test_slow_lookup_no_race_condition(self):
         """Checks that lookups in _utils longer than the keepalive time are ok."""
         # Any old size, it doesn't matter
