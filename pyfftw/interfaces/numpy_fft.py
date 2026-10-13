@@ -549,7 +549,7 @@ def hfft(
     threads = _default_threads(threads)
 
     a = np.asarray(a)
-    if a.size < 2:
+    if a.size < 2 and n is None:
         raise ValueError("hfft requires input with length >= 2")
     if a.dtype == np.float16:
         a = a.astype(np.float32)
