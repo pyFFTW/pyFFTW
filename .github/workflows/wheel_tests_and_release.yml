@@ -20,15 +20,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04]
-        cibw_python: ["cp311", "cp312", "cp313", "cp314", "pp311"]
+        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
         # SciPy and NumPy don't support musllinux
         cibw_libc: ["manylinux"]
         cibw_arch: ["x86_64", "aarch64"]
-
-        exclude:
-          # Numpy only supports pypy x86_64 on Linux
-          - cibw_python: "pp311"
-            cibw_arch: "aarch64"
 
     steps:
       - uses: actions/checkout@v4
@@ -70,7 +65,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-13]
-        cibw_python: ["cp311", "cp312", "cp313", "cp314", "pp311"]
+        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
         cibw_arch: ["x86_64"]
 
     env:
@@ -127,7 +122,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14]
-        cibw_python: ["cp311", "cp312", "cp313", "cp314"]
+        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
         cibw_arch: ["arm64"]
 
     env:
@@ -181,14 +176,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-2022]
-        cibw_python: ["cp311", "cp312", "cp313", "cp314", "pp311"]
+        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
         # Add arm64 when we support it
         cibw_arch: ["_amd64", "32"]
-
-        exclude:
-          # cibuildwheel only supports pypy AMD64 on Windows
-          - cibw_python: "pp311"
-            cibw_arch: "32"
 
     steps:
       - uses: actions/checkout@v4
