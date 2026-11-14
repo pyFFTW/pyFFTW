@@ -83,6 +83,7 @@ enable = ["pypy", "cpython-prerelease"]
         "AMD64",
         "x86",
     ]
+    repair-wheel-command = "delvewheel repair --ignore-existing -w {dest_dir} {wheel}"
 
     test-skip = [
         # Until SciPy does not support win32
