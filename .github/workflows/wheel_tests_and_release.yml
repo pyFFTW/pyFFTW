@@ -20,15 +20,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04]
-        cibw_python: ["cp311", "cp312", "cp313", "cp314", "pp311"]
+        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
         # SciPy and NumPy don't support musllinux
         cibw_libc: ["manylinux"]
         cibw_arch: ["x86_64", "aarch64"]
-
-        exclude:
-          # Numpy only supports pypy x86_64 on Linux
-          - cibw_python: "pp311"
-            cibw_arch: "aarch64"
 
     steps:
       - uses: actions/checkout@v4
@@ -63,19 +58,19 @@ jobs:
           path: ./dist/*.whl
 
 
-  build_macos_wheels:
+  build_macos_x86_64_wheels:
     name: Build ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13]
-        cibw_python: ["cp311", "cp312", "cp313", "cp314", "pp311"]
+        os: [macos-15-intel]
+        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
         cibw_arch: ["x86_64"]
 
     env:
-      # libfftw3_threads.3.dylib has a minimum target of 13.0
-      MACOSX_DEPLOYMENT_TARGET: "13.0"
+      # libfftw3_threads.3.dylib has a minimum target of 14.0
+      MACOSX_DEPLOYMENT_TARGET: "14.0"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -126,12 +121,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-14]
-        cibw_python: ["cp311", "cp312", "cp313", "cp314"]
+        os: [macos-15]
+        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
         cibw_arch: ["arm64"]
 
     env:
-      MACOSX_DEPLOYMENT_TARGET: "14.0"
+      # on macos-15, libfftw3.3.dylib has a minimum target of 15.0
+      MACOSX_DEPLOYMENT_TARGET: "15.0"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -181,14 +177,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-2022]
-        cibw_python: ["cp311", "cp312", "cp313", "cp314", "pp311"]
+        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
         # Add arm64 when we support it
         cibw_arch: ["_amd64", "32"]
-
-        exclude:
-          # cibuildwheel only supports pypy AMD64 on Windows
-          - cibw_python: "pp311"
-            cibw_arch: "32"
 
     steps:
       - uses: actions/checkout@v4
@@ -264,7 +255,7 @@ jobs:
 
   deploy:
     name: Release
-    needs: [build_linux_wheels, build_macos_wheels, build_windows_wheels]
+    needs: [build_linux_wheels, build_macos_x86_64_wheels, build_macos_arm64_wheels, build_windows_wheels]
     if: github.repository_owner == 'pyFFTW' && startsWith(github.ref, 'refs/tags/v') && always()
     runs-on: ubuntu-latest
     steps:

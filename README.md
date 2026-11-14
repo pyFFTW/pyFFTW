@@ -100,16 +100,16 @@ Prebuilt wheels are available for the following configurations:
 
 |          Python version           | Windows (32 bit) | Windows (64 bit) | Windows ARM (64 bit) | MacOS | MacOS ARM | Linux (64 bit) | Linux ARM (64 bit) |
 | :-------------------------------: | :--------------: | :--------------: | :------------------: | :---: | :-------- | :------------: | :----------------: |
-|   CPython < 3.11 (unsupported)    |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |         ❌         |
-|           CPython 3.11            |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
+|   CPython < 3.12 (unsupported)    |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |       ❌       |         ❌         |
 |           CPython 3.12            |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
 |           CPython 3.13            |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
 |           CPython 3.14            |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
-|     PyPy < 3.11 (unsupported)     |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |      ❌       |         ❌         |
-|             PyPy 3.11             |        ❌        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ❌         |
-| PyPy > 3.11 (unsupported for now) |        ❌        |        ❌        |          ❌          |  ❌   | ❌        |        ❌       |         ❌         |
+|           CPython 3.15            |        ✔        |        ✔        |          ❌          |  ✔   | ✔        |       ✔       |         ✔         |
 
 Note that Linux 32-bit wheels are available only for pyFFTW <= 0.13.1.
+
+PyPy 3.11 compatible wheels exist only for pyFFTW 0.15.1, as PyPy support was
+dropped in subsequent releases following NumPy.
 
 If your configuration does not match one of these you will have to build `pyfftw` from source yourself.
 See instructions below.
