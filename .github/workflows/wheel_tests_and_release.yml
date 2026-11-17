@@ -14,13 +14,18 @@ on:
 
 jobs:
   build_linux_wheels:
-    name: Build ${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
+    name: Build ${{ matrix.target.label }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04]
-        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
+        target:
+          - { label: "cp312",      python: "cp312", abi3: "" }
+          - { label: "cp312-abi3", python: "cp312", abi3: "0x030c0000" }
+          - { label: "cp313",      python: "cp313", abi3: "" }
+          - { label: "cp314",      python: "cp314", abi3: "" }
+          - { label: "cp315",      python: "cp315", abi3: "" }
         # SciPy and NumPy don't support musllinux
         cibw_libc: ["manylinux"]
         cibw_arch: ["x86_64", "aarch64"]
@@ -48,24 +53,30 @@ jobs:
         run: |
           python -m cibuildwheel --output-dir dist
         env:
-          CIBW_BUILD: ${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}
+          CIBW_BUILD: ${{ matrix.target.python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}
+          PYFFTW_LIMITED_API: ${{ matrix.target.abi3 }}
 
       - uses: actions/upload-artifact@v4
         name: Upload wheels as artifacts
         if: ${{ github.event_name != 'pull_request' }}
         with:
-          name: wheels-${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}
+          name: wheels-${{ matrix.target.label }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}
           path: ./dist/*.whl
 
 
   build_macos_x86_64_wheels:
-    name: Build ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
+    name: Build ${{ matrix.target.label }}-macosx_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [macos-15-intel]
-        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
+        target:
+          - { label: "cp312",      python: "cp312", abi3: "" }
+          - { label: "cp312-abi3", python: "cp312", abi3: "0x030c0000" }
+          - { label: "cp313",      python: "cp313", abi3: "" }
+          - { label: "cp314",      python: "cp314", abi3: "" }
+          - { label: "cp315",      python: "cp315", abi3: "" }
         cibw_arch: ["x86_64"]
 
     env:
@@ -104,25 +115,31 @@ jobs:
 
           python -m cibuildwheel --output-dir dist
         env:
-          CIBW_BUILD: ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
+          CIBW_BUILD: ${{ matrix.target.python }}-macosx_${{ matrix.cibw_arch }}
           CIBW_ARCHS_MACOS: ${{ matrix.cibw_arch }}
+          PYFFTW_LIMITED_API: ${{ matrix.target.abi3 }}
 
       - uses: actions/upload-artifact@v4
         name: Upload wheels as artifacts
         if: ${{ github.event_name != 'pull_request' }}
         with:
-          name: wheels-${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
+          name: wheels-${{ matrix.target.label }}-macosx_${{ matrix.cibw_arch }}
           path: ./dist/*.whl
 
 
   build_macos_arm64_wheels:
-    name: Build ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
+    name: Build ${{ matrix.target.label }}-macosx_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [macos-15]
-        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
+        target:
+          - { label: "cp312",      python: "cp312", abi3: "" }
+          - { label: "cp312-abi3", python: "cp312", abi3: "0x030c0000" }
+          - { label: "cp313",      python: "cp313", abi3: "" }
+          - { label: "cp314",      python: "cp314", abi3: "" }
+          - { label: "cp315",      python: "cp315", abi3: "" }
         cibw_arch: ["arm64"]
 
     env:
@@ -160,24 +177,30 @@ jobs:
 
           python -m cibuildwheel --output-dir dist
         env:
-          CIBW_BUILD: ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
+          CIBW_BUILD: ${{ matrix.target.python }}-macosx_${{ matrix.cibw_arch }}
+          PYFFTW_LIMITED_API: ${{ matrix.target.abi3 }}
 
       - uses: actions/upload-artifact@v4
         name: Upload wheels as artifacts
         if: ${{ github.event_name != 'pull_request' }}
         with:
-          name: wheels-${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
+          name: wheels-${{ matrix.target.label }}-macosx_${{ matrix.cibw_arch }}
           path: ./dist/*.whl
 
 
   build_windows_wheels:
-    name: Build ${{ matrix.cibw_python }}-win${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
+    name: Build ${{ matrix.target.label }}-win${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [windows-2022]
-        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
+        target:
+          - { label: "cp312",      python: "cp312", abi3: "" }
+          - { label: "cp312-abi3", python: "cp312", abi3: "0x030c0000" }
+          - { label: "cp313",      python: "cp313", abi3: "" }
+          - { label: "cp314",      python: "cp314", abi3: "" }
+          - { label: "cp315",      python: "cp315", abi3: "" }
         # Add arm64 when we support it
         cibw_arch: ["_amd64", "32"]
 
@@ -236,7 +259,8 @@ jobs:
       - name: Build Windows wheels
         env:
           ARCHITECTURE_BIT: ${{ matrix.cibw_arch == '32' && '32' || '64' }}
-          CIBW_BUILD: ${{ matrix.cibw_python }}-win${{ matrix.cibw_arch }}
+          CIBW_BUILD: ${{ matrix.target.python }}-win${{ matrix.cibw_arch }}
+          PYFFTW_LIMITED_API: ${{ matrix.target.abi3 }}
           CIBW_BEFORE_BUILD: >-
             (robocopy
             ${{ github.workspace }}\fftw${{ matrix.cibw_arch == '32' && '32' || '64' }}
@@ -249,7 +273,7 @@ jobs:
         name: Upload wheels as artifacts
         if: ${{ github.event_name != 'pull_request' }}
         with:
-          name: wheels-${{ matrix.cibw_python }}-win${{ matrix.cibw_arch }}
+          name: wheels-${{ matrix.target.label }}-win${{ matrix.cibw_arch }}
           path: ./dist/*.whl
 
 

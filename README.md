@@ -193,6 +193,25 @@ Install FFTW from ports tree or ``pkg``:
 
 Please install all of them, if possible.
 
+### Stable ABI (abi3) wheels
+
+Besides the normal version-specific wheels, CI also builds a stable-ABI
+wheel per platform tagged ``cp312-abi3``. Such a wheel is built once with
+the oldest supported CPython (3.12) and loads on any later non-free-threaded
+CPython (3.12, 3.13, ..., 3.16, ...) without recompilation.
+
+To build one locally, set ``PYFFTW_LIMITED_API`` to a Python version hex
+(``1``/``true`` defaults to ``0x030c0000``, i.e. ``cp312-abi3``):
+
+```sh
+PYFFTW_LIMITED_API=0x030c0000 python -m build --wheel
+# or with cibuildwheel, e.g. on Linux:
+PYFFTW_LIMITED_API=0x030c0000 CIBW_BUILD="cp312-manylinux_x86_64" python -m cibuildwheel
+```
+
+The result is a wheel named e.g. ``pyfftw-*-cp312-abi3-manylinux_2_28_x86_64.whl``
+containing ``pyfftw.abi3.so``. Stable-ABI builds require ``numpy>=2.0`` at runtime.
+
 ## Testing
 
 Tests should be run using `pytest`. Install using:
