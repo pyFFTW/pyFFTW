@@ -14,13 +14,18 @@ on:
 
 jobs:
   build_linux_wheels:
-    name: Build ${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
+    name: Build ${{ matrix.target.label }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04]
-        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
+        target:
+          - { label: "cp312",      python: "cp312", abi3: "" }
+          - { label: "cp312-abi3", python: "cp312", abi3: "0x030c0000" }
+          - { label: "cp313",      python: "cp313", abi3: "" }
+          - { label: "cp314",      python: "cp314", abi3: "" }
+          - { label: "cp315",      python: "cp315", abi3: "" }
         # SciPy and NumPy don't support musllinux
         cibw_libc: ["manylinux"]
         cibw_arch: ["x86_64", "aarch64"]
@@ -48,24 +53,42 @@ jobs:
         run: |
           python -m cibuildwheel --output-dir dist
         env:
-          CIBW_BUILD: ${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}
+          CIBW_BUILD: ${{ matrix.target.python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}
+          PYFFTW_LIMITED_API: ${{ matrix.target.abi3 }}
+          # On Linux, the build runs in a docker container, which does not see
+          # the environment variables of the runner unless they are passed
+          CIBW_ENVIRONMENT_PASS_LINUX: PYFFTW_LIMITED_API
+
+      - name: Check that the abi3 wheel is a stable ABI wheel
+        if: ${{ matrix.target.abi3 != '' }}
+        shell: bash
+        run: |
+          ls dist
+          ls dist/*-${{ matrix.target.python }}-abi3-*.whl
 
       - uses: actions/upload-artifact@v4
         name: Upload wheels as artifacts
-        if: ${{ github.event_name != 'pull_request' }}
+        # abi3 wheels are also uploaded for pull requests: they are tested by
+        # the test_abi3_wheel_linux job with other Python versions
+        if: ${{ github.event_name != 'pull_request' || matrix.target.abi3 != '' }}
         with:
-          name: wheels-${{ matrix.cibw_python }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}
+          name: wheels-${{ matrix.target.label }}-${{ matrix.cibw_libc }}_${{ matrix.cibw_arch }}
           path: ./dist/*.whl
 
 
   build_macos_x86_64_wheels:
-    name: Build ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
+    name: Build ${{ matrix.target.label }}-macosx_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [macos-15-intel]
-        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
+        target:
+          - { label: "cp312",      python: "cp312", abi3: "" }
+          - { label: "cp312-abi3", python: "cp312", abi3: "0x030c0000" }
+          - { label: "cp313",      python: "cp313", abi3: "" }
+          - { label: "cp314",      python: "cp314", abi3: "" }
+          - { label: "cp315",      python: "cp315", abi3: "" }
         cibw_arch: ["x86_64"]
 
     env:
@@ -104,25 +127,38 @@ jobs:
 
           python -m cibuildwheel --output-dir dist
         env:
-          CIBW_BUILD: ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
+          CIBW_BUILD: ${{ matrix.target.python }}-macosx_${{ matrix.cibw_arch }}
           CIBW_ARCHS_MACOS: ${{ matrix.cibw_arch }}
+          PYFFTW_LIMITED_API: ${{ matrix.target.abi3 }}
+
+      - name: Check that the abi3 wheel is a stable ABI wheel
+        if: ${{ matrix.target.abi3 != '' }}
+        shell: bash
+        run: |
+          ls dist
+          ls dist/*-${{ matrix.target.python }}-abi3-*.whl
 
       - uses: actions/upload-artifact@v4
         name: Upload wheels as artifacts
         if: ${{ github.event_name != 'pull_request' }}
         with:
-          name: wheels-${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
+          name: wheels-${{ matrix.target.label }}-macosx_${{ matrix.cibw_arch }}
           path: ./dist/*.whl
 
 
   build_macos_arm64_wheels:
-    name: Build ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
+    name: Build ${{ matrix.target.label }}-macosx_${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [macos-15]
-        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
+        target:
+          - { label: "cp312",      python: "cp312", abi3: "" }
+          - { label: "cp312-abi3", python: "cp312", abi3: "0x030c0000" }
+          - { label: "cp313",      python: "cp313", abi3: "" }
+          - { label: "cp314",      python: "cp314", abi3: "" }
+          - { label: "cp315",      python: "cp315", abi3: "" }
         cibw_arch: ["arm64"]
 
     env:
@@ -160,24 +196,37 @@ jobs:
 
           python -m cibuildwheel --output-dir dist
         env:
-          CIBW_BUILD: ${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
+          CIBW_BUILD: ${{ matrix.target.python }}-macosx_${{ matrix.cibw_arch }}
+          PYFFTW_LIMITED_API: ${{ matrix.target.abi3 }}
+
+      - name: Check that the abi3 wheel is a stable ABI wheel
+        if: ${{ matrix.target.abi3 != '' }}
+        shell: bash
+        run: |
+          ls dist
+          ls dist/*-${{ matrix.target.python }}-abi3-*.whl
 
       - uses: actions/upload-artifact@v4
         name: Upload wheels as artifacts
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' || matrix.target.abi3 != '' }}
         with:
-          name: wheels-${{ matrix.cibw_python }}-macosx_${{ matrix.cibw_arch }}
+          name: wheels-${{ matrix.target.label }}-macosx_${{ matrix.cibw_arch }}
           path: ./dist/*.whl
 
 
   build_windows_wheels:
-    name: Build ${{ matrix.cibw_python }}-win${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
+    name: Build ${{ matrix.target.label }}-win${{ matrix.cibw_arch }} wheel on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [windows-2022]
-        cibw_python: ["cp312", "cp313", "cp314", "cp315"]
+        target:
+          - { label: "cp312",      python: "cp312", abi3: "" }
+          - { label: "cp312-abi3", python: "cp312", abi3: "0x030c0000" }
+          - { label: "cp313",      python: "cp313", abi3: "" }
+          - { label: "cp314",      python: "cp314", abi3: "" }
+          - { label: "cp315",      python: "cp315", abi3: "" }
         # Add arm64 when we support it
         cibw_arch: ["_amd64", "32"]
 
@@ -236,7 +285,8 @@ jobs:
       - name: Build Windows wheels
         env:
           ARCHITECTURE_BIT: ${{ matrix.cibw_arch == '32' && '32' || '64' }}
-          CIBW_BUILD: ${{ matrix.cibw_python }}-win${{ matrix.cibw_arch }}
+          CIBW_BUILD: ${{ matrix.target.python }}-win${{ matrix.cibw_arch }}
+          PYFFTW_LIMITED_API: ${{ matrix.target.abi3 }}
           CIBW_BEFORE_BUILD: >-
             (robocopy
             ${{ github.workspace }}\fftw${{ matrix.cibw_arch == '32' && '32' || '64' }}
@@ -245,17 +295,90 @@ jobs:
         run: |
           python -m cibuildwheel --output-dir dist
 
+      - name: Check that the abi3 wheel is a stable ABI wheel
+        if: ${{ matrix.target.abi3 != '' }}
+        shell: bash
+        run: |
+          ls dist
+          ls dist/*-${{ matrix.target.python }}-abi3-*.whl
+
       - uses: actions/upload-artifact@v4
         name: Upload wheels as artifacts
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' || matrix.target.abi3 != '' }}
         with:
-          name: wheels-${{ matrix.cibw_python }}-win${{ matrix.cibw_arch }}
+          name: wheels-${{ matrix.target.label }}-win${{ matrix.cibw_arch }}
           path: ./dist/*.whl
+
+
+  test_abi3_wheels:
+    # The cp312-abi3 wheels are built with Python 3.12 (and tested with it by
+    # cibuildwheel, except on macOS). Here we check that they also work with the
+    # other Python versions they are supposed to support.
+    # The full test suite is only run on Linux, other platforms only run the
+    # basic checks of .github/scripts/smoke_test_abi3.py
+    name: Test cp312-abi3 wheel (${{ matrix.platform.name }}) with Python ${{ matrix.python-version }}
+    needs: [build_linux_wheels, build_macos_arm64_wheels, build_windows_wheels]
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.13", "3.14", "3.15"]
+        platform:
+          - { name: "linux",   os: "ubuntu-22.04",  artifact: "manylinux_x86_64", venv-python: "bin/python",         full-tests: true }
+          - { name: "macos",   os: "macos-latest",  artifact: "macosx_arm64",     venv-python: "bin/python",         full-tests: false }
+          - { name: "windows", os: "windows-2022",  artifact: "win_amd64",        venv-python: "Scripts/python.exe", full-tests: false }
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        name: Install Python ${{ matrix.python-version }}
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+
+      - uses: actions/download-artifact@v4
+        name: Download the abi3 wheel
+        with:
+          name: wheels-cp312-abi3-${{ matrix.platform.artifact }}
+          path: ./dist
+
+      - name: Install the wheel in a clean virtual environment
+        env:
+          EXTRA_DEPS: ${{ matrix.platform.full-tests && 'pytest scipy dask packaging' || '' }}
+        run: |
+          ls -la dist
+          # (BSD wc on macOS pads its output with spaces, so don't compare it as a string)
+          wheels=(dist/*.whl)
+          test "${#wheels[@]}" = "1"
+          case "${wheels[0]}" in *-cp312-abi3-*) ;; *) echo "not an abi3 wheel"; exit 1;; esac
+          python -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/${{ matrix.platform.venv-python }}" -m pip install --upgrade pip
+          "$RUNNER_TEMP/venv/${{ matrix.platform.venv-python }}" -m pip install --prefer-binary dist/*.whl $EXTRA_DEPS
+
+      # Run from a temporary directory so that the pyfftw source package of the
+      # repository can not shadow the installed wheel
+      - name: Basic checks of the wheel
+        run: |
+          cp .github/scripts/smoke_test_abi3.py "$RUNNER_TEMP/"
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/venv/${{ matrix.platform.venv-python }}" smoke_test_abi3.py
+
+      - name: Run the test suite against the wheel
+        if: ${{ matrix.platform.full-tests }}
+        run: |
+          cp -r tests "$RUNNER_TEMP/tests"
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/venv/${{ matrix.platform.venv-python }}" -m pytest --import-mode=append -p no:cacheprovider -o addopts="" tests
 
 
   deploy:
     name: Release
-    needs: [build_linux_wheels, build_macos_x86_64_wheels, build_macos_arm64_wheels, build_windows_wheels]
+    needs: [build_linux_wheels, build_macos_x86_64_wheels, build_macos_arm64_wheels, build_windows_wheels, test_abi3_wheels]
     if: github.repository_owner == 'pyFFTW' && startsWith(github.ref, 'refs/tags/v') && always()
     runs-on: ubuntu-latest
     steps:

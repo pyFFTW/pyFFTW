@@ -74,6 +74,29 @@ if PYFFTW_FFTW_PREFIX is not None:
     os.environ["PYFFTW_LIB_DIR"] = os.path.join(PYFFTW_FFTW_PREFIX, "lib")
 
 
+def _limited_api_hex():
+    """Return the ``Py_LIMITED_API`` version hex for stable-ABI (abi3) builds.
+
+    Enabled by setting the ``PYFFTW_LIMITED_API`` environment variable to a
+    Python version hex, e.g. ``0x030c0000`` for a ``cp312-abi3`` wheel.
+    ``1``/``true`` selects the default ``0x030c0000`` (matching
+    ``requires-python >= 3.12``). Returns ``None`` for normal
+    version-specific builds.
+    """
+    value = os.environ.get("PYFFTW_LIMITED_API", "").strip().lower()
+    if not value or value in ("0", "false", "no"):
+        return None
+    if value in ("1", "true", "yes"):
+        value = "0x030c0000"
+    return value
+
+
+def _py_tag_from_hex(hex_value):
+    """Turn a ``Py_LIMITED_API`` version hex like ``0x030c0000`` into ``cp312``."""
+    version = int(hex_value, 16)
+    return "cp%d%d" % (version >> 24, (version >> 16) & 0xFF)
+
+
 def _get_mac_os_homebrew_prefix() -> str:
     """macOS on Apple Silicon can run binaries as native arm64, or in x86_64 emulation.
     Homebrew therefore supports both use cases, and sets up independent sysroots in /opt/homebrew (for arm64 packages)
@@ -649,8 +672,19 @@ def make_sniffer(compiler):
 
 
 def get_extensions():
+    limited_api = _limited_api_hex()
+    macros = []
+    if limited_api is not None:
+        # Stable ABI (abi3) build
+        macros.append(("Py_LIMITED_API", limited_api))
+        macros.append(("NPY_TARGET_VERSION", "NPY_2_0_API_VERSION"))
     ext_modules = [
-        Extension("pyfftw.pyfftw", sources=[os.path.join("pyfftw", "pyfftw.pyx")])
+        Extension(
+            "pyfftw.pyfftw",
+            sources=[os.path.join("pyfftw", "pyfftw.pyx")],
+            define_macros=macros or None,
+            py_limited_api=limited_api is not None,
+        )
     ]
     return ext_modules
 
@@ -843,6 +877,14 @@ def setup_package():
         "cmdclass": cmdclass,
         "py_modules": ["pyfftw"],
     }
+
+    limited_api = _limited_api_hex()
+    if limited_api is not None:
+        # Tag the wheel as cp3XX-abi3 (e.g. cp312-abi3) instead of
+        # cp3XX-cp3XXm, so it is installable on any CPython >= 3.12.
+        setup_args["options"] = {
+            "bdist_wheel": {"py_limited_api": _py_tag_from_hex(limited_api)}
+        }
 
     if len(sys.argv) >= 2 and (
         "--help" in sys.argv[1:]
